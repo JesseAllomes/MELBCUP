@@ -7,11 +7,12 @@ replaces PuntersEdge's recent-form call (3 credits a race), which stays as the f
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Any
 
 from melbcup.domain import Card, RaceResult, RunNote, parse_margin
 from melbcup.sources.http import JsonSource, SourceError
+from melbcup.sources.puntersedge import MarketSnapshot, parse_race_prices
 
 if TYPE_CHECKING:
     import httpx
@@ -42,6 +43,18 @@ RESULTS = (
     " GetBettingData(meetCode: $meetCode, raceNumber: $raceNumber) {"
     " exotics { poolStatusCode selections amount } } }"
 )
+RACES = (
+    "query($meetCode: ID!) { getRacesForMeet(meetCode: $meetCode) {"
+    " raceNumber raceStatus time trackCondition } }"
+)
+PRICES = (
+    "query($meetCode: ID!, $raceNumber: Int!) {"
+    " GetBettingData(meetCode: $meetCode, raceNumber: $raceNumber) { formRaceEntries {"
+    " raceEntryNumber scratched odds { providerCode oddsWin oddsPlace updated } } } }"
+)
+# racing.com's fixed-price bookmakers, under the keys the PuntersEdge feed uses for them.
+BOOKS = {"SB2": "sportsbet", "LB2": "ladbrokes_au", "PB3": "pointsbetau", "BT": "bet365_au"}
+PRICE_TTL = 30
 EXOTIC_CODES = {
     "trifecta": "TF",
     "first 4": "FF",
@@ -126,6 +139,44 @@ def parse_result(data: dict[str, Any]) -> RaceResult | None:
     return RaceResult("final" if final else "interim", finish, sp, names, place, exotics)
 
 
+def as_next_to_go(race: dict[str, Any], prices: dict[str, Any]) -> dict[str, Any]:
+    """One race in the PuntersEdge next-to-go shape, so the same parser (best price per runner,
+    Sportsbet's, and the margin-free consensus) reads both feeds."""
+    runners, scratched = [], []
+    for e in (prices.get("GetBettingData") or {}).get("formRaceEntries") or []:
+        n = _int(e.get("raceEntryNumber"))
+        if n is None:
+            continue
+        if e.get("scratched"):
+            scratched.append({"number": n})
+            continue
+        books = []
+        for o in e.get("odds") or []:
+            key = BOOKS.get(o.get("providerCode"))
+            win = _number(o.get("oddsWin"))
+            if key and win:
+                seen = o.get("updated")
+                books.append(
+                    {
+                        "key": key,
+                        "win_price": win,
+                        "place_price": _number(o.get("oddsPlace")),
+                        "last_update": datetime.fromtimestamp(int(seen), UTC).isoformat()
+                        if seen
+                        else None,
+                    }
+                )
+        runners.append({"number": n, "bookmakers": books})
+    starters = len(runners)
+    return {
+        "runners": runners,
+        "scratchings": scratched,
+        "places_paid": 3 if starters >= 8 else 2 if starters >= 5 else 1,
+        "start_time": race.get("time"),
+        "track_condition": race.get("trackCondition"),
+    }
+
+
 class RacingComClient:
     def __init__(self, api_key: str = PUBLIC_KEY, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("racing.com", BASE_URL, api_key, transport=transport)
@@ -174,6 +225,29 @@ class RacingComClient:
             result = parse_result(self._query(RESULTS, {"meetCode": code, "raceNumber": n}, 60))
             if result is not None:
                 out[n] = result
+        return out
+
+    def card_prices(
+        self, race_date: date, venue: str, races: list[int]
+    ) -> dict[int, MarketSnapshot]:
+        """Race number -> Sportsbet, Ladbrokes, PointsBet and bet365 prices for the races not
+        yet run (free; PuntersEdge charges 2 a check). Races with no prices are left out."""
+        code = self.meeting_code(race_date, venue)
+        if code is None:
+            raise SourceError("racing.com", "not_found", f"no meeting for {venue} on {race_date}")
+        meta = {
+            r["raceNumber"]: r
+            for r in self._query(RACES, {"meetCode": code}, PRICE_TTL).get("getRacesForMeet") or []
+        }
+        out = {}
+        for n in races:
+            race = meta.get(n, {})
+            if "result" in (race.get("raceStatus") or "").lower():
+                continue
+            data = self._query(PRICES, {"meetCode": code, "raceNumber": n}, PRICE_TTL)
+            snap = parse_race_prices(as_next_to_go(race, data))
+            if any(p.best_win for p in snap.prices.values()):
+                out[n] = snap
         return out
 
     def horse_codes(self, card: Card) -> dict[tuple[int, int], str]:

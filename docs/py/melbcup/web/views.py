@@ -193,6 +193,7 @@ class Views:
             "here": path + (f"?budget={budget:g}" if budget else ""),
             "load_cost": self.board.card_cost(len(snap.card.races) if snap.card else 10),
             "snap_results_cost": self.board.results_cost,
+            "snap_prices_cost": self.board.prices_cost,
             "now": datetime.now(UTC),
         }
 

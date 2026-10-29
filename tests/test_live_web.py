@@ -353,8 +353,13 @@ def test_results_come_free_from_racingcom_with_puntersedge_as_fallback():
     board = board_with(router, clock)
     board.rc = RacingComClient(transport=httpx.MockTransport(router))
     board.load_card_now(wait=True)
-    assert board.card_cost(10) == 2 and board.results_cost == 0
+    assert board.card_cost(10) == 2 and board.results_cost == 0 and board.prices_cost == 0
     assert "/v1/racing/form" not in router.hits  # recent form came from racing.com
+    board._priced_at = None
+    assert board.refresh_prices_now()
+    assert "/v1/racing/next-to-go" not in router.hits  # prices came free from racing.com
+    race1 = board.snapshot().card.race(1)
+    assert race1.prices[1].sportsbet_win == 3.0 and race1.prices[1].best_win.price == 3.3
     assert board.fetch_results_now()
     assert "/v1/racing/results" not in router.hits  # no credits spent on results
     assert all(r.result is not None for r in board.snapshot().card.races)

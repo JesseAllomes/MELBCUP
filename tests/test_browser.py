@@ -43,7 +43,7 @@ def test_full_flow_and_saved_state_costs_nothing_on_reopen():
     nxt = browser.act("/actions/load?next=/")
     assert nxt == "/"
     html = browser.render(nxt)
-    assert "Lexus Melbourne Cup" in html and "Each way" in html
+    assert "Lexus Melbourne Cup" in html and "Most likely" in html
     assert router.hits["/v1/racing/acceptances"] == 1
     assert "Grand Tempo" in browser.render("/race/2?budget=100")
     assert "Choose a meeting" in browser.render("/meetings")

@@ -26,7 +26,7 @@
       {% if not snap.saved %}
       <div class="buttons">
         {% if card and snap.can_price %}
-        <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices <span>2</span></button></form>
+        <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices <span>{{ snap_prices_cost or "free" }}</span></button></form>
         {% endif %}
         {% if card and snap.race_date <= today %}
         <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results <span>{{ snap_results_cost or "free" }}</span></button></form>

@@ -286,6 +286,39 @@ def rc_payload(query: str, variables: dict) -> dict:
     stewards' comment for each race's runner 1 (plus one run after race day, to be ignored)."""
     if "GetMeetingByVenueDateTrial" in query:
         return {"data": {"GetMeetingByVenueDateTrial": [{"id": "M1"}]}}
+    if "getRacesForMeet" in query:
+        return {
+            "data": {
+                "getRacesForMeet": [
+                    {
+                        "raceNumber": n,
+                        "raceStatus": "FinalFields",
+                        "time": None,
+                        "trackCondition": "Good 4",
+                    }
+                    for n in FIELDS
+                ]
+            }
+        }
+    if "GetBettingData" in query and "getRaceForm" not in query:  # prices before the race
+        race = variables["raceNumber"]
+        entries = [
+            {
+                "raceEntryNumber": n,
+                "scratched": False,
+                "odds": [
+                    {
+                        "providerCode": code,
+                        "oddsWin": f"${2.0 + n + bump:.2f}",
+                        "oddsPlace": f"${1.2 + 0.4 * n:.2f}",
+                        "updated": 1793240136,
+                    }
+                    for code, bump in (("SB2", 0.0), ("LB2", 0.2), ("PB3", 0.1), ("BT", 0.3))
+                ],
+            }
+            for n, *_ in FIELDS.get(race, [])
+        ]
+        return {"data": {"GetBettingData": {"formRaceEntries": entries}}}
     if "GetBettingData" in query:  # results: runners finish in saddlecloth order
         race = variables["raceNumber"]
         entries = [
