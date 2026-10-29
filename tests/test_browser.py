@@ -38,7 +38,7 @@ def test_full_flow_and_saved_state_costs_nothing_on_reopen():
     )
     assert sources.WORKERS == 1
     assert "No card loaded yet" in browser.render("/")
-    assert "API keys" in browser.render("/")
+    assert "#keys" not in browser.render("/")  # the keys live on the hidden settings page
 
     nxt = browser.act("/actions/load?next=/")
     assert nxt == "/"
@@ -111,9 +111,43 @@ def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
     assert browser.tick()  # the load
     after = dict(router.hits)
     assert after["/v1/racing/acceptances"] == before["/v1/racing/acceptances"] == 1
-    assert after.get("/v1/racing/form") == before.get("/v1/racing/form")  # no credits twice
+    assert "/v1/racing/form" not in after  # racing.com supplies runs: no 3-credit form calls
     assert after.get("/v1/form") == before.get("/v1/form")
     stats = [k for k in after if k.startswith("/v1/stats/")]
     assert stats and all(after[k] == before.get(k) for k in stats)  # people came from the cache
     assert "Lexus Melbourne Cup" in browser.render("/")
     assert asyncio.run(browser.warm(False)) == 0  # card loaded: Auto will not load again
+
+
+def test_friends_need_no_keys_racingcom_supplies_everything():
+    router = Router()
+    browser.init("", "", requester=requester_for(router), clock=lambda: CUP_MORNING)
+    html = browser.render("/")
+    assert "Live data from racing.com" in html and "PuntersEdge credits" not in html
+    browser.act("/actions/load?next=/")
+    html = browser.render("/")
+    assert "Most likely" in html and "Race 2" in html  # racing.com's own race names
+    browser.act("/actions/prices?next=/")
+    assert not any(k.startswith("/v1/") for k in router.hits)  # no PuntersEdge or FormFav calls
+    card = browser._views.board.snapshot().card
+    r1 = card.race(1).runner(1)
+    assert r1.career.starts == 10 and r1.going_records and r1.last_start_note
+    assert card.race(1).prices[1].sportsbet_win == 3.0
+
+
+def test_warm_works_with_no_keys():
+    import asyncio
+
+    router = Router()
+
+    async def fetch_many(urls, headers, label):
+        replies = [requester_for(router)(u, headers) for u in urls]
+        return [[r.status, r.text] for r in replies]
+
+    browser.init(
+        "", "", requester=requester_for(router), clock=lambda: CUP_MORNING, fetch_many=fetch_many
+    )
+    assert asyncio.run(browser.warm(True)) > 5  # each runner's racing.com runs, side by side
+    browser.act("/actions/load?next=/")
+    assert "Most likely" in browser.render("/")
+    assert not any(k.startswith("/v1/") for k in router.hits)

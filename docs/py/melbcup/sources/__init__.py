@@ -66,19 +66,23 @@ def _try[T](card: Card, what: str, fn: Callable[[], T]) -> T | None:
 
 
 def load_card(
-    pe: PuntersEdgeClient,
+    pe: PuntersEdgeClient | None,
     ff: FormFavClient | None,
     race_date: date,
     venue: str,
     rc: RacingComClient | None = None,
 ) -> Card:
-    card = pe.acceptances(race_date, venue)
+    """The field from PuntersEdge (Racing Australia's acceptances) when there is a key, else
+    from racing.com; then recent runs from racing.com and FormFav's form when there is a key."""
+    card = pe.acceptances(race_date, venue) if pe is not None else rc.card(race_date, venue)
     with _pool() as pool:
         if rc is not None:
             enrich_from_racingcom(card, rc, pool)
         # PuntersEdge's recent form (3 credits a race) only for races with a runner racing.com
         # did not find (a first starter it found has no runs, which is not missing).
         missing = [r for r in card.races if any(x.run_notes is None for x in r.starters)]
+        if pe is None:
+            missing = []
         forms = pool.map(
             lambda r: _try(
                 card, "Recent form (PuntersEdge)", lambda: pe.field_form(race_date, venue, r.number)
@@ -92,7 +96,7 @@ def load_card(
                     runner.career = runner.career or record
         if ff is None:
             card.warnings.append(
-                "FormFav key not set: career splits, speed maps and ratings missing"
+                "No FormFav key: its ratings, speed maps and jockey and trainer records are missing"
             )
         else:
             enrich_from_formfav(card, ff, pool)

@@ -157,14 +157,18 @@ async def warm(manual: bool = False) -> int:
     if _fetch_many is None or board is None or not board.load_due(board.clock(), manual=manual):
         return 0
     try:
-        card = board.pe.acceptances(board.race_date, board.venue)
+        if board.pe is not None:
+            card = board.pe.acceptances(board.race_date, board.venue)
+        else:
+            card = board.rc.card(board.race_date, board.venue)
     except http.SourceError:
         return 0  # the load asks again and shows the reason
     cached = 0
     clients = (
-        (board.pe, "recent form"),
+        # PuntersEdge's recent form costs 3 credits a race: only when racing.com is missing.
+        (board.pe if board.rc is None else None, "recent form"),
         (board.ff, "form and stats"),
-        (board.rc, "stewards' notes"),
+        (board.rc, "recent runs and stewards' notes"),
     )
     for client, label in clients:
         if client is None:

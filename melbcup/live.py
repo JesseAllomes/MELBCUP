@@ -192,7 +192,7 @@ class LiveBoard:
     def load_due(self, now: datetime, *, manual: bool = False) -> bool:
         """A card load from the feeds is about to run: the Load button (``manual``), or Auto's
         first load. The browser uses this to fetch the load's requests side by side first."""
-        if self.pe is None or self.field_due(now) is not None or self._archived(now):
+        if not self.can_fetch or self.field_due(now) is not None or self._archived(now):
             return False
         if manual:
             return True
@@ -227,7 +227,7 @@ class LiveBoard:
                 found = self.rc.card_prices(self.race_date, self.venue, to_run)
             except SourceError:
                 found = {}
-            if to_run and set(to_run) <= set(found):
+            if (to_run and set(to_run) <= set(found)) or self.pe is None:
                 return found
         return self.pe.card_prices(self.race_date, self.venue)
 
@@ -243,7 +243,7 @@ class LiveBoard:
 
     def load_card_now(self, *, wait: bool = False) -> bool:
         """Load the field and form (and then prices) in the background. False if already busy."""
-        if self.pe is None or not self._work.acquire(blocking=False):
+        if not self.can_fetch or not self._work.acquire(blocking=False):
             return False
         self._loading = True
 
@@ -268,8 +268,9 @@ class LiveBoard:
         return True
 
     def refresh_prices_now(self) -> bool:
-        """One whole-card price call (2 credits). Ignored within 15 s of the last one."""
-        if self.pe is None or self._card is None:
+        """One whole-card price check (free from racing.com, else 2 credits). Ignored within
+        15 s of the last one."""
+        if not self.can_fetch or self._card is None:
             return False
         now = self.clock()
         if self._priced_at is not None and now - self._priced_at < MIN_MANUAL_GAP:
@@ -285,7 +286,7 @@ class LiveBoard:
     def fetch_results_now(self) -> bool:
         """Settled results for the meeting (free from racing.com, else 2 credits). Ignored
         within 15 s of the last fetch."""
-        if self.pe is None or self._card is None:
+        if not self.can_fetch or self._card is None:
             return False
         now = self.clock()
         if self._results_at is not None and now - self._results_at < MIN_MANUAL_GAP:
@@ -311,7 +312,7 @@ class LiveBoard:
                 )
             except SourceError:
                 found = {}
-            if found:
+            if found or self.pe is None:
                 return found
         return self.pe.results(self.race_date, self.venue)
 
@@ -372,14 +373,17 @@ class LiveBoard:
         return True
 
     def find_meetings(self, race_date: date) -> list[str]:
-        """The day's meetings (2 credits, then cached for this day)."""
+        """The day's meetings (free from racing.com, else 2 credits; then cached for the day)."""
         if self.archive is not None and self.archive.venues(race_date):
             return self.archive.venues(race_date)  # saved earlier: no credits
-        if self.pe is None:
+        if not self.can_fetch:
             return []
         if race_date not in self._meetings:
             try:
-                found = self.pe.meetings(race_date)
+                if self.rc is not None:
+                    found = self.rc.meetings(race_date, self._melbourne_day(self.clock()))
+                else:
+                    found = self.pe.meetings(race_date)
             except SourceError as exc:
                 with self._lock:
                     self._errors = [str(exc)]
@@ -402,7 +406,7 @@ class LiveBoard:
     def tick(self) -> None:
         """Auto mode: load the card if there is none, keep race-day form fresh, price today's
         and tomorrow's meetings on schedule, and collect results as races are run."""
-        if self.pe is None or not self.auto:
+        if not self.can_fetch or not self.auto:
             return
         now = self.clock()
         if self._paused_until and now < self._paused_until:
@@ -432,26 +436,34 @@ class LiveBoard:
             return True
         return any(self._priced_at < t <= now for t in price_check_times(self._card.races))
 
+    @property
+    def can_fetch(self) -> bool:
+        """A source to load cards from: racing.com (free, no key) or PuntersEdge."""
+        return self.pe is not None or self.rc is not None
+
     def card_cost(self, races: int) -> int:
-        """Credits to load a card: the field, plus recent form unless racing.com supplies it."""
+        """PuntersEdge credits to load a card: none without a key (racing.com supplies it),
+        else the field, plus recent form unless racing.com supplies that."""
+        if self.pe is None:
+            return 0
         return 2 if self.rc is not None else 2 + 3 * races
 
     @property
     def prices_cost(self) -> int:
         """Credits per price check: racing.com's are free, PuntersEdge's cost 2."""
-        return 0 if self.rc is not None else 2
+        return 0 if self.rc is not None or self.pe is None else 2
 
     @property
     def results_cost(self) -> int:
         """Credits per results check: racing.com's are free, PuntersEdge's cost 2."""
-        return 0 if self.rc is not None else 2
+        return 0 if self.rc is not None or self.pe is None else 2
 
     def auto_credits_left(self, now: datetime) -> int | None:
         """PuntersEdge credits Auto still plans to spend on this meeting: a price check per
         checkpoint still to come and a results check per race still to be resulted (both free
         from racing.com, 2 from PuntersEdge), and the card if it is not loaded."""
         if self.pe is None or self._archived(now):
-            return 0
+            return 0  # racing.com alone costs nothing
         if self.field_due(now) is not None:
             return None  # nothing can be fetched until the field is published
         if self._card is None:
@@ -485,7 +497,7 @@ class LiveBoard:
     # -- background thread --------------------------------------------------------------------
 
     def start(self, every_seconds: float = 15.0) -> None:
-        if self.pe is None or self._thread is not None:
+        if not self.can_fetch or self._thread is not None:
             return
 
         def loop() -> None:

@@ -168,7 +168,7 @@ def test_load_card_without_formfav_key(router):
     card = load_card(pe, None, RACE_DATE, VENUE)
     r = card.race(1).runner(2)
     assert r.runs and r.career.starts == 4  # from PuntersEdge form summary
-    assert any("FormFav key not set" in w for w in card.warnings)
+    assert any("No FormFav key" in w for w in card.warnings)
 
 
 def test_apply_market_marks_late_scratchings():

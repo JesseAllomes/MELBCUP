@@ -106,7 +106,7 @@
     const a = e.target.closest("a");
     if (!a) return;
     const href = a.getAttribute("href") || "";
-    if (href === "#keys") { e.preventDefault(); showKeys(); return; }
+    if (href === "#keys" || href === "#settings") { e.preventDefault(); showKeys(); return; }
     if (href.startsWith("/")) { e.preventDefault(); go(href); }
   });
 
@@ -146,16 +146,18 @@
   $("keys-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const pe = $("pe-key").value.trim();
-    if (!pe) { $("keys-note").textContent = "The PuntersEdge key is required: it supplies the field and the prices."; return; }
     store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim(), hp: $("hp-key").value.trim() }));
-    location.reload();
+    location.replace(location.pathname);  // back to the app, not the settings page
   });
 
   // --- start ---------------------------------------------------------------------------------
 
   async function start() {
+    // The keys live on a page nobody is shown: open .../MELBCUP/#settings to reach it (also
+    // when the app is already open, where changing the address does not reload the page).
+    window.addEventListener("hashchange", () => { if (location.hash === "#settings") showKeys(); });
+    if (location.hash === "#settings") { showKeys(); return; }
     const keys = readKeys();
-    if (!keys.pe) { showKeys(); return; }
     worker = new Worker("worker.js");
     worker.onmessage = (event) => {
       const msg = event.data;
@@ -173,7 +175,7 @@
     };
     worker.onerror = (e) => showError(e.message || "the app could not start");
     try {
-      await send("init", { pe: keys.pe, ff: keys.ff || "", hp: keys.hp || "", saved: store.get(STATE) });
+      await send("init", { pe: keys.pe || "", ff: keys.ff || "", hp: keys.hp || "", saved: store.get(STATE) });
     } catch (err) {
       // A saved card from an older build can stop start-up: drop it once and retry.
       if (store.get(STATE)) { store.set(STATE, null); location.reload(); return; }

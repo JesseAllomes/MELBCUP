@@ -215,4 +215,4 @@ def test_history_says_when_the_saved_races_are_locked(tmp_path, monkeypatch):
         archive=archive.Archive(read, "a-different-key"),
     )
     html = v.Views(b.settings, b, browser=True).page("/history", {})
-    assert "saved races are locked" in html and "History password" in html
+    assert "saved races are locked" in html

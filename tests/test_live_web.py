@@ -247,11 +247,11 @@ def test_race_page(client):
     assert client.get("/race/9", auth=AUTH).status_code == 404
 
 
-def test_setup_message_without_keys():
+def test_runs_on_racingcom_without_any_keys():
     app = create_app(load_settings({"APP_PASSWORD": "p"}), start_background=False)
     with TestClient(app) as c:
         html = c.get("/", auth=("", "p")).text
-    assert "Add your data keys" in html
+    assert "Live data from racing.com" in html and "PuntersEdge credits" not in html
 
 
 def test_filters():

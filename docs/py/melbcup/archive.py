@@ -11,6 +11,8 @@ Layout under the archive root:
     index.json      {"locks": [{"salt", "key"}, ...], "meetings": {"YYYY-MM-DD": [venue, ...]}}
     YYYY-MM-DD/<venue-slug>.bin         base64 of nonce | ciphertext | tag
     history.bin                         the model's record on every saved race, sealed the same way
+    history-open.bin                    the same record unsealed (our picks and the official
+                                        results only), so anyone opening the app sees History
 """
 
 from __future__ import annotations
@@ -136,16 +138,16 @@ class Archive:
         return venue.lower() in (v.lower() for v in self._index.get(day, []))
 
     def history(self) -> list[dict]:
-        """The model's record on every saved race (built when the archive was written)."""
-        if self._keys is None:
-            return []
-        raw = self._read("history.bin")
-        if raw is None:
-            return []
+        """The model's record on every saved race (built when the archive was written). Without
+        a key, the open copy: it holds only our picks and the official results."""
         try:
-            return json.loads(zlib.decompress(unseal(base64.b64decode(raw), self._keys)))
+            if self._keys is not None and (raw := self._read("history.bin")) is not None:
+                return json.loads(zlib.decompress(unseal(base64.b64decode(raw), self._keys)))
+            if (raw := self._read("history-open.bin")) is not None:
+                return json.loads(zlib.decompress(base64.b64decode(raw)))
         except (ArchiveError, ValueError, zlib.error):
-            return []  # from another build: show the races graded on this phone instead
+            pass  # from another build: show the races graded on this phone instead
+        return []
 
     def load(self, day: date, venue: str) -> Card:
         if not self.has(day, venue) or self._keys is None:
@@ -177,8 +179,10 @@ def write(
             fh.write(base64.b64encode(blob).decode())
         meetings.setdefault(card.race_date.isoformat(), []).append(card.venue)
     if history is not None:
-        blob = seal(zlib.compress(json.dumps(history).encode(), 9), keys)
+        packed = zlib.compress(json.dumps(history).encode(), 9)
         with open(os.path.join(root, "history.bin"), "w") as fh:
-            fh.write(base64.b64encode(blob).decode())
+            fh.write(base64.b64encode(seal(packed, keys)).decode())
+        with open(os.path.join(root, "history-open.bin"), "w") as fh:
+            fh.write(base64.b64encode(packed).decode())
     with open(os.path.join(root, "index.json"), "w") as fh:
         json.dump({"locks": locks, "meetings": meetings}, fh, indent=1)

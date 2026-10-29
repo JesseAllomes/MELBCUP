@@ -10,7 +10,16 @@ import json
 from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Any
 
-from melbcup.domain import Card, RaceResult, RunNote, parse_margin
+from melbcup.domain import (
+    Card,
+    Race,
+    RaceResult,
+    Runner,
+    RunNote,
+    StatLine,
+    going_band,
+    parse_margin,
+)
 from melbcup.sources.http import JsonSource, SourceError
 from melbcup.sources.puntersedge import MarketSnapshot, parse_race_prices
 
@@ -55,6 +64,31 @@ PRICES = (
 # racing.com's fixed-price bookmakers, under the keys the PuntersEdge feed uses for them.
 BOOKS = {"SB2": "sportsbet", "LB2": "ladbrokes_au", "PB3": "pointsbetau", "BT": "bet365_au"}
 PRICE_TTL = 30
+MEETINGS = (
+    "query($states: String!, $daysBack: Int!, $daysForward: Int!, $userDate: String!) {"
+    " GetRaceMeetingsByStateNew(states: $states, daysBack: $daysBack, daysForward: $daysForward,"
+    " userDate: $userDate) { id venue date state isTrial isJumpOut } }"
+)
+STATES = ("VIC", "NSW", "QLD", "SA", "WA", "TAS", "NT", "ACT")
+CARD_RACES = (
+    "query($meetCode: ID!) { getRacesForMeet(meetCode: $meetCode) { raceNumber raceStatus"
+    " distance time class name meet { trackCondition railPosition weather } } }"
+)
+CARD_FIELD = (
+    "query($meetCode: ID!, $raceNumber: Int!) { getRaceForm(meetCode: $meetCode,"
+    " raceNumber: $raceNumber) { formRaceEntries { raceEntryNumber horseName horseCode"
+    " barrierNumber weight jockeyName trainerName scratched emergency gearChanges handicapRating"
+    " lastRaceDate trackStats distanceStats trackDistanceStats horse { age sex owners"
+    " sireHorseName damHorseName lastFive firstUpStats secondUpStats goodStats softStats"
+    " heavyStats firmStats syntheticStats } } } }"
+)
+GOING_STATS = {
+    "good": "goodStats",
+    "soft": "softStats",
+    "heavy": "heavyStats",
+    "firm": "firmStats",
+    "synthetic": "syntheticStats",
+}
 EXOTIC_CODES = {
     "trifecta": "TF",
     "first 4": "FF",
@@ -76,6 +110,67 @@ def _number(text: Any) -> float | None:
         return float(cleaned) if cleaned else None
     except ValueError:
         return None
+
+
+def statline(text: Any) -> StatLine | None:
+    """``"7:2-2-1"`` or ``"29-7-5-2"`` (starts, wins, seconds, thirds) -> StatLine."""
+    parts = [int(x) for x in str(text or "").replace(":", "-").split("-") if x.strip().isdigit()]
+    if len(parts) != 4 or not parts[0]:
+        return None
+    starts, wins, seconds, thirds = parts
+    return StatLine(starts, wins, wins + seconds + thirds)
+
+
+def _last_figures(text: Any) -> str | None:
+    """``'["7","-","6","0","5"]'`` (oldest first) -> ``"7x605"``, newest last like PuntersEdge's."""
+    try:
+        figures = json.loads(text) if text else []
+    except ValueError:
+        return None
+    out = "".join(str(f) if str(f).isdigit() and len(str(f)) == 1 else "x" for f in figures)
+    return out or None
+
+
+def parse_runner(e: dict[str, Any], condition: str | None) -> Runner:
+    horse = e.get("horse") or {}
+    by_going = {
+        band: line for band, key in GOING_STATS.items() if (line := statline(horse.get(key)))
+    }
+    career = None
+    if by_going:  # the going records together cover every start
+        lines = by_going.values()
+        career = StatLine(
+            sum(x.starts for x in lines), sum(x.wins for x in lines), sum(x.top3 for x in lines)
+        )
+    band = going_band(condition)
+    last = e.get("lastRaceDate")
+    return Runner(
+        number=int(e["raceEntryNumber"]),
+        name=e.get("horseName") or f"No. {e['raceEntryNumber']}",
+        barrier=_int(e.get("barrierNumber")),
+        jockey=e.get("jockeyName"),
+        trainer=e.get("trainerName"),
+        owner=horse.get("owners"),
+        weight_kg=_number(e.get("weight")),
+        scratched=bool(e.get("scratched")),
+        emergency=bool(e.get("emergency")),
+        age=_int(horse.get("age")),
+        sex=horse.get("sex"),
+        sire=horse.get("sireHorseName"),
+        dam=horse.get("damHorseName"),
+        gear_changes=e.get("gearChanges"),
+        last10=_last_figures(horse.get("lastFive")),
+        hcp_rating=_int(e.get("handicapRating")),
+        last_start_date=date.fromisoformat(last[:10]) if last else None,
+        career=career,
+        track=statline(e.get("trackStats")),
+        distance=statline(e.get("distanceStats")),
+        track_distance=statline(e.get("trackDistanceStats")),
+        going=by_going.get(band) if band else None,
+        going_records=by_going or None,
+        first_up=statline(horse.get("firstUpStats")),
+        second_up=statline(horse.get("secondUpStats")),
+    )
 
 
 def parse_runs(data: dict[str, Any]) -> list[RunNote]:
@@ -180,6 +275,7 @@ def as_next_to_go(race: dict[str, Any], prices: dict[str, Any]) -> dict[str, Any
 class RacingComClient:
     def __init__(self, api_key: str = PUBLIC_KEY, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("racing.com", BASE_URL, api_key, transport=transport)
+        self._codes: dict[tuple[date, str], str] = {}  # (day, venue) -> meeting code
 
     @staticmethod
     def _request(query: str, variables: dict[str, Any], ttl: float) -> tuple[str, dict, float]:
@@ -195,6 +291,8 @@ class RacingComClient:
         return body["data"]
 
     def meeting_code(self, race_date: date, venue: str) -> str | None:
+        if (known := self._codes.get((race_date, venue.lower()))) is not None:
+            return known
         found = self._query(MEETING, {"venueName": venue, "date": race_date.isoformat()}, 6 * 3600)
         meetings = found.get("GetMeetingByVenueDateTrial") or []
         return str(meetings[0]["id"]) if meetings else None
@@ -249,6 +347,74 @@ class RacingComClient:
             if any(p.best_win for p in snap.prices.values()):
                 out[n] = snap
         return out
+
+    def meetings(self, race_date: date, today: date) -> list[str]:
+        """Australian meetings on a day (no trials or jump-outs), as racing.com names them.
+        Its list runs relative to today; the meeting codes are kept for the card load."""
+        back, forward = max(0, (today - race_date).days), max(0, (race_date - today).days)
+        found: dict[str, str] = {}
+        for state in STATES:
+            rows = (
+                self._query(
+                    MEETINGS,
+                    {
+                        "states": state,
+                        "daysBack": back,
+                        "daysForward": forward,
+                        "userDate": today.isoformat(),
+                    },
+                    1800,
+                ).get("GetRaceMeetingsByStateNew")
+                or []
+            )
+            for m in rows:
+                if (
+                    m.get("isTrial")
+                    or m.get("isJumpOut")
+                    or str(m.get("date", ""))[:10] != race_date.isoformat()
+                ):
+                    continue
+                found.setdefault(m["venue"], str(m["id"]))
+        self._codes.update({(race_date, v.lower()): c for v, c in found.items()})
+        return sorted(found)
+
+    def card(self, race_date: date, venue: str) -> Card:
+        """The meeting's field from racing.com: runners, scratchings, barriers, weights, riders,
+        owners, breeding, ratings and their records (career, track, distance, going, spells)."""
+        code = self.meeting_code(race_date, venue)
+        if code is None:
+            raise SourceError("racing.com", "not_found", f"no meeting for {venue} on {race_date}")
+        races = self._query(CARD_RACES, {"meetCode": code}, 600).get("getRacesForMeet") or []
+        card = Card(venue, race_date)
+        for r in sorted(races, key=lambda x: x.get("raceNumber") or 0):
+            meet = r.get("meet") or {}
+            condition = meet.get("trackCondition")
+            card.condition, card.rail = (
+                card.condition or condition,
+                card.rail or meet.get("railPosition"),
+            )
+            race = Race(
+                venue=venue,
+                race_date=race_date,
+                number=int(r["raceNumber"]),
+                name=r.get("name"),
+                distance_m=_int(r.get("distance")),
+                condition=condition,
+                weather=meet.get("weather"),
+                race_class=r.get("class"),
+                start_time=datetime.fromisoformat(r["time"].replace("Z", "+00:00"))
+                if r.get("time")
+                else None,
+            )
+            field = self._query(CARD_FIELD, {"meetCode": code, "raceNumber": race.number}, 600)
+            entries = (field.get("getRaceForm") or {}).get("formRaceEntries") or []
+            race.runners = [parse_runner(e, condition) for e in entries if e.get("raceEntryNumber")]
+            starters = len(race.starters)
+            race.places_paid = 3 if starters >= 8 else 2 if starters >= 5 else 1
+            card.races.append(race)
+        if not card.races:
+            raise SourceError("racing.com", "not_found", f"no field yet for {venue} on {race_date}")
+        return card
 
     def horse_codes(self, card: Card) -> dict[tuple[int, int], str]:
         """(race, saddlecloth) -> horse code for the whole card: one call per race."""

@@ -194,6 +194,8 @@ class Views:
             "load_cost": self.board.card_cost(len(snap.card.races) if snap.card else 10),
             "snap_results_cost": self.board.results_cost,
             "snap_prices_cost": self.board.prices_cost,
+            "can_fetch": self.board.can_fetch,
+            "has_pe": self.board.pe is not None,
             "now": datetime.now(UTC),
         }
 
@@ -204,14 +206,14 @@ class Views:
             return self.env.get_template("day.html").render(ctx)
         if path == "/history":
             archive = self.board.archive
-            saved = archive.history() if archive is not None and archive.open else []
+            saved = archive.history() if archive is not None else []
             record = history.merge(saved, self.board.history())
             ctx.update(
                 record=record,
                 tallies=history.tally(record),
                 by_confidence=history.by_confidence(record),
                 groups=history.meetings(record),
-                archive_closed=archive is not None and not archive.open,
+                archive_closed=archive is not None and not archive.open and not saved,
                 saved_count=len(saved),
             )
             return self.env.get_template("history.html").render(ctx)

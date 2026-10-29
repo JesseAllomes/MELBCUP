@@ -19,9 +19,9 @@
     </div>
   </header>
   <main id="main" class="wrap" data-refresh="{% block refresh %}60{% endblock %}">
-    {% if settings.has_price_source %}
+    {% if can_fetch %}
     <div class="status">
-      <p class="credits"><strong>{{ '{:,}'.format(snap.credits_remaining) if snap.credits_remaining is not none else '?' }}</strong>{% if snap.credits_limit %} of {{ '{:,}'.format(snap.credits_limit) }}{% endif %} PuntersEdge credits left
+      <p class="credits">{% if has_pe %}<strong>{{ '{:,}'.format(snap.credits_remaining) if snap.credits_remaining is not none else '?' }}</strong>{% if snap.credits_limit %} of {{ '{:,}'.format(snap.credits_limit) }}{% endif %} PuntersEdge credits left{% else %}Live data from racing.com{% endif %}
         <span class="when">{% if snap.saved %}saved meeting, nothing to fetch{% else %}{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% else %}no prices yet{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %} · loading card…{% endif %}{% endif %}</span></p>
       {% if not snap.saved %}
       <div class="buttons">
@@ -32,11 +32,11 @@
         <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results <span>{{ snap_results_cost or "free" }}</span></button></form>
         {% endif %}
         {% if not snap.field_due %}
-        <form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>~{{ load_cost }}</span></button></form>
+        <form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>{{ ('~' ~ load_cost) if load_cost else 'free' }}</span></button></form>
         {% endif %}
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}"><button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'on' if snap.auto else 'off' }}</button></form>
       </div>
-      {% if snap.auto %}<p class="note">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race, and results after each race{% if snap.auto_credits_left is not none %}: about {{ snap.auto_credits_left }} more credits for this meeting{% endif %}.</p>{% endif %}
+      {% if snap.auto %}<p class="note">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race, and results after each race{% if snap.auto_credits_left %}: about {{ snap.auto_credits_left }} more credits for this meeting{% endif %}.</p>{% endif %}
       {% endif %}
     </div>
     {% endif %}
@@ -47,7 +47,7 @@
   <footer class="wrap">
     <p>Estimates from form and market data. They improve the odds of a good decision; they do not
       guarantee a result. Bet only what you can afford to lose.</p>
-    {% if browser %}<p><a href="#keys">API keys</a> · Runs on this phone; your keys and loaded meetings stay on it.</p>{% endif %}
+    {% if browser %}<p>Runs on this phone; loaded meetings stay on it.</p>{% endif %}
     <p>Gambling Help Online <a href="tel:1800858858">1800 858 858</a> · <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
   </footer>
 </body>

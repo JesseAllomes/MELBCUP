@@ -295,6 +295,14 @@ def rc_payload(query: str, variables: dict) -> dict:
                         "raceStatus": "FinalFields",
                         "time": None,
                         "trackCondition": "Good 4",
+                        "name": f"Race {n}",
+                        "distance": "1600m",
+                        "class": "BM78",
+                        "meet": {
+                            "trackCondition": "Good 4",
+                            "weather": "Fine",
+                            "railPosition": "True",
+                        },
                     }
                     for n in FIELDS
                 ]
@@ -345,7 +353,33 @@ def rc_payload(query: str, variables: dict) -> dict:
     if "getRaceForm" in query:
         race = variables["raceNumber"]
         entries = [
-            {"raceEntryNumber": n, "horseCode": f"H{race}-{n}"} for n, *_ in FIELDS.get(race, [])
+            {
+                "raceEntryNumber": n,
+                "horseCode": f"H{race}-{n}",
+                "horseName": name,
+                "barrierNumber": barrier,
+                "weight": f"{weight}kg",
+                "jockeyName": jockey,
+                "trainerName": trainer,
+                "scratched": False,
+                "emergency": False,
+                "handicapRating": rating,
+                "lastRaceDate": "2026-10-17",
+                "trackStats": "3:1-0-1",
+                "distanceStats": "5:2-1-0",
+                "horse": {
+                    "age": "5",
+                    "sex": "Gelding",
+                    "owners": "A Owner",
+                    "sireHorseName": "Sire",
+                    "damHorseName": "Dam",
+                    "lastFive": '["1","x","2","3","1"]',
+                    "goodStats": "8-3-1-1",
+                    "softStats": "2-0-1-0",
+                    "firstUpStats": "2:1-0-0",
+                },
+            }
+            for n, name, barrier, jockey, trainer, weight, _last, rating in FIELDS.get(race, [])
         ]
         return {"data": {"getRaceForm": {"formRaceEntries": entries}}}
     if "GetRaceEntryItemByHorsePaged" in query:

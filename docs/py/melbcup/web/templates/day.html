@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-{% if not settings.has_price_source %}
+{% if not can_fetch %}
   <section class="block">
-    <h1>Add your data keys</h1>
-    <p>The app needs a PuntersEdge API key (field, prices, results) and works best with a FormFav key
-      too (long-form history, jockey and trainer records). Add them as <code>PUNTERSEDGE_API_KEY</code>
-      and <code>FORMFAV_API_KEY</code> in the host's environment settings, then restart.</p>
+    <h1>No data source</h1>
+    <p>The app could not reach racing.com. Check the connection and reload the page.</p>
   </section>
 {% elif not picks %}
   <section class="block empty">
