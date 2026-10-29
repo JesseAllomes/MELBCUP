@@ -2,7 +2,8 @@
 
 **Status: search closed. No demonstrated incremental edge** over the bias-corrected market.
 
-The final block stays sealed, and `model-v1` is preserved unchanged. The app is unchanged.
+v1's final evaluation was not performed; its holdout is reserved for round 2 (amendment C).
+`model-v1` is preserved unchanged. The app is unchanged.
 Corrections to the record are in amendment B (PROTOCOL.md).
 
 Model `model-v1` (amendment A, commit `5439f10`) was looked at once on tune2 (2026-01-01 to
@@ -68,5 +69,6 @@ Model `model-v1` (amendment A, commit `5439f10`) was looked at once on tune2 (20
 - Preserve `model-v1`.
 - Collect live schedules, quotes and scratchings, timestamped at decision time, for a prospective
   evaluation.
-- Any new factor search needs a new pre-registered protocol. The sealed final block is not opened
-  for v1.
+- v1's final evaluation was **not performed**. The holdout is reserved for round 2, which runs
+  under its own protocol (amendment C). The holdout stays semi-blind, so forward data remains
+  the decisive confirmation.

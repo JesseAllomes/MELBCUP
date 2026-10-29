@@ -529,3 +529,17 @@ offset-only by 0.00058 nats per race, but only in 3 of 6 folds; λ = 1 beats it 
 - This search is closed as "no demonstrated incremental edge".
 - The final block remains **sealed**, not opened for v1.
 - `model-v1` is preserved unchanged.
+
+### Amendment C (2026-10-29): final evaluation not performed
+
+- **Final evaluation: not performed.** The holdout (2026-05-01 to 2026-09-28) is reserved for a
+  superseding study (round 2, under its own protocol). No v1 claim will ever be evaluated on it.
+- That holdout stays **semi-blind**. The Betfair study examined outcomes across those dates and
+  influenced the research direction. Leaving racing.com results unopened does not restore
+  independence.
+- v1 ends with:
+  - its tune2 verdicts;
+  - amendment B's corrections;
+  - `model-v1`, preserved unchanged.
+- The v1 forward window remains defined, but it is not the decisive test for any round-2 model.
+  Round 2 has its own protocol, dataset eligibility, model fingerprint and forward start.
