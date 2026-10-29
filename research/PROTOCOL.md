@@ -1,6 +1,8 @@
 # Validation protocol: does anything beat the bias-corrected market?
 
-**Status: DRAFT v0.3, not frozen.**
+**Status: DRAFT v0.4, not frozen.** v0.4 replaces within-race z-scoring, which erased
+magnitudes the pace and favourite factors exist to test, with per-feature transformations
+fitted on training data.
 
 - v0.2 adopted the first Astra review.
 - v0.3 closes the second:
@@ -149,8 +151,18 @@ maximum. For claim C, all co-favourites count as favourites.
 - Never used: horse-profile or current fields, `speedValue`, `tempo`, and **today's** track
   condition or rail for any primary feature (their final values cannot show what was known at T).
 
-**Scaling.** Within-race z-scores of pre-race values are allowed. Anything else fitted (means,
-encodings, shrinkage targets) uses only the training data of the fit in question.
+**Scaling.** No within-race standardisation. A conditional logit already ignores any race-level
+constant, and dividing by a race's own spread destroys magnitudes. Each feature's transformation
+is specified in `research/FACTORS.md`:
+
+- **Continuous features:** standardised globally, with mean and SD fitted on the training runners
+  of the fit in question.
+- **Binary flags:** left as 0/1.
+- **Products:** formed from already-standardised parts.
+
+Anything fitted (means, SDs, shrinkage targets) uses only that fit's training data. Race-level
+quantities (e.g. a race's leader count) enter only through interactions with runner-varying
+features, never alone.
 
 ## 4. Bias-corrected market
 
@@ -166,8 +178,10 @@ encodings, shrinkage targets) uses only the training data of the fit in question
 **Form.**
 
 - Conditional logit with α·log M as a fixed offset.
-- f is linear in the family features defined in `research/FACTORS.md`, z-scored within race.
-- **Missing values:** 0 after z-scoring, plus one missing-indicator per family.
+- f is linear in the family features defined in `research/FACTORS.md`, each transformed as
+  specified there, with fold-train scaling.
+- **Missing values:** set to the fold-train mean (0 after standardisation), plus one
+  missing-indicator per family.
 
 **Screening folds.**
 

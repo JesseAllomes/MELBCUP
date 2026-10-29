@@ -1,4 +1,4 @@
-# Correction families f(X): executable definitions (v0.3)
+# Correction families f(X): executable definitions (v0.4)
 
 **Common rules** (PROTOCOL.md section 3):
 
@@ -6,8 +6,18 @@
   (Australia/Melbourne), Australian non-trial races only, newest first.
 - **Previous-run fields.** "Last start" means history[0]; "last 3" means history[0..2]. Only
   whitelisted fields are used.
-- **Missing values.** A value that cannot be computed is missing (0 after within-race z-scoring,
-  with the family's missing indicator set to 1).
+- **Transformations.**
+  - Continuous: the feature is standardised **globally**, as z = (x − μ) / σ, with μ and σ
+    fitted on the training runners of the fit in question (each fold; all train for tune and
+    final).
+  - Flags: stay 0/1.
+  - Products: built from standardised parts as written below.
+  - There is **no** within-race scaling. The conditional logit ignores race-level constants on
+    its own, and per-race scaling would erase magnitudes.
+- **Race-level quantities.** A value identical for every runner in a race can enter only inside
+  an interaction with a runner-varying feature, never alone.
+- **Missing values.** A value that cannot be computed is set to the fold-train mean (z = 0), and
+  the family's missing indicator is set to 1.
 - **Expected wins.** E for a past runner is its margin-free starting-price probability in that race.
   A/E figures are shrunk as AE_k = (W + k) / (E + k), where W is wins and E is the sum of
   expected wins over the window.
@@ -70,8 +80,12 @@ Features:
 - A runner's style S is the mean over its last 5 runs of
   (numeric `positionAtSettledAbv` − 1) / (field − 1). At least 2 runs are required, else missing.
 - The race's pace count L is the number of runners in U with S ≤ 0.25 (known style only).
-- Features: `f7_style` = S; `f7_pace` = L; `f7_fit` = S × (L − mean L of that race's fold-train
-  races).
+  L is race-level, so it is **not** a feature on its own.
+- Features:
+  - `f7_style` = z(S), with μ_S and σ_S fitted on training runners;
+  - `f7_fit` = z(S) × z_L, where z_L = (L − μ_L) / σ_L, with μ_L and σ_L fitted on the
+    training races. The product is not re-standardised, so a pace of 1 and a pace of 3 leaders
+    give different values.
 
 **F10 Market move**
 
@@ -86,8 +100,13 @@ Features:
 **F12 Favourite strength**
 
 - Applies only to favourites (zero for others).
-- Features: `f12_gap` = fav × (M_fav − M of the highest non-favourite); `f12_move` = fav ×
-  f10_move.
+- Let G = M_fav − M of the highest non-favourite (race-level).
+- Features:
+  - `f12_fav` = fav (0/1), so the gap and move terms are not confounded with favourite identity;
+  - `f12_gap` = fav × (G − μ_G) / σ_G, with μ_G and σ_G fitted on training favourites;
+  - `f12_move` = fav × (raw f10_move − μ_m) / σ_m, with μ_m and σ_m fitted on training
+    favourites.
+- Magnitudes are preserved: a gap of 0.01 and a gap of 0.30 give different values.
 
 **F13 Jockey**
 
