@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=9 -->
+<!-- drainclamp-build: state; schema=1; generation=13 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -24,7 +24,7 @@ Inputs -> long-form history, horse, jockey, trainer, owner and other relevant da
 Data sources -> FormFav Pro (7-day trial covers Cup day) for form/predictions/jockey/trainer/runner stats/track bias + PuntersEdge free key for bookmaker win/place prices incl Sportsbet, tote, consensus (user accepted recommendation)
 No Betfair (user has no account); no scraping of racing.com/TAB/Sportsbet (user + terms of use)
 Secrets -> env vars FORMFAV_API_KEY, PUNTERSEDGE_API_KEY, APP_PASSWORD only; never in repo or chat (repo decision)
-Owner data -> use only if a feed provides it; never invented (repo decision)
+Owner data -> PuntersEdge acceptances carry owner; shown per runner, not weighted (no owner strike-rate feed) (repo decision)
 Hosting -> online free tier (Render), password protected, phone-first, works on mobile data (user)
 Live -> app refreshes data and re-ranks picks automatically; polling interval respects API credit limits (user + repo decision)
 Stakes -> rank picks; optional budget input gives quarter-Kelly stakes with per-bet cap; never places bets (repo decision; user did not choose)
@@ -32,14 +32,17 @@ Missing data -> show "no data" and skip the pick; never fabricate prices or prob
 Stack -> Python 3.13, FastAPI, uvicorn, httpx, jinja2; dev: pytest, ruff (repo decision)
 Deadline -> usable by Mon 2 Nov evening AEDT; Cup day fields final Sat 31 Oct (user)
 Responsible gambling footer with Gambling Help Online 1800 858 858 on every page (repo decision)
+PuntersEdge is required (field, scratchings, prices); FormFav is optional enrichment and every FormFav failure degrades to a visible warning (repo decision)
+Market consensus computed locally from /markets (per-book normalise, median) to save credits; /consensus endpoint not used (repo decision)
+Test payloads are synthetic but follow the vendor OpenAPI specs in .agent/api/; vendor examples kept in tests/fixtures for shape checks (repo decision)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
 | id | goal | files | status | deps |
 |---|---|---|---|---|
 | m1 | scaffold package, settings, test + lint harness | pyproject.toml;melbcup/__init__.py;melbcup/config.py;tests/test_config.py | done | |
-| m2 | FormFav + PuntersEdge clients normalised into domain models with caching | melbcup/domain.py;melbcup/sources/__init__.py;melbcup/sources/http.py;melbcup/sources/formfav.py;melbcup/sources/puntersedge.py;tests/test_sources.py;tests/fixtures | active | m1 |
-| m3 | runner rating + win/place probability model blended with market | melbcup/model/__init__.py;melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | pending | m2 |
+| m2 | FormFav + PuntersEdge clients normalised into domain models with caching | melbcup/domain.py;melbcup/sources/__init__.py;melbcup/sources/http.py;melbcup/sources/formfav.py;melbcup/sources/puntersedge.py;tests/test_sources.py;tests/fixtures | done | m1 |
+| m3 | runner rating + win/place probability model blended with market | melbcup/model/__init__.py;melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m2 |
 | m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | pending | m3 |
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | pending | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | pending | m5 |
@@ -60,4 +63,5 @@ Responsible gambling footer with Gambling Help Online 1800 858 858 on every page
 <!-- DC:LOG -->
 - 2026-10-29T07:10:59+00:00 8c17ed1b Gate 0-2: audit, charter-free grill, state externalised for MELBCUP
 - 2026-10-29T07:12:39+00:00 58b49675 m1: package scaffold, env settings, pytest+ruff harness
+- 2026-10-29T07:17:41+00:00 a1e05e60 m2: PuntersEdge + FormFav clients, card assembly with graceful degradation, 30 tests
 <!-- /DC:LOG -->

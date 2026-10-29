@@ -1,0 +1,228 @@
+from datetime import date, datetime
+
+import httpx
+import pytest
+from conftest import RACE_DATE, VENUE, Router, load_fixture
+
+from melbcup.config import MELBOURNE
+from melbcup.domain import going_band, going_rating, parse_distance, parse_margin
+from melbcup.sources import apply_market, load_card
+from melbcup.sources.formfav import FormFavClient, parse_track_bias, track_slug
+from melbcup.sources.http import JsonSource, SourceError
+from melbcup.sources.puntersedge import (
+    PuntersEdgeClient,
+    parse_acceptances,
+    parse_form,
+    parse_markets,
+)
+
+
+def clients(router: Router, *, with_ff: bool = True):
+    t = httpx.MockTransport(router)
+    pe = PuntersEdgeClient("pe-key", transport=t)
+    ff = FormFavClient("ff-key", transport=t) if with_ff else None
+    return pe, ff
+
+
+# --- small parsers -------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("1.8L", 1.8), ("HD", 0.2), ("nk", 0.3), ("12", 12.0), ("", None), ("?", None)],
+)
+def test_parse_margin(text, expected):
+    assert parse_margin(text) == expected
+
+
+def test_going_helpers():
+    assert going_band("Soft (6)") == "soft"
+    assert going_rating("Soft (6)") == 6
+    assert going_band("Good 4") == "good"
+    assert going_band(None) is None
+    assert parse_distance("3,200m") == 3200
+    assert track_slug("Moonee Valley") == "moonee-valley"
+
+
+# --- vendor example payloads (shape checks) ------------------------------------------------
+
+
+def test_vendor_acceptances_example_parses_owner_and_local_start():
+    card = parse_acceptances(load_fixture("pe_acceptances"), "grafton", date(2026, 9, 29))
+    race = card.races[0]
+    assert race.number == 4 and race.distance_m == 1106
+    runner = race.runner(2)
+    assert runner.name == "Geegee Jet By"
+    assert runner.owner.startswith("D J Dick")
+    assert runner.gear_changes and runner.hcp_rating == 66
+    assert race.start_time == datetime(2026, 9, 29, 14, 45, tzinfo=MELBOURNE)
+    assert card.condition == "Soft 5"
+
+
+def test_vendor_acceptances_missing_venue_warns():
+    card = parse_acceptances(load_fixture("pe_acceptances"), "Flemington", RACE_DATE)
+    assert card.races == []
+    assert "No acceptances" in card.warnings[0]
+
+
+def test_vendor_form_example():
+    form = parse_form(load_fixture("pe_form"))
+    runs, record = form[1]
+    assert runs[0].venue == "Coffs Harbour" and runs[0].position == 3
+    assert runs[0].margin_l == 1.8
+    assert (record.starts, record.wins, record.top3) == (1, 0, 1)
+
+
+def test_vendor_markets_example_best_prices_and_scratchings():
+    snap = parse_markets(load_fixture("pe_markets"))
+    assert snap.prices[8].best_win.price == 2.35
+    assert snap.prices[8].best_win.bookmaker == "sportsbet"
+    assert snap.prices[8].best_place.bookmaker == "tab"
+    assert {5, 6, 9, 10} <= snap.scratched
+    # Example books quote 2 of 9 runners: too thin for a consensus.
+    assert snap.prices[8].consensus_prob is None
+
+
+# --- synthetic full card ------------------------------------------------------------------
+
+
+def test_markets_consensus_is_margin_free_and_sums_to_one(router):
+    pe, _ = clients(router)
+    snap = pe.markets(RACE_DATE, VENUE, 1)
+    total = sum(p.consensus_prob for p in snap.prices.values())
+    assert total == pytest.approx(1.0)
+    fav = snap.prices[1]
+    assert fav.sportsbet_win == 3.2
+    assert fav.best_win.price == 3.2 and fav.best_win.bookmaker == "sportsbet"
+    assert snap.prices[2].best_win.bookmaker == "tab"
+    assert fav.books == 2
+    # Margin removed per book, then the median: the favourite stays the favourite and its
+    # probability sits between the two books' own margin-free figures.
+    assert max(snap.prices.values(), key=lambda p: p.consensus_prob) is fav
+    sb = 1 / 3.2 / sum(1 / p for p in (3.2, 3.6, 15.0, 6.0, 31.0, 9.0))
+    tab = 1 / 3.0 / sum(1 / p for p in (3.0, 3.8, 13.0, 6.5, 26.0, 10.0))
+    assert min(sb, tab) <= fav.consensus_prob <= max(sb, tab) + 0.01
+
+
+def test_load_card_merges_both_feeds(router):
+    pe, ff = clients(router)
+    card = load_card(pe, ff, RACE_DATE, VENUE)
+    assert [r.number for r in card.races] == [1, 2]
+    assert card.warnings == []
+    cup = card.race(2)
+    assert cup.name == "Lexus Melbourne Cup" and cup.distance_m == 3200
+    r = cup.runner(1)
+    assert r.owner and r.jockey == "J McDonald"
+    assert r.runs and r.runs[0].run_date >= r.runs[-1].run_date
+    assert r.career.starts == 20
+    assert r.going.starts == 12  # "Good 4" -> good split
+    assert r.running_style == "leader"
+    assert r.feed_win_prob is not None
+    assert r.jockey_stats.at_track.starts == 80
+    assert r.trainer_stats.recent.starts == 60
+    assert cup.barrier_advantage[1] > cup.barrier_advantage[12]
+    # one stats call per distinct person; the bias payload is fetched once and banded locally
+    assert router.hits["/v1/stats/track-bias/flemington"] == 1
+    jockey_calls = sum(v for k, v in router.hits.items() if k.startswith("/v1/stats/jockey/"))
+    assert jockey_calls == 6
+
+
+def test_load_card_degrades_without_formfav_pro():
+    router = Router(ff_tier="free")
+    pe, ff = clients(router)
+    card = load_card(pe, ff, RACE_DATE, VENUE)
+    r = card.race(1).runner(1)
+    assert r.career.starts == 20  # /v1/form is on the free tier
+    assert r.feed_win_prob is None and r.jockey_stats is None
+    assert any("predictions" in w for w in card.warnings)
+    assert any("Jockey stats" in w for w in card.warnings)
+
+
+def test_load_card_without_formfav_key(router):
+    pe, _ = clients(router, with_ff=False)
+    card = load_card(pe, None, RACE_DATE, VENUE)
+    r = card.race(1).runner(2)
+    assert r.runs and r.career.starts == 4  # from PuntersEdge form summary
+    assert any("FormFav key not set" in w for w in card.warnings)
+
+
+def test_apply_market_marks_late_scratchings():
+    router = Router(scratched={1: (3,)})
+    pe, ff = clients(router)
+    card = load_card(pe, ff, RACE_DATE, VENUE)
+    race = card.race(1)
+    apply_market(race, pe.markets(RACE_DATE, VENUE, 1))
+    assert race.runner(3).scratched
+    assert 3 not in race.prices
+    assert race.prices_at is not None
+
+
+def test_track_bias_ignores_thin_samples_and_uses_distance_band():
+    data = {
+        "barrierStats": [{"barrierNumber": 1, "totalStarts": 500, "advantage": 0.01}],
+        "distanceStats": [
+            {
+                "minDistance": 2800,
+                "maxDistance": 3600,
+                "barrierStats": [
+                    {"barrierNumber": 1, "totalStarts": 50, "advantage": 0.03},
+                    {"barrierNumber": 2, "totalStarts": 5, "advantage": 0.2},
+                ],
+            }
+        ],
+    }
+    assert parse_track_bias(data, 3200) == {1: 0.03}
+    assert parse_track_bias(data, 1200) == {1: 0.01}
+
+
+# --- http layer ---------------------------------------------------------------------------
+
+
+def test_json_source_caches_within_ttl_and_sends_key():
+    seen = []
+
+    def handler(request):
+        seen.append(request.headers["X-API-Key"])
+        return httpx.Response(200, json={"n": len(seen)})
+
+    now = [0.0]
+    src = JsonSource(
+        "T", "https://x.test", "k1", transport=httpx.MockTransport(handler), clock=lambda: now[0]
+    )
+    assert src.get("/a", {"q": 1}, ttl=60) == {"n": 1}
+    assert src.get("/a", {"q": 1}, ttl=60) == {"n": 1}
+    now[0] = 61
+    assert src.get("/a", {"q": 1}, ttl=60) == {"n": 2}
+    assert seen == ["k1", "k1"]
+
+
+@pytest.mark.parametrize(
+    "status,kind",
+    [
+        (401, "auth"),
+        (402, "quota"),
+        (429, "rate_limit"),
+        (500, "unavailable"),
+        (422, "bad_request"),
+    ],
+)
+def test_json_source_error_kinds(status, kind):
+    src = JsonSource(
+        "T",
+        "https://x.test",
+        "k",
+        transport=httpx.MockTransport(lambda r: httpx.Response(status, text="no")),
+    )
+    with pytest.raises(SourceError) as exc:
+        src.get("/a")
+    assert exc.value.kind == kind and exc.value.status == status
+
+
+def test_json_source_network_failure_is_unavailable():
+    def boom(request):
+        raise httpx.ConnectError("down")
+
+    src = JsonSource("T", "https://x.test", "k", transport=httpx.MockTransport(boom))
+    with pytest.raises(SourceError) as exc:
+        src.get("/a")
+    assert exc.value.kind == "unavailable"
