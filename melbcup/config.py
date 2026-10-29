@@ -29,6 +29,7 @@ class Settings:
     race_date: date
     venue: str
     poll_seconds: int
+    auto_refresh: bool = False
 
     @property
     def has_form_source(self) -> bool:
@@ -70,4 +71,5 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         race_date=race_date,
         venue=_clean(env.get("VENUE")) or CUP_VENUE,
         poll_seconds=poll_seconds,
+        auto_refresh=(_clean(env.get("PRICE_MODE")) or "manual").lower() == "auto",
     )

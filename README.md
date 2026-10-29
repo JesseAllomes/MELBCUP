@@ -16,7 +16,16 @@ data. It then shows the best bet in each category:
 | **Quaddie** | The Early Quaddie and the Main Quaddie, picked to land as often as possible within a combination budget |
 | **Multi** | 2-leg and 3-leg win multis at Sportsbet, valued as one bet |
 
-Prices refresh every minute in the 20 minutes before each race, and the page updates itself.
+You control the PuntersEdge credits. The top of every page shows the credits left, and nothing is
+spent until you tap:
+
+| Button | Credits | What it does |
+|---|---|---|
+| **Load card** / **Reload card** | about 2 + 3 per race (~32 for ten races) | Field, scratchings, recent runs, then prices |
+| **Refresh prices** | 2 | Every bookmaker's price for the whole card, then new picks |
+| **Auto** | varies | Hands-off: prices every 15 min early, every minute from 20 min before each race, and the form hourly |
+
+The page itself re-reads the app every minute; that costs nothing.
 
 ## How it decides
 
@@ -54,8 +63,9 @@ guarantee results. Gambling Help Online: **1800 858 858**.
 PuntersEdge is required. FormFav is optional, but without Pro the app loses jockey and trainer
 records, predictions and track bias, and says so at the top of the page.
 
-A ten-race day uses about 1,300 PuntersEdge credits when the app runs from mid-morning: about
-1,000 on prices and about 300 on the hourly form reloads. Owner names come from Racing
+In manual mode a race day typically costs one card load (~32) plus 2 per price refresh: about 100
+credits for a refresh before each race and a few extra near the big ones. Auto mode from
+mid-morning costs about 1,100. FormFav calls are covered by its own allowance. Owner names come from Racing
 Australia's acceptances and are shown, but not scored, because no feed has owner strike rates.
 
 ## Put it on your phone (Render, free)
@@ -69,6 +79,7 @@ Australia's acceptances and are shown, but not scored, because no feed has owner
    - `PUNTERSEDGE_API_KEY`: your PuntersEdge key
    - `FORMFAV_API_KEY`: your FormFav key
    - `APP_PASSWORD`: a password you choose for the site
+   - `PRICE_MODE`: leave as `manual`, or `auto` to start with Auto on
 5. Deploy. Open the `…onrender.com` address on your phone. When asked to log in, leave the
    username blank and enter your password.
 6. On your phone, use **Share → Add to Home Screen** so it opens like an app.

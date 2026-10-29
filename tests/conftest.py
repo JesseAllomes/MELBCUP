@@ -256,14 +256,22 @@ class Router:
         self.hits[path] = self.hits.get(path, 0) + 1
         host = request.url.host
         if host == "api.puntersedge.online":
+            spent = sum(v for k, v in self.hits.items() if k != "/v1/keys/info")
+            credits = {"x-credits-remaining": str(3000 - 2 * spent), "x-credits-limit": "3000"}
+            if path == "/v1/keys/info":
+                return httpx.Response(200, json={"credits_remaining": 2999, "credits_limit": 3000})
             if path == "/v1/racing/acceptances":
-                return httpx.Response(200, json=acceptances_payload())
+                return httpx.Response(200, json=acceptances_payload(), headers=credits)
             if path == "/v1/racing/next-to-go":
                 return httpx.Response(
-                    200, json=[ntg_race(n, self.scratched.get(n, ())) for n in FIELDS]
+                    200,
+                    json=[ntg_race(n, self.scratched.get(n, ())) for n in FIELDS],
+                    headers=credits,
                 )
             if path == "/v1/racing/form":
-                return httpx.Response(200, json=pe_form_payload(int(q["race_number"])))
+                return httpx.Response(
+                    200, json=pe_form_payload(int(q["race_number"])), headers=credits
+                )
         if host == "api.formfav.com":
             if path == "/v1/form":
                 return httpx.Response(200, json=ff_form_payload(int(q["race"])))

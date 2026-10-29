@@ -1,7 +1,10 @@
-"""Keeps the card, models and picks fresh in the background.
+"""Keeps the card, models and picks fresh, spending PuntersEdge credits only when asked.
 
-Form changes slowly and is reloaded hourly. One PuntersEdge call (2 credits) prices the whole
-card; it is made at the tightest interval any race still to run needs:
+Manual mode (the default) spends nothing on its own: the page's buttons load the card
+(about 2 + 3 per race credits) and refresh prices (2 credits for the whole card).
+
+Auto mode loads the card, reloads form hourly, and prices the whole card at the tightest
+interval any race still to run needs:
 
     more than 90 min to go   every 15 min
     20-90 min to go          every 5 min
@@ -30,6 +33,7 @@ log = logging.getLogger("melbcup.live")
 
 FORM_REFRESH = timedelta(hours=1)
 QUOTA_BACKOFF = timedelta(minutes=15)
+MIN_MANUAL_GAP = timedelta(seconds=15)  # a double tap must not spend twice
 
 
 def price_interval(race: Race, now: datetime, poll_seconds: int) -> timedelta | None:
@@ -52,7 +56,12 @@ class Snapshot:
     models: list[RaceModel]
     updated_at: datetime | None
     errors: list[str] = field(default_factory=list)
-    credits_used: int = 0
+    credits_remaining: int | None = None
+    credits_limit: int | None = None
+    auto: bool = False
+    loading: bool = False
+    priced_at: datetime | None = None
+    form_at: datetime | None = None
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -76,9 +85,12 @@ class LiveBoard:
             FormFavClient(settings.formfav_api_key) if settings.formfav_api_key else None
         )
         self.clock = clock
+        self.auto = settings.auto_refresh
         self._lock = threading.Lock()
+        self._work = threading.Lock()  # one load or refresh at a time
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._loading = False
         self._card: Card | None = None
         self._models: dict[int, RaceModel] = {}
         self._form_at: datetime | None = None
@@ -96,45 +108,121 @@ class LiveBoard:
                 models=[self._models[n] for n in sorted(self._models)],
                 updated_at=self._updated_at,
                 errors=list(self._errors),
-                credits_used=self.pe.src.calls if self.pe else 0,
+                credits_remaining=self.pe.credits_remaining if self.pe else None,
+                credits_limit=self.pe.credits_limit if self.pe else None,
+                auto=self.auto,
+                loading=self._loading,
+                priced_at=self._priced_at,
+                form_at=self._form_at,
             )
 
-    # -- one refresh pass ---------------------------------------------------------------------
+    # -- actions ------------------------------------------------------------------------------
 
-    def tick(self) -> None:
-        """One pass: reload form if due, then poll whichever races' prices are due."""
-        if self.pe is None:
-            return
-        now = self.clock()
-        if self._paused_until and now < self._paused_until:
-            return
+    def _guarded(self, now: datetime, fn: Callable[[], None]) -> None:
+        """Run one load/refresh, recording errors and pausing after quota or auth trouble."""
         errors: list[str] = []
         try:
-            if self._card is None or self._form_at is None or now - self._form_at >= FORM_REFRESH:
-                card = load_card(self.pe, self.ff, self.settings.race_date, self.settings.venue)
-                with self._lock:
-                    self._carry_prices(card)
-                    self._card = card
-                    self._form_at = now
-                    self._models = {r.number: assess(r) for r in card.races}
-                    self._updated_at = now
-            due = self._prices_due(now)
-            if due:
-                snaps = self.pe.card_prices(self.settings.race_date, self.settings.venue)
-                with self._lock:
-                    for race in self._card.races:
-                        if race.number in snaps:
-                            apply_market(race, snaps[race.number])
-                            self._models[race.number] = assess(race)
-                    self._priced_at = now
-                    self._updated_at = now
+            fn()
         except SourceError as exc:
             errors.append(str(exc))
             if exc.kind in ("quota", "rate_limit", "auth"):
                 self._paused_until = now + QUOTA_BACKOFF
-                errors.append(f"Paused PuntersEdge polling for 15 minutes ({exc.kind}).")
+                errors.append(f"Paused automatic PuntersEdge calls for 15 minutes ({exc.kind}).")
         with self._lock:
             self._errors = errors
+
+    def _load_form(self, now: datetime) -> None:
+        card = load_card(self.pe, self.ff, self.settings.race_date, self.settings.venue)
+        with self._lock:
+            self._carry_prices(card)
+            self._card = card
+            self._form_at = now
+            self._models = {r.number: assess(r) for r in card.races}
+            self._updated_at = now
+
+    def _load_prices(self, now: datetime) -> None:
+        snaps = self.pe.card_prices(self.settings.race_date, self.settings.venue)
+        with self._lock:
+            for race in self._card.races:
+                if race.number in snaps:
+                    apply_market(race, snaps[race.number])
+                    self._models[race.number] = assess(race)
+            self._priced_at = now
+            self._updated_at = now
+
+    def load_card_now(self, *, wait: bool = False) -> bool:
+        """Load the field and form (and then prices) in the background. False if already busy."""
+        if self.pe is None or not self._work.acquire(blocking=False):
+            return False
+        self._loading = True
+
+        def job() -> None:
+            try:
+                now = self.clock()
+                self._guarded(now, lambda: (self._load_form(now), self._load_prices(now)))
+            finally:
+                self._loading = False
+                self._work.release()
+
+        if wait:
+            job()
+        else:
+            threading.Thread(target=job, name="melbcup-load", daemon=True).start()
+        return True
+
+    def refresh_prices_now(self) -> bool:
+        """One whole-card price call (2 credits). Ignored within 15 s of the last one."""
+        if self.pe is None or self._card is None:
+            return False
+        now = self.clock()
+        if self._priced_at is not None and now - self._priced_at < MIN_MANUAL_GAP:
+            return False
+        if not self._work.acquire(blocking=False):
+            return False
+        try:
+            self._guarded(now, lambda: self._load_prices(now))
+        finally:
+            self._work.release()
+        return True
+
+    def set_auto(self, on: bool) -> None:
+        self.auto = on
+
+    def check_credits(self) -> None:
+        """Read the balance once (free) so the page can show it before anything is spent."""
+        if self.pe is None:
+            return
+        try:
+            self.pe.read_credits()
+        except SourceError as exc:
+            log.warning("could not read PuntersEdge credits: %s", exc)
+
+    # -- automatic mode -----------------------------------------------------------------------
+
+    def tick(self) -> None:
+        """Auto mode only: load form if missing or an hour old, then prices if due."""
+        if self.pe is None or not self.auto:
+            return
+        now = self.clock()
+        if self._paused_until and now < self._paused_until:
+            return
+        if not self._work.acquire(blocking=False):
+            return
+        try:
+
+            def run() -> None:
+                if (
+                    self._card is None
+                    or self._form_at is None
+                    or now - self._form_at >= FORM_REFRESH
+                ):
+                    self._load_form(now)
+                if self._prices_due(now):
+                    self._load_prices(now)
+
+            self._guarded(now, run)
+        finally:
+            self._work.release()
 
     def _prices_due(self, now: datetime) -> bool:
         """One call prices the whole card, so poll at the tightest interval any race needs.
@@ -159,6 +247,7 @@ class LiveBoard:
             if old is not None and old.prices:
                 race.prices, race.places_paid = old.prices, old.places_paid
                 race.prices_at = old.prices_at
+                race.start_time = old.start_time or race.start_time
                 for r in race.runners:
                     o = old.runner(r.number)
                     r.scratched = r.scratched or bool(o and o.scratched)
@@ -170,6 +259,7 @@ class LiveBoard:
             return
 
         def loop() -> None:
+            self.check_credits()
             while not self._stop.is_set():
                 try:
                     self.tick()

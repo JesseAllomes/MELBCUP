@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -146,8 +146,31 @@ def create_app(
             "budget": budget,
             "budget_q": f"?budget={budget:g}" if budget else "",
             "picks": snap.picks(budget) if snap.models else None,
+            "here": request.url.path + (f"?budget={budget:g}" if budget else ""),
+            "load_cost": 2 + 3 * (len(snap.card.races) if snap.card else 10),
             "now": datetime.now(UTC),
         }
+
+    def back(request: Request) -> RedirectResponse:
+        target = request.query_params.get("next", "/")
+        if not target.startswith("/") or target.startswith("//"):
+            target = "/"
+        return RedirectResponse(target, status_code=303)
+
+    @app.post("/actions/prices", dependencies=[Depends(require_login)])
+    def refresh_prices(request: Request):
+        board.refresh_prices_now()
+        return back(request)
+
+    @app.post("/actions/load", dependencies=[Depends(require_login)])
+    def load(request: Request):
+        board.load_card_now()
+        return back(request)
+
+    @app.post("/actions/auto", dependencies=[Depends(require_login)])
+    def auto(request: Request):
+        board.set_auto(request.query_params.get("on") == "1")
+        return back(request)
 
     @app.get("/healthz", response_class=PlainTextResponse)
     def healthz() -> str:

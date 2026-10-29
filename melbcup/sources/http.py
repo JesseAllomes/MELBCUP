@@ -55,6 +55,7 @@ class JsonSource:
             transport=transport,
         )
         self.calls = 0
+        self.last_headers: dict[str, str] = {}
         self._lock = threading.Lock()  # loads run on a thread pool
 
     def get(self, path: str, params: dict[str, Any] | None = None, *, ttl: float = 0) -> Any:
@@ -71,6 +72,7 @@ class JsonSource:
             raise SourceError(self.name, "unavailable", f"{path}: {exc}") from exc
         with self._lock:
             self.calls += 1
+            self.last_headers = {k.lower(): v for k, v in resp.headers.items()}
         if resp.status_code >= 400:
             detail = resp.text[:200].strip()
             raise SourceError(

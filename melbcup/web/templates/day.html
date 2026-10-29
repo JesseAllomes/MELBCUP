@@ -18,7 +18,11 @@
       environment settings, then restart.</p>
   </section>
 {% elif not picks %}
-  <section class="card"><p>Loading the card… this page refreshes itself.</p></section>
+  <section class="card">
+    {% if snap.loading %}<p>Loading the card (about 30 seconds)… this page refreshes itself.</p>
+    {% else %}<p>No card loaded yet. Tap <strong>Load card</strong> above to fetch the field, form and
+      prices for {{ settings.venue }} on {{ settings.race_date.strftime('%a %-d %b') }}.</p>{% endif %}
+  </section>
 {% else %}
 
   {% if top_value %}

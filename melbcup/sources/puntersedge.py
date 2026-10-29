@@ -225,9 +225,38 @@ def parse_next_to_go(
     return out
 
 
+def _int(value: Any) -> int | None:
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
 class PuntersEdgeClient:
     def __init__(self, api_key: str, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("PuntersEdge", BASE_URL, api_key, transport=transport)
+        self._credits: tuple[int | None, int | None] = (None, None)
+
+    @property
+    def credits_remaining(self) -> int | None:
+        """From the latest response's X-Credits-Remaining header (or the last balance read)."""
+        h = self.src.last_headers
+        if "x-credits-remaining" in h:
+            return _int(h["x-credits-remaining"])
+        return self._credits[0]
+
+    @property
+    def credits_limit(self) -> int | None:
+        h = self.src.last_headers
+        if "x-credits-limit" in h:
+            return _int(h["x-credits-limit"])
+        return self._credits[1]
+
+    def read_credits(self) -> None:
+        """Balance check; /v1/keys/info costs no credits."""
+        info = self.src.get("/v1/keys/info")
+        self._credits = (_int(info.get("credits_remaining")), _int(info.get("credits_limit")))
+        self.src.last_headers = {}
 
     def acceptances(self, race_date: date, venue: str) -> Card:
         data = self.src.get(

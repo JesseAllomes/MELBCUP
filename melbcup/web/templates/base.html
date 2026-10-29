@@ -14,12 +14,33 @@
     <span class="meet">{{ settings.venue }} · {{ settings.race_date.strftime('%a %-d %b') }}</span>
   </header>
   <main id="main" data-refresh="60">
-    <div class="status">
-      {% if snap.updated_at %}
-        <span>Updated {{ snap.updated_at | local_time }}</span>
-      {% endif %}
-      <span>API calls this session: {{ snap.credits_used }}</span>
+    {% if settings.has_price_source %}
+    <div class="controls">
+      <div class="credits">
+        <strong>{{ '{:,}'.format(snap.credits_remaining) if snap.credits_remaining is not none else '?' }}</strong>
+        {% if snap.credits_limit %}/ {{ '{:,}'.format(snap.credits_limit) }}{% endif %} PuntersEdge credits left
+        <span class="sub">
+          {% if snap.priced_at %}Prices {{ snap.priced_at | local_time }}{% else %}No prices yet{% endif %}
+          {% if snap.form_at %} · Form {{ snap.form_at | local_time }}{% endif %}
+          {% if snap.loading %} · <strong>loading card…</strong>{% endif %}
+        </span>
+      </div>
+      <div class="buttons">
+        {% if card %}
+        <form method="post" action="/actions/prices?next={{ here | urlencode }}">
+          <button type="submit" class="primary">Refresh prices <span>2 cr</span></button>
+        </form>
+        {% endif %}
+        <form method="post" action="/actions/load?next={{ here | urlencode }}">
+          <button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>~{{ load_cost }} cr</span></button>
+        </form>
+        <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}">
+          <button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'ON' if snap.auto else 'off' }}</button>
+        </form>
+      </div>
+      {% if snap.auto %}<p class="sub">Auto spends credits on its own: every 15 min early, every minute from 20 min before each race, and ~{{ load_cost }} each hour for form.</p>{% endif %}
     </div>
+    {% endif %}
     {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}
     {% if card %}{% for w in card.warnings %}<p class="warn">{{ w }}</p>{% endfor %}{% endif %}
     {% block content %}{% endblock %}

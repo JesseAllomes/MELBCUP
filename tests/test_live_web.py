@@ -13,6 +13,7 @@ from melbcup.sources.puntersedge import PuntersEdgeClient
 from melbcup.web.app import create_app, edge, local_time, money, pct
 
 ENV = {"PUNTERSEDGE_API_KEY": "pe", "FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026"}
+AUTO = {**ENV, "PRICE_MODE": "auto"}
 START = datetime(2026, 11, 3, 11, 30, tzinfo=MELBOURNE)  # R1 jumps 11:45, the Cup 3:00
 
 
@@ -47,7 +48,7 @@ def test_price_interval_tightens_toward_the_jump():
 
 def test_tick_polls_card_prices_at_the_tightest_interval():
     router, clock = Router(), Clock(START)
-    board = board_with(router, clock)
+    board = board_with(router, clock, AUTO)
     board.tick()
     snap = board.snapshot()
     assert [m.race.number for m in snap.models] == [1, 2]
@@ -76,7 +77,7 @@ def test_tick_polls_card_prices_at_the_tightest_interval():
 
 def test_form_reload_keeps_prices_and_scratchings():
     router, clock = Router(scratched={1: (3,)}), Clock(START)
-    board = board_with(router, clock)
+    board = board_with(router, clock, AUTO)
     board.tick()
     clock.t = START + timedelta(hours=1, minutes=1)
     router.scratched = {}
@@ -87,7 +88,7 @@ def test_form_reload_keeps_prices_and_scratchings():
 
 def test_quota_exhaustion_pauses_polling():
     router, clock = Router(), Clock(START)
-    board = board_with(router, clock)
+    board = board_with(router, clock, AUTO)
     board.tick()
 
     def broke(request):
@@ -115,14 +116,82 @@ def test_board_without_keys_does_nothing():
 # --- web ----------------------------------------------------------------------------------
 
 
-@pytest.fixture
-def client():
+def test_manual_mode_spends_nothing_until_asked():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
+    assert not board.auto
     board.tick()
+    assert router.hits == {}
+    assert board.refresh_prices_now() is False  # no card yet
+    assert board.load_card_now(wait=True)
+    assert router.hits["/v1/racing/acceptances"] == 1
+    assert router.hits["/v1/racing/next-to-go"] == 1
+    clock.t = START + timedelta(seconds=5)
+    assert board.refresh_prices_now() is False  # double tap within 15 s
+    clock.t = START + timedelta(seconds=20)
+    assert board.refresh_prices_now() is True
+    assert router.hits["/v1/racing/next-to-go"] == 2
+    clock.t = START + timedelta(hours=3)
+    board.tick()  # still manual: no hourly form reload, no polling
+    assert router.hits["/v1/racing/acceptances"] == 1
+    assert router.hits["/v1/racing/next-to-go"] == 2
+
+
+def test_credits_come_from_balance_then_headers():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.check_credits()
+    snap = board.snapshot()
+    assert (snap.credits_remaining, snap.credits_limit) == (2999, 3000)
+    board.load_card_now(wait=True)
+    assert board.snapshot().credits_remaining < 2999
+
+
+@pytest.fixture
+def board_and_router():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    return board, router
+
+
+@pytest.fixture
+def client(board_and_router):
+    board, _ = board_and_router
     app = create_app(load_settings(ENV), board, start_background=False)
     with TestClient(app) as c:
         yield c
+
+
+def test_buttons_and_credits_on_page(client):
+    html = client.get("/?budget=50", auth=AUTH).text
+    assert "PuntersEdge credits left" in html and "/ 3,000" in html
+    assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
+    assert "next=/%3Fbudget%3D50" in html
+
+
+def test_refresh_button_spends_one_call_and_returns(board_and_router):
+    board, router = board_and_router
+    board._priced_at -= timedelta(minutes=1)
+    app = create_app(load_settings(ENV), board, start_background=False)
+    with TestClient(app) as c:
+        r = c.post("/actions/prices?next=/race/2", auth=AUTH, follow_redirects=False)
+        assert r.status_code == 303 and r.headers["location"] == "/race/2"
+        assert router.hits["/v1/racing/next-to-go"] == 2
+        r = c.post("/actions/auto?on=1&next=//evil.example", auth=AUTH, follow_redirects=False)
+        assert r.headers["location"] == "/" and board.auto
+        c.post("/actions/auto?on=0", auth=AUTH)
+        assert not board.auto
+        assert c.post("/actions/prices", follow_redirects=False).status_code == 401
+
+
+def test_empty_manual_board_offers_load_button():
+    router, clock = Router(), Clock(START)
+    app = create_app(load_settings(ENV), board_with(router, clock), start_background=False)
+    with TestClient(app) as c:
+        html = c.get("/", auth=AUTH).text
+    assert "No card loaded yet" in html and "Load card" in html
+    assert router.hits == {}
 
 
 AUTH = ("", "cup2026")
