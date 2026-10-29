@@ -1,12 +1,12 @@
 """Keeps the card, models and picks fresh in the background.
 
-Form changes slowly and is reloaded hourly. Prices are polled per race on a schedule that
-tightens as the jump approaches, so API credits go where prices actually move:
+Form changes slowly and is reloaded hourly. One PuntersEdge call (2 credits) prices the whole
+card; it is made at the tightest interval any race still to run needs:
 
     more than 90 min to go   every 15 min
     20-90 min to go          every 5 min
     under 20 min             every POLL_SECONDS (default 60 s)
-    jumped 5+ min ago        no longer polled
+    jumped 5+ min ago        no longer counts
 """
 
 from __future__ import annotations
@@ -82,7 +82,7 @@ class LiveBoard:
         self._card: Card | None = None
         self._models: dict[int, RaceModel] = {}
         self._form_at: datetime | None = None
-        self._priced_at: dict[int, datetime] = {}
+        self._priced_at: datetime | None = None
         self._paused_until: datetime | None = None
         self._errors: list[str] = []
         self._updated_at: datetime | None = None
@@ -118,16 +118,15 @@ class LiveBoard:
                     self._form_at = now
                     self._models = {r.number: assess(r) for r in card.races}
                     self._updated_at = now
-            for race in self._card.races:
-                interval = price_interval(race, now, self.settings.poll_seconds)
-                last = self._priced_at.get(race.number)
-                if interval is None or (last is not None and now - last < interval):
-                    continue
-                snap = self.pe.markets(self.settings.race_date, self.settings.venue, race.number)
+            due = self._prices_due(now)
+            if due:
+                snaps = self.pe.card_prices(self.settings.race_date, self.settings.venue)
                 with self._lock:
-                    apply_market(race, snap)
-                    self._models[race.number] = assess(race)
-                    self._priced_at[race.number] = now
+                    for race in self._card.races:
+                        if race.number in snaps:
+                            apply_market(race, snaps[race.number])
+                            self._models[race.number] = assess(race)
+                    self._priced_at = now
                     self._updated_at = now
         except SourceError as exc:
             errors.append(str(exc))
@@ -136,6 +135,20 @@ class LiveBoard:
                 errors.append(f"Paused PuntersEdge polling for 15 minutes ({exc.kind}).")
         with self._lock:
             self._errors = errors
+
+    def _prices_due(self, now: datetime) -> bool:
+        """One call prices the whole card, so poll at the tightest interval any race needs.
+        The first poll always runs: it also corrects start times."""
+        if self._priced_at is None:
+            return True
+        intervals = [
+            i
+            for race in self._card.races
+            if (i := price_interval(race, now, self.settings.poll_seconds)) is not None
+        ]
+        if not intervals:
+            return False
+        return now - self._priced_at >= min(intervals)
 
     def _carry_prices(self, card: Card) -> None:
         """A form reload must not wipe the prices already fetched."""

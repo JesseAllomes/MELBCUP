@@ -155,6 +155,40 @@ def freshness(r: Runner, race: Race) -> float | None:
     return max(0.0, 1.0 - (days - 35) / 120.0)
 
 
+def _last_position(r: Runner) -> int | None:
+    if r.last_start_position is not None:
+        return r.last_start_position
+    figs = _figures(r.last10)
+    return figs[0] if figs else None
+
+
+def last_start_unplaced(r: Runner, race: Race) -> float | None:
+    pos = _last_position(r)
+    return None if pos is None else float(pos >= 4)
+
+
+def female(r: Runner, race: Race) -> float | None:
+    return None if not r.sex else float(r.sex.lower() in ("mare", "filly"))
+
+
+def weight_drop(r: Runner, race: Race) -> float | None:
+    """Kilos less than at the last start (claim allowed for); negative means more weight."""
+    if r.weight_kg is None or r.last_start_weight_kg is None:
+        return None
+    return r.last_start_weight_kg - (r.weight_kg - (r.claim_kg or 0.0))
+
+
+def rating_drop(r: Runner, race: Race) -> float | None:
+    """Last start's rating minus today's: positive means a drop in class by rating."""
+    if r.hcp_rating is None or r.last_start_rating is None:
+        return None
+    return float(r.last_start_rating - r.hcp_rating)
+
+
+def first_time_gear(r: Runner, race: Race) -> float | None:
+    return float("FIRST TIME" in (r.gear_changes or "").upper())
+
+
 FACTORS: tuple[Factor, ...] = (
     Factor("form", "Recent form", 0.35, recent_form),
     Factor("career_win", "Career strike rate", 0.12, _stat_factor("career", place=False, k=6)),
@@ -176,6 +210,11 @@ FACTORS: tuple[Factor, ...] = (
     Factor("barrier", "Barrier bias", 0.06, barrier_bias),
     Factor("map", "Speed map position", 0.04, track_position),
     Factor("fresh", "Freshness", 0.03, freshness),
+    Factor("unplaced_last", "Unplaced last start", 0.0, last_start_unplaced),
+    Factor("female", "Mare or filly", 0.0, female),
+    Factor("weight_drop", "Weight drop since last start", 0.0, weight_drop),
+    Factor("rating_drop", "Class drop by rating", 0.0, rating_drop),
+    Factor("gear", "Gear change first time", 0.0, first_time_gear),
 )
 
 

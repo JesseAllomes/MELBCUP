@@ -84,16 +84,22 @@ def model_probs(race: Race) -> tuple[dict[int, float], dict[int, dict[str, float
     return _normalise({n: math.exp(SOFTMAX_SCALE * (s - top)) for n, s in scores.items()}), contrib
 
 
-def blend(components: dict[str, dict[int, float]]) -> dict[int, float]:
-    """Weighted geometric mean of the available probability sets, renormalised."""
-    present = {k: v for k, v in components.items() if v}
+def blend(
+    components: dict[str, dict[int, float]], weights: dict[str, float] | None = None
+) -> dict[int, float]:
+    """Weighted geometric mean of the available probability sets, renormalised.
+
+    The exponents need not sum to 1: a total above 1 sharpens the result, below 1 flattens it.
+    When a source is missing the others are scaled up to keep that total."""
+    weights = weights or BLEND
+    present = {k: v for k, v in components.items() if v and weights.get(k, 0) > 0}
     if not present:
         return {}
-    total_w = sum(BLEND[k] for k in present)
+    scale = sum(weights.values()) / sum(weights[k] for k in present)
     runners = set.intersection(*(set(v) for v in present.values()))
     logp = {}
     for n in runners:
-        logp[n] = sum(BLEND[k] / total_w * math.log(max(v[n], 1e-6)) for k, v in present.items())
+        logp[n] = sum(weights[k] * scale * math.log(max(v[n], 1e-6)) for k, v in present.items())
     top = max(logp.values())
     return _normalise({n: math.exp(lp - top) for n, lp in logp.items()})
 

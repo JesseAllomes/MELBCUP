@@ -1,6 +1,6 @@
 """PuntersEdge: the day's acceptances (with owners), recent field form and bookmaker prices.
 
-Credit costs (per the vendor docs): acceptances 2, form 3, markets 2.
+Credit costs (per the vendor docs): acceptances 2, form 3, next-to-go 2 for the whole card.
 """
 
 from __future__ import annotations
@@ -46,7 +46,8 @@ def _utc(text: str | None) -> datetime | None:
 
 
 def _local_time(race_date: date, text: str | None) -> datetime | None:
-    """Acceptances give ``2:45PM`` in local time."""
+    """Acceptances give ``2:45PM`` in the track's local time. Read as Melbourne time, which is
+    right for Victorian tracks; prices replace it with the exact UTC start."""
     if not text:
         return None
     try:
@@ -102,6 +103,9 @@ def parse_acceptances(data: dict[str, Any], venue: str, race_date: date) -> Card
                     last10=x.get("last10"),
                     hcp_rating=x.get("hcp_rating"),
                     last_start_date=_date(x.get("last_start_date")),
+                    last_start_position=x.get("last_start_position"),
+                    last_start_weight_kg=x.get("last_start_weight_kg"),
+                    last_start_rating=x.get("last_start_rating"),
                 )
             )
         card.races.append(race)
@@ -154,64 +158,71 @@ class MarketSnapshot:
     places_paid: int
     observed_at: datetime | None
     scratched: set[int]
+    start_time: datetime | None = None
 
 
-def parse_markets(data: dict[str, Any]) -> MarketSnapshot:
-    """Best win/place price per runner, Sportsbet's price, and a margin-free consensus.
+def parse_race_prices(race: dict[str, Any]) -> MarketSnapshot:
+    """One next-to-go race -> best win/place price per runner, Sportsbet's, and a consensus.
 
-    Consensus: each book's win market is normalised to 100%, then the median probability per
-    runner across books, renormalised. Only books quoting at least 80% of the field count.
+    Stale quotes (older than the feed's own freshness threshold) are dropped. Consensus: each
+    book's win market is normalised to 100%, then the median probability per runner across
+    books, renormalised. Only books quoting at least 80% of the field count.
     """
-    race = data.get("race") or {}
-    places_paid = int(race.get("places_paid") or 3)
-    scratched = {s.get("number") for s in data.get("scratchings") or []}
+    scratched = {s.get("number") for s in race.get("scratchings") or [] if s.get("number")}
     prices: dict[int, RunnerPrices] = {}
-
-    def slot(n: int) -> RunnerPrices:
-        return prices.setdefault(n, RunnerPrices(number=n))
-
+    book_win: dict[str, dict[int, float]] = {}
     latest: datetime | None = None
-    per_book_probs: dict[int, list[float]] = {}
-    for market in data.get("markets", []):
-        kind = market.get("market")
-        if kind not in ("win", "place"):
+    for runner in race.get("runners", []):
+        n = runner.get("number")
+        if n is None or n in scratched:
             continue
-        for best in market.get("best", []):
-            n = best.get("number")
-            if n in scratched or not best.get("price"):
+        rp = prices.setdefault(n, RunnerPrices(number=n))
+        for q in runner.get("bookmakers", []):
+            if q.get("stale"):
                 continue
-            q = Quote(float(best["price"]), best.get("bookmaker") or "?")
-            if kind == "win":
-                slot(n).best_win = q
-            else:
-                slot(n).best_place = q
-        books = market.get("bookmakers", [])
-        field_size = max((b.get("runners_quoted") or 0 for b in books), default=0)
-        for book in books:
-            seen = _utc(book.get("observed_at"))
+            key = q.get("key") or "?"
+            win, place = q.get("win_price"), q.get("place_price")
+            seen = _utc(q.get("last_update"))
             if seen and (latest is None or seen > latest):
                 latest = seen
-            quoted = {
-                r["number"]: float(r["price"])
-                for r in book.get("runners", [])
-                if r.get("price") and r.get("number") not in scratched
-            }
-            if book.get("key") == SPORTSBET:
-                for n, p in quoted.items():
-                    if kind == "win":
-                        slot(n).sportsbet_win = p
-                    else:
-                        slot(n).sportsbet_place = p
-            if kind == "win" and field_size and len(quoted) >= 0.8 * field_size:
-                for n, p in _no_vig(quoted).items():
-                    per_book_probs.setdefault(n, []).append(p)
-                    slot(n).books += 1
+            if win and win > 1.0:
+                book_win.setdefault(key, {})[n] = float(win)
+                if rp.best_win is None or win > rp.best_win.price:
+                    rp.best_win = Quote(float(win), key)
+            if place and place > 1.0 and (rp.best_place is None or place > rp.best_place.price):
+                rp.best_place = Quote(float(place), key)
+            if key == SPORTSBET:
+                rp.sportsbet_win = float(win) if win else None
+                rp.sportsbet_place = float(place) if place else None
 
-    medians = {n: statistics.median(ps) for n, ps in per_book_probs.items() if ps}
+    field = len(prices)
+    per_runner: dict[int, list[float]] = {}
+    for quoted in book_win.values():
+        if field and len(quoted) >= 0.8 * field:
+            for n, p in _no_vig(quoted).items():
+                per_runner.setdefault(n, []).append(p)
+    medians = {n: statistics.median(ps) for n, ps in per_runner.items()}
     total = sum(medians.values())
     for n, p in medians.items():
-        slot(n).consensus_prob = p / total if total else None
-    return MarketSnapshot(prices, places_paid, latest, {n for n in scratched if n is not None})
+        prices[n].consensus_prob = p / total if total else None
+        prices[n].books = len(per_runner[n])
+    places_paid = int(race.get("places_paid") or 3)
+    return MarketSnapshot(prices, places_paid, latest, scratched, _utc(race.get("start_time")))
+
+
+def parse_next_to_go(
+    data: list[dict[str, Any]], venue: str, race_date: date
+) -> dict[int, MarketSnapshot]:
+    """Race number -> prices, for this venue's races on this (Melbourne) date."""
+    out = {}
+    for race in data:
+        start = _utc(race.get("start_time"))
+        if (race.get("venue") or "").lower() != venue.lower() or start is None:
+            continue
+        if start.astimezone(MELBOURNE).date() != race_date:
+            continue
+        out[int(race["race_number"])] = parse_race_prices(race)
+    return out
 
 
 class PuntersEdgeClient:
@@ -241,18 +252,19 @@ class PuntersEdgeClient:
         )
         return parse_form(data)
 
-    def markets(
-        self, race_date: date, venue: str, race_number: int, *, ttl: float = 0
-    ) -> MarketSnapshot:
+    def card_prices(self, race_date: date, venue: str) -> dict[int, MarketSnapshot]:
+        """Every priced race at the meeting in one call (2 credits on every plan).
+
+        Bookmakers frame a race about 16 hours before the jump; races not framed yet are absent.
+        """
         data = self.src.get(
-            "/v1/racing/markets",
+            "/v1/racing/next-to-go",
             {
                 "venue": venue,
-                "meeting_date": race_date.isoformat(),
-                "race_number": race_number,
+                "categories": "horse",
                 "country": "AU",
-                "markets": "win,place",
+                "include_unresolved": "true",
+                "num_races": 20,
             },
-            ttl=ttl,
         )
-        return parse_markets(data)
+        return parse_next_to_go(data if isinstance(data, list) else [], venue, race_date)

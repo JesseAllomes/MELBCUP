@@ -45,23 +45,33 @@ def test_price_interval_tightens_toward_the_jump():
     assert price_interval(Race(VENUE, RACE_DATE, 1), jump, 60) == timedelta(minutes=15)
 
 
-def test_tick_loads_card_then_polls_only_races_that_are_due():
+def test_tick_polls_card_prices_at_the_tightest_interval():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
     board.tick()
     snap = board.snapshot()
     assert [m.race.number for m in snap.models] == [1, 2]
     assert all("market" in m.sources for m in snap.models)
-    assert router.hits["/v1/racing/markets"] == 2
+    assert router.hits["/v1/racing/next-to-go"] == 1  # one call prices the whole card
+
+    clock.t = START + timedelta(seconds=30)
+    board.tick()  # R1 is 15 min out: 60 s polling, not due yet
+    assert router.hits["/v1/racing/next-to-go"] == 1
 
     clock.t = START + timedelta(seconds=61)
-    board.tick()  # R1 is 14 min out (60 s polling); the Cup is hours away (15 min)
-    assert router.hits["/v1/racing/markets"] == 3
+    board.tick()
+    assert router.hits["/v1/racing/next-to-go"] == 2
     assert router.hits["/v1/racing/acceptances"] == 1  # form is hourly
 
-    clock.t = START + timedelta(minutes=30)  # R1 has run; Cup due again
+    clock.t = START + timedelta(minutes=21)  # 11:51: R1 has run; only the Cup (15 min) counts
     board.tick()
-    assert router.hits["/v1/racing/markets"] == 4
+    assert router.hits["/v1/racing/next-to-go"] == 3
+    clock.t = START + timedelta(minutes=30)
+    board.tick()
+    assert router.hits["/v1/racing/next-to-go"] == 3
+    clock.t = START + timedelta(minutes=37)
+    board.tick()
+    assert router.hits["/v1/racing/next-to-go"] == 4
 
 
 def test_form_reload_keeps_prices_and_scratchings():

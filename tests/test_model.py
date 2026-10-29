@@ -126,7 +126,7 @@ def test_assess_full_card_uses_all_three_sources():
     pe, ff = PuntersEdgeClient("k", transport=t), FormFavClient("k", transport=t)
     card = load_card(pe, ff, RACE_DATE, VENUE)
     race = card.race(2)
-    apply_market(race, pe.markets(RACE_DATE, VENUE, 2))
+    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[2])
     m = assess(race)
     assert m.sources == ["market", "feed", "model"]
     assert sum(a.win for a in m.runners.values()) == pytest.approx(1.0)

@@ -13,7 +13,7 @@ from melbcup.sources.puntersedge import (
     PuntersEdgeClient,
     parse_acceptances,
     parse_form,
-    parse_markets,
+    parse_next_to_go,
 )
 
 
@@ -73,14 +73,39 @@ def test_vendor_form_example():
     assert (record.starts, record.wins, record.top3) == (1, 0, 1)
 
 
-def test_vendor_markets_example_best_prices_and_scratchings():
-    snap = parse_markets(load_fixture("pe_markets"))
-    assert snap.prices[8].best_win.price == 2.35
-    assert snap.prices[8].best_win.bookmaker == "sportsbet"
-    assert snap.prices[8].best_place.bookmaker == "tab"
-    assert {5, 6, 9, 10} <= snap.scratched
-    # Example books quote 2 of 9 runners: too thin for a consensus.
-    assert snap.prices[8].consensus_prob is None
+def test_vendor_next_to_go_example():
+    data = load_fixture("pe_next_to_go")
+    snaps = parse_next_to_go(data, "northam", date(2026, 10, 29))
+    assert set(snaps) == {4, 5}
+    snap = snaps[4]
+    assert snap.places_paid == 3
+    priced = [p for p in snap.prices.values() if p.best_win]
+    assert priced and all(p.best_win.price > 1 for p in priced)
+    assert all(p.sportsbet_win for p in priced)
+    assert sum(p.consensus_prob for p in snap.prices.values()) == pytest.approx(1.0)
+    assert not set(snap.prices) & snap.scratched
+    # another venue, or another day at this venue, yields nothing
+    assert parse_next_to_go(data, "Flemington", date(2026, 10, 29)) == {}
+    assert parse_next_to_go(data, "Northam", date(2026, 10, 30)) == {}
+
+
+def test_stale_quotes_are_ignored():
+    race = {
+        "race_number": 1,
+        "runners": [
+            {
+                "number": 1,
+                "bookmakers": [
+                    {"key": "tab", "win_price": 2.0, "place_price": 1.2},
+                    {"key": "sportsbet", "win_price": 9.0, "stale": True},
+                ],
+            }
+        ],
+    }
+    from melbcup.sources.puntersedge import parse_race_prices
+
+    p = parse_race_prices(race).prices[1]
+    assert p.best_win.price == 2.0 and p.sportsbet_win is None
 
 
 # --- synthetic full card ------------------------------------------------------------------
@@ -88,7 +113,7 @@ def test_vendor_markets_example_best_prices_and_scratchings():
 
 def test_markets_consensus_is_margin_free_and_sums_to_one(router):
     pe, _ = clients(router)
-    snap = pe.markets(RACE_DATE, VENUE, 1)
+    snap = pe.card_prices(RACE_DATE, VENUE)[1]
     total = sum(p.consensus_prob for p in snap.prices.values())
     assert total == pytest.approx(1.0)
     fav = snap.prices[1]
@@ -151,7 +176,7 @@ def test_apply_market_marks_late_scratchings():
     pe, ff = clients(router)
     card = load_card(pe, ff, RACE_DATE, VENUE)
     race = card.race(1)
-    apply_market(race, pe.markets(RACE_DATE, VENUE, 1))
+    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[1])
     assert race.runner(3).scratched
     assert 3 not in race.prices
     assert race.prices_at is not None
@@ -226,3 +251,12 @@ def test_json_source_network_failure_is_unavailable():
     with pytest.raises(SourceError) as exc:
         src.get("/a")
     assert exc.value.kind == "unavailable"
+
+
+def test_price_feed_corrects_start_time(router):
+    pe, ff = clients(router)
+    card = load_card(pe, ff, RACE_DATE, VENUE)
+    race = card.race(1)
+    race.start_time = race.start_time.replace(hour=8)  # as if read in the wrong time zone
+    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[1])
+    assert race.start_time == datetime.fromisoformat("2026-11-03T00:45:00+00:00")

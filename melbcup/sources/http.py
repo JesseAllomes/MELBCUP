@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
@@ -54,19 +55,22 @@ class JsonSource:
             transport=transport,
         )
         self.calls = 0
+        self._lock = threading.Lock()  # loads run on a thread pool
 
     def get(self, path: str, params: dict[str, Any] | None = None, *, ttl: float = 0) -> Any:
         clean = {k: v for k, v in (params or {}).items() if v is not None}
         key = (path, tuple(sorted((k, str(v)) for k, v in clean.items())))
         now = self._clock()
-        hit = self._cache.get(key)
+        with self._lock:
+            hit = self._cache.get(key)
         if hit and hit[0] > now:
             return hit[1]
         try:
             resp = self._http.get(path, params=clean)
         except httpx.HTTPError as exc:
             raise SourceError(self.name, "unavailable", f"{path}: {exc}") from exc
-        self.calls += 1
+        with self._lock:
+            self.calls += 1
         if resp.status_code >= 400:
             detail = resp.text[:200].strip()
             raise SourceError(
@@ -80,7 +84,8 @@ class JsonSource:
         except ValueError as exc:
             raise SourceError(self.name, "bad_response", f"{path}: not JSON") from exc
         if ttl > 0:
-            self._cache[key] = (now + ttl, data)
+            with self._lock:
+                self._cache[key] = (now + ttl, data)
         return data
 
     def close(self) -> None:

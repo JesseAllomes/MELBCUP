@@ -134,45 +134,38 @@ def pe_form_payload(race: int) -> dict:
     return {"race_number": race, "runners": runners}
 
 
-def markets_payload(race: int, scratched: tuple[int, ...] = ()) -> dict:
+def ntg_race(race: int, scratched: tuple[int, ...] = ()) -> dict:
+    """One race as /v1/racing/next-to-go returns it: every book's win and place per runner."""
     books = WIN_PRICES[race]
-    win_books, place_books = [], []
-    for key, prices in books.items():
-        live = {n: p for n, p in prices.items() if n not in scratched}
-        win_books.append(
+    runners = []
+    for num, name, *_ in FIELDS[race]:
+        if num in scratched:
+            continue
+        runners.append(
             {
-                "key": key,
-                "runners_quoted": len(live),
-                "observed_at": "2026-11-03T03:50:00Z",
-                "runners": [{"number": n, "price": p} for n, p in live.items()],
-            }
-        )
-        place_books.append(
-            {
-                "key": key,
-                "runners_quoted": len(live),
-                "observed_at": "2026-11-03T03:50:00Z",
-                "runners": [
-                    {"number": n, "price": round(1 + (p - 1) / 4, 2)} for n, p in live.items()
+                "number": num,
+                "name": name,
+                "bookmakers": [
+                    {
+                        "key": key,
+                        "win_price": prices[num],
+                        "place_price": round(1 + (prices[num] - 1) / 4, 2),
+                        "last_update": "2026-11-03T03:50:00Z",
+                        "stale": False,
+                    }
+                    for key, prices in books.items()
                 ],
             }
         )
-
-    def best(book_list):
-        out = {}
-        for b in book_list:
-            for r in b["runners"]:
-                if r["number"] not in out or r["price"] > out[r["number"]]["price"]:
-                    out[r["number"]] = {**r, "bookmaker": b["key"]}
-        return list(out.values())
-
+    start = "2026-11-03T04:00:00Z" if race == 2 else "2026-11-03T00:45:00Z"
     return {
-        "race": {"race_id": f"race-{race}", "places_paid": 3, "start_time": "2026-11-03T04:00:00Z"},
-        "markets": [
-            {"market": "win", "bookmakers": win_books, "best": best(win_books)},
-            {"market": "place", "bookmakers": place_books, "best": best(place_books)},
-        ],
+        "race_id": f"race-{race}",
+        "venue": VENUE,
+        "race_number": race,
+        "start_time": start,
+        "places_paid": 3,
         "scratchings": [{"number": n} for n in scratched],
+        "runners": runners,
     }
 
 
@@ -265,11 +258,12 @@ class Router:
         if host == "api.puntersedge.online":
             if path == "/v1/racing/acceptances":
                 return httpx.Response(200, json=acceptances_payload())
-            race = int(q["race_number"])
+            if path == "/v1/racing/next-to-go":
+                return httpx.Response(
+                    200, json=[ntg_race(n, self.scratched.get(n, ())) for n in FIELDS]
+                )
             if path == "/v1/racing/form":
-                return httpx.Response(200, json=pe_form_payload(race))
-            if path == "/v1/racing/markets":
-                return httpx.Response(200, json=markets_payload(race, self.scratched.get(race, ())))
+                return httpx.Response(200, json=pe_form_payload(int(q["race_number"])))
         if host == "api.formfav.com":
             if path == "/v1/form":
                 return httpx.Response(200, json=ff_form_payload(int(q["race"])))

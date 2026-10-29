@@ -69,6 +69,9 @@ class Runner:
     last10: str | None = None
     hcp_rating: int | None = None
     last_start_date: date | None = None
+    last_start_position: int | None = None
+    last_start_weight_kg: float | None = None
+    last_start_rating: int | None = None
     runs: list[PastRun] = field(default_factory=list)
     career: StatLine | None = None
     track: StatLine | None = None
