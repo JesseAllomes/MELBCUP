@@ -188,9 +188,12 @@ class Views:
             return self.env.get_template("day.html").render(ctx)
         if path == "/meetings":
             pick = _date(query.get("date")) or ctx["snap"].race_date
+            archive = self.board.archive
+            saved = archive.venues(pick) if archive and pick < ctx["today"] else []
             ctx.update(
                 pick=pick,
-                found=ctx["snap"].meetings.get(pick),
+                saved=bool(saved),
+                found=saved or ctx["snap"].meetings.get(pick),
                 carnival=CARNIVAL,
                 here=f"/meetings?date={pick.isoformat()}",
             )

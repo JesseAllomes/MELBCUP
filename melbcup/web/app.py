@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
+from melbcup.archive import Archive
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.web.views import HERE, NotFound, Views
@@ -28,7 +29,15 @@ def create_app(
     start_background: bool = True,
 ) -> FastAPI:
     settings = settings or load_settings()
-    board = board or LiveBoard(settings)
+    if board is None:
+        saved = HERE.parent.parent / "docs" / "data"
+
+        def read(path: str) -> str | None:
+            f = saved / path
+            return f.read_text() if f.is_file() else None
+
+        key = settings.puntersedge_api_key
+        board = LiveBoard(settings, archive=Archive(read, key) if key else None)
     views = Views(settings, board)
 
     @asynccontextmanager

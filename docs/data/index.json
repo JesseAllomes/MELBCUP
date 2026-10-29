@@ -1,0 +1,220 @@
+{
+ "salt": "fa3d147cd8c59d99726e9363343d44b9",
+ "check": "4b8f5a80e40fb587",
+ "meetings": {
+  "2026-09-29": [
+   "Grafton",
+   "Tatura"
+  ],
+  "2026-09-30": [
+   "Balaklava",
+   "Ballarat",
+   "Doomben",
+   "Geraldton",
+   "Rosehill"
+  ],
+  "2026-10-01": [
+   "Gatton",
+   "Illawarra Grange",
+   "Kalgoorlie",
+   "Tamworth",
+   "Warrnambool"
+  ],
+  "2026-10-02": [
+   "Dubbo",
+   "Launceston",
+   "Moruya",
+   "Rockhampton",
+   "Sunshine Coast"
+  ],
+  "2026-10-03": [
+   "Kalgoorlie",
+   "Moora",
+   "Murray Bridge",
+   "Newcastle",
+   "Toowoomba"
+  ],
+  "2026-10-04": [
+   "Alice Springs",
+   "Ballina",
+   "Bendigo",
+   "Cootamundra",
+   "Northam",
+   "Townsville"
+  ],
+  "2026-10-05": [
+   "Doomben",
+   "Gawler",
+   "Muswellbrook",
+   "Warwick Farm"
+  ],
+  "2026-10-06": [
+   "Goulburn",
+   "Kilcoy",
+   "Mildura",
+   "Newcastle"
+  ],
+  "2026-10-07": [
+   "Bunbury",
+   "Geelong",
+   "Mount Gambier"
+  ],
+  "2026-10-08": [
+   "Hawkesbury",
+   "Ipswich",
+   "Orange",
+   "York"
+  ],
+  "2026-10-09": [
+   "Ballarat",
+   "Canberra",
+   "Cloncurry",
+   "Cranbourne",
+   "Launceston",
+   "Port Macquarie",
+   "Sunshine Coast"
+  ],
+  "2026-10-10": [
+   "Albury",
+   "Alice Springs",
+   "Ascot",
+   "Caulfield",
+   "Eagle Farm",
+   "Forbes",
+   "Gold Coast",
+   "Kembla Grange",
+   "Leonora",
+   "Manangatang",
+   "Morphettville",
+   "Port Macquarie",
+   "Rosehill"
+  ],
+  "2026-10-11": [
+   "Coonamble",
+   "Geraldton",
+   "Halidon",
+   "Queanbeyan",
+   "Seymour"
+  ],
+  "2026-10-12": [
+   "Bairnsdale",
+   "Tamworth"
+  ],
+  "2026-10-13": [
+   "Grafton",
+   "Kilmore"
+  ],
+  "2026-10-14": [
+   "Ascot",
+   "Balaklava",
+   "Caulfield",
+   "Eagle Farm",
+   "Rosehill"
+  ],
+  "2026-10-15": [
+   "Hawkesbury",
+   "Ipswich",
+   "Northam",
+   "Warrnambool"
+  ],
+  "2026-10-16": [
+   "Bathurst",
+   "Cranbourne",
+   "Gatton",
+   "Launceston",
+   "Penola",
+   "Sunshine Coast",
+   "Taree"
+  ],
+  "2026-10-17": [
+   "Ascot",
+   "Avoca",
+   "Bendigo",
+   "Caulfield",
+   "Doomben",
+   "Gold Coast",
+   "Innisfail",
+   "Leinster",
+   "Morphettville",
+   "Narromine",
+   "Newcastle",
+   "Rockhampton",
+   "Toowoomba",
+   "Wagga",
+   "Wodonga"
+  ],
+  "2026-10-18": [
+   "Horsham",
+   "Kalgoorlie",
+   "Lismore",
+   "Moe",
+   "Nowra",
+   "Townsville"
+  ],
+  "2026-10-19": [
+   "Echuca",
+   "Muswellbrook",
+   "Orange"
+  ],
+  "2026-10-21": [
+   "Belmont",
+   "Eagle Farm",
+   "Geelong",
+   "Strathalbyn",
+   "Warwick Farm"
+  ],
+  "2026-10-22": [
+   "Geraldton",
+   "Mornington"
+  ],
+  "2026-10-23": [
+   "Ballarat",
+   "Canberra",
+   "Cranbourne",
+   "Gawler",
+   "Launceston",
+   "Mackay",
+   "Scone"
+  ],
+  "2026-10-24": [
+   "Albury",
+   "Ascot",
+   "Collie",
+   "Eagle Farm",
+   "Flemington",
+   "Kembla Grange",
+   "Morphettville",
+   "St Arnaud",
+   "Toowoomba"
+  ],
+  "2026-10-25": [
+   "Coonabarabran",
+   "Northam",
+   "Port Macquarie",
+   "Sale",
+   "Townsville"
+  ],
+  "2026-10-26": [
+   "Queanbeyan",
+   "Wangaratta"
+  ],
+  "2026-10-27": [
+   "Hawkesbury",
+   "Rockhampton",
+   "Swan Hill"
+  ],
+  "2026-10-28": [
+   "Belmont",
+   "Bendigo",
+   "Eagle Farm",
+   "Murray Bridge",
+   "Warwick Farm"
+  ],
+  "2026-10-29": [
+   "Casino",
+   "Northam",
+   "Warrnambool",
+   "Wyong"
+  ]
+ }
+}

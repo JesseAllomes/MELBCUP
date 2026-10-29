@@ -18,6 +18,7 @@
   let nextId = 1;
   const pending = new Map();
   let busy = false;
+  let ticking = false;
   let route = store.get(ROUTE) || "/";
 
   function send(type, data) {
@@ -144,7 +145,12 @@
     worker = new Worker("worker.js");
     worker.onmessage = (event) => {
       const msg = event.data;
-      if (msg.type === "progress") { $("boot-text").textContent = msg.text; $("busy-text").textContent = msg.text; return; }
+      if (msg.type === "progress") {
+        $("boot-text").textContent = msg.text;
+        $("busy-text").textContent = (ticking ? "Updating: " : "") + msg.text;
+        if (ticking) $("busy").hidden = false;
+        return;
+      }
       const p = pending.get(msg.id);
       if (!p) return;
       pending.delete(msg.id);
@@ -167,17 +173,20 @@
     setInterval(() => {
       if (!busy && !document.hidden && !route.startsWith("/meetings")) show(route, true);
     }, 60000);
-    setInterval(async () => {
+    const round = async () => {
       if (busy || document.hidden) return;
-      busy = true;
+      busy = ticking = true;
       try {
         if (await send("tick")) {
           store.set(STATE, await send("save"));
           if (!route.startsWith("/meetings")) await show(route, true);
         }
       } catch (err) { /* the next round tries again */ }
-      busy = false;
-    }, 15000);
+      busy = ticking = false;
+      $("busy").hidden = true;
+    };
+    round();  // straight away: load the card, prices or results if they are due
+    setInterval(round, 15000);
   }
 
   start();

@@ -15,6 +15,7 @@ from collections.abc import Callable
 from urllib.parse import parse_qsl, urlsplit
 
 from melbcup import sources
+from melbcup.archive import Archive
 from melbcup.config import load_settings
 from melbcup.live import LiveBoard
 from melbcup.model.probability import assess
@@ -32,6 +33,19 @@ def _parse_headers(raw: str) -> dict[str, str]:
         if name:
             out[name.strip().lower()] = value.strip()
     return out
+
+
+def xhr_text(path: str) -> str | None:
+    """A same-origin file next to the page (the saved meetings), or None if absent."""
+    from js import XMLHttpRequest  # type: ignore[import-not-found]
+
+    xhr = XMLHttpRequest.new()
+    xhr.open("GET", "data/" + path, False)
+    try:
+        xhr.send()
+    except Exception:
+        return None
+    return str(xhr.responseText) if xhr.status == 200 else None
 
 
 def xhr_requester(progress: Callable[[str], None] | None = None) -> http.Requester:
@@ -95,6 +109,7 @@ def init(
     saved: str | None = None,
     progress: Callable[[str], None] | None = None,
     requester: http.Requester | None = None,
+    archive_reader: Callable[[str], str | None] | None = None,
 ) -> None:
     global _views
     sources.WORKERS = 1
@@ -104,9 +119,12 @@ def init(
             "PUNTERSEDGE_API_KEY": pe_key or "",
             "FORMFAV_API_KEY": ff_key or "",
             "APP_PASSWORD": "browser",
+            "PRICE_MODE": "auto",  # on the phone it keeps itself up to date
         }
     )
-    board = LiveBoard(settings)
+    reader = archive_reader or (xhr_text if requester is None else None)
+    archive = Archive(reader, pe_key) if pe_key and reader else None
+    board = LiveBoard(settings, archive=archive)
     if saved:
         _restore(board, saved)
     board.check_credits()  # free: shows the balance before anything is spent

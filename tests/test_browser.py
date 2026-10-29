@@ -57,6 +57,11 @@ def test_damaged_or_old_saved_state_starts_clean():
     assert "No card loaded yet" in browser.render("/")
 
 
+def test_phone_starts_in_auto_mode():
+    browser.init("pe", "ff", requester=requester_for(Router()))
+    assert "Auto ON" in browser.render("/")
+
+
 def test_actions_route_like_the_server():
     router = Router()
     browser.init("pe", "ff", requester=requester_for(router))

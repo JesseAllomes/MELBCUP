@@ -27,7 +27,10 @@
         </span>
       </div>
       <div class="buttons">
-        {% if card %}
+        {% if snap.saved %}
+        <p class="sub">Saved meeting with results: nothing to fetch, no credits used.</p>
+        {% else %}
+        {% if card and snap.can_price %}
         <form method="post" action="/actions/prices?next={{ here | urlencode }}">
           <button type="submit" class="primary">Refresh prices <span>2 cr</span></button>
         </form>
@@ -43,8 +46,9 @@
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}">
           <button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'ON' if snap.auto else 'off' }}</button>
         </form>
+        {% endif %}
       </div>
-      {% if snap.auto %}<p class="sub">Auto spends credits on its own: every 15 min early, every minute from 20 min before each race, and ~{{ load_cost }} each hour for form.</p>{% endif %}
+      {% if snap.auto and not snap.saved %}<p class="sub">Auto spends credits on its own: every 15 min early, every minute from 20 min before each race, and ~{{ load_cost }} each hour for form.</p>{% endif %}
     </div>
     {% endif %}
     {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}

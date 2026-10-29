@@ -131,6 +131,17 @@ One-time setup on GitHub:
 3. After a minute or two, open `https://<your-github-name>.github.io/melbcup/` on your phone and
    add it to the home screen.
 
+On the phone, **Auto is on**: open the page and it loads the card, refreshes prices (every 15
+minutes early, every minute from 20 minutes before each race) and collects results as races
+are run, grading the picks. It prices only today's and tomorrow's meetings, because bookmakers
+have no market further out. The buttons stay for anyone who wants control.
+
+**Saved meetings:** 154 meetings (about 1,160 races, 29 September to 29 October 2026) downloaded
+for the backtest are sealed in `docs/data` and open with no API calls, results included. They
+are encrypted with a key derived from the PuntersEdge key, so the public site does not republish
+the providers' data; only the phone holding that key can read them. Rebuild with
+`PUNTERSEDGE_API_KEY=... python tools/build_archive.py <folder of collected races>`.
+
 On first open, the app asks for your PuntersEdge and FormFav keys. They are saved on that phone
 only. The first start downloads the Python runtime (about 10 MB, from jsDelivr), and later
 starts are quick. The loaded card, prices and results are kept on the phone too, so reopening the

@@ -1,7 +1,8 @@
 {
- "build": "62a47da70c92",
+ "build": "386ad014c83e",
  "files": [
   "melbcup/__init__.py",
+  "melbcup/archive.py",
   "melbcup/bets/__init__.py",
   "melbcup/bets/exotics.py",
   "melbcup/bets/grade.py",

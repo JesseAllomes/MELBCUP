@@ -31,7 +31,7 @@
       <button type="submit" class="primary">Find meetings on {{ pick | day }} <span>2 cr</span></button>
     </form>
   {% elif found %}
-    <p class="sub" style="margin-top:10px">{{ found | length }} meeting{{ '' if found | length == 1 else 's' }} on {{ pick | day }}:</p>
+    <p class="sub" style="margin-top:10px">{{ found | length }} meeting{{ '' if found | length == 1 else 's' }} on {{ pick | day }}{% if saved %}, saved with results: they open free{% endif %}:</p>
     <div class="buttons">
       {% for v in found %}
       <form method="post" action="/actions/meeting?date={{ pick.isoformat() }}&venue={{ v | urlencode }}">

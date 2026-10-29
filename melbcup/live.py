@@ -19,9 +19,10 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from melbcup.bets import DayPicks, build_picks
-from melbcup.config import Settings
+from melbcup.config import MELBOURNE, Settings
 from melbcup.domain import Card, Race
 from melbcup.model.probability import RaceModel, assess
 from melbcup.sources import apply_market, apply_result, load_card
@@ -29,11 +30,16 @@ from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import PuntersEdgeClient
 
+if TYPE_CHECKING:
+    from melbcup.archive import Archive
+
 log = logging.getLogger("melbcup.live")
 
 FORM_REFRESH = timedelta(hours=1)
 QUOTA_BACKOFF = timedelta(minutes=15)
 MIN_MANUAL_GAP = timedelta(seconds=15)  # a double tap must not spend twice
+RESULTS_AFTER = timedelta(minutes=10)  # results usually settle within ten minutes of the jump
+RESULTS_EVERY = timedelta(minutes=10)
 
 
 def price_interval(race: Race, now: datetime, poll_seconds: int) -> timedelta | None:
@@ -66,6 +72,8 @@ class Snapshot:
     venue: str = ""
     meetings: dict[date, list[str]] = field(default_factory=dict)
     results_at: datetime | None = None
+    can_price: bool = False  # today's or tomorrow's meeting: bookmakers have a market
+    saved: bool = False  # a finished meeting opened from the saved copy
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -78,6 +86,7 @@ class LiveBoard:
         pe: PuntersEdgeClient | None = None,
         ff: FormFavClient | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        archive: Archive | None = None,
     ):
         self.settings = settings
         self.pe = pe or (
@@ -89,6 +98,7 @@ class LiveBoard:
             FormFavClient(settings.formfav_api_key) if settings.formfav_api_key else None
         )
         self.clock = clock
+        self.archive = archive
         self.auto = settings.auto_refresh
         self.race_date = settings.race_date
         self.venue = settings.venue
@@ -126,6 +136,8 @@ class LiveBoard:
                 venue=self.venue,
                 meetings=dict(self._meetings),
                 results_at=self._results_at,
+                can_price=self._prices_window(self.clock()),
+                saved=self._archived(self.clock()),
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -143,8 +155,28 @@ class LiveBoard:
         with self._lock:
             self._errors = errors
 
+    def _melbourne_day(self, now: datetime) -> date:
+        return now.astimezone(MELBOURNE).date()
+
+    def _archived(self, now: datetime) -> bool:
+        """Saved meetings stand in for live data only once the day is over: a meeting still to
+        come is always fetched fresh (scratchings, race-day predictions)."""
+        return (
+            self.archive is not None
+            and self.race_date < self._melbourne_day(now)
+            and self.archive.has(self.race_date, self.venue)
+        )
+
+    def _prices_window(self, now: datetime) -> bool:
+        """Bookmakers price a meeting from the evening before: only today and tomorrow."""
+        today = self._melbourne_day(now)
+        return self.race_date in (today, today + timedelta(days=1))
+
     def _load_form(self, now: datetime) -> None:
-        card = load_card(self.pe, self.ff, self.race_date, self.venue)
+        if self._archived(now):  # saved earlier: no credits
+            card = self.archive.load(self.race_date, self.venue)
+        else:
+            card = load_card(self.pe, self.ff, self.race_date, self.venue)
         with self._lock:
             self._carry_prices(card)
             self._card = card
@@ -171,7 +203,13 @@ class LiveBoard:
         def job() -> None:
             try:
                 now = self.clock()
-                self._guarded(now, lambda: (self._load_form(now), self._load_prices(now)))
+
+                def run() -> None:
+                    self._load_form(now)
+                    if self._prices_window(now):
+                        self._load_prices(now)
+
+                self._guarded(now, run)
             finally:
                 self._loading = False
                 self._work.release()
@@ -209,19 +247,38 @@ class LiveBoard:
         try:
 
             def run() -> None:
-                results = self.pe.results(self.race_date, self.venue)
-                with self._lock:
-                    for race in self._card.races:
-                        if race.number in results:
-                            apply_result(race, results[race.number])
-                            self._models[race.number] = assess(race)
-                    self._results_at = now
-                    self._updated_at = now
+                self._load_results(now)
 
             self._guarded(now, run)
         finally:
             self._work.release()
         return True
+
+    def _load_results(self, now: datetime) -> None:
+        results = self.pe.results(self.race_date, self.venue)
+        with self._lock:
+            for race in self._card.races:
+                if race.number in results:
+                    apply_result(race, results[race.number])
+                    self._models[race.number] = assess(race)
+            self._results_at = now
+            self._updated_at = now
+
+    def _results_due(self, now: datetime) -> bool:
+        """Some race jumped over ten minutes ago without a final result, and the last look was
+        over ten minutes ago."""
+        if self._card is None or self.race_date > self._melbourne_day(now):
+            return False
+        if self._results_at is not None and now - self._results_at < RESULTS_EVERY:
+            return False
+        past_day = self.race_date < self._melbourne_day(now)
+        return any(
+            (race.result is None or race.result.status != "final")
+            and (
+                past_day or (race.start_time is not None and now - race.start_time >= RESULTS_AFTER)
+            )
+            for race in self._card.races
+        )
 
     def set_auto(self, on: bool) -> None:
         self.auto = on
@@ -242,6 +299,8 @@ class LiveBoard:
 
     def find_meetings(self, race_date: date) -> list[str]:
         """The day's meetings (2 credits, then cached for this day)."""
+        if self.archive is not None and self.archive.venues(race_date):
+            return self.archive.venues(race_date)  # saved earlier: no credits
         if self.pe is None:
             return []
         if race_date not in self._meetings:
@@ -267,7 +326,8 @@ class LiveBoard:
     # -- automatic mode -----------------------------------------------------------------------
 
     def tick(self) -> None:
-        """Auto mode only: load form if missing or an hour old, then prices if due."""
+        """Auto mode: load the card if there is none, keep race-day form fresh, price today's
+        and tomorrow's meetings on schedule, and collect results as races are run."""
         if self.pe is None or not self.auto:
             return
         now = self.clock()
@@ -278,14 +338,14 @@ class LiveBoard:
         try:
 
             def run() -> None:
-                if (
-                    self._card is None
-                    or self._form_at is None
-                    or now - self._form_at >= FORM_REFRESH
-                ):
+                race_day = self.race_date == self._melbourne_day(now)
+                stale = self._form_at is None or now - self._form_at >= FORM_REFRESH
+                if self._card is None or (race_day and stale and not self._archived(now)):
                     self._load_form(now)
-                if self._prices_due(now):
+                if self._prices_window(now) and self._prices_due(now):
                     self._load_prices(now)
+                if self._results_due(now):
+                    self._load_results(now)
 
             self._guarded(now, run)
         finally:
