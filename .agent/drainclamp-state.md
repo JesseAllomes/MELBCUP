@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=25 -->
+<!-- drainclamp-build: state; schema=1; generation=28 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -40,6 +40,13 @@ Quaddie legs -> Main = last 4 races, Early = 4 before; UI tells user to check bo
 Multis -> Sportsbet win prices only (multis must be with one bookie); legs >= 15% win chance (repo decision)
 Staking -> quarter Kelly capped 5%/bet; exotics 1% of budget each (recommended only); total scaled to budget (repo decision)
 App password required: without APP_PASSWORD pages answer 503 with setup text (repo decision)
+Prices -> /racing/next-to-go (free plan, 2 credits whole card); /racing/markets needs Plus and is not used (repo decision, real-data test)
+Credits -> manual mode default: Load card (~2+3/race) and Refresh prices (2) buttons; Auto optional via toggle or PRICE_MODE=auto; credits left shown on every page (user)
+Hosting -> Render, deployed by user from main (user)
+Model weights -> fitted by melbcup/backtest.py on 1,131 races 29 Sep-29 Oct 2026 (pre-race RA acceptances + FormFav point-in-time form vs official SP/results); blend market 1.0 + model 0.3; FormFav rating enters as a factor (repo decision, backtest)
+VALUE rule -> edge between required_edge(price) and +40%, win price <= $21 (held-out ROI at SP +9.8% over 1,075 bets; not proven) (repo decision, backtest)
+Jockey/trainer factors kept: held-out accuracy identical with or without them (repo decision, backtest)
+FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backtest collection; client stops calling refused features per load; Pro re-subscription is the user's call (user pending)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
@@ -51,7 +58,7 @@ App password required: without APP_PASSWORD pages answer 503 with setup text (re
 | m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | done | m3 |
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
-| m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | pending | m6 |
+| m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m6 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -73,4 +80,5 @@ App password required: without APP_PASSWORD pages answer 503 with setup text (re
 - 2026-10-29T07:22:20+00:00 40485c37 m4: singles EV, trifecta/first four/quaddie structures, Sportsbet multis, Kelly staking, 57 tests
 - 2026-10-29T07:28:04+00:00 b0ac4008 m5: live board with adaptive price polling, password-protected phone web app, 75 tests
 - 2026-10-29T07:29:05+00:00 29605fdd m6: Render blueprint, .python-version, README with phone setup
+- 2026-10-29T08:53:14+00:00 46cc835e m7: real-data run, next-to-go prices, manual credit controls, 1,131-race backtest and fitted weights deployed
 <!-- /DC:LOG -->
