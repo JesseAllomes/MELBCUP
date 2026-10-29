@@ -1,5 +1,5 @@
 {
- "build": "307c0eb52e7c",
+ "build": "e590e5beb7ae",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -26,6 +26,7 @@
   "melbcup/web/templates/_graded.html",
   "melbcup/web/templates/_picks.html",
   "melbcup/web/templates/_placings.html",
+  "melbcup/web/templates/_runners.html",
   "melbcup/web/templates/base.html",
   "melbcup/web/templates/day.html",
   "melbcup/web/templates/history.html",

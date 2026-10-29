@@ -1,0 +1,20 @@
+{# Every runner in one race, most likely first: the real odds beside the model's chance.
+   Needs: rp (RacePicks) #}
+{% set race = rp.model.race %}
+<details class="runners">
+  <summary>All {{ race.starters | length }} runners: odds and chances</summary>
+  <table>
+    <thead><tr><th>Runner</th><th>Odds</th><th>Chance</th></tr></thead>
+    <tbody>
+    {% for a in rp.model.ranked() %}
+      {% set r = race.runner(a.number) %}{% set p = race.prices.get(a.number) %}
+      {% set fin = race.result.finish.get(a.number) if race.result else none %}
+      <tr>
+        <td><span class="cloth">{{ a.number }}</span> {{ r.name }}{% if fin %} <span class="finish{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}</td>
+        <td class="num">{% if p and p.sportsbet_win %}{{ p.sportsbet_win | money }}<div class="small">Sportsbet</div>{% elif p and p.best_win %}{{ p.best_win.price | money }}<div class="small">{{ p.best_win.bookmaker | book }}</div>{% else %}–{% endif %}</td>
+        <td class="num">{{ a.win | pct }}<div class="small">place {{ a.place | pct }}</div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</details>

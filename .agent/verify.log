@@ -1,28 +1,7 @@
-# dc_verify final 2026-10-29T10:49:20+00:00
-# changed: 10 file(s) (DC:VERIFY + discovery)
+# dc_verify fast 2026-10-29T10:55:36+00:00
+# changed: 7 file(s) (DC:VERIFY)
 
 == ruff [PASS] ['ruff', 'check', 'melbcup', 'tests'] (cwd .)
 All checks passed!
-
-
-== pytest [PASS] ['pytest'] (cwd .)
-........................................................................ [ 56%]
-.......................................................                  [100%]
-127 passed in 7.16s
-
-
-== ruff-final [PASS] ['ruff', 'check', '.'] (cwd .)
-All checks passed!
-
-
-== pytest-final [PASS] ['pytest'] (cwd .)
-........................................................................ [ 56%]
-.......................................................                  [100%]
-127 passed in 6.32s
-
-
-== pytest-changed [PASS] ['pytest', 'tests/test_browser.py'] (cwd .)
-.....                                                                    [100%]
-5 passed in 0.48s
 
 
