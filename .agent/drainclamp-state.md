@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=13 -->
+<!-- drainclamp-build: state; schema=1; generation=16 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -42,8 +42,8 @@ Test payloads are synthetic but follow the vendor OpenAPI specs in .agent/api/; 
 |---|---|---|---|---|
 | m1 | scaffold package, settings, test + lint harness | pyproject.toml;melbcup/__init__.py;melbcup/config.py;tests/test_config.py | done | |
 | m2 | FormFav + PuntersEdge clients normalised into domain models with caching | melbcup/domain.py;melbcup/sources/__init__.py;melbcup/sources/http.py;melbcup/sources/formfav.py;melbcup/sources/puntersedge.py;tests/test_sources.py;tests/fixtures | done | m1 |
-| m3 | runner rating + win/place probability model blended with market | melbcup/model/__init__.py;melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m2 |
-| m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | pending | m3 |
+| m3 | runner rating + win/place probability model blended with market | melbcup/model/__init__.py;melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | done | m2 |
+| m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | active | m3 |
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | pending | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | pending | m5 |
 | m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | pending | m6 |
@@ -64,4 +64,5 @@ Test payloads are synthetic but follow the vendor OpenAPI specs in .agent/api/; 
 - 2026-10-29T07:10:59+00:00 8c17ed1b Gate 0-2: audit, charter-free grill, state externalised for MELBCUP
 - 2026-10-29T07:12:39+00:00 58b49675 m1: package scaffold, env settings, pytest+ruff harness
 - 2026-10-29T07:17:41+00:00 a1e05e60 m2: PuntersEdge + FormFav clients, card assembly with graceful degradation, 30 tests
+- 2026-10-29T07:19:34+00:00 10d9afa9 m3: 18-factor form model, market/feed blend, discounted Harville place probs, 43 tests
 <!-- /DC:LOG -->

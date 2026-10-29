@@ -1,5 +1,5 @@
 # DrainClamp resume capsule
-Done: m1, m2
-In progress: m3: runner rating + win/place probability model blended with market
-Next: m4: bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking
-Generation: 13
+Done: m1, m2, m3
+In progress: m4: bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking
+Next: m5: live web app: poller, mobile pages, password
+Generation: 16
