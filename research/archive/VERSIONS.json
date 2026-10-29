@@ -1,0 +1,18 @@
+{
+ "created_utc": "2026-10-29T20:37:57+00:00",
+ "files": 17774,
+ "bytes": 1053220228,
+ "collector": {
+  "collect_adaptive.py": "1b03452d522b592ae2680e4ae1ac840d7924e5cd40a13d3e6d53afd836adfdec",
+  "rcq.py": "1c18ad6e4e60df0f243788f0253372a4b9861b28f2414c48b81ec7be32eeaf16",
+  "collect_big.py": "78fb4f71f34fc834d6f84152bd12e3a760558c9d190df586e8d2792352668462"
+ },
+ "collector_repo_copies": "research/dataset/collect_adaptive.py and rcq.py on main (rcq.py there has the public key inlined; the original read it from the site's JS bundle)",
+ "query": "rcq.MEET (getMeeting with races, formRaceEntries, sb/lb flucsWin) and rcq.MONTH (GetMeetingByMonth); endpoint https://graphql.rmdprod.racing.com/",
+ "collected_utc_range": [
+  "2026-10-29T12:22:57+00:00",
+  "2026-10-29T13:06:09+00:00"
+ ],
+ "collected_utc_note": "file modification time when the collector wrote the file",
+ "dataset_build_manifest_sha256": "d0e420cac1e3f26b1d78d99da543d076d909e3cc1eb2cc2bd8a0b6d17d17c42d"
+}
