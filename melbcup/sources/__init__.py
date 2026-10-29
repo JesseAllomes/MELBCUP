@@ -80,6 +80,7 @@ def _apply_ff_form(race: Race, ff_form: list[FormFavRunner] | None) -> None:
 
 def enrich_from_formfav(card: Card, ff: FormFavClient, pool: ThreadPoolExecutor) -> None:
     venue, race_date, races = card.venue, card.race_date, card.races
+    ff.reset_blocks()  # a new load may find the plan upgraded or the quota reset
 
     ff_forms = pool.map(
         lambda r: _try(

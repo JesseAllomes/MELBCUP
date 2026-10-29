@@ -153,18 +153,42 @@ def parse_track_bias(data: dict[str, Any], distance_m: int | None) -> dict[int, 
 
 
 class FormFavClient:
+    """Refused calls still count against FormFav's daily limit, so after the first refusal a
+    feature (or, over quota, the whole key) is not asked again until the next card load."""
+
     def __init__(self, api_key: str, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("FormFav", BASE_URL, api_key, transport=transport)
+        self._blocked: dict[str, SourceError] = {}
+
+    def reset_blocks(self) -> None:
+        self._blocked.clear()
+
+    def _get(
+        self, feature: str, path: str, params: dict[str, Any] | None = None, *, ttl: float = 0
+    ) -> Any:
+        refused = self._blocked.get("all") or self._blocked.get(feature)
+        if refused is not None:
+            raise refused
+        try:
+            return self.src.get(path, params, ttl=ttl)
+        except SourceError as exc:
+            if exc.kind in ("quota", "rate_limit"):
+                self._blocked["all"] = exc
+            elif exc.kind == "auth":
+                self._blocked[feature] = exc
+            raise
 
     def _race_params(self, race_date: date, venue: str, race: int) -> dict[str, Any]:
         return {"date": race_date.isoformat(), "track": track_slug(venue), "race": race}
 
     def form(self, race_date: date, venue: str, race: int) -> list[FormFavRunner]:
-        data = self.src.get("/v1/form", self._race_params(race_date, venue, race), ttl=900)
+        data = self._get("form", "/v1/form", self._race_params(race_date, venue, race), ttl=900)
         return parse_form(data)
 
     def predictions(self, race_date: date, venue: str, race: int) -> dict[int, tuple[float, float]]:
-        data = self.src.get("/v1/predictions", self._race_params(race_date, venue, race), ttl=600)
+        data = self._get(
+            "predictions", "/v1/predictions", self._race_params(race_date, venue, race), ttl=600
+        )
         return parse_predictions(data)
 
     def _person(self, role: str, name: str, venue: str) -> PersonStats:
@@ -173,11 +197,12 @@ class FormFavClient:
         path = f"/v1/stats/{role}/{quote(name, safe='')}"
         for window in (STATS_WINDOW_DAYS, 30):
             try:
-                return parse_person(self.src.get(path, {"window": window}, ttl=6 * 3600), venue)
+                data = self._get("stats", path, {"window": window}, ttl=6 * 3600)
+                return parse_person(data, venue)
             except SourceError as exc:
                 if exc.kind != "unavailable":
                     raise
-        return parse_person(self.src.get(path, ttl=6 * 3600), venue)
+        return parse_person(self._get("stats", path, ttl=6 * 3600), venue)
 
     def jockey(self, name: str, venue: str) -> PersonStats:
         return self._person("jockey", name, venue)
@@ -186,5 +211,5 @@ class FormFavClient:
         return self._person("trainer", name, venue)
 
     def track_bias(self, venue: str, distance_m: int | None) -> dict[int, float]:
-        data = self.src.get(f"/v1/stats/track-bias/{track_slug(venue)}", ttl=6 * 3600)
+        data = self._get("bias", f"/v1/stats/track-bias/{track_slug(venue)}", ttl=6 * 3600)
         return parse_track_bias(data, distance_m)

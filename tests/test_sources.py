@@ -260,3 +260,32 @@ def test_price_feed_corrects_start_time(router):
     race.start_time = race.start_time.replace(hour=8)  # as if read in the wrong time zone
     apply_market(race, pe.card_prices(RACE_DATE, VENUE)[1])
     assert race.start_time == datetime.fromisoformat("2026-11-03T00:45:00+00:00")
+
+
+def test_formfav_stops_asking_after_a_refusal():
+    router = Router(ff_tier="free")
+    pe, ff = clients(router)
+    load_card(pe, ff, RACE_DATE, VENUE)
+    pro_calls = sum(
+        v for k, v in router.hits.items() if k.startswith("/v1/stats/") or k == "/v1/predictions"
+    )
+    # one refused prediction call and one refused stats call (in-flight pool calls may add a few)
+    assert pro_calls <= 2 + 8
+    assert router.hits["/v1/form"] == 2  # form is on the free plan and still fetched per race
+
+
+def test_formfav_over_quota_blocks_the_whole_key():
+    def over(request):
+        return httpx.Response(429, json={"detail": "over quota"})
+
+    ff = FormFavClient("k", transport=httpx.MockTransport(over))
+    with pytest.raises(SourceError):
+        ff.form(RACE_DATE, VENUE, 1)
+    calls = ff.src.calls
+    with pytest.raises(SourceError):
+        ff.track_bias(VENUE, 1200)
+    assert ff.src.calls == calls
+    ff.reset_blocks()
+    with pytest.raises(SourceError):
+        ff.form(RACE_DATE, VENUE, 1)
+    assert ff.src.calls == calls + 1
