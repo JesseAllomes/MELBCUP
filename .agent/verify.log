@@ -1,12 +1,15 @@
-# dc_verify milestone 2026-10-29T07:19:34+00:00
-# changed: 8 file(s) (DC:VERIFY)
+# dc_verify milestone 2026-10-29T07:22:20+00:00
+# changed: 12 file(s) (DC:VERIFY)
 
 == ruff [PASS] ['ruff', 'check', 'melbcup', 'tests'] (cwd .)
 All checks passed!
 
 
-== pytest [PASS] ['pytest'] (cwd .)
-...........................................                              [100%]
-43 passed in 0.37s
+== pytest [FAIL] ['pytest'] (cwd .)
+   tests/conftest.py:14: in <module>
+ImportError while loading conftest '/home/user/melbcup/tests/conftest.py'.
+tests/conftest.py:14: in <module>
+    import httpx
+E   ModuleNotFoundError: No module named 'httpx'
 
 
