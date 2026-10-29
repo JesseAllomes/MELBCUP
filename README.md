@@ -28,9 +28,12 @@ spent until you tap:
 
 | Button | Credits | What it does |
 |---|---|---|
-| **Load card** / **Reload card** | about 2 + 3 per race (~32 for ten races) | Field, scratchings, recent runs, then prices |
-| **Refresh prices** | 2 | Every bookmaker's price for the whole card, then new picks |
-| **Auto** | ~140 a day | Hands-off: prices 60, 30, 15, 5 and 2 minutes before each race; results after each race |
+| **Load card** / **Reload card** | 2 | Field and scratchings (PuntersEdge); recent runs and stewards' comments (racing.com, free) |
+| **Refresh prices** | free | Sportsbet, Ladbrokes, PointsBet and bet365 prices from racing.com, then new picks |
+| **Auto** | about 2 a day | Hands-off: prices 60, 30, 15, 5 and 2 minutes before each race; results after each race |
+
+Anything racing.com cannot answer falls back to PuntersEdge at its usual price: 3 credits a race
+for recent runs, 2 for a price check (15 bookmakers), 2 for results.
 
 The page itself re-reads the app every minute; that costs nothing.
 
@@ -118,15 +121,30 @@ guarantee results. Gambling Help Online: **1800 858 858**.
 
 | Source | Plan | Used for |
 |---|---|---|
-| [PuntersEdge](https://puntersedge.online/) | Free key (3,000 credits/month); $9/month Hobby if credits run out | The field, owners, gear changes, scratchings, recent runs, and win and place prices from 15 bookmakers including Sportsbet |
-| [FormFav](https://formfav.com/) | Pro, $10/month with a 7-day free trial | Long-form career splits, speed maps, class ratings, predictions, jockey and trainer records, and track bias |
+| [racing.com](https://www.racing.com/) | Free, no key needed | Each runner's recent runs with stewards' comments, prices from Sportsbet, Ladbrokes, PointsBet and bet365, and results with tote dividends. National coverage |
+| [PuntersEdge](https://puntersedge.online/) | Free key (3,000 credits/month) | The field, owners, gear changes and scratchings; the fallback for anything racing.com misses (15 bookmakers' prices) |
+| [FormFav](https://formfav.com/) | Pro | Long-form career splits, speed maps, class ratings, predictions, jockey and trainer records (with their record on each going), and track bias |
 
 PuntersEdge is required. FormFav is optional, but without Pro the app loses jockey and trainer
 records, predictions and track bias, and says so at the top of the page.
 
-A race day costs one card load (~30) plus 2 per price or results check: about 140 credits in
-Auto, less if you refresh by hand. FormFav calls are covered by its own allowance. Owner names come from Racing
-Australia's acceptances and are shown, but not scored, because no feed has owner strike rates.
+racing.com is read through the public data service its own form pages use, with the key those
+pages send; the app reads it from your phone for personal use. If racing.com changes it, the
+app falls back to PuntersEdge and says so. racing.com publishes no First Four dividend, so a First
+Four graded from its results is ticked or crossed with its return unknown.
+
+A race day in Auto now costs about 2 PuntersEdge credits (the card) instead of about 140. Owner
+names are shown but not scored: tested on the saved month, owner records added nothing.
+
+## Share it with friends
+
+Send them the link (https://jesseallomes.github.io/MELBCUP/). On first open the app asks for keys:
+
+- **PuntersEdge key:** each friend gets their own free key at puntersedge.online, so nobody spends
+  your credits.
+- **FormFav key:** optional.
+- **History password:** give them the one you set when building the saved races; it opens the
+  1,160 saved races and their graded picks. Your own PuntersEdge key still opens them for you.
 
 ## Put it on your phone (GitHub Pages, free)
 
