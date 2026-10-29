@@ -18,6 +18,9 @@
       with the highest chance of placing, whatever their price. <strong>Value</strong> picks are made only when
       a price beats the runner's chance by enough, so many races have none. Each way counts as landed
       when the runner placed.</p>
+    <p class="small"><strong>Confidence</strong> comes from the most likely winner's chance: High at 40% or
+      more, Medium at 30% to 40%, Low under 30%. On races the model was not fitted on, High picks won
+      about half the time, Medium about a third and Low about a quarter.</p>
     <p class="small">Per $1 is profit or loss per dollar staked at the prices shown. Saved races use
       starting prices, with place prices estimated from them (the place market's measured 40% margin
       included); exotic dividends were not saved. Those races were also used to fit the model, which
@@ -31,6 +34,10 @@
       <tr><td>{{ t.label }}</td><td class="num">{{ '{:,}'.format(t.picks) }}</td><td class="num">{{ '{:,}'.format(t.correct) }}</td><td class="num">{{ '{:,}'.format(t.failed) }}</td>
         <td class="num rate">{{ t.rate | pct(1) }}<span class="bar"><span style="width: {{ (100 * (t.rate or 0)) | round(1) }}%"></span></span></td>
         <td class="num">{{ t.profit | edge if t.profit is not none else 'n/a' }}</td></tr>
+      {% if t.label == 'Most likely win' %}{% for c in by_confidence if c.picks %}
+      <tr class="sub-row"><td>{{ c.label }}</td><td class="num">{{ '{:,}'.format(c.picks) }}</td><td class="num">{{ '{:,}'.format(c.correct) }}</td><td class="num">{{ '{:,}'.format(c.failed) }}</td>
+        <td class="num">{{ c.rate | pct(1) }}</td><td class="num">{{ c.profit | edge if c.profit is not none else 'n/a' }}</td></tr>
+      {% endfor %}{% endif %}
     {% endfor %}
     </tbody>
   </table>

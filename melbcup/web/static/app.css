@@ -112,6 +112,12 @@ button[disabled] { opacity: 0.5; cursor: default; }
   color: var(--accent); margin: 10px 0 0; padding-bottom: 2px;
 }
 .picks .line:first-child { margin-top: 2px; }
+.picks .conf {
+  margin-left: 6px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--rule);
+  font-weight: 600; letter-spacing: 0.04em; color: var(--muted);
+}
+.picks .conf.high { color: var(--hit); border-color: var(--hit); }
+.picks .conf.low { color: var(--miss); }
 .picks .none { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
 .pick {
   display: grid; grid-template-columns: 5.6em minmax(0, 1fr) minmax(1.2em, auto); gap: 0 10px;

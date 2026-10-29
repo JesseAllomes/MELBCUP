@@ -304,3 +304,24 @@ def test_history_value_rows_count_only_value_picks():
     ]
     v = {t.label: t for t in tally(record)}
     assert v["Value win"].picks == 1 and v["Value win"].profit == pytest.approx(3.0)
+
+
+def test_confidence_bands_follow_the_top_picks_chance():
+    from melbcup.bets import confidence
+    from melbcup.history import by_confidence
+
+    assert [confidence(p) for p in (0.55, 0.40, 0.35, 0.30, 0.12)] == [
+        "High",
+        "High",
+        "Medium",
+        "Medium",
+        "Low",
+    ]
+    record = [
+        {"picks": {"top_win": {"chance": 0.5, "hit": True, "returned": 2.0}}},
+        {"picks": {"top_win": {"chance": 0.45, "hit": False, "returned": 0.0}}},
+        {"picks": {"top_win": {"chance": 0.2, "hit": False, "returned": 0.0}}},
+    ]
+    t = {x.label: x for x in by_confidence(record)}
+    assert t["High confidence"].picks == 2 and t["High confidence"].rate == 0.5
+    assert t["Low confidence"].picks == 1 and t["Medium confidence"].picks == 0

@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from melbcup.bets import KINDS, LABELS, VALUE_KINDS, DayPicks
+from melbcup.bets import CONFIDENCE, KINDS, LABELS, VALUE_KINDS, DayPicks, confidence
 from melbcup.bets.grade import grade_day
 
 CATEGORIES = tuple(LABELS.items())
@@ -128,6 +128,23 @@ def tally(history: list[dict]) -> list[Tally]:
         if valued and unknown_wins <= 0.02 * len(picked):
             returned = sum(p["returned"] for p in valued) * len(picked) / len(valued)
         out.append(Tally(label, len(picked), sum(1 for p in picked if p["hit"]), returned))
+    return out
+
+
+def by_confidence(history: list[dict]) -> list[Tally]:
+    """The most likely winner's record in each confidence band (from its chance)."""
+    out = []
+    for _, label in CONFIDENCE:
+        picked = [
+            p
+            for e in history
+            if (p := e["picks"].get("top_win")) and confidence(p["chance"]) == label
+        ]
+        valued = [p["returned"] for p in picked if p.get("returned") is not None]
+        returned = sum(valued) * len(picked) / len(valued) if valued else None
+        out.append(
+            Tally(f"{label} confidence", len(picked), sum(p["hit"] for p in picked), returned)
+        )
     return out
 
 

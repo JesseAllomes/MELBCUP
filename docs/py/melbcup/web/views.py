@@ -14,7 +14,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from melbcup import history
-from melbcup.bets import LABELS
+from melbcup.bets import LABELS, confidence
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -143,6 +143,7 @@ def make_env() -> Environment:
         longdate=longdate,
         isoday=isoday,
         racename=racename,
+        confidence=confidence,
     )
     env.globals["LABELS"] = LABELS
     env.globals["shown"] = history.shown
@@ -205,6 +206,7 @@ class Views:
             ctx.update(
                 record=record,
                 tallies=history.tally(record),
+                by_confidence=history.by_confidence(record),
                 groups=history.meetings(record),
                 archive_closed=archive is not None and not archive.open,
                 saved_count=len(saved),

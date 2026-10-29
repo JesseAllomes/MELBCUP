@@ -21,6 +21,16 @@ LABELS = {
     "trifecta": "Trifecta",
     "first_four": "First four",
 }
+# How sure the top pick is, from its own chance. Held out on 1,131 races (Sep-Oct 2026) the top
+# pick won 50% at 40%+, 33% at 30-40% and 26% under 30%. Requiring the odds, the form model
+# and FormFav to agree made the High band smaller, not more accurate, so it is not used.
+CONFIDENCE = ((0.40, "High"), (0.30, "Medium"), (0.0, "Low"))
+
+
+def confidence(chance: float) -> str:
+    return next(label for floor, label in CONFIDENCE if chance >= floor)
+
+
 MIN_HIT = {"trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
 
 
