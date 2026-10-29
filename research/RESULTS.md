@@ -66,9 +66,9 @@ Model `model-v1` (amendment A, commit `5439f10`) was looked at once on tune2 (20
   - That needs live-logged schedules, quotes at the decision time and scratching times.
 - **Reproducibility.**
   - The code and paths are documented in `research/analysis/README.md`.
-  - The 12,129 raw meeting dumps (about 470 MB) are not in the repository. Without them the
-    dataset can be re-collected but not byte-reproduced; `research/dataset/manifest.json` holds
-    the output hashes.
+  - The 12,129 raw meeting dumps (about 470 MB), the earlier racing.com pulls and the Betfair
+    files are preserved on the `data` branch (commit `b52e2f3`).
+  - Check against `research/dataset/manifest.json`.
 
 ## Next
 
