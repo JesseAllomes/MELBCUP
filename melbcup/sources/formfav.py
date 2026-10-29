@@ -9,12 +9,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
-import httpx
-
 from melbcup.domain import PersonStats, StatLine, going_band
+
+if TYPE_CHECKING:
+    import httpx
+
 from melbcup.sources.http import JsonSource, SourceError
 
 BASE_URL = "https://api.formfav.com"

@@ -21,7 +21,7 @@
   <section class="card">
     {% if snap.loading %}<p>Loading the card (about 30 seconds)… this page refreshes itself.</p>
     {% else %}<p>No card loaded yet. Tap <strong>Load card</strong> above to fetch the field, form and
-      prices for {{ snap.venue }} on {{ snap.race_date.strftime('%a %-d %b') }}.</p>{% endif %}
+      prices for {{ snap.venue }} on {{ snap.race_date | day }}.</p>{% endif %}
   </section>
 {% else %}
 

@@ -10,7 +10,8 @@ from melbcup.domain import Race
 from melbcup.live import LiveBoard, price_interval
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.puntersedge import PuntersEdgeClient
-from melbcup.web.app import create_app, edge, local_time, money, pct
+from melbcup.web.app import create_app
+from melbcup.web.views import edge, local_time, money, pct
 
 ENV = {"PUNTERSEDGE_API_KEY": "pe", "FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026"}
 AUTO = {**ENV, "PRICE_MODE": "auto"}
@@ -305,9 +306,9 @@ def test_results_button_hidden_before_race_day(client):
 
 
 def test_results_button_grades_the_day(board_and_router, monkeypatch):
-    from melbcup.web import app as web
+    from melbcup.web import views
 
-    monkeypatch.setattr(web, "melbourne_today", lambda: RACE_DATE)
+    monkeypatch.setattr(views, "melbourne_today", lambda: RACE_DATE)
     board, router = board_and_router
     app = create_app(load_settings(ENV), board, start_background=False)
     with TestClient(app) as c:
@@ -320,3 +321,15 @@ def test_results_button_grades_the_day(board_and_router, monkeypatch):
         assert "Best value right now" not in html  # every race has run
         race = c.get("/race/2", auth=AUTH).text
         assert "Our picks before the race" in race and "1st" in race
+
+
+def test_dates_render_without_platform_specific_formats():
+    from datetime import date
+
+    from melbcup.web.views import day, longdate, shortdate
+
+    assert day(date(2026, 11, 3)) == "Tue 3 Nov"
+    assert shortdate(date(2026, 10, 7)) == "7 Oct"
+    assert longdate(date(2026, 11, 3)) == "Tue 3 Nov 2026"
+    assert local_time(datetime(2026, 11, 3, 15, 0, tzinfo=MELBOURNE)) == "3:00pm"
+    assert local_time(datetime(2026, 11, 3, 0, 5, tzinfo=MELBOURNE)) == "12:05am"

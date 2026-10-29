@@ -11,7 +11,7 @@
 <body>
   <header class="top">
     <a class="brand" href="/{{ budget_q }}">MELBCUP</a>
-    <a class="meet" href="/meetings{{ budget_q }}">{{ snap.venue }} · {{ snap.race_date.strftime('%a %-d %b') }} <span class="change">change</span></a>
+    <a class="meet" href="/meetings{{ budget_q }}">{{ snap.venue }} · {{ snap.race_date | day }} <span class="change">change</span></a>
   </header>
   <main id="main" data-refresh="{% block refresh %}60{% endblock %}">
     {% if settings.has_price_source %}
@@ -54,6 +54,7 @@
   <footer>
     <p>Estimates from form and market data. They improve your odds of making a good decision;
       they do not guarantee a result. Bet only what you can afford to lose.</p>
+    {% if browser %}<p><a href="#keys">API keys</a> · Runs on this phone; your keys and the loaded card stay on it.</p>{% endif %}
     <p>Gambling Help Online: <a href="tel:1800858858">1800 858 858</a> ·
       <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
   </footer>

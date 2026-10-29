@@ -1,0 +1,33 @@
+{
+ "build": "62a47da70c92",
+ "files": [
+  "melbcup/__init__.py",
+  "melbcup/bets/__init__.py",
+  "melbcup/bets/exotics.py",
+  "melbcup/bets/grade.py",
+  "melbcup/bets/multis.py",
+  "melbcup/bets/singles.py",
+  "melbcup/bets/staking.py",
+  "melbcup/browser.py",
+  "melbcup/config.py",
+  "melbcup/domain.py",
+  "melbcup/live.py",
+  "melbcup/model/__init__.py",
+  "melbcup/model/features.py",
+  "melbcup/model/probability.py",
+  "melbcup/sources/__init__.py",
+  "melbcup/sources/formfav.py",
+  "melbcup/sources/http.py",
+  "melbcup/sources/puntersedge.py",
+  "melbcup/web/__init__.py",
+  "melbcup/web/templates/_exotic.html",
+  "melbcup/web/templates/_graded.html",
+  "melbcup/web/templates/_pick.html",
+  "melbcup/web/templates/_result.html",
+  "melbcup/web/templates/base.html",
+  "melbcup/web/templates/day.html",
+  "melbcup/web/templates/meetings.html",
+  "melbcup/web/templates/race.html",
+  "melbcup/web/views.py"
+ ]
+}

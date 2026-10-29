@@ -5,7 +5,8 @@ FormFav is enrichment: every FormFav call may fail (tier, quota, outage) and the
 built, with a warning naming what is missing.
 
 Calls run on a small thread pool: a full card is about 120 requests, which one at a time took
-close to three minutes.
+close to three minutes. The browser build has no threads and sets ``WORKERS = 1``, which runs
+the same calls one after another.
 """
 
 from __future__ import annotations
@@ -21,6 +22,25 @@ from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import MarketSnapshot, PuntersEdgeClient
 
 WORKERS = 8
+
+
+class SerialExecutor:
+    """ThreadPoolExecutor's map, without threads (for the browser)."""
+
+    def map(self, fn, *iterables):
+        return [fn(*args) for args in zip(*iterables, strict=True)]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _pool():
+    return ThreadPoolExecutor(WORKERS) if WORKERS > 1 else SerialExecutor()
+
+
 _warn_lock = threading.Lock()
 
 
@@ -37,7 +57,7 @@ def _try[T](card: Card, what: str, fn: Callable[[], T]) -> T | None:
 
 def load_card(pe: PuntersEdgeClient, ff: FormFavClient | None, race_date: date, venue: str) -> Card:
     card = pe.acceptances(race_date, venue)
-    with ThreadPoolExecutor(WORKERS) as pool:
+    with _pool() as pool:
         forms = pool.map(
             lambda r: _try(
                 card, "Recent form (PuntersEdge)", lambda: pe.field_form(race_date, venue, r.number)
@@ -78,7 +98,9 @@ def _apply_ff_form(race: Race, ff_form: list[FormFavRunner] | None) -> None:
             runner.last10 = f.last20[-10:]
 
 
-def enrich_from_formfav(card: Card, ff: FormFavClient, pool: ThreadPoolExecutor) -> None:
+def enrich_from_formfav(
+    card: Card, ff: FormFavClient, pool: ThreadPoolExecutor | SerialExecutor
+) -> None:
     venue, race_date, races = card.venue, card.race_date, card.races
     ff.reset_blocks()  # a new load may find the plan upgraded or the quota reset
 

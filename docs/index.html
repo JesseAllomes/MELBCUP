@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b3d2e">
+  <meta name="robots" content="noindex">
+  <title>MELBCUP</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    .shell { max-width: 860px; margin: 0 auto; padding: 16px; }
+    .boot { margin-top: 20vh; text-align: center; }
+    .boot strong { display: block; font-size: 22px; letter-spacing: 0.08em; margin-bottom: 8px; color: var(--brand); }
+    @media (prefers-color-scheme: dark) { .boot strong { color: var(--accent); } }
+    .boot p { color: var(--muted); }
+    .keys label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+    .keys input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+    .keys button { margin-top: 14px; padding: 10px 16px; font-size: 15px; font-weight: 600; border: 0; border-radius: 8px; background: var(--brand); color: var(--brand-ink); }
+    .keys p { color: var(--muted); font-size: 13px; }
+    .busy { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--brand); color: var(--brand-ink); font-size: 14px; z-index: 20; }
+    .error { position: fixed; left: 12px; right: 12px; top: 12px; z-index: 30; }
+  </style>
+</head>
+<body>
+  <div id="boot" class="shell boot">
+    <strong>MELBCUP</strong>
+    <p id="boot-text">Starting…</p>
+    <p class="sub">The first open downloads the model (about 10 MB). After that it starts quickly.</p>
+  </div>
+
+  <div id="app" hidden></div>
+
+  <div id="keys" class="shell" hidden>
+    <form id="keys-form" class="card keys">
+      <h1>API keys</h1>
+      <p>MELBCUP runs on this phone and calls PuntersEdge and FormFav directly. Your keys are saved on
+        this phone only; they are never sent anywhere else.</p>
+      <label for="pe-key">PuntersEdge key (required)</label>
+      <input id="pe-key" autocomplete="off" spellcheck="false" inputmode="text">
+      <label for="ff-key">FormFav key (optional, adds long-form history and ratings)</label>
+      <input id="ff-key" autocomplete="off" spellcheck="false" inputmode="text">
+      <button type="submit">Save and start</button>
+      <p id="keys-note"></p>
+    </form>
+  </div>
+
+  <div id="busy" class="busy" hidden><span id="busy-text">Working…</span></div>
+  <p id="error" class="alert error" hidden></p>
+
+  <script src="main.js"></script>
+</body>
+</html>

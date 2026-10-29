@@ -117,27 +117,36 @@ credits for a refresh before each race and a few extra near the big ones. Auto m
 mid-morning costs about 1,100. FormFav calls are covered by its own allowance. Owner names come from Racing
 Australia's acceptances and are shown, but not scored, because no feed has owner strike rates.
 
-## Put it on your phone (Render, free)
+## Put it on your phone (GitHub Pages, free)
 
-1. Get the keys:
-   - Sign up at puntersedge.online and copy your API key.
-   - Sign up at formfav.com, start the Pro trial and copy your API key.
-2. Go to [render.com](https://render.com) and sign in with GitHub.
-3. Choose **New → Blueprint**, then pick the `MELBCUP` repository. Render reads `render.yaml`.
-4. When it asks for environment variables, enter:
-   - `PUNTERSEDGE_API_KEY`: your PuntersEdge key
-   - `FORMFAV_API_KEY`: your FormFav key
-   - `APP_PASSWORD`: a password you choose for the site
-   - `PRICE_MODE`: leave as `manual`, or `auto` to start with Auto on
-5. Deploy. Open the `…onrender.com` address on your phone. When asked to log in, leave the
-   username blank and enter your password.
-6. On your phone, use **Share → Add to Home Screen** so it opens like an app.
+MELBCUP runs entirely in your phone's browser: GitHub only serves the page, and your phone calls
+PuntersEdge and FormFav itself. Nothing sleeps, and nothing runs anywhere else.
 
-On the free plan the app sleeps after 15 minutes without a visitor, and the first visit after
-that takes about a minute to wake it. Keep the page open on race day and it stays awake.
+One-time setup on GitHub:
 
-`RACE_DATE` (YYYY-MM-DD) and `VENUE` in Render set the meeting the app starts on. FormFav serves
-race days from 30 days back to 7 days ahead.
+1. **Make the repository public:** Settings → General → Danger Zone → Change visibility →
+   Public. The code contains no keys or passwords.
+2. **Turn on Pages:** Settings → Pages → Build and deployment → Source: *Deploy from a branch* →
+   Branch: `main`, folder `/docs` → Save.
+3. After a minute or two, open `https://<your-github-name>.github.io/melbcup/` on your phone and
+   add it to the home screen.
+
+On first open, the app asks for your PuntersEdge and FormFav keys. They are saved on that phone
+only. The first start downloads the Python runtime (about 10 MB, from jsDelivr), and later
+starts are quick. The loaded card, prices and results are kept on the phone too, so reopening the
+page spends no credits.
+
+A card load runs one request at a time in the browser, so it takes 1 to 2 minutes with full
+FormFav data; a progress bar shows each request.
+
+After changing code under `melbcup/`, run `python tools/build_pages.py` to refresh `docs/`. The
+tests fail if `docs/` is out of date.
+
+### Or run it as a server
+
+`render.yaml` deploys the same app as a password-protected server on Render: New → Blueprint, set
+`PUNTERSEDGE_API_KEY`, `FORMFAV_API_KEY` and `APP_PASSWORD`. On Render's free plan the server
+sleeps after 15 minutes idle.
 
 ## Run it locally
 
@@ -158,5 +167,10 @@ melbcup/sources/          PuntersEdge and FormFav clients; card assembly
 melbcup/model/            factors, form model, blend, place probabilities
 melbcup/bets/             win/place/each-way, exotics, quaddies, multis, staking
 melbcup/live.py           background refresh on a race-by-race schedule
-melbcup/web/              FastAPI app, templates, styles
+melbcup/web/views.py      pages and button actions, shared by server and browser
+melbcup/web/app.py        FastAPI server (Render)
+melbcup/web/templates/    the pages
+melbcup/browser.py        browser entry point (Pyodide, GitHub Pages)
+docs/                     the GitHub Pages site (index.html, main.js, worker.js + built copy)
+tools/build_pages.py      refreshes docs/ from the package
 ```

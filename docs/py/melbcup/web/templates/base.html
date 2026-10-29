@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b3d2e">
+  <title>{% block title %}MELBCUP{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/{{ budget_q }}">MELBCUP</a>
+    <a class="meet" href="/meetings{{ budget_q }}">{{ snap.venue }} · {{ snap.race_date | day }} <span class="change">change</span></a>
+  </header>
+  <main id="main" data-refresh="{% block refresh %}60{% endblock %}">
+    {% if settings.has_price_source %}
+    <div class="controls">
+      <div class="credits">
+        <strong>{{ '{:,}'.format(snap.credits_remaining) if snap.credits_remaining is not none else '?' }}</strong>
+        {% if snap.credits_limit %}/ {{ '{:,}'.format(snap.credits_limit) }}{% endif %} PuntersEdge credits left
+        <span class="sub">
+          {% if snap.priced_at %}Prices {{ snap.priced_at | local_time }}{% else %}No prices yet{% endif %}
+          {% if snap.form_at %} · Form {{ snap.form_at | local_time }}{% endif %}
+          {% if snap.results_at %} · Results {{ snap.results_at | local_time }}{% endif %}
+          {% if snap.loading %} · <strong>loading card…</strong>{% endif %}
+        </span>
+      </div>
+      <div class="buttons">
+        {% if card %}
+        <form method="post" action="/actions/prices?next={{ here | urlencode }}">
+          <button type="submit" class="primary">Refresh prices <span>2 cr</span></button>
+        </form>
+        {% endif %}
+        {% if card and snap.race_date <= today %}
+        <form method="post" action="/actions/results?next={{ here | urlencode }}">
+          <button type="submit">Get results <span>2 cr</span></button>
+        </form>
+        {% endif %}
+        <form method="post" action="/actions/load?next={{ here | urlencode }}">
+          <button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>~{{ load_cost }} cr</span></button>
+        </form>
+        <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}">
+          <button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'ON' if snap.auto else 'off' }}</button>
+        </form>
+      </div>
+      {% if snap.auto %}<p class="sub">Auto spends credits on its own: every 15 min early, every minute from 20 min before each race, and ~{{ load_cost }} each hour for form.</p>{% endif %}
+    </div>
+    {% endif %}
+    {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}
+    {% if card %}{% for w in card.warnings %}<p class="warn">{{ w }}</p>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    <p>Estimates from form and market data. They improve your odds of making a good decision;
+      they do not guarantee a result. Bet only what you can afford to lose.</p>
+    {% if browser %}<p><a href="#keys">API keys</a> · Runs on this phone; your keys and the loaded card stay on it.</p>{% endif %}
+    <p>Gambling Help Online: <a href="tel:1800858858">1800 858 858</a> ·
+      <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
+  </footer>
+</body>
+</html>

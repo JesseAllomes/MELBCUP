@@ -8,9 +8,7 @@ from __future__ import annotations
 import statistics
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any
-
-import httpx
+from typing import TYPE_CHECKING, Any
 
 from melbcup.config import MELBOURNE
 from melbcup.domain import (
@@ -24,6 +22,10 @@ from melbcup.domain import (
     StatLine,
     parse_margin,
 )
+
+if TYPE_CHECKING:
+    import httpx
+
 from melbcup.sources.http import JsonSource
 
 BASE_URL = "https://api.puntersedge.online"

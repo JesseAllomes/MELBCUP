@@ -70,7 +70,7 @@
           <table class="runs">
             <thead><tr><th>Date</th><th>Track</th><th>m</th><th>Going</th><th>Pos</th><th>Mgn</th><th>SP</th></tr></thead>
             <tbody>{% for run in r.runs[:6] %}
-              <tr><td>{{ run.run_date.strftime('%-d %b') }}</td><td>{{ run.venue }}</td><td>{{ run.distance_m or '' }}</td><td>{{ run.condition or '' }}</td>
+              <tr><td>{{ run.run_date | shortdate }}</td><td>{{ run.venue }}</td><td>{{ run.distance_m or '' }}</td><td>{{ run.condition or '' }}</td>
                 <td>{{ run.position or '–' }}/{{ run.field_size or '?' }}</td><td>{{ run.margin_l if run.margin_l is not none else '' }}</td><td>{{ run.sp | money }}</td></tr>
             {% endfor %}</tbody>
           </table>
