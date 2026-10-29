@@ -101,7 +101,7 @@ def _restore(board: LiveBoard, blob: str) -> None:
     if not isinstance(state, dict) or state.get("version") != STATE_VERSION:
         return
     board.race_date, board.venue = state["race_date"], state["venue"]
-    # Auto is the phone's normal state; it is switched off per visit, not remembered.
+    # Auto is not remembered: opening the page never spends credits by itself.
     board._card = state["card"]
     board._form_at, board._priced_at = state["form_at"], state["priced_at"]
     board._results_at, board._meetings = state["results_at"], state["meetings"]
@@ -130,7 +130,7 @@ def init(
             "PUNTERSEDGE_API_KEY": pe_key or "",
             "FORMFAV_API_KEY": ff_key or "",
             "APP_PASSWORD": "browser",
-            "PRICE_MODE": "auto",  # on the phone it keeps itself up to date
+            "PRICE_MODE": "manual",  # Auto spends credits: off each time the page opens
         }
     )
     reader = archive_reader or (xhr_text if requester is None else None)

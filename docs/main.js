@@ -19,6 +19,7 @@
   const pending = new Map();
   let busy = false;
   let ticking = false;
+  let queued = null;  // a page tapped while the app was busy: shown when it is free
   let route = store.get(ROUTE) || "/";
 
   function send(type, data) {
@@ -31,6 +32,19 @@
     busy = Boolean(text);
     $("busy").hidden = !busy;
     if (text) $("busy-text").textContent = text;
+    if (!busy && queued) {
+      const next = queued;
+      queued = null;
+      show(next, false);
+    }
+  }
+
+  // The app does one thing at a time: a page tapped during a load opens as soon as it is done.
+  function go(href) {
+    if (!busy) { show(href, false); return; }
+    queued = href;
+    $("busy-text").textContent = "Opening that page once this finishes…";
+    $("busy").hidden = false;
   }
 
   function withBudget(url) {
@@ -93,16 +107,15 @@
     if (!a) return;
     const href = a.getAttribute("href") || "";
     if (href === "#keys") { e.preventDefault(); showKeys(); return; }
-    if (href.startsWith("/")) { e.preventDefault(); if (!busy) show(href, false); }
+    if (href.startsWith("/")) { e.preventDefault(); go(href); }
   });
 
   $("app").addEventListener("submit", (e) => {
     const form = e.target;
     const action = form.getAttribute("action") || "/";
     e.preventDefault();
-    if (busy) return;
     if ((form.getAttribute("method") || "get").toLowerCase() === "post") {
-      act(action);
+      if (!busy) act(action);  // buttons spend credits: never queued behind another job
       return;
     }
     const params = new URLSearchParams(new FormData(form));
@@ -111,7 +124,7 @@
       if (!params.get("budget").trim()) params.delete("budget");
     }
     const qs = params.toString();
-    show(action + (qs ? (action.includes("?") ? "&" : "?") + qs : ""), false);
+    go(action + (qs ? (action.includes("?") ? "&" : "?") + qs : ""));
   });
 
   // --- API keys ------------------------------------------------------------------------------
@@ -149,6 +162,7 @@
         $("boot-text").textContent = msg.text;
         $("busy-text").textContent = (ticking ? "Updating: " : "") + msg.text;
         if (ticking) $("busy").hidden = false;
+        if (queued) $("busy-text").textContent += " · then opening your page";
         return;
       }
       const p = pending.get(msg.id);
@@ -182,8 +196,8 @@
           if (!route.startsWith("/meetings")) await show(route, true);
         }
       } catch (err) { /* the next round tries again */ }
-      busy = ticking = false;
-      $("busy").hidden = true;
+      ticking = false;
+      setBusy(null);
     };
     round();  // straight away: load the card, prices or results if they are due
     setInterval(round, 15000);

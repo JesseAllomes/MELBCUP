@@ -21,6 +21,15 @@
     {% if tp and not same %}
     {% call row('Place', tp, [marks.get('top_place')]) %}places {{ tp.prob | pct }}{% if tp.price %} · {{ tp.price | money }} {{ tp.bookmaker | book }}{% endif %}{% endcall %}
     {% endif %}
+    {% set race = rp.model.race %}
+    {% set next = rp.model.ranked() | rejectattr('number', 'in', [tw.number if tw, tp.number if tp]) | sort(attribute='place', reverse=true) | list %}
+    {% if next %}
+    {% set fin = race.result.finish if race.result else {} %}
+    <div class="pick next">
+      <dt>Next to place</dt>
+      <dd>{% for a in next[:2] %}<span class="who"><span class="cloth">{{ a.number }}</span> {{ race.runner(a.number).name }} <span class="fig">{{ a.place | pct }}</span>{% if fin %} <b class="{{ 'ok' if 0 < fin.get(a.number, 99) <= race.places_paid else 'no' }}">{{ '✓' if 0 < fin.get(a.number, 99) <= race.places_paid else '✗' }}</b>{% endif %}</span>{% endfor %}</dd>
+    </div>
+    {% endif %}
   </dl>
   <h3 class="line">Best price for chance</h3>
   {% if rp.best.win or rp.best.place or rp.best.each_way %}

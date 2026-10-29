@@ -142,12 +142,17 @@ One-time setup on GitHub:
 3. After a minute or two, open `https://<your-github-name>.github.io/melbcup/` on your phone and
    add it to the home screen.
 
-On the phone, **Auto is on**: open the page and it loads the card once, checks prices 60, 30, 15,
-5 and 2 minutes before each race, and fetches results about ten minutes after each race, grading
-the picks. One price check covers the whole card, so checks that fall in the same minute are
-shared. It prices only today's and tomorrow's meetings, because bookmakers have no market further
-out. Derby Day's nine races cost about 139 credits: the card 29, 45 price checks 90, results
-about 20. The page shows how many credits Auto still plans to spend on the meeting.
+On the phone, **Auto is off each time you open the page**, so opening it never spends credits.
+Tap **Auto off** to switch it on for that visit: it loads the card once, checks prices 60, 30,
+15, 5 and 2 minutes before each race, and fetches results about ten minutes after each race,
+grading the picks. It runs only while the page is open. One price check covers the whole card,
+so checks that fall in the same minute are shared. It prices only today's and tomorrow's
+meetings, because bookmakers have no market further out. Derby Day's nine races cost about 139
+credits: the card 29, 45 price checks 90, results about 20. The page shows how many credits Auto
+still plans to spend on the meeting.
+
+A card load fetches its requests six at a time (about 100 for a full card with FormFav). Pages
+tapped while it runs open as soon as it finishes.
 
 **Saved meetings:** 154 meetings (about 1,160 races, 29 September to 29 October 2026) downloaded
 for the backtest are sealed in `docs/data` and open with no API calls, results included. They

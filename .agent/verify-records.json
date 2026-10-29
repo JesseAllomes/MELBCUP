@@ -15,9 +15,9 @@
   },
   "tier:final": {
     "digest": "tier",
-    "tree": "sha256:8a3485201edfafa1",
+    "tree": "sha256:d49522fa3e3dc595",
     "status": "pass",
-    "when": "2026-10-29T10:40:25+00:00",
+    "when": "2026-10-29T10:49:20+00:00",
     "log": "verify.log"
   }
 }

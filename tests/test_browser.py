@@ -66,9 +66,12 @@ def test_damaged_or_old_saved_state_starts_clean():
     assert "No card loaded yet" in browser.render("/")
 
 
-def test_phone_starts_in_auto_mode():
-    browser.init("pe", "ff", requester=requester_for(Router()), clock=lambda: CUP_MORNING)
-    assert "Auto on" in browser.render("/")
+def test_opening_the_page_spends_nothing():
+    router = Router()
+    browser.init("pe", "ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
+    assert "Auto off" in browser.render("/")
+    assert browser.tick() is False  # Auto off: the heartbeat fetches nothing
+    assert set(router.hits) <= {"/v1/keys/info"}  # only the free balance read
 
 
 def test_actions_route_like_the_server():
@@ -99,6 +102,9 @@ def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
         clock=lambda: CUP_MORNING,
         fetch_many=fetch_many,
     )
+    assert asyncio.run(browser.warm(False)) == 0  # Auto is off when the page opens
+    assert not fetched and "Auto off" in browser.render("/")
+    browser.act("/actions/auto?on=1&next=/")
     cached = asyncio.run(browser.warm(False))  # Auto's first load is coming
     assert cached > 10 and any("/v1/stats/jockey/" in u for u in fetched)
     before = dict(router.hits)
