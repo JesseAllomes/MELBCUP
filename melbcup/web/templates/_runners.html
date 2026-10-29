@@ -10,7 +10,8 @@
       {% set r = race.runner(a.number) %}{% set p = race.prices.get(a.number) %}
       {% set fin = race.result.finish.get(a.number) if race.result else none %}
       <tr>
-        <td><span class="cloth">{{ a.number }}</span> {{ r.name }}{% if fin %} <span class="finish{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}</td>
+        <td><span class="cloth">{{ a.number }}</span> {{ r.name }}{% if fin %} <span class="finish{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}
+          {% if r.last_start_note %}<div class="note">Last start: {{ r.last_start_note | truncate(110) }}</div>{% endif %}</td>
         <td class="num">{% if p and p.sportsbet_win %}{{ p.sportsbet_win | money }}<div class="small">Sportsbet</div>{% elif p and p.best_win %}{{ p.best_win.price | money }}<div class="small">{{ p.best_win.bookmaker | book }}</div>{% else %}–{% endif %}</td>
         <td class="num">{{ a.win | pct }}<div class="small">place {{ a.place | pct }}</div></td>
         <td class="num">{{ a.model_win | pct }}{% if views_split(a) %} <span class="split" title="The form model or FormFav and the odds disagree strongly">⚠</span>{% endif %}</td>
@@ -20,5 +21,6 @@
   </table>
   <p class="small">Chance blends the odds with the form model; Form is the form model alone. ⚠ marks a
     horse the form model or FormFav rates at over 4.5 times, or under a quarter of, its chance in the
-    odds: in testing such horses won about a fifth less often than their chance said.</p>
+    odds: in testing such horses won about a fifth less often than their chance said. Last start is
+    the stewards' comment from the horse's previous run (racing.com).</p>
 </details>

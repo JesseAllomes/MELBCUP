@@ -62,6 +62,12 @@
             {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
             {% if r.notes %}<dt>Notes</dt><dd>{{ r.notes | join(', ') }}</dd>{% endif %}
           </dl>
+          {% set noted = (r.run_notes or []) | selectattr('stewards') | list %}
+          {% if noted %}
+          <dl class="facts stewards">
+            {% for n in noted[:4] %}<dt>{{ n.run_date | shortdate }} {{ n.venue }}{% if n.finish %} · {{ n.finish }}{{ {1:'st',2:'nd',3:'rd'}.get(n.finish, 'th') }}{% endif %}</dt><dd>{{ n.stewards }}</dd>{% endfor %}
+          </dl>
+          {% elif r.run_notes %}<p class="small">No stewards' comments on its last {{ r.run_notes | length }} runs.</p>{% endif %}
           {% if r.runs %}
           <table class="runs">
             <thead><tr><th>Date</th><th>Track</th><th>m</th><th>Going</th><th>Pos</th><th>Mgn</th><th>SP</th></tr></thead>

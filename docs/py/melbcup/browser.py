@@ -24,6 +24,7 @@ from melbcup.config import load_settings
 from melbcup.live import LiveBoard
 from melbcup.model.probability import assess
 from melbcup.sources import http
+from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.views import NotFound, Views
 
 STATE_VERSION = 1
@@ -135,7 +136,9 @@ def init(
     )
     reader = archive_reader or (xhr_text if requester is None else None)
     archive = Archive(reader, pe_key) if pe_key and reader else None
-    board = LiveBoard(settings, archive=archive, **({"clock": clock} if clock else {}))
+    board = LiveBoard(
+        settings, archive=archive, rc=RacingComClient(), **({"clock": clock} if clock else {})
+    )
     if saved:
         _restore(board, saved)
     board.check_credits()  # free: shows the balance before anything is spent
@@ -155,7 +158,12 @@ async def warm(manual: bool = False) -> int:
     except http.SourceError:
         return 0  # the load asks again and shows the reason
     cached = 0
-    for client, label in ((board.pe, "recent form"), (board.ff, "form and stats")):
+    clients = (
+        (board.pe, "recent form"),
+        (board.ff, "form and stats"),
+        (board.rc, "stewards' notes"),
+    )
+    for client, label in clients:
         if client is None:
             continue
         todo = client.src.missing(client.load_requests(card))

@@ -1,5 +1,5 @@
 {
- "build": "cf725a73b872",
+ "build": "ebcb5a379ad4",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -21,6 +21,7 @@
   "melbcup/sources/formfav.py",
   "melbcup/sources/http.py",
   "melbcup/sources/puntersedge.py",
+  "melbcup/sources/racingcom.py",
   "melbcup/web/__init__.py",
   "melbcup/web/templates/_exotic.html",
   "melbcup/web/templates/_graded.html",

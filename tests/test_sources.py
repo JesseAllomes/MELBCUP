@@ -330,3 +330,29 @@ def test_person_stats_keep_the_record_on_each_going():
     assert p.on_going("Soft 6") == StatLine(90, 9, 30)
     assert p.on_going("Good 4").starts == 400
     assert p.on_going("Heavy 9") is None and p.on_going(None) is None
+
+
+def test_card_load_adds_racingcom_stewards_comments_from_before_race_day():
+    from melbcup.sources.racingcom import RacingComClient
+
+    router = Router()
+    pe, ff = clients(router)
+    rc = RacingComClient(transport=httpx.MockTransport(router))
+    card = load_card(pe, ff, RACE_DATE, VENUE, rc)
+    r1 = card.race(1).runner(1)
+    assert r1.last_start_note == "Slow to begin. Held up in the straight."
+    assert [n.run_date.isoformat() for n in r1.run_notes] == ["2026-10-17", "2026-09-26"]
+    assert r1.run_notes[0].finish == 5 and r1.run_notes[0].settled == 4
+    assert card.race(1).runner(2).last_start_note is None  # ran, no comment
+    assert not any("racing.com" in w for w in card.warnings)
+
+
+def test_racingcom_outage_only_adds_a_warning():
+    from melbcup.sources.racingcom import RacingComClient
+
+    router = Router()
+    pe, ff = clients(router)
+    down = httpx.MockTransport(lambda request: httpx.Response(503, json={}))
+    card = load_card(pe, ff, RACE_DATE, VENUE, RacingComClient(transport=down))
+    assert card.race(1).runner(1).run_notes is None
+    assert any("racing.com" in w for w in card.warnings)

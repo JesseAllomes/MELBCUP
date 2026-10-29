@@ -281,6 +281,46 @@ def ff_bias_payload() -> dict:
     }
 
 
+def rc_payload(query: str, variables: dict) -> dict:
+    """racing.com's form service: one meeting, every runner a horse code, and past runs with a
+    stewards' comment for each race's runner 1 (plus one run after race day, to be ignored)."""
+    if "GetMeetingByVenueDateTrial" in query:
+        return {"data": {"GetMeetingByVenueDateTrial": [{"id": "M1"}]}}
+    if "getRaceForm" in query:
+        race = variables["raceNumber"]
+        entries = [
+            {"raceEntryNumber": n, "horseCode": f"H{race}-{n}"} for n, *_ in FIELDS.get(race, [])
+        ]
+        return {"data": {"getRaceForm": {"formRaceEntries": entries}}}
+    if "GetRaceEntryItemByHorsePaged" in query:
+        horse = variables["horseCode"]
+        note = "Slow to begin. Held up in the straight." if horse.endswith("-1") else None
+
+        def run(day: str, finish: str, comment: str | None) -> dict:
+            return {
+                "finish": finish,
+                "positionAtSettledAbv": "4th",
+                "commentStewards": comment,
+                "race": {
+                    "date": day,
+                    "isTrial": False,
+                    "isJumpOut": False,
+                    "venueAbbr": "FLEM",
+                    "distance": "1600m",
+                    "trackCondition": "Good 4",
+                },
+            }
+
+        runs = [
+            run("2026-11-10", "1", "After the meeting."),
+            run("2026-10-17", "5", note),
+            run("2026-09-26", "2", None),
+            run("2026-09-01", "1", None) | {"race": {"date": "2026-09-01", "isTrial": True}},
+        ]
+        return {"data": {"GetRaceEntryItemByHorsePaged": runs}}
+    return {"errors": [{"message": "unknown query"}], "data": None}
+
+
 class Router:
     """httpx transport that answers from the builders above and counts calls per path."""
 
@@ -330,6 +370,8 @@ class Router:
                 )
             if path.startswith("/v1/stats/track-bias/"):
                 return httpx.Response(200, json=ff_bias_payload())
+        if host == "graphql.rmdprod.racing.com":
+            return httpx.Response(200, json=rc_payload(q["query"], json.loads(q["variables"])))
         return httpx.Response(404, json={"detail": f"no route {host}{path}"})
 
 

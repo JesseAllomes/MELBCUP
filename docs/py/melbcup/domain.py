@@ -54,6 +54,19 @@ class PastRun:
     race_class: str | None
 
 
+@dataclass(frozen=True)
+class RunNote:
+    """One past run as racing.com records it, with the stewards' comment if there was one."""
+
+    run_date: date
+    venue: str
+    distance_m: int | None
+    condition: str | None
+    finish: int | None
+    settled: int | None
+    stewards: str | None
+
+
 @dataclass
 class Runner:
     number: int
@@ -97,6 +110,11 @@ class Runner:
     jockey_stats: PersonStats | None = None
     trainer_stats: PersonStats | None = None
     notes: list[str] = field(default_factory=list)
+    run_notes: list[RunNote] | None = None  # racing.com, newest first, before this race
+
+    @property
+    def last_start_note(self) -> str | None:
+        return self.run_notes[0].stewards if self.run_notes else None
 
 
 @dataclass(frozen=True)

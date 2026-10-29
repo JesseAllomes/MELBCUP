@@ -29,6 +29,7 @@ from melbcup.sources import apply_market, apply_result, load_card
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import PuntersEdgeClient
+from melbcup.sources.racingcom import RacingComClient
 
 if TYPE_CHECKING:
     from melbcup.archive import Archive
@@ -91,8 +92,10 @@ class LiveBoard:
         ff: FormFavClient | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         archive: Archive | None = None,
+        rc: RacingComClient | None = None,
     ):
         self.settings = settings
+        self.rc = rc  # racing.com stewards' comments; the app's entry points supply it
         self.pe = pe or (
             PuntersEdgeClient(settings.puntersedge_api_key)
             if settings.puntersedge_api_key
@@ -206,7 +209,7 @@ class LiveBoard:
         if self._archived(now):  # saved earlier: no credits
             card = self.archive.load(self.race_date, self.venue)
         else:
-            card = load_card(self.pe, self.ff, self.race_date, self.venue)
+            card = load_card(self.pe, self.ff, self.race_date, self.venue, self.rc)
         with self._lock:
             self._carry_prices(card)
             self._card = card

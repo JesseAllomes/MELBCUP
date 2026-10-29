@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from melbcup.archive import Archive
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
+from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.views import HERE, NotFound, Views
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
@@ -41,7 +42,9 @@ def create_app(
             return f.read_text() if f.is_file() else None
 
         key = settings.puntersedge_api_key
-        board = LiveBoard(settings, archive=Archive(read, key) if key else None)
+        board = LiveBoard(
+            settings, archive=Archive(read, key) if key else None, rc=RacingComClient()
+        )
     views = Views(settings, board)
 
     @asynccontextmanager

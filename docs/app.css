@@ -146,6 +146,8 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .runners table { margin-top: 4px; }
 .runners td:first-child { overflow-wrap: anywhere; }
 .runners .split { color: var(--accent); }
+.runners .note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.facts.stewards dd { color: var(--ink); }
 
 .placings { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 14px; margin: 4px 0 6px; }
 .placings b { color: var(--muted); font-size: 12px; font-weight: 600; margin-right: 2px; }

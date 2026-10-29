@@ -29,6 +29,7 @@ from melbcup.domain import (
 from melbcup.sources.formfav import FormFavClient, FormFavRunner
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import MarketSnapshot, PuntersEdgeClient
+from melbcup.sources.racingcom import RUNS_KEPT, RacingComClient
 
 WORKERS = 8
 
@@ -64,7 +65,13 @@ def _try[T](card: Card, what: str, fn: Callable[[], T]) -> T | None:
         return None
 
 
-def load_card(pe: PuntersEdgeClient, ff: FormFavClient | None, race_date: date, venue: str) -> Card:
+def load_card(
+    pe: PuntersEdgeClient,
+    ff: FormFavClient | None,
+    race_date: date,
+    venue: str,
+    rc: RacingComClient | None = None,
+) -> Card:
     card = pe.acceptances(race_date, venue)
     with _pool() as pool:
         forms = pool.map(
@@ -84,7 +91,27 @@ def load_card(pe: PuntersEdgeClient, ff: FormFavClient | None, race_date: date, 
             )
         else:
             enrich_from_formfav(card, ff, pool)
+        if rc is not None:
+            enrich_from_racingcom(card, rc, pool)
     return card
+
+
+def enrich_from_racingcom(
+    card: Card, rc: RacingComClient, pool: ThreadPoolExecutor | SerialExecutor
+) -> None:
+    """Each runner's recent runs with the stewards' comments (racing.com, free)."""
+    what = "Stewards' comments (racing.com)"
+    codes = _try(card, what, lambda: rc.horse_codes(card)) or {}
+    horses = sorted(set(codes.values()))
+    runs = dict(
+        zip(horses, pool.map(lambda h: _try(card, what, lambda: rc.runs(h)), horses), strict=True)
+    )
+    for race in card.races:
+        for runner in race.runners:
+            notes = runs.get(codes.get((race.number, runner.number)))
+            if notes is not None:
+                earlier = [n for n in notes if n.run_date < card.race_date]
+                runner.run_notes = earlier[:RUNS_KEPT]
 
 
 def _apply_ff_form(race: Race, ff_form: list[FormFavRunner] | None) -> None:
