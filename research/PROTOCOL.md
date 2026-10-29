@@ -1,6 +1,7 @@
 # Validation protocol: does anything beat the bias-corrected market?
 
-**Status: DRAFT v0.5, not frozen.** v0.5 closes the Fable adversarial review:
+**Status: v1, FROZEN** (tag `protocol-v1`; freeze record in section 8). Changes from here are
+dated amendments only. v0.5 closed the Fable adversarial review:
 - the fit set for confirmatory models;
 - fail and inconclusive verdicts for every claim;
 - change-event quotes;
@@ -57,7 +58,7 @@ Place, trifecta and First Four are outside this protocol.
   2026-10-29, one gzipped `getMeeting` per meeting (collector:
   `scratchpad/big/collect_adaptive.py`; query: `rcq.py`).
 - **Dataset build.** `scratchpad/upsets/build.py`, with a sha256 manifest. Manifest hash and code
-  commit: _(fill at freeze)_.
+  commit: see section 8 (manifest sha256 `d0e420ca…7d17c42d`, code commit `3f9dd3b`).
 
 **Blocks, by race date.** Nothing outside a block's role is computed from it.
 
@@ -351,6 +352,90 @@ it.
 - Separate rows for staying races (≥ 2,800 m), Group 1 races and fields of 16 or more. A pass
   overall is not a pass for Cup-type races.
 - Price movement from T to the jump is reported as evidence, not profit.
+
+## 8. Freeze record
+
+Filled from the dataset build alone. No model, factor or claim statistic has been computed on
+tune1, tune2 or final.
+
+**Build.**
+
+- Code: `research/dataset/` at commit `3f9dd3b0b5316266550b74116df9d4dd6ee49c37`.
+- Output manifest (sha256 of 55 output files): `research/dataset/manifest.json`, itself sha256
+  `d0e420cac1e3f26b1d78d99da543d076d909e3cc1eb2cc2bd8a0b6d17d17c42d`.
+- Source: 12,129 meeting dumps; 90,163 races; 1,085,407 entries.
+
+**Change-event check.** Of 47,723,713 consecutive fluctuation pairs (both books), 1,664,394
+(3.49%) repeat the previous price. The series are predominantly change events. A repeat does not
+affect "last fluctuation at or before T", but it does count towards feed liveness.
+
+**Inclusion funnel at T-30** (`research/dataset/reports/funnel_*.csv`):
+
+| Step | Removed | Remaining |
+|---|---|---|
+| All races in the dumps | | 90,163 |
+| Not Australian | 3,295 | 86,868 |
+| Trial or jump-out | 0 | 86,868 |
+| \|U\| < 5 | 1,309 | 85,559 |
+| Not market-eligible | 13,854 | 71,705 |
+| Feed not live | 39,239 | 32,466 |
+| Timing untrusted | 0 | 32,466 |
+| Examined | 1,106 | 31,360 |
+
+Pre-decision-eligible races by block:
+
+| Block | Races |
+|---|---|
+| history only | 2,183 |
+| train | 17,597 |
+| tune1 | 3,718 |
+| tune2 | 2,554 |
+| final | 5,308 |
+| excluded | 0 |
+
+**Post-race scoring counts** among the eligible races (all blocks):
+
+- ok 29,275;
+- late scratching 1,920;
+- no result 105;
+- dead heat 58;
+- no winner recorded 2.
+
+Recorded scratchings whose last fluctuation falls in (T − 900 s, T), the cases scratch dating can
+misclassify, total 120 across eligible races (train 79).
+
+**Field availability** by field, bookmaker, decision time and year:
+`research/dataset/reports/field_availability.csv`.
+
+**Scope consequence.** Feed liveness removes about half of otherwise usable races, mostly meetings
+whose prices rarely move in the 15 minutes before T-30. Every claim therefore applies only to races
+with a live two-bookmaker market at T-30. That is also the only population the app can act on.
+
+**Data-quality findings fixed at freeze.**
+
+- `horse.age` and `horse.sex` are values at collection (2026-10-29), not at the race. Only
+  `age_at_race_est` may be used.
+- `timeSectional` is one race-level value repeated on every runner. F1 uses the runner's last-600 m
+  time from the timing sections (`res_last600_s`) instead (FACTORS.md F1).
+- `distanceTravelled` of 0 is treated as missing.
+- racing.com's `startingPrice` equals the provider "OP" price. It is unreliable at some Queensland
+  bush meetings. It is used only for expected wins in history features (FACTORS.md), never as a
+  quote.
+- Entries neither scratched nor started (emergencies) are in U under the literal rule. A race where
+  one lacks a quote is not market-eligible.
+- Five dumps (2025-04-14 to 2025-04-17) failed to parse. 346 races had no recorded start and were
+  dropped at parse.
+- July 2022 has no Ladbrokes prices. This affects only the history-only block, which is never
+  scored.
+
+**Disclosure.** Before this freeze, the v0.4 dataset report displayed **market-only** baselines on
+tune1 and tune2:
+
+- the SP favourite's strike rate by block;
+- SP against Sportsbet log-loss, pooled over train, tune1 and tune2.
+
+No model or factor was involved. The validation script now restricts every outcome statistic to
+the train block.
 
 ## Amendments
 

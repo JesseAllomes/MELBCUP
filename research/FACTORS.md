@@ -1,4 +1,4 @@
-# Correction families f(X): executable definitions (v0.5)
+# Correction families f(X): executable definitions (v1, frozen with `protocol-v1`)
 
 **Common rules** (PROTOCOL.md section 3):
 
@@ -28,8 +28,10 @@
 
 **F1 Closing sectional**
 
-- For a past race, the runner's last-600 rank among that race's finishers with a `timeSectional`
-  (1 = fastest), scaled to s = 1 − (rank − 1) / (n − 1).
+- For a past race, the runner's last-600 rank among that race's finishers with a last-600 m time
+  (1 = fastest), scaled to s = 1 − (rank − 1) / (n − 1). The time is the runner's own last-600 m
+  split from racing.com's timing sections (`res_last600_s`). `timeSectional` is a race-level value
+  and is not used.
 - n ≥ 4 finishers with sectionals is required; otherwise the run is missing.
 - Features:
   - `f1_last`: s at last start.
