@@ -76,7 +76,7 @@ class Snapshot:
     venue: str = ""
     meetings: dict[date, list[str]] = field(default_factory=dict)
     results_at: datetime | None = None
-    can_price: bool = False  # today's or tomorrow's meeting: bookmakers have a market
+    can_price: bool = False  # the meeting may have a market (see LiveBoard._prices_window)
     saved: bool = False  # a finished meeting opened from the saved copy
     auto_credits_left: int | None = None
     field_due: date | None = None
@@ -179,8 +179,12 @@ class LiveBoard:
         )
 
     def _prices_window(self, now: datetime) -> bool:
-        """Bookmakers price a meeting from the evening before: only today and tomorrow."""
+        """Today's and tomorrow's meetings; with racing.com (free) any meeting whose field is
+        out, since its bookmakers frame big meetings two or three days ahead. Picks lean on
+        the odds: before them the form model alone wins far less often."""
         today = self._melbourne_day(now)
+        if self.rc is not None:
+            return today <= self.race_date and self.field_due(now) is None
         return self.race_date in (today, today + timedelta(days=1))
 
     def field_due(self, now: datetime) -> date | None:

@@ -137,7 +137,6 @@
     const keys = readKeys();
     $("pe-key").value = keys.pe || "";
     $("ff-key").value = keys.ff || "";
-    $("hp-key").value = keys.hp || "";
     $("keys").hidden = false;
     $("app").hidden = true;
     $("boot").hidden = true;
@@ -146,7 +145,7 @@
   $("keys-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const pe = $("pe-key").value.trim();
-    store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim(), hp: $("hp-key").value.trim() }));
+    store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim() }));
     location.replace(location.pathname);  // back to the app, not the settings page
   });
 

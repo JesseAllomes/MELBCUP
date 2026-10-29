@@ -28,6 +28,9 @@ from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.views import NotFound, Views
 
 STATE_VERSION = 1
+# The saved meetings' password. The owner chose a simple one and the app supplies it, so nobody
+# types anything: the sealing only keeps the files from being plain text on the public site.
+HISTORY_PASSWORD = "1234"
 _views: Views | None = None
 # (urls, headers, label) -> awaitable list of [status, text]: the page's parallel fetch.
 FetchMany = Callable[[list[str], dict[str, str], str], Awaitable[Any]]
@@ -136,9 +139,8 @@ def init(
         }
     )
     reader = archive_reader or (xhr_text if requester is None else None)
-    # The owner's PuntersEdge key opens the saved meetings; friends with their own key use the
-    # History password the owner gave them.
-    archive = Archive(reader, pe_key, history_password) if reader else None
+    secret = history_password or HISTORY_PASSWORD
+    archive = Archive(reader, pe_key, secret) if reader else None
     board = LiveBoard(
         settings, archive=archive, rc=RacingComClient(), **({"clock": clock} if clock else {})
     )

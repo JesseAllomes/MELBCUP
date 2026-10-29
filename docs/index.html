@@ -32,14 +32,14 @@
   <div id="keys" class="shell" hidden>
     <form id="keys-form" class="keys">
       <h1>Settings</h1>
-      <p>MELBCUP works with no keys, from racing.com. Keys add more: they are saved on this phone
-        only and never sent anywhere else. Leave a box empty to go without.</p>
-      <label for="pe-key">PuntersEdge key (optional, Racing Australia's fields and 15 bookmakers as a fallback)</label>
+      <p>MELBCUP needs no keys: everything comes from racing.com. Tested on held-out races, neither
+        service below improved the picks once bookmakers' prices are out; FormFav only sharpens picks
+        made before any prices exist. Keys are saved on this phone only. Leave a box empty to go
+        without.</p>
+      <label for="pe-key">PuntersEdge key (optional; only a fallback if racing.com fails)</label>
       <input id="pe-key" autocomplete="off" spellcheck="false" inputmode="text">
-      <label for="ff-key">FormFav key (optional, adds long-form history and ratings)</label>
+      <label for="ff-key">FormFav key (optional; helps only before prices are out)</label>
       <input id="ff-key" autocomplete="off" spellcheck="false" inputmode="text">
-      <label for="hp-key">History password (optional, from the app's owner: opens the saved races)</label>
-      <input id="hp-key" autocomplete="off" spellcheck="false" inputmode="text">
       <button type="submit">Save</button>
       <p id="keys-note"></p>
     </form>
