@@ -13,6 +13,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from melbcup import history
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -34,6 +35,7 @@ BOOKMAKERS = {
     "palmerbet": "Palmerbet",
     "picklebet": "Picklebet",
     "boombet": "BoomBet",
+    "SP": "SP",
 }
 KIND_LABELS = {"win": "Win", "place": "Place", "each_way": "Each way"}
 MAX_BUDGET = 100_000
@@ -86,6 +88,19 @@ def shortdate(d: date) -> str:
     return f"{d.day} {d:%b}"
 
 
+def isoday(text: str) -> str:
+    return day(date.fromisoformat(text))
+
+
+def racename(name: str | None) -> str:
+    """Racing Australia sends some names in capitals; show them in normal case."""
+    if not name or not name.isupper():
+        return name or ""
+    small = {"And", "Of", "The", "At", "For", "On", "By"}
+    words = [w.lower() if w[:1].isdigit() else w.capitalize() for w in name.split()]
+    return " ".join(w.lower() if i and w in small else w for i, w in enumerate(words))
+
+
 def longdate(d: date) -> str:
     return f"{day(d)} {d.year}"
 
@@ -126,6 +141,8 @@ def make_env() -> Environment:
         day=day,
         shortdate=shortdate,
         longdate=longdate,
+        isoday=isoday,
+        racename=racename,
     )
     env.globals["KIND_LABELS"] = KIND_LABELS
     return env
@@ -155,6 +172,19 @@ class Views:
         snap = self.board.snapshot()
         budget = parse_budget(query.get("budget"))
         picks = snap.picks(budget) if snap.models else None
+        grade = (
+            grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
+        )
+        keys = {
+            "Win": "win",
+            "Place": "place",
+            "Each way": "each_way",
+            "Trifecta": "trifecta",
+            "First Four": "first_four",
+        }
+        marks = {
+            rg.race: {keys[g.label]: g for g in rg.lines} for rg in (grade.races if grade else [])
+        }
         return {
             "settings": self.settings,
             "browser": self.browser,
@@ -163,9 +193,8 @@ class Views:
             "budget": budget,
             "budget_q": f"?budget={budget:g}" if budget else "",
             "picks": picks,
-            "grade": grade_day(picks)
-            if picks and any(rp.model.race.result for rp in picks.races)
-            else None,
+            "grade": grade,
+            "marks": marks,
             "today": melbourne_today(),
             "here": path + (f"?budget={budget:g}" if budget else ""),
             "load_cost": 2 + 3 * (len(snap.card.races) if snap.card else 10),
@@ -176,16 +205,19 @@ class Views:
         """HTML for a page path; raises NotFound."""
         ctx = self._context(path, query)
         if path == "/":
-            if ctx["picks"]:
-                singles = [
-                    s
-                    for rp in ctx["picks"].races
-                    if rp.model.race.result is None  # only races still to run
-                    for s in rp.best.values()
-                    if s and s.value
-                ]
-                ctx["top_value"] = sorted(singles, key=lambda s: s.ev or 0, reverse=True)[:6]
             return self.env.get_template("day.html").render(ctx)
+        if path == "/history":
+            archive = self.board.archive
+            saved = archive.history() if archive is not None and archive.open else []
+            record = history.merge(saved, self.board.history())
+            ctx.update(
+                record=record,
+                tallies=history.tally(record),
+                groups=history.meetings(record),
+                archive_closed=archive is not None and not archive.open,
+                saved_count=len(saved),
+            )
+            return self.env.get_template("history.html").render(ctx)
         if path == "/meetings":
             pick = _date(query.get("date")) or ctx["snap"].race_date
             archive = self.board.archive

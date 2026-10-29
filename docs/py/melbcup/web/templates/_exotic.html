@@ -1,12 +1,10 @@
-{# One exotic structure row. Needs: e (Exotic) #}
+{# One exotic structure as a table row. Needs: e (Exotic) #}
 <tr class="{{ 'rec' if e.recommended }}">
-  <td>
-    {{ e.title }}{% if e.recommended %} <span class="badge good">PICK</span>{% endif %}
-    <div class="legs">{% for l in e.leg_labels %}<span>{{ l }}</span>{% endfor %}</div>
-    {% if e.note %}<div class="sub">{{ e.note }}</div>{% endif %}
-  </td>
+  <td>{{ e.title }}{% if e.recommended %} <em>pick</em>{% endif %}
+    <div class="legs">{{ e.leg_labels | join(' / ') }}</div>
+    {% if e.note %}<div class="small">{{ e.note }}</div>{% endif %}</td>
   <td class="num">{{ e.combos }}</td>
   <td class="num">{{ e.prob | pct(1) }}</td>
   <td class="num">{{ e.fair_dividend | money }}</td>
-  <td class="num">{% if e.outlay %}${{ e.outlay }}<div class="sub">{{ e.flexi_pct }}%</div>{% else %}–{% endif %}</td>
+  <td class="num">{% if e.outlay %}${{ e.outlay }}<div class="small">{{ e.flexi_pct }}%</div>{% else %}–{% endif %}</td>
 </tr>

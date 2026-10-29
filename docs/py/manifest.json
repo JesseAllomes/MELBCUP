@@ -1,5 +1,5 @@
 {
- "build": "0997c292521c",
+ "build": "745d5d007282",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -12,6 +12,7 @@
   "melbcup/browser.py",
   "melbcup/config.py",
   "melbcup/domain.py",
+  "melbcup/history.py",
   "melbcup/live.py",
   "melbcup/model/__init__.py",
   "melbcup/model/features.py",
@@ -23,10 +24,11 @@
   "melbcup/web/__init__.py",
   "melbcup/web/templates/_exotic.html",
   "melbcup/web/templates/_graded.html",
-  "melbcup/web/templates/_pick.html",
-  "melbcup/web/templates/_result.html",
+  "melbcup/web/templates/_picks.html",
+  "melbcup/web/templates/_placings.html",
   "melbcup/web/templates/base.html",
   "melbcup/web/templates/day.html",
+  "melbcup/web/templates/history.html",
   "melbcup/web/templates/meetings.html",
   "melbcup/web/templates/race.html",
   "melbcup/web/views.py"

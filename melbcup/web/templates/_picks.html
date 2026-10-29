@@ -1,0 +1,30 @@
+{# The model's picks for one race. Needs: rp (RacePicks); optional: marks (kind -> Graded) #}
+{% set marks = marks or {} %}
+<dl class="picks">
+  {% for kind, label in [('win', 'Win'), ('place', 'Place'), ('each_way', 'Each way')] %}
+  {% set s = rp.best[kind] %}{% set g = marks.get(kind) %}
+  {% if s %}
+  <div class="pick{{ ' hit' if g and g.hit }}{{ ' miss' if g and not g.hit }}">
+    <dt>{{ label }}</dt>
+    <dd>
+      <span class="who"><span class="cloth">{{ s.number }}</span> {{ s.name }}</span>
+      <span class="fig">{{ (s.prob if kind == 'place' else 1 / s.fair_price) | pct }}{% if s.price %} · {{ s.price | money }} {{ s.bookmaker | book }}{% if kind == 'each_way' and s.place_price %} / {{ s.place_price | money }}{% endif %}{% endif %}{% if s.value %} · <em>value</em>{% endif %}{% if s.stake %} · bet ${{ s.stake }}{% endif %}</span>
+    </dd>
+    {% if g %}<span class="mark" aria-label="{{ 'landed' if g.hit else 'missed' }}">{{ '✓' if g.hit else '✗' }}</span>{% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+  {% for kind, label, group in [('trifecta', 'Trifecta', rp.trifectas), ('first_four', 'First four', rp.first_fours)] %}
+  {% set e = group | selectattr('recommended') | first %}{% set g = marks.get(kind) %}
+  {% if e %}
+  <div class="pick{{ ' hit' if g and g.hit }}{{ ' miss' if g and not g.hit }}">
+    <dt>{{ label }}</dt>
+    <dd>
+      <span class="who">{{ e.leg_labels | join(' / ') }}</span>
+      <span class="fig">{{ e.combos }} combos · lands {{ e.prob | pct(1) }}{% if e.outlay %} · bet ${{ e.outlay }} ({{ e.flexi_pct }}%){% endif %}</span>
+    </dd>
+    {% if g %}<span class="mark">{{ '✓' if g.hit else '✗' }}</span>{% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+</dl>

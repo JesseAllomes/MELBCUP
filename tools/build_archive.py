@@ -22,7 +22,10 @@ sys.path.insert(0, str(ROOT))
 
 from melbcup import archive  # noqa: E402
 from melbcup.backtest import remove_result_leak  # noqa: E402
+from melbcup.bets import build_picks  # noqa: E402
 from melbcup.domain import Card, RaceResult  # noqa: E402
+from melbcup.history import entries, merge  # noqa: E402
+from melbcup.model.probability import assess  # noqa: E402
 from melbcup.sources import apply_result  # noqa: E402
 
 NOTE = "Saved meeting: judged at official starting prices; exotic dividends were not saved."
@@ -54,10 +57,14 @@ def main() -> None:
     out = ROOT / "docs" / "data"
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
-    archive.write(str(out), cards, secret)
+    record = merge(*(entries(build_picks([assess(r) for r in c.races])) for c in cards))
+    archive.write(str(out), cards, secret, history=record)
     races = sum(len(c.races) for c in cards)
     size = sum(f.stat().st_size for f in out.rglob("*") if f.is_file())
-    print(f"sealed {len(cards)} meetings, {races} races, {size / 1e6:.1f} MB into docs/data")
+    print(
+        f"sealed {len(cards)} meetings, {races} races, {len(record)} history entries, "
+        f"{size / 1e6:.1f} MB into docs/data"
+    )
 
 
 if __name__ == "__main__":

@@ -111,11 +111,23 @@ def test_auto_collects_results_after_races_and_not_before(tmp_path):
     assert router.hits["/v1/racing/results"] == 1  # all final now, and too soon anyway
 
 
-def test_far_future_meeting_is_not_priced(tmp_path):
+def test_field_not_published_yet_costs_nothing(tmp_path):
     router = Router()
     now = datetime(2026, 10, 29, 12, 0, tzinfo=MELBOURNE)
     b = board(tmp_path, date(2026, 10, 24), now, router)
-    b.set_meeting(RACE_DATE, VENUE)  # five days ahead: no market yet
+    b.set_meeting(RACE_DATE, VENUE)  # five days ahead: Racing Australia has not published it
+    b.tick()
+    assert router.hits == {} and b.snapshot().errors == []
+    assert b.snapshot().field_due == date(2026, 11, 1)
+    b.load_card_now(wait=True)  # the button says when, without calling
+    assert router.hits == {} and "should be out on Sunday 1 November" in b.snapshot().errors[0]
+
+
+def test_two_days_out_is_loaded_but_not_priced(tmp_path):
+    router = Router()
+    now = datetime(2026, 11, 1, 12, 0, tzinfo=MELBOURNE)
+    b = board(tmp_path, date(2026, 10, 24), now, router)
+    b.set_meeting(RACE_DATE, VENUE)
     b.tick()
     assert router.hits["/v1/racing/acceptances"] == 1
     assert "/v1/racing/next-to-go" not in router.hits
@@ -138,3 +150,52 @@ def test_fallback_key_derivation_matches_hashlib():
 
     want = hashlib.pbkdf2_hmac("sha256", b"pe-key", b"0123456789abcdef", archive.ITERATIONS, 64)
     assert archive._pbkdf2(b"pe-key", b"0123456789abcdef", archive.ITERATIONS, 64) == want
+
+
+def test_history_page_tallies_saved_and_new_races(tmp_path, monkeypatch):
+    from melbcup import history
+    from melbcup.bets import build_picks
+    from melbcup.model.probability import assess
+    from melbcup.web import views as v
+
+    monkeypatch.setattr(v, "melbourne_today", lambda: RACE_DATE)
+    day = date(2026, 10, 24)
+    read = saved_meeting(tmp_path, day)
+    saved_card = archive.Archive(read, "pe-key").load(day, VENUE)
+    record = history.entries(build_picks([assess(r) for r in saved_card.races]))
+    assert len(record) == 2 and {"win", "place", "each_way", "trifecta"} <= set(record[0]["picks"])
+    archive.write(str(tmp_path), [saved_card], "pe-key", history=record)
+
+    router = Router()
+    t = httpx.MockTransport(router)
+    b = LiveBoard(
+        load_settings({"PUNTERSEDGE_API_KEY": "pe", "PRICE_MODE": "auto"}),
+        pe=PuntersEdgeClient("pe", transport=t),
+        ff=FormFavClient("ff", transport=t),
+        clock=lambda: datetime(2026, 11, 3, 16, 0, tzinfo=MELBOURNE),  # after the Cup
+        archive=archive.Archive(read, "pe-key"),
+    )
+    b.tick()  # loads the card, prices and the day's results
+    assert router.hits["/v1/racing/results"] == 1
+    assert len(b.history()) == 2
+
+    html = v.Views(b.settings, b, browser=True).page("/history", {})
+    assert "4 races, 2 meetings" in html
+    assert "Tue 3 Nov" in html and "Sat 24 Oct" in html
+    assert "Lexus Melbourne Cup" in html and "✓" in html
+    tallies = {t.label: t for t in history.tally(history.merge(record, b.history()))}
+    assert tallies["Win"].picks == 4 and 0 <= tallies["Win"].correct <= 4
+    assert tallies["Win"].failed == 4 - tallies["Win"].correct
+
+
+def test_history_says_when_the_saved_races_are_locked(tmp_path, monkeypatch):
+    from melbcup.web import views as v
+
+    monkeypatch.setattr(v, "melbourne_today", lambda: RACE_DATE)
+    read = saved_meeting(tmp_path, date(2026, 10, 24))
+    b = LiveBoard(
+        load_settings({"PUNTERSEDGE_API_KEY": "pe"}),
+        archive=archive.Archive(read, "a-different-key"),
+    )
+    html = v.Views(b.settings, b, browser=True).page("/history", {})
+    assert "locked with a different PuntersEdge key" in html

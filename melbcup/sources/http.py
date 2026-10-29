@@ -54,6 +54,22 @@ def _kind(status: int) -> str:
     return "bad_request"
 
 
+def _explain(resp: RawResponse) -> str:
+    """The provider's own one-line explanation when it sends one, else the status code."""
+    import json
+
+    try:
+        body = json.loads(resp.text)
+    except ValueError:
+        body = None
+    if isinstance(body, dict):
+        for field in ("title", "detail", "message"):
+            text = body.get(field)
+            if isinstance(text, str) and text.strip():
+                return text.strip()
+    return f"HTTP {resp.status}"
+
+
 class JsonSource:
     def __init__(
         self,
@@ -113,12 +129,7 @@ class JsonSource:
             self.calls += 1
             self.last_headers = resp.headers
         if resp.status >= 400:
-            raise SourceError(
-                self.name,
-                _kind(resp.status),
-                f"{path} -> HTTP {resp.status} {resp.text[:200].strip()}",
-                resp.status,
-            )
+            raise SourceError(self.name, _kind(resp.status), _explain(resp), resp.status)
         try:
             import json
 

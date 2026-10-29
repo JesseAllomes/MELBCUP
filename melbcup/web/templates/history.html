@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}History · MELBCUP{% endblock %}
+{% block refresh %}0{% endblock %}
+{% block content %}
+<section class="block">
+  <h1>History</h1>
+  {% if archive_closed %}
+    <p class="warn">The saved races are locked with a different PuntersEdge key. Enter the key they were
+      saved with under API keys to open them.</p>
+  {% endif %}
+  {% if not record %}
+    <p>No graded races yet. Races are added here as their results come in.</p>
+  {% else %}
+  <p class="small">{{ '{:,}'.format(record | length) }} races, {{ groups | length }} meetings,
+    {{ record[-1].date | isoday }} to {{ record[0].date | isoday }}. The pick in each column is what the
+    app showed: its value bet when it had one, otherwise its top-rated runner. Each way counts as
+    landed when the runner placed.{% if saved_count %} The saved races up to 29 Oct were also used to
+    fit the model, which flatters these figures a little; races from Derby Day on are the clean test.{% endif %}</p>
+
+  <table class="tally">
+    <thead><tr><th>Pick</th><th>Picks</th><th>Landed</th><th>Missed</th><th>Rate</th></tr></thead>
+    <tbody>
+    {% for t in tallies %}
+      <tr><td>{{ t.label }}</td><td class="num">{{ '{:,}'.format(t.picks) }}</td><td class="num">{{ '{:,}'.format(t.correct) }}</td><td class="num">{{ '{:,}'.format(t.failed) }}</td>
+        <td class="num rate">{{ t.rate | pct(1) }}<span class="bar"><span style="width: {{ (100 * (t.rate or 0)) | round(1) }}%"></span></span></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+{% for date, venue, races in groups %}
+{% set wins = races | selectattr('picks.win.hit') | list | length %}
+<details class="meeting"{% if loop.first %} open{% endif %}>
+  <summary><span class="when">{{ date | isoday }}</span> <span class="where">{{ venue }}</span>
+    <span class="small">{{ races | length }} races · win pick {{ wins }}/{{ races | length }}</span></summary>
+  {% for e in races %}
+  <div class="hist-race">
+    <p class="hist-head"><span class="cloth">{{ e.race }}</span> {{ e.name | racename }} <span class="small">{{ e.distance or '?' }}m · {{ e.starters }} runners</span></p>
+    <p class="placings">{% for num, name, sp in e.placings %}<span><b>{{ ['1st', '2nd', '3rd'][loop.index0] }}</b> <span class="cloth">{{ num }}</span> {{ name }}{% if sp %} <i>{{ sp | money }}</i>{% endif %}</span>{% endfor %}</p>
+    <dl class="picks">
+      {% for cat, label in [('win', 'Win'), ('place', 'Place'), ('each_way', 'Each way'), ('trifecta', 'Trifecta'), ('first_four', 'First four')] %}
+      {% set p = e.picks.get(cat) %}
+      {% if p %}
+      <div class="pick {{ 'hit' if p.hit else 'miss' }}">
+        <dt>{{ label }}</dt>
+        <dd>{% if p.no %}<span class="who"><span class="cloth">{{ p.no }}</span> {{ p.name }}</span>
+            <span class="fig">{{ p.chance | pct }}{% if p.price %} · {{ p.price | money }}{% endif %}{% if p.value %} · <em>value</em>{% endif %}</span>
+          {% else %}<span class="who">{{ p.legs }}</span><span class="fig">{{ p.combos }} combos</span>{% endif %}</dd>
+        <span class="mark">{{ '✓' if p.hit else '✗' }}</span>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </dl>
+  </div>
+  {% endfor %}
+</details>
+{% endfor %}
+{% endblock %}

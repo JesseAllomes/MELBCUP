@@ -1,11 +1,16 @@
 """The browser build's controller, driven the way the page's JavaScript drives it."""
 
+from datetime import datetime
+
 import httpx
 import pytest
 from conftest import Router
 
 from melbcup import browser, sources
+from melbcup.config import MELBOURNE
 from melbcup.sources import http
+
+CUP_MORNING = datetime(2026, 11, 3, 9, 0, tzinfo=MELBOURNE)
 
 
 def requester_for(router: Router):
@@ -28,7 +33,9 @@ def restore_globals():
 def test_full_flow_and_saved_state_costs_nothing_on_reopen():
     router = Router()
     seen = []
-    browser.init("pe", "ff", requester=requester_for(router), progress=seen.append)
+    browser.init(
+        "pe", "ff", requester=requester_for(router), progress=seen.append, clock=lambda: CUP_MORNING
+    )
     assert sources.WORKERS == 1
     assert "No card loaded yet" in browser.render("/")
     assert "API keys" in browser.render("/")
@@ -44,7 +51,7 @@ def test_full_flow_and_saved_state_costs_nothing_on_reopen():
 
     saved = browser.save()
     before = dict(router.hits)
-    browser.init("pe", "ff", saved, requester=requester_for(router))
+    browser.init("pe", "ff", saved, requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert "Lexus Melbourne Cup" in browser.render("/")
     after = dict(router.hits)
     assert after.pop("/v1/keys/info") == before.pop("/v1/keys/info") + 1  # the free balance read
@@ -53,18 +60,20 @@ def test_full_flow_and_saved_state_costs_nothing_on_reopen():
 
 def test_damaged_or_old_saved_state_starts_clean():
     router = Router()
-    browser.init("pe", "ff", "not base64!", requester=requester_for(router))
+    browser.init(
+        "pe", "ff", "not base64!", requester=requester_for(router), clock=lambda: CUP_MORNING
+    )
     assert "No card loaded yet" in browser.render("/")
 
 
 def test_phone_starts_in_auto_mode():
-    browser.init("pe", "ff", requester=requester_for(Router()))
-    assert "Auto ON" in browser.render("/")
+    browser.init("pe", "ff", requester=requester_for(Router()), clock=lambda: CUP_MORNING)
+    assert "Auto on" in browser.render("/")
 
 
 def test_actions_route_like_the_server():
     router = Router()
-    browser.init("pe", "ff", requester=requester_for(router))
+    browser.init("pe", "ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert browser.act("/actions/meeting?date=2026-10-31&venue=Flemington") == "/"
     assert "Sat 31 Oct" in browser.render("/")
     assert browser.act("/actions/nonsense") == "/"

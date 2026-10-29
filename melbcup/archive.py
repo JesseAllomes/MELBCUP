@@ -124,6 +124,18 @@ class Archive:
     def has(self, day: date, venue: str) -> bool:
         return venue.lower() in (v.lower() for v in self._index.get(day, []))
 
+    def history(self) -> list[dict]:
+        """The model's record on every saved race (built when the archive was written)."""
+        if self._keys is None:
+            return []
+        raw = self._read("history.bin")
+        if raw is None:
+            return []
+        try:
+            return json.loads(zlib.decompress(unseal(base64.b64decode(raw), self._keys)))
+        except (ArchiveError, ValueError, zlib.error):
+            return []  # from another build: show the races graded on this phone instead
+
     def load(self, day: date, venue: str) -> Card:
         if not self.has(day, venue) or self._keys is None:
             raise ArchiveError(f"{venue} on {day} is not saved")
@@ -133,8 +145,8 @@ class Archive:
         return pickle.loads(zlib.decompress(unseal(base64.b64decode(raw), self._keys)))
 
 
-def write(root: str, cards: list[Card], secret: str) -> None:
-    """Build side (tools/build_archive.py): seal every card and write the index."""
+def write(root: str, cards: list[Card], secret: str, history: list[dict] | None = None) -> None:
+    """Build side (tools/build_archive.py): seal every card, the history and the index."""
     salt = os.urandom(16)
     keys = derive(secret, salt)
     meetings: dict[str, list[str]] = {}
@@ -145,6 +157,10 @@ def write(root: str, cards: list[Card], secret: str) -> None:
         with open(os.path.join(folder, f"{slug(card.venue)}.bin"), "w") as fh:
             fh.write(base64.b64encode(blob).decode())
         meetings.setdefault(card.race_date.isoformat(), []).append(card.venue)
+    if history is not None:
+        blob = seal(zlib.compress(json.dumps(history).encode(), 9), keys)
+        with open(os.path.join(root, "history.bin"), "w") as fh:
+            fh.write(base64.b64encode(blob).decode())
     with open(os.path.join(root, "index.json"), "w") as fh:
         json.dump(
             {"salt": salt.hex(), "check": check_value(keys), "meetings": meetings}, fh, indent=1

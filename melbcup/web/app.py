@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import secrets
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -30,7 +31,10 @@ def create_app(
 ) -> FastAPI:
     settings = settings or load_settings()
     if board is None:
-        saved = HERE.parent.parent / "docs" / "data"
+        # Next to the source tree, or under the working directory: Render installs the
+        # package into site-packages but runs from the repository root.
+        candidates = [HERE.parent.parent / "docs" / "data", Path.cwd() / "docs" / "data"]
+        saved = next((c for c in candidates if (c / "index.json").is_file()), candidates[-1])
 
         def read(path: str) -> str | None:
             f = saved / path

@@ -168,7 +168,7 @@ def client(board_and_router):
 
 def test_buttons_and_credits_on_page(client):
     html = client.get("/?budget=50", auth=AUTH).text
-    assert "PuntersEdge credits left" in html and "/ 3,000" in html
+    assert "PuntersEdge credits left" in html and "of 3,000" in html
     assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
     assert "next=/%3Fbudget%3D50" in html
 
@@ -220,8 +220,8 @@ def test_no_password_configured_refuses():
 def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html
-    assert "Each way" in html and "Trifecta:" in html and "Quaddies" in html
-    assert "Multis (Sportsbet)" in html
+    assert "Each way" in html and "Trifecta" in html and "First four" in html
+    assert "Quaddies" in html and "Multis at Sportsbet" in html
     assert "1800 858 858" in html
     assert "Bet $" not in html
 
@@ -319,7 +319,7 @@ def test_results_button_grades_the_day(board_and_router, monkeypatch):
         assert r.status_code == 303
         assert router.hits["/v1/racing/results"] == 1
         html = c.get("/", auth=AUTH).text
-        assert "How the model went" in html and "top pick won" in html and "✓" in html
+        assert "So far today: top pick won" in html and "✓" in html
         assert "Best value right now" not in html  # every race has run
         race = c.get("/race/2", auth=AUTH).text
         assert "Our picks before the race" in race and "1st" in race
@@ -335,3 +335,12 @@ def test_dates_render_without_platform_specific_formats():
     assert longdate(date(2026, 11, 3)) == "Tue 3 Nov 2026"
     assert local_time(datetime(2026, 11, 3, 15, 0, tzinfo=MELBOURNE)) == "3:00pm"
     assert local_time(datetime(2026, 11, 3, 0, 5, tzinfo=MELBOURNE)) == "12:05am"
+
+
+def test_race_names_in_capitals_are_shown_in_normal_case():
+    from melbcup.web.views import book, racename
+
+    assert racename("CASINO BEEF WEEK CUP FRI 28TH MAY") == "Casino Beef Week Cup Fri 28th May"
+    assert racename("TAB RACE OF THE DAY") == "Tab Race of the Day"
+    assert racename("Lexus Melbourne Cup") == "Lexus Melbourne Cup"
+    assert book("SP") == "SP"

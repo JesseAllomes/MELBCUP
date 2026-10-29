@@ -34,6 +34,11 @@ paid at the official dividend, spread flexi across the structure. The top of the
 score: top pick wins and placings, profit on value bets and exotics, and whether each quaddie and
 multi landed. A past meeting the app never priced is judged at starting prices, as in the backtest.
 
+**History:** the History page (top right) lists every race the app holds results for: each
+race's placings beside the model's Win, Place, Each-way, Trifecta and First Four picks, ticked or
+crossed. At the top, a tally per pick type gives picks, landed, missed and the rate. It starts with
+the 1,160 saved races and adds each new meeting as its results come in.
+
 **Any meeting, any day:** tap the meeting name at the top (**change**). The Cup Carnival days at
 Flemington are one tap each. For any other day, pick the date and tap **Find meetings** (2 credits)
 to list every Australian meeting with a published field, then tap one. Switching costs nothing;

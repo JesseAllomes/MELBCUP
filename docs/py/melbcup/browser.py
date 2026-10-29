@@ -12,6 +12,7 @@ from __future__ import annotations
 import base64
 import pickle
 from collections.abc import Callable
+from datetime import datetime
 from urllib.parse import parse_qsl, urlsplit
 
 from melbcup import sources
@@ -77,12 +78,12 @@ def _state(board: LiveBoard) -> dict:
         "version": STATE_VERSION,
         "race_date": board.race_date,
         "venue": board.venue,
-        "auto": board.auto,
         "card": board._card,
         "form_at": board._form_at,
         "priced_at": board._priced_at,
         "results_at": board._results_at,
         "meetings": board._meetings,
+        "history": board._history,
     }
 
 
@@ -94,10 +95,11 @@ def _restore(board: LiveBoard, blob: str) -> None:
     if not isinstance(state, dict) or state.get("version") != STATE_VERSION:
         return
     board.race_date, board.venue = state["race_date"], state["venue"]
-    board.auto = state["auto"]
+    # Auto is the phone's normal state; it is switched off per visit, not remembered.
     board._card = state["card"]
     board._form_at, board._priced_at = state["form_at"], state["priced_at"]
     board._results_at, board._meetings = state["results_at"], state["meetings"]
+    board._history = state.get("history", [])
     if board._card is not None:
         board._models = {r.number: assess(r) for r in board._card.races}
         board._updated_at = board._priced_at or board._form_at
@@ -110,6 +112,7 @@ def init(
     progress: Callable[[str], None] | None = None,
     requester: http.Requester | None = None,
     archive_reader: Callable[[str], str | None] | None = None,
+    clock: Callable[[], datetime] | None = None,
 ) -> None:
     global _views
     sources.WORKERS = 1
@@ -124,7 +127,7 @@ def init(
     )
     reader = archive_reader or (xhr_text if requester is None else None)
     archive = Archive(reader, pe_key) if pe_key and reader else None
-    board = LiveBoard(settings, archive=archive)
+    board = LiveBoard(settings, archive=archive, **({"clock": clock} if clock else {}))
     if saved:
         _restore(board, saved)
     board.check_credits()  # free: shows the balance before anything is spent

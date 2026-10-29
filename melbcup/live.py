@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from melbcup import history
 from melbcup.bets import DayPicks, build_picks
 from melbcup.config import MELBOURNE, Settings
 from melbcup.domain import Card, Race
@@ -36,6 +37,7 @@ log = logging.getLogger("melbcup.live")
 
 QUOTA_BACKOFF = timedelta(minutes=15)
 MIN_MANUAL_GAP = timedelta(seconds=15)  # a double tap must not spend twice
+FIELD_PUBLISHED = timedelta(days=3)  # Racing Australia publishes acceptances about two days out
 RESULTS_AFTER = timedelta(minutes=10)  # results usually settle within ten minutes of the jump
 RESULTS_EVERY = timedelta(minutes=10)
 FINAL_AFTER = timedelta(minutes=40)  # placings turn "final" after thirty stable minutes
@@ -75,6 +77,7 @@ class Snapshot:
     can_price: bool = False  # today's or tomorrow's meeting: bookmakers have a market
     saved: bool = False  # a finished meeting opened from the saved copy
     auto_credits_left: int | None = None
+    field_due: date | None = None
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -105,6 +108,7 @@ class LiveBoard:
         self.venue = settings.venue
         self._meetings: dict[date, list[str]] = {}
         self._results_at: datetime | None = None
+        self._history: list[dict] = []  # entries for meetings graded here (not the archive)
         self._lock = threading.Lock()
         self._work = threading.Lock()  # one load or refresh at a time
         self._stop = threading.Event()
@@ -140,6 +144,7 @@ class LiveBoard:
                 can_price=self._prices_window(self.clock()),
                 saved=self._archived(self.clock()),
                 auto_credits_left=self.auto_credits_left(self.clock()),
+                field_due=self.field_due(self.clock()),
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -174,7 +179,20 @@ class LiveBoard:
         today = self._melbourne_day(now)
         return self.race_date in (today, today + timedelta(days=1))
 
+    def field_due(self, now: datetime) -> date | None:
+        """The day the field should appear, while it is too early to ask for it."""
+        if self.race_date - self._melbourne_day(now) > FIELD_PUBLISHED:
+            return self.race_date - timedelta(days=2)
+        return None
+
     def _load_form(self, now: datetime) -> None:
+        if (due := self.field_due(now)) is not None:
+            raise SourceError(
+                "PuntersEdge",
+                "not_yet",
+                f"The field for {self.venue} is published about two days before the meeting. "
+                f"It should be out on {due:%A} {due.day} {due:%B}.",
+            )
         if self._archived(now):  # saved earlier: no credits
             card = self.archive.load(self.race_date, self.venue)
         else:
@@ -265,6 +283,12 @@ class LiveBoard:
                     self._models[race.number] = assess(race)
             self._results_at = now
             self._updated_at = now
+            day = build_picks([self._models[n] for n in sorted(self._models)])
+            self._history = history.merge(self._history, history.entries(day))
+
+    def history(self) -> list[dict]:
+        with self._lock:
+            return list(self._history)
 
     def _results_due(self, now: datetime) -> bool:
         """A race jumped ten minutes ago and has no result yet; or every race is in but some
@@ -348,6 +372,8 @@ class LiveBoard:
 
             def run() -> None:
                 if self._card is None:  # loaded once; scratchings arrive with the prices
+                    if self.field_due(now) is not None:
+                        return  # too early: nothing to fetch yet, and no error to show
                     self._load_form(now)
                 if self._prices_window(now) and self._prices_due(now):
                     self._load_prices(now)
@@ -370,6 +396,8 @@ class LiveBoard:
         still to come, 2 per race still to be resulted, and the card if it is not loaded."""
         if self.pe is None or self._archived(now):
             return 0
+        if self.field_due(now) is not None:
+            return None  # nothing can be fetched until the field is published
         if self._card is None:
             return 2 + 3 * 10 + 2  # a typical card, then a first price check
         checks = (

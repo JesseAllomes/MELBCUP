@@ -1,6 +1,7 @@
-{# One graded pick. Needs: g (Graded) #}
-<div class="graded {{ 'hit' if g.hit else 'miss' }}">
+{# One graded quaddie or multi. Needs: g (Graded) #}
+<div class="pick {{ 'hit' if g.hit else 'miss' }}">
+  <dt>{{ g.label }}</dt>
+  <dd><span class="who">{{ g.selection }}</span>
+    <span class="fig">{% if g.returned is none %}{{ 'dividend not known' if g.hit else '' }}{% elif g.hit %}{{ g.returned | money }} back per $1{% else %}lost $1{% endif %}</span></dd>
   <span class="mark">{{ '✓' if g.hit else '✗' }}</span>
-  <span class="what"><strong>{{ g.label }}</strong> {{ g.selection }}{% if g.value %} <span class="badge good">VALUE</span>{% endif %}</span>
-  <span class="ret">{% if g.returned is none %}{{ 'dividend n/a' if g.hit else '' }}{% elif g.hit %}{{ g.returned | money }} back{% else %}–$1{% endif %}</span>
 </div>

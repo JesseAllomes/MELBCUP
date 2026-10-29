@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=28 -->
+<!-- drainclamp-build: state; schema=1; generation=29 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -81,4 +81,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-29T07:28:04+00:00 b0ac4008 m5: live board with adaptive price polling, password-protected phone web app, 75 tests
 - 2026-10-29T07:29:05+00:00 29605fdd m6: Render blueprint, .python-version, README with phone setup
 - 2026-10-29T08:53:14+00:00 46cc835e m7: real-data run, next-to-go prices, manual credit controls, 1,131-race backtest and fitted weights deployed
+- 2026-10-29T09:59:53+00:00 f1d66719 History page with per-pick tally, racebook redesign, field-not-yet guard, saved history sealed
 <!-- /DC:LOG -->

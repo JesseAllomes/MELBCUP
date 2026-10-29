@@ -1,114 +1,78 @@
 {% extends "base.html" %}
 {% block content %}
-<form class="budget" method="get" action="/">
-  <label for="budget">Day budget (optional, for bet sizes)</label>
-  <div class="row">
-    <input id="budget" name="budget" inputmode="decimal" placeholder="e.g. 200"
-           value="{{ '%g' % budget if budget else '' }}">
-    <button type="submit">Size my bets</button>
-  </div>
-</form>
-
 {% if not settings.has_price_source %}
-  <section class="card setup">
-    <h2>Add your data keys</h2>
-    <p>The app needs a <strong>PuntersEdge</strong> API key (prices, field, form) and works best
-      with a <strong>FormFav</strong> key too (long-form history, jockey and trainer records).
-      Add them as <code>PUNTERSEDGE_API_KEY</code> and <code>FORMFAV_API_KEY</code> in the host's
-      environment settings, then restart.</p>
+  <section class="block">
+    <h1>Add your data keys</h1>
+    <p>The app needs a PuntersEdge API key (field, prices, results) and works best with a FormFav key
+      too (long-form history, jockey and trainer records). Add them as <code>PUNTERSEDGE_API_KEY</code>
+      and <code>FORMFAV_API_KEY</code> in the host's environment settings, then restart.</p>
   </section>
 {% elif not picks %}
-  <section class="card">
-    {% if snap.loading %}<p>Loading the card (about 30 seconds)… this page refreshes itself.</p>
-    {% else %}<p>No card loaded yet. Tap <strong>Load card</strong> above to fetch the field, form and
-      prices for {{ snap.venue }} on {{ snap.race_date | day }}.</p>{% endif %}
+  <section class="block empty">
+    {% if snap.field_due %}
+      <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
+      <p>Racing Australia publishes the field about two days before the meeting, so it should be out on
+        {{ snap.field_due | longdate }}. Auto loads it then; nothing is spent until it exists.</p>
+      <p><a href="/history">See how the model has gone on past meetings</a></p>
+    {% elif snap.loading %}
+      <p>Loading the card. With full FormFav data this takes a minute or two.</p>
+    {% else %}
+      <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
+      <p>No card loaded yet. {% if snap.auto %}Auto will load it shortly{% else %}Tap <strong>Load card</strong>{% endif %}
+        to fetch the field, form and prices.</p>
+    {% endif %}
   </section>
 {% else %}
-
   {% if grade %}
-  {% set tp = grade.tally(grade.value_lines) %}{% set ex = grade.exotic_lines %}{% set te = grade.tally(ex) %}
-  <section class="card score">
-    <h2>How the model went · {{ grade.graded }} race{{ '' if grade.graded == 1 else 's' }} run</h2>
-    <div class="tiles">
-      <div><b>{{ grade.top_pick_wins }}/{{ grade.graded }}</b><span>top pick won</span></div>
-      <div><b>{{ grade.top_pick_places }}/{{ grade.graded }}</b><span>top pick placed</span></div>
-      <div><b>{{ '%+.2f' % tp[2] if tp[0] else '–' }}</b><span>value bets, $1 each ({{ tp[1] }}/{{ tp[0] }} won)</span></div>
-      <div><b>{{ '%+.2f' % te[2] if te[0] else '–' }}</b><span>tri + first 4, $1 each ({{ te[1] }}/{{ te[0] }} hit)</span></div>
-    </div>
-    {% for g in grade.quaddies + grade.multis %}{% include "_graded.html" %}{% endfor %}
-    <p class="sub">Profit per $1 at the prices the app showed (starting prices where none were taken).
-      Exotics assume $1 spread flexi across the structure.</p>
-  </section>
-  {% endif %}
-
-  {% if top_value %}
-  <section class="card">
-    <h2>Best value right now</h2>
-    {% for s in top_value %}
-      <a class="rowlink" href="/race/{{ s.race }}{{ budget_q }}">
-        <span class="rn">R{{ s.race }}</span>
-        <span>{{ KIND_LABELS[s.kind] }}: <strong>{{ s.number }}. {{ s.name }}</strong></span>
-        <span>{{ s.price | money }} {{ s.bookmaker | book }}</span>
-        <span class="badge good">{{ s.ev | edge }}</span>
-      </a>
-    {% endfor %}
-  </section>
+  {% set tp = grade.tally(grade.value_lines) %}
+  <p class="summary">{{ 'On the day' if snap.saved else 'So far today' }}: top pick won {{ grade.top_pick_wins }} of {{ grade.graded }}
+    and placed in {{ grade.top_pick_places }}. Value bets {{ '%+.2f' % tp[2] if tp[0] else 'none' }}{% if tp[0] %} on ${{ tp[0] }}{% endif %}.
+    <a href="/history">History</a></p>
   {% endif %}
 
   {% for rp in picks.races %}
   {% set race = rp.model.race %}
-  <section class="card race" id="r{{ race.number }}">
-    <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}">
-      <span class="rn">R{{ race.number }}</span>
-      <span class="rname">{{ race.name or 'Race ' ~ race.number }}</span>
-      <span class="sub">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m</span>
-    </a>
-    {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
-    {% if rg %}{% include "_result.html" %}{% else %}
-    {% for kind in ['win', 'place', 'each_way'] %}
-      {% set s = rp.best[kind] %}
-      {% if s %}{% include "_pick.html" %}{% endif %}
-    {% endfor %}
-    {% endif %}
-    {% set tri = rp.trifectas | selectattr('recommended') | first %}
-    {% set ff = rp.first_fours | selectattr('recommended') | first %}
-    <div class="exo-line">
-      {% if tri %}<span>Trifecta: {{ tri.leg_labels | join(' / ') }} · {{ tri.prob | pct }} · {{ tri.combos }} combos</span>{% endif %}
-      {% if ff %}<span>First 4: {{ ff.leg_labels | join(' / ') }} · {{ ff.prob | pct(1) }} · {{ ff.combos }} combos</span>{% endif %}
-    </div>
-    <a class="more" href="/race/{{ race.number }}{{ budget_q }}">Full analysis →</a>
-  </section>
+  {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+  <article class="race" id="r{{ race.number }}">
+    <header>
+      <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}"><span class="cloth big">{{ race.number }}</span><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span></a>
+      <p class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners</p>
+    </header>
+    {% if rg %}{% include "_placings.html" %}{% endif %}
+    {% with marks = marks.get(race.number) %}{% include "_picks.html" %}{% endwith %}
+  </article>
   {% endfor %}
 
-  <section class="card">
+  {% if picks.quaddies or picks.multis %}
+  <section class="block">
     <h2>Quaddies</h2>
-    {% if picks.quaddies %}
-    <table class="exo">
-      <thead><tr><th>Structure</th><th>Combos</th><th>Hits</th><th>Fair div</th><th>Bet</th></tr></thead>
-      <tbody>{% for e in picks.quaddies %}{% include "_exotic.html" %}{% endfor %}</tbody>
-    </table>
-    <p class="sub">Fair div = what a $1 unit must pay to break even. If the TAB's approximate
-      dividend is higher, the quaddie is value.</p>
-    {% else %}<p class="sub">Needs at least four races with a field.</p>{% endif %}
-  </section>
-
-  <section class="card">
-    <h2>Multis (Sportsbet)</h2>
+    <dl class="picks">
+    {% for e in picks.quaddies if e.recommended %}
+      <div class="pick"><dt>{{ 'Early' if e.kind == 'early_quaddie' else 'Main' }}</dt>
+        <dd><span class="who">{{ e.leg_labels | join(' · ') }}</span>
+          <span class="fig">{{ e.combos }} combos · lands {{ e.prob | pct(1) }} · needs ${{ '%.0f' % e.fair_dividend }} per $1 to break even{% if e.outlay %} · bet ${{ e.outlay }} ({{ e.flexi_pct }}%){% endif %}</span></dd></div>
+    {% endfor %}
+    </dl>
+    {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
+    <h2>Multis at Sportsbet</h2>
     {% if picks.multis %}
-      {% for m in picks.multis %}
-      <div class="pick {{ 'value' if m.value else 'novalue' }}">
-        <div class="kind">{{ m.legs | length }}-leg</div>
-        <div class="who">
-          {% for leg in m.legs %}<div>R{{ leg.race }} {{ leg.number }}. {{ leg.name }} <span class="sub">{{ leg.price | money }}</span></div>{% endfor %}
-        </div>
-        <div class="price"><strong>{{ m.price | money }}</strong><span class="sub">{{ m.prob | pct(1) }} to land</span></div>
-        <div class="verdict">
-          {% if m.value %}<span class="badge good">VALUE {{ m.ev | edge }}</span>{% else %}<span class="badge">no value {{ m.ev | edge }}</span>{% endif %}
-          {% if m.stake %}<span class="stake">Bet ${{ m.stake }}</span>{% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}<p class="sub">No multi has legs with at least a 15% chance and a Sportsbet price yet.</p>{% endif %}
+    <dl class="picks">
+    {% for m in picks.multis %}
+      <div class="pick"><dt>{{ m.legs | length }} legs</dt>
+        <dd><span class="who">{% for leg in m.legs %}R{{ leg.race }} {{ leg.number }} {{ leg.name }}{{ ' + ' if not loop.last }}{% endfor %}</span>
+          <span class="fig">{{ m.price | money }} · lands {{ m.prob | pct(1) }}{% if m.value %} · <em>value</em>{% endif %}{% if m.stake %} · bet ${{ m.stake }}{% endif %}</span></dd></div>
+    {% endfor %}
+    </dl>
+    {% else %}<p class="small">None: no two races have a runner with at least a 15% chance and a Sportsbet price.</p>{% endif %}
   </section>
+  {% endif %}
+
+  <form class="budget" method="get" action="/">
+    <label for="budget">Bet sizes from a day budget (optional)</label>
+    <div class="row">
+      <input id="budget" name="budget" inputmode="decimal" placeholder="e.g. 200" value="{{ '%g' % budget if budget else '' }}">
+      <button type="submit">Size bets</button>
+    </div>
+  </form>
 {% endif %}
 {% endblock %}
