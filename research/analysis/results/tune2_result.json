@@ -1,0 +1,42 @@
+{
+ "A": {
+  "races": 2547,
+  "days": 120,
+  "mean_ll_gain": 0.00029235200813272313,
+  "lo": -0.0015983271710993468,
+  "hi": 0.002303782866538071,
+  "verdict": "inconclusive",
+  "logloss_P": 1.7804383479957255,
+  "logloss_Malpha": 1.7807307000038575,
+  "logloss_raw": 1.787698970542952,
+  "malpha_gain_over_raw": 0.00696827053909407,
+  "brier_P": null
+ },
+ "B": {
+  "bets": 3,
+  "races_with_bets": 3,
+  "days": 3,
+  "roi": -1.0,
+  "lo": -1.0,
+  "hi": -1.0,
+  "verdict": "fail",
+  "excluded_late_scratch_bets": 3,
+  "mean_price": 7.3,
+  "strike": 0.0
+ },
+ "C": {
+  "nominations": 0,
+  "days": 0,
+  "mean_diff": NaN,
+  "lo": NaN,
+  "hi": NaN,
+  "verdict": "inconclusive",
+  "void_nominee": 0,
+  "void_benchmark": 0,
+  "nominee_strike": null,
+  "benchmark_strike": null,
+  "nominee_is_benchmark": 0,
+  "nominee_roi": null
+ },
+ "eligible_races": 2554
+}
