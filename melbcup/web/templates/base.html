@@ -29,7 +29,7 @@
         <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices <span>2</span></button></form>
         {% endif %}
         {% if card and snap.race_date <= today %}
-        <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results <span>2</span></button></form>
+        <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results <span>{{ snap_results_cost or "free" }}</span></button></form>
         {% endif %}
         {% if not snap.field_due %}
         <form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>~{{ load_cost }}</span></button></form>

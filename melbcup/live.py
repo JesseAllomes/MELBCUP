@@ -270,7 +270,8 @@ class LiveBoard:
         return True
 
     def fetch_results_now(self) -> bool:
-        """Settled results for the meeting (2 credits). Ignored within 15 s of the last fetch."""
+        """Settled results for the meeting (free from racing.com, else 2 credits). Ignored
+        within 15 s of the last fetch."""
         if self.pe is None or self._card is None:
             return False
         now = self.clock()
@@ -288,8 +289,21 @@ class LiveBoard:
             self._work.release()
         return True
 
+    def _fetch_results(self) -> dict:
+        """racing.com first (free); PuntersEdge (2 credits) if it fails or has nothing."""
+        if self.rc is not None:
+            try:
+                found = self.rc.results(
+                    self.race_date, self.venue, [r.number for r in self._card.races]
+                )
+            except SourceError:
+                found = {}
+            if found:
+                return found
+        return self.pe.results(self.race_date, self.venue)
+
     def _load_results(self, now: datetime) -> None:
-        results = self.pe.results(self.race_date, self.venue)
+        results = self._fetch_results()
         with self._lock:
             for race in self._card.races:
                 if race.number in results:
@@ -409,9 +423,15 @@ class LiveBoard:
         """Credits to load a card: the field, plus recent form unless racing.com supplies it."""
         return 2 if self.rc is not None else 2 + 3 * races
 
+    @property
+    def results_cost(self) -> int:
+        """Credits per results check: racing.com's are free, PuntersEdge's cost 2."""
+        return 0 if self.rc is not None else 2
+
     def auto_credits_left(self, now: datetime) -> int | None:
         """PuntersEdge credits Auto still plans to spend on this meeting: 2 per price check
-        still to come, 2 per race still to be resulted, and the card if it is not loaded."""
+        still to come, a results check per race still to be resulted (free from racing.com),
+        and the card if it is not loaded."""
         if self.pe is None or self._archived(now):
             return 0
         if self.field_due(now) is not None:
@@ -426,7 +446,7 @@ class LiveBoard:
         unresulted = [r for r in self._card.races if r.result is None]
         if self.race_date > self._melbourne_day(now) + timedelta(days=1):
             unresulted = []  # nothing is fetched for it today
-        return 2 * len(checks) + 2 * len(unresulted)
+        return 2 * len(checks) + self.results_cost * len(unresulted)
 
     def _carry_prices(self, card: Card) -> None:
         """A form reload must not wipe the prices or results already fetched."""

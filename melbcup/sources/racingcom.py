@@ -10,7 +10,7 @@ import json
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
-from melbcup.domain import Card, RunNote, parse_margin
+from melbcup.domain import Card, RaceResult, RunNote, parse_margin
 from melbcup.sources.http import JsonSource, SourceError
 
 if TYPE_CHECKING:
@@ -34,6 +34,22 @@ RUNS = (
     " finish margin startingPrice weightCarried jockeyName positionAtSettledAbv commentStewards"
     " race { date isTrial isJumpOut venueAbbr distance trackCondition class runnersCount } } }"
 )
+
+RESULTS = (
+    "query($meetCode: ID!, $raceNumber: Int!) {"
+    " getRaceForm(meetCode: $meetCode, raceNumber: $raceNumber) { status formRaceEntries {"
+    " raceEntryNumber horseName finish scratched startingPrice odds { providerCode oddsPlace } } }"
+    " GetBettingData(meetCode: $meetCode, raceNumber: $raceNumber) {"
+    " exotics { poolStatusCode selections amount } } }"
+)
+EXOTIC_CODES = {
+    "trifecta": "TF",
+    "first 4": "FF",
+    "first four": "FF",
+    "quinella": "QN",
+    "exacta": "EX",
+}
+PLACE_FROM = ("SB2", "V", "N", "Q")  # Sportsbet's fixed place price, else a tote's place dividend
 
 
 def _int(text: Any) -> int | None:
@@ -78,6 +94,38 @@ def parse_runs(data: dict[str, Any]) -> list[RunNote]:
     return sorted(out, key=lambda n: n.run_date, reverse=True)
 
 
+def parse_result(data: dict[str, Any]) -> RaceResult | None:
+    """A run race's official result, or None before it is run."""
+    form = data.get("getRaceForm") or {}
+    status = (form.get("status") or "").lower()
+    if "result" not in status:
+        return None
+    finish, sp, names, place = {}, {}, {}, {}
+    for e in form.get("formRaceEntries") or []:
+        n, pos = _int(e.get("raceEntryNumber")), _int(e.get("finish"))
+        if n is None or e.get("scratched") or not pos:
+            continue
+        finish[n], names[n] = pos, e.get("horseName") or str(n)
+        if (price := _number(e.get("startingPrice"))) and price > 1.0:
+            sp[n] = price
+        quotes = {o.get("providerCode"): _number(o.get("oddsPlace")) for o in e.get("odds") or []}
+        if (div := next((quotes[k] for k in PLACE_FROM if quotes.get(k)), None)) is not None:
+            place[n] = div
+    exotics: dict[str, tuple[tuple[int, ...], float]] = {}
+    for x in (data.get("GetBettingData") or {}).get("exotics") or []:
+        code = EXOTIC_CODES.get((x.get("poolStatusCode") or "").strip().lower())
+        amount = _number(x.get("amount"))
+        if code and amount and code not in exotics:
+            try:
+                exotics[code] = (tuple(int(v) for v in x["selections"].split("/")), amount)
+            except (KeyError, ValueError):
+                continue
+    if not finish:
+        return None
+    final = "interim" not in status
+    return RaceResult("final" if final else "interim", finish, sp, names, place, exotics)
+
+
 class RacingComClient:
     def __init__(self, api_key: str = PUBLIC_KEY, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("racing.com", BASE_URL, api_key, transport=transport)
@@ -115,6 +163,18 @@ class RacingComClient:
 
     def runs(self, horse_code: str) -> list[RunNote]:
         return parse_runs(self._query(RUNS, {"horseCode": horse_code}, RUNS_TTL))
+
+    def results(self, race_date: date, venue: str, races: list[int]) -> dict[int, RaceResult]:
+        """Race number -> result, for the races already run (free; PuntersEdge charges 2)."""
+        code = self.meeting_code(race_date, venue)
+        if code is None:
+            raise SourceError("racing.com", "not_found", f"no meeting for {venue} on {race_date}")
+        out = {}
+        for n in races:
+            result = parse_result(self._query(RESULTS, {"meetCode": code, "raceNumber": n}, 60))
+            if result is not None:
+                out[n] = result
+        return out
 
     def horse_codes(self, card: Card) -> dict[tuple[int, int], str]:
         """(race, saddlecloth) -> horse code for the whole card: one call per race."""

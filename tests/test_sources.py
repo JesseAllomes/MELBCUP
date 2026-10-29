@@ -362,3 +362,15 @@ def test_racingcom_outage_only_adds_a_warning():
     assert any("racing.com" in w for w in card.warnings)
     assert router.hits["/v1/racing/form"] == len(card.races)  # PuntersEdge fills in
     assert card.race(1).runner(1).runs
+
+
+def test_racingcom_results_parse_finish_prices_and_dividends():
+    from melbcup.sources.racingcom import RacingComClient
+
+    router = Router()
+    rc = RacingComClient(transport=httpx.MockTransport(router))
+    results = rc.results(RACE_DATE, VENUE, [1, 2])
+    r1 = results[1]
+    assert r1.status == "final" and r1.finish[1] == 1 and r1.names[1] == "Swift Comet"
+    assert r1.sp[1] == 3.0 and r1.place_dividend[2] == 2.0
+    assert r1.exotics["TF"] == ((1, 2, 3), 60.0) and r1.exotics["FF"] == ((1, 2, 3, 4), 400.0)
