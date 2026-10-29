@@ -70,24 +70,29 @@ form. It then compares the predictions with the official starting prices and res
 | MELBCUP blend | 1.716 |
 
 The market is the best single predictor. Its favourite won 38.7% of races, against 30% for
-FormFav's model and 31% for the fitted form model alone. Win bets the app marks VALUE, at an
-edge of +5% to +40% and $21 or shorter, returned **+9.8% at starting price** over 1,075 held-out
-bets. Across the splits that ranged from −3% to +29%. It is promising, not proven: roughly 340
-independent bets, about one standard error above break-even. Real fixed prices are usually
-better than starting price. Edges above +40% and runners over $21 lost heavily, so the app
-never calls them value.
+FormFav's model and 31% for the fitted form model alone.
 
-What winners had in common, against what the market expected (A/E above 1 means under-rated):
+**Read these results as development figures, not proof.**
 
-| Pattern | A/E |
-|---|---|
-| FormFav's top pick | 1.18 (the strongest signal) |
-| Top handicap rating in the field | 1.15 |
-| Won last start | 1.13 |
-| Jockey with 15%+ wins at the track | 1.08 |
-| Mares and fillies | 0.95 |
-| Unplaced last start | 0.93 |
-| Third up from a spell | 0.82 |
+- **Same month throughout:** this one month was also used to choose the factor weights, the blend,
+  the $21 cap and the 40% edge limit.
+- **Starting price only:** results are measured at starting price, not at the prices the app sees
+  before the jump.
+- **Leaked people figures:** historical jockey and trainer figures were downloaded afterwards, so
+  they include races run later.
+- **What follows:** the earlier +9.8% return on VALUE win bets, and the pattern table that used to
+  sit here (e.g. jockey at the track, A/E 1.08), are not evidence of an edge. The 1.716 against
+  1.725 log-loss gap is within noise.
+- **Head-to-head:** on held-out days the form factors did not beat the odds. Where the model's top
+  pick was not the favourite, the favourite still won more often: 26.6% against 24.4%.
+
+The replacement work runs on racing.com's national history from July 2022 (about 90,000 races):
+
+- jockey, trainer and track-bias figures rebuilt strictly as of each race date;
+- bets chosen and paid at the timestamped prices 60, 30, 10 and 2 minutes before the jump;
+- calibration tables and race- and day-level confidence intervals;
+- an explicit upset model fitted against the market;
+- the newest 20% of dates kept as an untouched final test.
 
 The factor weights in `melbcup/model/features.py` are the fitted ones.
 
