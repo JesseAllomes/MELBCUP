@@ -2,9 +2,10 @@
 import json, os
 import evaluate as E
 import screen as S
-out = f"{S.RESULTS}/tune2_result.json"
-assert not os.path.exists(out), "tune2 has already been looked at once"
-m = json.load(open(f"{S.RESULTS}/model-v1.json"))
+for p in (f"{S.ORIGINAL}/tune2_result.json", f"{S.RESULTS}/tune2_result.json"):
+    assert not os.path.exists(p), f"tune2 has already been looked at once ({p})"
+out = S.out_path("tune2_result.json")
+m = json.load(open(f"{S.ORIGINAL}/model-v1.json"))      # always the pinned model, never a reproduction
 d = E.load_u(["tune2"])
 P, Ma, Mr = E.predict(m, d)
 res = E.claims(d, P, Ma, Mr, 0.9833)

@@ -543,3 +543,19 @@ offset-only by 0.00058 nats per race, but only in 3 of 6 folds; λ = 1 beats it 
   - `model-v1`, preserved unchanged.
 - The v1 forward window remains defined, but it is not the decisive test for any round-2 model.
   Round 2 has its own protocol, dataset eligibility, model fingerprint and forward start.
+
+### Amendment D (2026-10-29): reproduction and evaluator repair
+
+- **Correction to amendment B, item 3.** `results/tune1_refine.json` was overwritten in place by a
+  re-run. It has been restored to the amendment-A original, and the frozen v1 outputs are
+  untouched.
+- **Reproduction.** The repaired evaluator's reproduction of train and tune1 lives separately in
+  `research/analysis/results-repair-2026-10-29/`. Features, penalties and thresholds are
+  unchanged. It reproduces the screening outputs and `model-v1.json` byte-for-byte; differences
+  are explained in its README.
+- **Dead-heat settlement.** The fix (q/k, k = all joint winners in the race) is covered by
+  `test_evaluate.py`.
+- **Explicit paths.** Output paths are explicit, and existing files are never overwritten.
+- **tune2 guard.** The guard checks the actual location of the one tune2 look.
+- **Claim B.** Recorded as "failed the frozen gate; three losing bets provide insufficient
+  statistical evidence". The degenerate bootstrap interval is a documented limitation.

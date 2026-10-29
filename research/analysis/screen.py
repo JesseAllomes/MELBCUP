@@ -3,7 +3,7 @@ folds (alpha fitted per fold, lambda = 3, keep if validation log-loss beats offs
 then the combined fit of the kept families with lambda chosen from {0.3, 1, 3, 10, 30}.
 
 Conditional logit, alpha*log M as a fixed offset, objective = mean per-race log-likelihood - (lambda/2)|w|^2,
-solved by Newton's method. Reads $MELBCUP_DATA/out/runners.pkl.gz; writes results/screen_*.csv."""
+solved by Newton's method. Reads $MELBCUP_DATA/out/runners.pkl.gz; writes $MELBCUP_RESULTS/screen_*.csv."""
 import json, os, sys
 import numpy as np
 import pandas as pd
@@ -12,9 +12,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.environ.get("MELBCUP_DATA", "")      # dataset folder holding out/ and manifest.json (built by research/dataset/build.py)
 if not DATA:
     sys.exit("set MELBCUP_DATA to the dataset folder that holds out/ and manifest.json")
-RESULTS = f"{HERE}/results"
-OUT = RESULTS
-os.makedirs(OUT, exist_ok=True)
+ORIGINAL = f"{HERE}/results"                    # the frozen v1 outputs (amendment A, tune2 look): never written to
+RESULTS = os.environ.get("MELBCUP_RESULTS", "")  # where this run writes; must be a new location
+if not RESULTS:
+    sys.exit("set MELBCUP_RESULTS to the folder this run writes to (not results/, which holds the frozen v1 outputs)")
+if os.path.realpath(RESULTS) == os.path.realpath(ORIGINAL):
+    sys.exit("refusing to write into results/: it holds the frozen v1 outputs")
+os.makedirs(RESULTS, exist_ok=True)
+
+
+def out_path(name):
+    """a new output file in RESULTS; refuses to overwrite anything that exists."""
+    p = os.path.join(RESULTS, name)
+    if os.path.exists(p):
+        sys.exit(f"refusing to overwrite {p}")
+    return p
 
 FOLDS = [("2024-01-01", "2024-03-31"), ("2024-04-01", "2024-06-30"), ("2024-07-01", "2024-09-30"),
          ("2024-10-01", "2024-12-31"), ("2025-01-01", "2025-03-31"), ("2025-04-01", "2025-06-30")]
@@ -196,12 +208,12 @@ def main():
                              val_logloss=ll, val_logloss_offset=ll0, gain=ll0 - ll, weights=json.dumps(dict(zip(names, np.round(w, 4).tolist())))))
         print(f"fold {k} screened (alpha {a:.4f})", flush=True)
     S = pd.DataFrame(rows)
-    S.to_csv(f"{OUT}/screen_folds.csv", index=False)
+    S.to_csv(out_path("screen_folds.csv"), index=False)
     summ = S.groupby("family").agg(folds_better=("gain", lambda g: int((g > 0).sum())), mean_gain=("gain", "mean"),
                                    min_gain=("gain", "min"), max_gain=("gain", "max")).reset_index()
     summ["kept"] = summ["folds_better"] >= 4
     summ = summ.sort_values("mean_gain", ascending=False)
-    summ.to_csv(f"{OUT}/screen_summary.csv", index=False)
+    summ.to_csv(out_path("screen_summary.csv"), index=False)
     print(summ.to_string(index=False), flush=True)
     kept = summ.loc[summ["kept"], "family"].tolist()
     comb = []
@@ -211,16 +223,16 @@ def main():
                 a, w, names, ll, ll0 = fold_fit(tr, va, kept, lam)
                 comb.append(dict(lam=lam, fold=k, val_logloss=ll, val_logloss_offset=ll0, gain=ll0 - ll))
         C = pd.DataFrame(comb)
-        C.to_csv(f"{OUT}/combined_folds.csv", index=False)
+        C.to_csv(out_path("combined_folds.csv"), index=False)
         cs = C.groupby("lam").agg(mean_val_logloss=("val_logloss", "mean"), mean_gain=("gain", "mean"),
                                   folds_better=("gain", lambda g: int((g > 0).sum()))).reset_index()
-        cs.to_csv(f"{OUT}/combined_summary.csv", index=False)
+        cs.to_csv(out_path("combined_summary.csv"), index=False)
         print(cs.to_string(index=False))
         best = float(cs.loc[cs["mean_val_logloss"].idxmin(), "lam"])
         print(f"kept {kept}; lambda {best}")
-        json.dump(dict(kept=kept, lam=best), open(f"{OUT}/selection_train.json", "w"))
+        json.dump(dict(kept=kept, lam=best), open(out_path("selection_train.json"), "w"))
     else:
-        json.dump(dict(kept=[], lam=None), open(f"{OUT}/selection_train.json", "w"))
+        json.dump(dict(kept=[], lam=None), open(out_path("selection_train.json"), "w"))
         print("no family kept")
 
 

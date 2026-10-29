@@ -1260,7 +1260,8 @@ def write_manifest(extra_dirs=(), log=print):
             files += [os.path.join(d, f) for f in sorted(os.listdir(d))]
     files += [f"{BASE}/build.py", f"{BASE}/validate.py"]
     man = {os.path.relpath(f, BASE): dict(sha256=sha256_file(f), bytes=os.path.getsize(f)) for f in files if os.path.isfile(f)}
-    with open(f"{BASE}/manifest.json", "w") as fh:
+    dest = f"{BASE}/manifest.json" if OUT == f"{BASE}/out" else f"{OUT}/manifest.json"   # test runs (--max-files) never touch the real manifest
+    with open(dest, "w") as fh:
         json.dump(dict(generated=datetime.datetime.now(datetime.timezone.utc).isoformat(), files=man), fh, indent=1)
     log(f"manifest: {len(man)} files")
 

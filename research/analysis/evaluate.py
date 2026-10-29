@@ -58,12 +58,22 @@ def predict(m, d):
 
 def boot(day, num, den, level):
     g = pd.DataFrame(dict(day=day, num=num, den=den)).groupby("day").sum()
+    if len(g) == 0:
+        return np.nan, np.nan, np.nan, 0
     n, dn = g["num"].to_numpy(), g["den"].to_numpy()
     rng = np.random.default_rng(SEED)
     idx = rng.integers(0, len(g), size=(NBOOT, len(g)))
     stat = n[idx].sum(1) / dn[idx].sum(1)
     q = (1 - level) / 2
     return float(n.sum() / dn.sum()), float(np.quantile(stat, q)), float(np.quantile(stat, 1 - q)), int(len(g))
+
+
+def win_returns(won, q, n_race_winners):
+    """level $1 win bets: net return per bet. A winner in a k-way dead heat for first returns q/k, where k is the
+    number of joint winners in the RACE (backed or not)."""
+    won = np.asarray(won, bool)
+    k = np.asarray(n_race_winners, float)
+    return np.where(won, np.asarray(q, float) / np.where(won, k, 1.0), 0.0) - 1.0
 
 
 def verdict(lo, hi, claim):
@@ -90,11 +100,15 @@ def claims(d, P, Ma, Mraw, level):
     raw = float((-np.log(wA["Mraw"]) + np.log(wA["Ma"])).mean())
     rr = boot(wA["mel_date"].to_numpy(), (-np.log(wA["Mraw"]) + np.log(wA["Ma"])).to_numpy(), np.ones(len(wA)), level)
     y = sA["won"].astype(float)
-    brier = {c: float(((sA[c] - y) ** 2).groupby(sA["race_id"]).sum().mean()) for c in ("P", "Ma", "Mraw")}
+    br = {c: ((sA[c] - y) ** 2).groupby(sA["race_id"], sort=False).sum() for c in ("P", "Ma", "Mraw")}   # multiclass Brier per race
+    brier = {c: float(v.mean()) for c, v in br.items()}
+    day_r = sA.groupby("race_id", sort=False)["mel_date"].first()
+    rb = boot(day_r.to_numpy(), (br["Mraw"] - br["Ma"]).to_numpy(), np.ones(len(day_r)), level)   # paired, same races
     out["A"] = dict(races=len(wA), days=nd, mean_ll_gain=est, lo=lo, hi=hi, verdict=verdict(lo, hi, "A"),
                     logloss_P=float(-np.log(wA["P"]).mean()), logloss_Malpha=float(-np.log(wA["Ma"]).mean()),
                     logloss_raw=float(-np.log(wA["Mraw"]).mean()), malpha_gain_over_raw=raw, malpha_gain_over_raw_lo=rr[1], malpha_gain_over_raw_hi=rr[2],
-                    brier_P=brier["P"], brier_Malpha=brier["Ma"], brier_raw=brier["Mraw"])
+                    brier_P=brier["P"], brier_Malpha=brier["Ma"], brier_raw=brier["Mraw"],
+                    malpha_brier_gain_over_raw=rb[0], malpha_brier_gain_over_raw_lo=rb[1], malpha_brier_gain_over_raw_hi=rb[2])
     # ---- B
     q = np.fmax(d["sb_t30"], d["lb_t30"])
     bet = (d["P"] * q - 1 >= 0.05) & (d["P"] >= 0.04) & (q <= 21)
@@ -102,8 +116,7 @@ def claims(d, P, Ma, Mraw, level):
     bets = d[bet & elig].assign(q=q[bet & elig])
     excl = bets[(~bets["starter"]) | dns[bets.index]]             # races with a late scratching: excluded, published
     kb = bets.drop(excl.index)
-    k = nws[kb.index]                                            # dead heat: all race winners, not just backed ones (fixed in amendment B)
-    ret = np.where(kb["won"], kb["q"] / k, 0.0) - 1.0
+    ret = win_returns(kb["won"], kb["q"], nws[kb.index])          # k = all joint winners in the race (amendment B fix)
     if len(kb):
         est, lo, hi, nd = boot(kb["mel_date"].to_numpy(), ret, np.ones(len(kb)), level)
     else:

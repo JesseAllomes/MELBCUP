@@ -42,5 +42,5 @@ m = E.fit(tr, fams, lam)
 P, Ma, Mr = E.predict(m, t1)
 log["tune1_claims_95"] = E.claims(t1, P, Ma, Mr, 0.95)
 log["model_train_fit"] = m
-json.dump(log, open(f"{S.RESULTS}/tune1_refine.json", "w"), indent=1, default=float)
+json.dump(log, open(S.out_path("tune1_refine.json"), "w"), indent=1, default=float)
 print(json.dumps({k: v for k, v in log.items() if k != "model_train_fit"}, indent=1, default=float))

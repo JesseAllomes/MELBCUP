@@ -15,13 +15,14 @@ Model `model-v1` (amendment A, commit `5439f10`) was looked at once on tune2 (20
 | Claim | Statistic | Estimate | 98.33% interval | Verdict |
 |---|---|---|---|---|
 | A. Winner model | log-loss gain over M^α, nats per race (2,547 races) | +0.0003 | −0.0016 to +0.0023 | **inconclusive** |
-| B. Betting edge | ROI (3 bets; 3 more excluded for late scratchings) | −100% | −100% to −100% (degenerate) | **fail under the frozen gate**; statistically uninformative (three bets) |
+| B. Betting edge | ROI (3 bets; 3 more excluded for late scratchings) | −100% | −100% to −100% (degenerate) | **failed the frozen gate; three losing bets provide insufficient statistical evidence** |
 | C. Upset rule | nominee won − benchmark won | – | – | **untested** (0 nominations); inconclusive by rule |
 
 **Claim B.**
 
-- The bootstrap resamples three observed losses, so every resample returns −100%. The zero width
-  shows there is too little data, not that the future return is certain.
+- **Documented limitation:** the bootstrap resamples three observed losses, so every resample
+  returns −100%. The zero-width interval shows there is too little data, not that the future
+  return is certain.
 - The verdict stands as the frozen gate defines it, and the gate is not changed retrospectively.
   Under it, claim B's final block is not opened.
 - The dead-heat settlement bug corrected in amendment B does not affect these three bets. None
@@ -42,8 +43,13 @@ Model `model-v1` (amendment A, commit `5439f10`) was looked at once on tune2 (20
 - **The odds adjustment (M^α, α ≈ 1.13):**
   - Point estimates favour it over the raw market: +0.0070 nats per race on tune2 (no interval
     was computed at that look) and +0.0040 on tune1.
-  - The tune1 95% interval, computed after the fact, is +0.0010 to +0.0070. tune1 was used to
-    fit α, so this is descriptive only.
+  - The repair pass's tune1 figures (paired race-day intervals on identical races, 95%):
+    - log-loss: +0.0040, interval +0.0010 to +0.0070;
+    - multiclass Brier: +0.0012, interval +0.0001 to +0.0023.
+    These are development evidence, because tune1 was used to fit α
+    (`research/analysis/results-repair-2026-10-29/`).
+  - They are useful for checking the odds adjustment, but not sufficient by themselves to
+    justify deploying it.
   - It is **promising, not established**. No calibration comparison has been made under a
     declared rule.
   - Applying M^α and renormalising preserves each race's favourite, so it cannot change
