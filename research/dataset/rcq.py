@@ -1,7 +1,7 @@
 """racing.com's public form service: POST helper and the whole-meeting query."""
 import json, re, time, urllib.request
 
-KEY = re.search(r'"x-api-key":"(da2-[a-z0-9]+)"', open("/tmp/claude-0/-home-user/bf71d36f-697a-54ce-b63a-de8fb21301e9/scratchpad/racingcom/jschunks/3800.js", errors="ignore").read()).group(1)
+KEY = "da2-6nsi4ztsynar3l3frgxf77q5fe"   # racing.com's public web key (as in melbcup/sources/racingcom.py); originally read from the site's JS bundle
 URL = "https://graphql.rmdprod.racing.com/"
 MONTH = "query($y:Int,$m:Int){GetMeetingByMonth(year:$y,month:$m){id date venueName state isTrial isJumpOut racesCount}}"
 MEET = """query($m:ID!){getMeeting(id:$m){id date venueName state trackCondition trackRating railPosition penetrometer weather weatherRain irrigation rainfall comments

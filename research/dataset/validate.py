@@ -1,14 +1,14 @@
 """Validation + baseline facts.  Reads out/*.pkl.gz, writes reports/validation.md + reports/*.csv and refreshes manifest.json.
-Run: python3 -I /tmp/claude-0/-home-user/bf71d36f-697a-54ce-b63a-de8fb21301e9/scratchpad/upsets/validate.py
+Run: MELBCUP_ROOT=<folder> python3 -I validate.py
 
 HARD RULE: no outcome statistic (win rate, A/E, log-loss, winner ranks ...) is ever computed on block 'final'.
 Everything outcome-related goes through nf() below. Counts / coverage / market-only statistics may use all blocks.
 """
-import json, os, hashlib, datetime
+import json, os, sys, hashlib, datetime
 import numpy as np
 import pandas as pd
 
-BASE = "/tmp/claude-0/-home-user/bf71d36f-697a-54ce-b63a-de8fb21301e9/scratchpad/upsets"
+BASE = os.path.join(os.environ.get("MELBCUP_ROOT") or sys.exit("set MELBCUP_ROOT"), "upsets")
 OUT, REP = f"{BASE}/out", f"{BASE}/reports"
 os.makedirs(REP, exist_ok=True)
 for f in os.listdir(REP):

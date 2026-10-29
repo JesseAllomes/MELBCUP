@@ -2,9 +2,9 @@
 import json, os
 import evaluate as E
 import screen as S
-out = f"{S.HERE}/research/tune2_result.json"
+out = f"{S.RESULTS}/tune2_result.json"
 assert not os.path.exists(out), "tune2 has already been looked at once"
-m = json.load(open(f"{S.HERE}/research/model-v1.json"))
+m = json.load(open(f"{S.RESULTS}/model-v1.json"))
 d = E.load_u(["tune2"])
 P, Ma, Mr = E.predict(m, d)
 res = E.claims(d, P, Ma, Mr, 0.9833)

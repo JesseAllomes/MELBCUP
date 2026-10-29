@@ -3,13 +3,17 @@ folds (alpha fitted per fold, lambda = 3, keep if validation log-loss beats offs
 then the combined fit of the kept families with lambda chosen from {0.3, 1, 3, 10, 30}.
 
 Conditional logit, alpha*log M as a fixed offset, objective = mean per-race log-likelihood - (lambda/2)|w|^2,
-solved by Newton's method. Reads out/runners.pkl.gz; writes research/screen_*.csv."""
+solved by Newton's method. Reads $MELBCUP_DATA/out/runners.pkl.gz; writes results/screen_*.csv."""
 import json, os, sys
 import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = f"{HERE}/research"
+DATA = os.environ.get("MELBCUP_DATA", "")      # dataset folder holding out/ and manifest.json (built by research/dataset/build.py)
+if not DATA:
+    sys.exit("set MELBCUP_DATA to the dataset folder that holds out/ and manifest.json")
+RESULTS = f"{HERE}/results"
+OUT = RESULTS
 os.makedirs(OUT, exist_ok=True)
 
 FOLDS = [("2024-01-01", "2024-03-31"), ("2024-04-01", "2024-06-30"), ("2024-07-01", "2024-09-30"),
@@ -43,8 +47,8 @@ def load(blocks=("train",)):
     for c, fl in FAMILIES.values():
         cols += c + fl
     cols += list(MISS.values())
-    df = pd.read_pickle(f"{HERE}/out/runners.pkl.gz")[cols]
-    st = pd.read_pickle(f"{HERE}/out/races.pkl.gz").set_index("race_id")["scoring_status_t30"]
+    df = pd.read_pickle(f"{DATA}/out/runners.pkl.gz")[cols]
+    st = pd.read_pickle(f"{DATA}/out/races.pkl.gz").set_index("race_id")["scoring_status_t30"]
     df["scoring_status_t30"] = df["race_id"].map(st)
     df = df[df["block"].astype(str).isin(blocks)]
     df = df[df["scoring_status_t30"].isin(["ok", "late_scratching"])]          # dead heats / no result excluded

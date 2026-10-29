@@ -483,3 +483,49 @@ offset-only by 0.00058 nats per race, but only in 3 of 6 folds; λ = 1 beats it 
 
 - Mean log-loss gain over M^α is 0.00135, with interval [0.00015, 0.00255].
 - M^α beats the raw market by 0.0040.
+
+### Amendment B (2026-10-29, after the tune2 look; no rule for final or forward changed)
+
+**1. Settlement correction.**
+
+- `evaluate.py` counted dead-heat winners among the *backed* horses, not among all winners of the
+  race. A backed horse in a two-way dead heat with an unbacked horse would have been paid the full
+  quote instead of half.
+- It now uses all race winners, as section 6 states.
+- No reported number changes: no claim-B bet on tune1 or tune2 was a winner.
+
+**2. Reporting corrections** (RESULTS.md):
+
+- The claim-B tune2 fail is recorded as "fail under the frozen gate; statistically
+  uninformative: three bets". The gate is not changed.
+- Claim C is recorded as untested (0 nominations).
+- Claim A is recorded as "no demonstrated improvement".
+- The M^α-over-raw gain is called promising, not robust. M^α preserves the favourite and cannot
+  change top-pick strike rate.
+
+**3. Evaluator additions.**
+
+- Brier scores (P, M^α, raw) and a bootstrap interval for M^α over raw. They apply to future
+  evaluations; tune2 was not re-run.
+- The tune1 values were refreshed by re-running `tune1.py`.
+
+**4. Reproducibility.**
+
+- Data and result paths are now configurable (`MELBCUP_DATA`, `MELBCUP_ROOT`); no absolute
+  session paths remain.
+- The tune2 guard points at the committed result file.
+- Rerunning `screen.py`, `tune1.py` and `pin.py` reproduces the committed outputs and
+  `model-v1.json`.
+
+**5. Forward-test limitation.**
+
+- The forward test reconstructs T from later dumps and excludes late-scratching races from paper
+  returns.
+- It tests prospective predictive performance under those assumptions. It cannot establish
+  executable betting profitability.
+
+**6. Closure.**
+
+- This search is closed as "no demonstrated incremental edge".
+- The final block remains **sealed**, not opened for v1.
+- `model-v1` is preserved unchanged.

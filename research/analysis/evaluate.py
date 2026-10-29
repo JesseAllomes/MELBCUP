@@ -16,9 +16,9 @@ def load_u(blocks):
     for c, fl in S.FAMILIES.values():
         cols += c + fl
     cols += list(S.MISS.values())
-    df = pd.read_pickle(f"{S.HERE}/out/runners.pkl.gz")[cols]
+    df = pd.read_pickle(f"{S.DATA}/out/runners.pkl.gz")[cols]
     df = df[df["block"].astype(str).isin(blocks) & df["inU_t30"].astype(bool)].copy()
-    st = pd.read_pickle(f"{S.HERE}/out/races.pkl.gz").set_index("race_id")["scoring_status_t30"]
+    st = pd.read_pickle(f"{S.DATA}/out/races.pkl.gz").set_index("race_id")["scoring_status_t30"]
     df["scoring_status_t30"] = df["race_id"].map(st)
     df["won"] = df["won"].fillna(False).astype(bool)
     df["starter"] = df["starter"].astype(bool)
@@ -88,10 +88,13 @@ def claims(d, P, Ma, Mraw, level):
     diff = -np.log(wA["Ma"]) + np.log(wA["P"])
     est, lo, hi, nd = boot(wA["mel_date"].to_numpy(), diff.to_numpy(), np.ones(len(wA)), level)
     raw = float((-np.log(wA["Mraw"]) + np.log(wA["Ma"])).mean())
+    rr = boot(wA["mel_date"].to_numpy(), (-np.log(wA["Mraw"]) + np.log(wA["Ma"])).to_numpy(), np.ones(len(wA)), level)
+    y = sA["won"].astype(float)
+    brier = {c: float(((sA[c] - y) ** 2).groupby(sA["race_id"]).sum().mean()) for c in ("P", "Ma", "Mraw")}
     out["A"] = dict(races=len(wA), days=nd, mean_ll_gain=est, lo=lo, hi=hi, verdict=verdict(lo, hi, "A"),
                     logloss_P=float(-np.log(wA["P"]).mean()), logloss_Malpha=float(-np.log(wA["Ma"]).mean()),
-                    logloss_raw=float(-np.log(wA["Mraw"]).mean()), malpha_gain_over_raw=raw,
-                    brier_P=None)
+                    logloss_raw=float(-np.log(wA["Mraw"]).mean()), malpha_gain_over_raw=raw, malpha_gain_over_raw_lo=rr[1], malpha_gain_over_raw_hi=rr[2],
+                    brier_P=brier["P"], brier_Malpha=brier["Ma"], brier_raw=brier["Mraw"])
     # ---- B
     q = np.fmax(d["sb_t30"], d["lb_t30"])
     bet = (d["P"] * q - 1 >= 0.05) & (d["P"] >= 0.04) & (q <= 21)
@@ -99,7 +102,7 @@ def claims(d, P, Ma, Mraw, level):
     bets = d[bet & elig].assign(q=q[bet & elig])
     excl = bets[(~bets["starter"]) | dns[bets.index]]             # races with a late scratching: excluded, published
     kb = bets.drop(excl.index)
-    k = kb.groupby("race_id")["won"].transform("sum")
+    k = nws[kb.index]                                            # dead heat: all race winners, not just backed ones (fixed in amendment B)
     ret = np.where(kb["won"], kb["q"] / k, 0.0) - 1.0
     if len(kb):
         est, lo, hi, nd = boot(kb["mel_date"].to_numpy(), ret, np.ones(len(kb)), level)

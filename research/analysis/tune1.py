@@ -6,7 +6,7 @@ import numpy as np
 import evaluate as E
 import screen as S
 
-sel = json.load(open(f"{S.HERE}/research/selection_train.json"))
+sel = json.load(open(f"{S.RESULTS}/selection_train.json"))
 d = E.load_u(["train", "tune1"])
 tr, t1 = d[d["block"] == "train"].reset_index(drop=True), d[d["block"] == "tune1"].reset_index(drop=True)
 t1s = E.train_rows(t1)
@@ -42,5 +42,5 @@ m = E.fit(tr, fams, lam)
 P, Ma, Mr = E.predict(m, t1)
 log["tune1_claims_95"] = E.claims(t1, P, Ma, Mr, 0.95)
 log["model_train_fit"] = m
-json.dump(log, open(f"{S.HERE}/research/tune1_refine.json", "w"), indent=1, default=float)
+json.dump(log, open(f"{S.RESULTS}/tune1_refine.json", "w"), indent=1, default=float)
 print(json.dumps({k: v for k, v in log.items() if k != "model_train_fit"}, indent=1, default=float))

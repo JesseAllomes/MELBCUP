@@ -1,7 +1,7 @@
 """Incremental builder: racing.com meeting dumps -> runner-level + race-level tables.
 
 Usage (system python, isolated mode):
-    python3 -I /tmp/claude-0/-home-user/bf71d36f-697a-54ce-b63a-de8fb21301e9/scratchpad/upsets/build.py [--no-csv] [--max-files N] [--force-reparse]
+    MELBCUP_ROOT=<folder> python3 -I build.py [--no-csv] [--max-files N] [--force-reparse]
 
 Stage 1 (parse): each meetings/*.json.gz is parsed ONCE into a flat per-runner DataFrame cached in cache/<file>.pkl
                  (re-parsed only if the source size/mtime changes or PARSER_VER is bumped).
@@ -16,7 +16,9 @@ import pandas as pd
 warnings.filterwarnings('ignore', category=pd.errors.PerformanceWarning)
 warnings.filterwarnings('ignore', message='This pattern is interpreted')
 
-ROOT = "/tmp/claude-0/-home-user/bf71d36f-697a-54ce-b63a-de8fb21301e9/scratchpad"
+ROOT = os.environ.get("MELBCUP_ROOT", "")   # folder holding big/meetings (dumps) and upsets/ (cache, out); the original run used the session scratchpad
+if not ROOT:
+    sys.exit("set MELBCUP_ROOT to the folder that holds big/meetings and upsets/")
 SRC = f"{ROOT}/big/meetings"
 BASE = f"{ROOT}/upsets"
 CACHE = f"{BASE}/cache"

@@ -43,7 +43,11 @@
    "logloss_Malpha": 1.8217530521254819,
    "logloss_raw": 1.8257632896402602,
    "malpha_gain_over_raw": 0.004010237514778523,
-   "brier_P": null
+   "malpha_gain_over_raw_lo": 0.0009725518251334991,
+   "malpha_gain_over_raw_hi": 0.0069628777843074195,
+   "brier_P": 0.7854520367733052,
+   "brier_Malpha": 0.7857567486757453,
+   "brier_raw": 0.7869769096918683
   },
   "B": {
    "bets": 3,
