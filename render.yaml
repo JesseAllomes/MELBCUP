@@ -16,7 +16,5 @@ services:
         sync: false
       - key: APP_PASSWORD
         sync: false
-      - key: POLL_SECONDS
-        value: "60"
       - key: PRICE_MODE
         value: manual

@@ -1,15 +1,14 @@
-"""Keeps the card, models and picks fresh, spending PuntersEdge credits only when asked.
+"""Keeps the card, models and picks fresh, spending PuntersEdge credits sparingly.
 
-Manual mode (the default) spends nothing on its own: the page's buttons load the card
-(about 2 + 3 per race credits) and refresh prices (2 credits for the whole card).
+Manual mode spends nothing on its own: the page's buttons load the card (about 2 + 3 per race
+credits), refresh prices and fetch results (2 credits each, for the whole card).
 
-Auto mode loads the card, reloads form hourly, and prices the whole card at the tightest
-interval any race still to run needs:
-
-    more than 90 min to go   every 15 min
-    20-90 min to go          every 5 min
-    under 20 min             every POLL_SECONDS (default 60 s)
-    jumped 5+ min ago        no longer counts
+Auto mode (the phone's default) does the same on a fixed, frugal plan:
+    the card       once, when the meeting is opened (scratchings arrive with the prices)
+    prices         60, 30, 15, 5 and 2 minutes before each race; checks that fall in the
+                   same minute are shared, and only today's and tomorrow's meetings are priced
+    results        ten minutes after each race, plus one late sweep for interim placings
+For a ten-race day that is about 130-150 credits.
 """
 
 from __future__ import annotations
@@ -35,25 +34,26 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("melbcup.live")
 
-FORM_REFRESH = timedelta(hours=1)
 QUOTA_BACKOFF = timedelta(minutes=15)
 MIN_MANUAL_GAP = timedelta(seconds=15)  # a double tap must not spend twice
 RESULTS_AFTER = timedelta(minutes=10)  # results usually settle within ten minutes of the jump
 RESULTS_EVERY = timedelta(minutes=10)
+FINAL_AFTER = timedelta(minutes=40)  # placings turn "final" after thirty stable minutes
 
 
-def price_interval(race: Race, now: datetime, poll_seconds: int) -> timedelta | None:
-    """How often to poll this race's prices now; None once it has run."""
-    if race.start_time is None:
-        return timedelta(minutes=15)
-    to_go = race.start_time - now
-    if to_go < timedelta(minutes=-5):
-        return None
-    if to_go <= timedelta(minutes=20):
-        return timedelta(seconds=poll_seconds)
-    if to_go <= timedelta(minutes=90):
-        return timedelta(minutes=5)
-    return timedelta(minutes=15)
+PRICE_CHECKS = (60, 30, 15, 5, 2)  # minutes before each jump
+
+
+def price_check_times(races: list[Race]) -> list[datetime]:
+    """When Auto checks prices: at each race's checkpoints. One call prices the whole card,
+    so checkpoints from different races that fall in the same minute share a call."""
+    times = {
+        (race.start_time - timedelta(minutes=m)).replace(second=0, microsecond=0)
+        for race in races
+        if race.start_time is not None
+        for m in PRICE_CHECKS
+    }
+    return sorted(times)
 
 
 @dataclass
@@ -74,6 +74,7 @@ class Snapshot:
     results_at: datetime | None = None
     can_price: bool = False  # today's or tomorrow's meeting: bookmakers have a market
     saved: bool = False  # a finished meeting opened from the saved copy
+    auto_credits_left: int | None = None
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -138,6 +139,7 @@ class LiveBoard:
                 results_at=self._results_at,
                 can_price=self._prices_window(self.clock()),
                 saved=self._archived(self.clock()),
+                auto_credits_left=self.auto_credits_left(self.clock()),
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -265,20 +267,27 @@ class LiveBoard:
             self._updated_at = now
 
     def _results_due(self, now: datetime) -> bool:
-        """Some race jumped over ten minutes ago without a final result, and the last look was
-        over ten minutes ago."""
+        """A race jumped ten minutes ago and has no result yet; or every race is in but some
+        only as interim placings, and the last race jumped over forty minutes ago (one final
+        sweep). One call returns every race's result."""
         if self._card is None or self.race_date > self._melbourne_day(now):
             return False
         if self._results_at is not None and now - self._results_at < RESULTS_EVERY:
             return False
         past_day = self.race_date < self._melbourne_day(now)
-        return any(
-            (race.result is None or race.result.status != "final")
-            and (
-                past_day or (race.start_time is not None and now - race.start_time >= RESULTS_AFTER)
-            )
-            for race in self._card.races
+
+        def jumped(race: Race, after: timedelta) -> bool:
+            return past_day or (race.start_time is not None and now - race.start_time >= after)
+
+        races = self._card.races
+        if any(r.result is None and jumped(r, RESULTS_AFTER) for r in races):
+            return True
+        interim = [r for r in races if r.result is not None and r.result.status != "final"]
+        last_sweep_done = self._results_at is not None and all(
+            r.start_time is not None and self._results_at - r.start_time >= FINAL_AFTER
+            for r in races
         )
+        return bool(interim) and all(jumped(r, FINAL_AFTER) for r in races) and not last_sweep_done
 
     def set_auto(self, on: bool) -> None:
         self.auto = on
@@ -338,9 +347,7 @@ class LiveBoard:
         try:
 
             def run() -> None:
-                race_day = self.race_date == self._melbourne_day(now)
-                stale = self._form_at is None or now - self._form_at >= FORM_REFRESH
-                if self._card is None or (race_day and stale and not self._archived(now)):
+                if self._card is None:  # loaded once; scratchings arrive with the prices
                     self._load_form(now)
                 if self._prices_window(now) and self._prices_due(now):
                     self._load_prices(now)
@@ -352,18 +359,28 @@ class LiveBoard:
             self._work.release()
 
     def _prices_due(self, now: datetime) -> bool:
-        """One call prices the whole card, so poll at the tightest interval any race needs.
-        The first poll always runs: it also corrects start times."""
+        """The first check always runs (it also corrects start times); after that, whenever a
+        checkpoint has passed since the last check."""
         if self._priced_at is None:
             return True
-        intervals = [
-            i
-            for race in self._card.races
-            if (i := price_interval(race, now, self.settings.poll_seconds)) is not None
-        ]
-        if not intervals:
-            return False
-        return now - self._priced_at >= min(intervals)
+        return any(self._priced_at < t <= now for t in price_check_times(self._card.races))
+
+    def auto_credits_left(self, now: datetime) -> int | None:
+        """PuntersEdge credits Auto still plans to spend on this meeting: 2 per price check
+        still to come, 2 per race still to be resulted, and the card if it is not loaded."""
+        if self.pe is None or self._archived(now):
+            return 0
+        if self._card is None:
+            return 2 + 3 * 10 + 2  # a typical card, then a first price check
+        checks = (
+            [t for t in price_check_times(self._card.races) if t > now]
+            if self._prices_window(now)
+            else []
+        )
+        unresulted = [r for r in self._card.races if r.result is None]
+        if self.race_date > self._melbourne_day(now) + timedelta(days=1):
+            unresulted = []  # nothing is fetched for it today
+        return 2 * len(checks) + 2 * len(unresulted)
 
     def _carry_prices(self, card: Card) -> None:
         """A form reload must not wipe the prices or results already fetched."""

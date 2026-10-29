@@ -9,7 +9,6 @@ def test_defaults_target_cup_day_at_flemington():
     s = load_settings({})
     assert s.race_date == CUP_DAY == date(2026, 11, 3)
     assert s.venue == "Flemington"
-    assert s.poll_seconds == 60
     assert not s.has_form_source
     assert not s.has_price_source
 
@@ -23,15 +22,14 @@ def test_keys_are_trimmed_and_blank_means_missing():
 
 
 def test_overrides():
-    s = load_settings({"RACE_DATE": "2026-10-31", "VENUE": "Caulfield", "POLL_SECONDS": "90"})
+    s = load_settings({"RACE_DATE": "2026-10-31", "VENUE": "Caulfield"})
     assert s.race_date == date(2026, 10, 31)
     assert s.venue == "Caulfield"
-    assert s.poll_seconds == 90
 
 
 @pytest.mark.parametrize(
     "env",
-    [{"RACE_DATE": "3/11/2026"}, {"POLL_SECONDS": "fast"}, {"POLL_SECONDS": "5"}],
+    [{"RACE_DATE": "3/11/2026"}, {"RACE_DATE": "2026-13-01"}],
 )
 def test_bad_values_raise(env):
     with pytest.raises(ConfigError):

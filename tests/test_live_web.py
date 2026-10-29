@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from melbcup.config import MELBOURNE, load_settings
 from melbcup.domain import Race
-from melbcup.live import LiveBoard, price_interval
+from melbcup.live import LiveBoard, price_check_times
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.puntersedge import PuntersEdgeClient
 from melbcup.web.app import create_app
@@ -36,53 +36,55 @@ def board_with(router: Router, clock: Clock, env=ENV) -> LiveBoard:
     )
 
 
-def test_price_interval_tightens_toward_the_jump():
-    jump = datetime(2026, 11, 3, 15, 0, tzinfo=MELBOURNE)
-    race = Race(VENUE, RACE_DATE, 7, start_time=jump)
-    assert price_interval(race, jump - timedelta(hours=3), 60) == timedelta(minutes=15)
-    assert price_interval(race, jump - timedelta(minutes=45), 60) == timedelta(minutes=5)
-    assert price_interval(race, jump - timedelta(minutes=10), 60) == timedelta(seconds=60)
-    assert price_interval(race, jump + timedelta(minutes=2), 60) == timedelta(seconds=60)
-    assert price_interval(race, jump + timedelta(minutes=6), 60) is None
-    assert price_interval(Race(VENUE, RACE_DATE, 1), jump, 60) == timedelta(minutes=15)
+def test_price_checks_are_fixed_points_shared_across_races():
+    def race(n, h, m):
+        return Race(VENUE, RACE_DATE, n, start_time=datetime(2026, 11, 3, h, m, tzinfo=MELBOURNE))
+
+    one = price_check_times([race(7, 15, 0)])
+    assert [t.strftime("%H:%M") for t in one] == ["14:00", "14:30", "14:45", "14:55", "14:58"]
+    # Races 30 minutes apart: R8's 60-minute check is R7's 30-minute check.
+    two = price_check_times([race(7, 15, 0), race(8, 15, 30)])
+    assert len(two) == 9
+    assert price_check_times([Race(VENUE, RACE_DATE, 1)]) == []
 
 
-def test_tick_polls_card_prices_at_the_tightest_interval():
+def test_auto_follows_the_checkpoints():
+    router, clock = Router(), Clock(START)  # 11:30; R1 11:45, Cup 3:00pm
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    assert router.hits["/v1/racing/next-to-go"] == 1  # first look on opening
+    for minutes, expected in (
+        (5, 1),
+        (10, 2),
+        (12, 2),
+        (13, 3),
+        (30, 3),
+        (149, 3),
+        (150, 4),
+        (151, 4),
+    ):
+        clock.t = START + timedelta(minutes=minutes, seconds=10)
+        board.tick()
+        assert router.hits["/v1/racing/next-to-go"] == expected, minutes
+    assert router.hits["/v1/racing/acceptances"] == 1  # the card is loaded once
+
+
+def test_auto_credit_plan_counts_what_is_left():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock, AUTO)
     board.tick()
-    snap = board.snapshot()
-    assert [m.race.number for m in snap.models] == [1, 2]
-    assert all("market" in m.sources for m in snap.models)
-    assert router.hits["/v1/racing/next-to-go"] == 1  # one call prices the whole card
-
-    clock.t = START + timedelta(seconds=30)
-    board.tick()  # R1 is 15 min out: 60 s polling, not due yet
-    assert router.hits["/v1/racing/next-to-go"] == 1
-
-    clock.t = START + timedelta(seconds=61)
-    board.tick()
-    assert router.hits["/v1/racing/next-to-go"] == 2
-    assert router.hits["/v1/racing/acceptances"] == 1  # form is hourly
-
-    clock.t = START + timedelta(minutes=21)  # 11:51: R1 has run; only the Cup (15 min) counts
-    board.tick()
-    assert router.hits["/v1/racing/next-to-go"] == 3
-    clock.t = START + timedelta(minutes=30)
-    board.tick()
-    assert router.hits["/v1/racing/next-to-go"] == 3
-    clock.t = START + timedelta(minutes=37)
-    board.tick()
-    assert router.hits["/v1/racing/next-to-go"] == 4
+    # R1: 11:40 and 11:43 left; Cup: five checks; two races still to be resulted
+    assert board.snapshot().auto_credits_left == 2 * 7 + 2 * 2
 
 
-def test_form_reload_keeps_prices_and_scratchings():
+def test_reloading_the_card_keeps_prices_and_scratchings():
     router, clock = Router(scratched={1: (3,)}), Clock(START)
     board = board_with(router, clock, AUTO)
     board.tick()
-    clock.t = START + timedelta(hours=1, minutes=1)
     router.scratched = {}
-    board.tick()
+    board.pe.src._cache.clear()
+    clock.t = START + timedelta(minutes=1)
+    board.load_card_now(wait=True)  # the Reload card button
     race = board.snapshot().card.race(1)
     assert race.prices and race.runner(3).scratched
 
@@ -96,13 +98,13 @@ def test_quota_exhaustion_pauses_polling():
         return httpx.Response(402, json={"detail": "out of credits"})
 
     board.pe.src._http._transport = httpx.MockTransport(broke)
-    clock.t = START + timedelta(minutes=2)
+    clock.t = START + timedelta(minutes=10, seconds=10)  # R1's 5-minute check
     board.tick()
     snap = board.snapshot()
     assert any("Paused" in e for e in snap.errors)
     assert snap.models  # last good board still served
     calls = board.pe.src.calls
-    clock.t = START + timedelta(minutes=5)
+    clock.t = START + timedelta(minutes=13, seconds=10)  # R1's 2-minute check: paused
     board.tick()
     assert board.pe.src.calls == calls
 

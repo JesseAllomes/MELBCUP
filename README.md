@@ -23,7 +23,7 @@ spent until you tap:
 |---|---|---|
 | **Load card** / **Reload card** | about 2 + 3 per race (~32 for ten races) | Field, scratchings, recent runs, then prices |
 | **Refresh prices** | 2 | Every bookmaker's price for the whole card, then new picks |
-| **Auto** | varies | Hands-off: prices every 15 min early, every minute from 20 min before each race, and the form hourly |
+| **Auto** | ~140 a day | Hands-off: prices 60, 30, 15, 5 and 2 minutes before each race; results after each race |
 
 The page itself re-reads the app every minute; that costs nothing.
 
@@ -112,9 +112,8 @@ guarantee results. Gambling Help Online: **1800 858 858**.
 PuntersEdge is required. FormFav is optional, but without Pro the app loses jockey and trainer
 records, predictions and track bias, and says so at the top of the page.
 
-In manual mode a race day typically costs one card load (~32) plus 2 per price refresh: about 100
-credits for a refresh before each race and a few extra near the big ones. Auto mode from
-mid-morning costs about 1,100. FormFav calls are covered by its own allowance. Owner names come from Racing
+A race day costs one card load (~30) plus 2 per price or results check: about 140 credits in
+Auto, less if you refresh by hand. FormFav calls are covered by its own allowance. Owner names come from Racing
 Australia's acceptances and are shown, but not scored, because no feed has owner strike rates.
 
 ## Put it on your phone (GitHub Pages, free)
@@ -131,10 +130,12 @@ One-time setup on GitHub:
 3. After a minute or two, open `https://<your-github-name>.github.io/melbcup/` on your phone and
    add it to the home screen.
 
-On the phone, **Auto is on**: open the page and it loads the card, refreshes prices (every 15
-minutes early, every minute from 20 minutes before each race) and collects results as races
-are run, grading the picks. It prices only today's and tomorrow's meetings, because bookmakers
-have no market further out. The buttons stay for anyone who wants control.
+On the phone, **Auto is on**: open the page and it loads the card once, checks prices 60, 30, 15,
+5 and 2 minutes before each race, and fetches results about ten minutes after each race, grading
+the picks. One price check covers the whole card, so checks that fall in the same minute are
+shared. It prices only today's and tomorrow's meetings, because bookmakers have no market further
+out. Derby Day's nine races cost about 139 credits: the card 29, 45 price checks 90, results
+about 20. The page shows how many credits Auto still plans to spend on the meeting.
 
 **Saved meetings:** 154 meetings (about 1,160 races, 29 September to 29 October 2026) downloaded
 for the backtest are sealed in `docs/data` and open with no API calls, results included. They

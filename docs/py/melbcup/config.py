@@ -14,8 +14,6 @@ MELBOURNE = ZoneInfo("Australia/Melbourne")
 CUP_DAY = date(2026, 11, 3)
 CUP_VENUE = "Flemington"
 
-MIN_POLL_SECONDS = 30
-
 
 class ConfigError(ValueError):
     """Raised when an environment variable holds an unusable value."""
@@ -28,7 +26,6 @@ class Settings:
     app_password: str | None
     race_date: date
     venue: str
-    poll_seconds: int
     auto_refresh: bool = False
 
     @property
@@ -56,20 +53,11 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
     except ValueError as exc:
         raise ConfigError(f"RACE_DATE must be YYYY-MM-DD, got {raw_date!r}") from exc
 
-    raw_poll = _clean(env.get("POLL_SECONDS"))
-    try:
-        poll_seconds = int(raw_poll) if raw_poll else 60
-    except ValueError as exc:
-        raise ConfigError(f"POLL_SECONDS must be a whole number, got {raw_poll!r}") from exc
-    if poll_seconds < MIN_POLL_SECONDS:
-        raise ConfigError(f"POLL_SECONDS must be at least {MIN_POLL_SECONDS}")
-
     return Settings(
         formfav_api_key=_clean(env.get("FORMFAV_API_KEY")),
         puntersedge_api_key=_clean(env.get("PUNTERSEDGE_API_KEY")),
         app_password=_clean(env.get("APP_PASSWORD")),
         race_date=race_date,
         venue=_clean(env.get("VENUE")) or CUP_VENUE,
-        poll_seconds=poll_seconds,
         auto_refresh=(_clean(env.get("PRICE_MODE")) or "manual").lower() == "auto",
     )

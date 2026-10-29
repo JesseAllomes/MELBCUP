@@ -48,7 +48,7 @@
         </form>
         {% endif %}
       </div>
-      {% if snap.auto and not snap.saved %}<p class="sub">Auto spends credits on its own: every 15 min early, every minute from 20 min before each race, and ~{{ load_cost }} each hour for form.</p>{% endif %}
+      {% if snap.auto and not snap.saved %}<p class="sub">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race and results after each race{% if snap.auto_credits_left is not none %}: about <strong>{{ snap.auto_credits_left }}</strong> more credits for this meeting{% endif %}.</p>{% endif %}
     </div>
     {% endif %}
     {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}
