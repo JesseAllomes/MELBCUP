@@ -1,4 +1,4 @@
-# Correction families f(X): executable definitions (v0.4)
+# Correction families f(X): executable definitions (v0.5)
 
 **Common rules** (PROTOCOL.md section 3):
 
@@ -110,7 +110,8 @@ Features:
 
 **F13 Jockey**
 
-- For a jockey code, AE20 over the prior 365 days.
+- For a jockey code, AE20 over the 365 days before **today's** race (both jockeys are evaluated
+  as of today).
 - Features: `f13_jockey` = AE20 of today's jockey; `f13_change` = AE20 of today's jockey minus
   AE20 of last start's jockey.
 - A jockey with fewer than 10 rides in the window counts as missing.
@@ -133,18 +134,12 @@ Features:
 
 **F17 Unproven conditions**
 
-- Bands:
-  - distance band: nearest 200 m;
-  - wet: Soft or Heavy;
-  - track: venue name.
+- Distance band: nearest 200 m. Track: venue name.
 - Features:
-  - `f17_newdist`: no prior run in today's band;
-  - `f17_newtrack`: no prior run at this venue;
-  - `f17_newwet`: today's race was **declared** wet in the earliest record available before T
-    (where unavailable, the feature is missing; **today's final condition is never used**) and
-    the runner has no prior wet run;
-  - `f17_sire_wet`: the sire's progeny AE10 on wet races over the prior 1,095 days, times the
-    wet flag.
+  - `f17_newdist`: no prior run in today's distance band;
+  - `f17_newtrack`: no prior run at this venue.
+- Horses whose earlier racing predates the data (before 2022-07) look unraced. Missing and
+  "new" rates are reported by fold, as a truncation check.
 
 **F18 Barrier cell**
 
@@ -153,6 +148,10 @@ Features:
 - Feature: `f18_cell` (fewer than 30 runners in the cell makes it missing).
 
 **Exploratory only (never primary in this protocol)**
+
+- Wet-track features: `newwet` (first time on a wet track) and the sire's wet record. No
+  timestamped pre-T track condition exists in the data, and today's final condition is not
+  allowed.
 
 - `sameday_*`: same-meeting bias, and connections' form earlier the same day.
 - Track condition or rail change during the day (needs timestamped observations).

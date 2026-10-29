@@ -1,6 +1,16 @@
 # Validation protocol: does anything beat the bias-corrected market?
 
-**Status: DRAFT v0.4, not frozen.** v0.4 replaces within-race z-scoring, which erased
+**Status: DRAFT v0.5, not frozen.** v0.5 closes the Fable adversarial review:
+- the fit set for confirmatory models;
+- fail and inconclusive verdicts for every claim;
+- change-event quotes;
+- scratch dating;
+- claim C roles fixed at T;
+- F17 wet features made exploratory;
+- paper settlement for forward bets;
+- training likelihood, bootstrap statistic and penalty scaling defined.
+
+v0.4: v0.4 replaces within-race z-scoring, which erased
 magnitudes the pace and favourite factors exist to test, with per-feature transformations
 fitted on training data.
 
@@ -59,10 +69,19 @@ Place, trifecta and First Four are outside this protocol.
 | tune2 | 2026-01-01 – 2026-04-30 | **one** look at the candidate fixed in amendment A |
 | final | 2026-05-01 – 2026-09-28, less examined races | opened once, against the frozen commit. **Semi-blind**: it can fail a claim, but a pass is provisional |
 | excluded | 2026-09-29 – 2026-10-29 | development month; out of every confirmatory test |
-| forward | races scheduled 2026-11-01 00:00 to 2027-04-30 23:59 (Australia/Melbourne) | the clean prospective test; **required for every claim** |
+| forward | races with T after the timestamp of the commit tagged `model-v1` (the model pinned in amendment A), up to 2027-04-30 23:59 (Australia/Melbourne) | the clean prospective test; **required for every claim** |
 
-If tune2 fails, the work goes back to train/tune1. The next confirmatory look needs forward data.
-tune2 is never reused.
+**The tune2 gate.**
+
+- Each claim gets its own tune2 verdict (section 6).
+- If a claim **fails** on tune2, the final block is **not** opened for that claim. That claim
+  then has no confirmatory support under this protocol.
+- If a claim is inconclusive or passes on tune2, its final block is opened.
+- tune2 is never reused.
+
+**Reading history is not a look.** Building history features for a later race mechanically reads
+earlier races' results, including races in tune2, final or forward. That is not a look at those
+blocks, provided no statistic over them is computed or displayed.
 
 **Examined races** (`research/examined.csv`) are excluded from every confirmatory test:
 
@@ -88,32 +107,44 @@ exploratory.
 - Races are excluded as untrustworthy timing, and counted, if either:
   - the recorded start is more than 24 hours from the last price fluctuation; or
   - no fluctuation falls within the 3 hours before the recorded start.
-- **Forward:** the app logs, for each decision, the schedule it saw, the decision timestamp and
-  every quote used. Forward timing is evidence.
+- **Forward dataset.** Built by the same code from racing.com dumps collected after the window,
+  so forward timing is also "T approximate". It is prospective because the model was pinned
+  before those races ran.
+- **Forward audit.** Where the app logged a decision live (the schedule it saw, the decision
+  timestamp, the quotes used), the two are compared as an audit. The audit is not the primary
+  analysis.
 
 **Quotes at T.**
 
-- For bookmaker b in {sb (Sportsbet), lb (Ladbrokes)}, a runner's quote is the last fluctuation
-  at or before T. It is **usable** if its age (T minus its timestamp) is at most 900 seconds.
+- racing.com's `flucsWin` are **change events**: an entry appears only when the price changes.
+  The freeze records a check of this: the share of entries whose price equals the previous one.
+- For bookmaker b in {sb (Sportsbet), lb (Ladbrokes)}, a runner's quote at T is its last
+  fluctuation at or before T, whatever its age. A stable price is still a live price.
+- Entries with no price or a zero price are ignored.
+- **Feed liveness (race-level).** Each of sb and lb must have at least one fluctuation on any
+  runner in that race in [T − 900 s, T]. Otherwise the race is excluded (pre-decision filter) and
+  counted.
 - **Starting price never fills a missing quote.**
 
 **Runner universe at T, U.**
 
 - Every entry not recorded as scratched; **plus**
-- every entry recorded as scratched but with a usable quote at T from both bookmakers. These are
-  treated as **late scratchings** (withdrawn after T).
-- Entries recorded as scratched with no usable quote at T are treated as scratched before T and
-  are not in U.
+- every entry recorded as scratched whose **last fluctuation at either bookmaker is at or after
+  T**. These are **late scratchings**.
+- Entries recorded as scratched whose last fluctuation at both bookmakers is **before** T are
+  treated as scratched before T and are not in U, whatever the quote's age.
+- The count of recorded scratchings whose last fluctuation falls in (T − 900 s, T) is published.
+  Those are the cases this dating can misclassify.
 
 **Market M (primary: complete two-bookmaker coverage).**
 
-- A race is market-eligible only if **every runner in U** has a usable quote at T from **both**
-  sb and lb.
+- A race is market-eligible only if **every runner in U** has a quote at T (a fluctuation at or
+  before T) from **both** sb and lb.
 - For each bookmaker, m_b,i = (1/q_b,i) / Σ_{j∈U} (1/q_b,j).
 - M_i = (m_sb,i + m_lb,i) / 2. This already sums to 1 over U, so there are no unquoted runners
   in the primary analysis.
 - Secondary (exploratory):
-  - sb-only, where every runner in U has a usable sb quote;
+  - sb-only, where every runner in U has an sb quote at T;
   - partial coverage, where unquoted runners are dropped and the race is flagged.
 
 **Favourite.** The runner with the **highest** M_i. Co-favourites are runners within 1e-9 of the
@@ -126,6 +157,7 @@ maximum. For claim C, all co-favourites count as favourites.
    - not a trial or jump-out;
    - |U| ≥ 5;
    - market-eligible;
+   - feed live (both books);
    - timing not excluded;
    - not an examined race.
 2. **Post-race scoring rules** (facts known only afterwards; they decide how an acted-on race is
@@ -167,10 +199,10 @@ features, never alone.
 ## 4. Bias-corrected market
 
 - **α.** One universal exponent, fitted by maximum likelihood (conditional logit on log M) on the
-  training data of each fit:
+  training data of each fit, and not bookmaker-, time- or field-size-specific:
   - inside each screening fold, on that fold's training dates only;
-  - for tune and final, on all train dates.
-  - Not bookmaker-, time- or field-size-specific.
+  - for tune1 evaluation, on all train dates;
+  - for the pinned model (amendment A), on **train + tune1** together with f (section 5).
 - **Raw market (α = 1).** Always reported as the secondary baseline.
 
 ## 5. Correction f and the selection procedure (frozen)
@@ -181,7 +213,15 @@ features, never alone.
 - f is linear in the family features defined in `research/FACTORS.md`, each transformed as
   specified there, with fold-train scaling.
 - **Missing values:** set to the fold-train mean (0 after standardisation), plus one
-  missing-indicator per family.
+  missing-indicator per family. If a standardiser's SD is 0, the feature is set to 0.
+- **Training likelihood.**
+  - Late scratchings are dropped from their race, and the market and features are renormalised
+    over the actual starters.
+  - Dead-heat races are excluded.
+  - Races with no recorded result are excluded.
+- **Penalty.** The objective is the **mean** per-race log-likelihood minus (λ / 2)·‖w‖², so λ
+  means the same strength whatever the training size. The offset coefficient α is not
+  penalised.
 
 **Screening folds.**
 
@@ -206,8 +246,15 @@ features, never alone.
 3. **Refining on tune1.** Kept families may be dropped, and λ re-chosen from the same grid. No
    family that failed screening may be added. No new families, transforms or definitions.
 
-**Amendment A** (before tune2) records the final family list, λ, the α fitted on all train, and
-the commit ID.
+**Amendment A** (before tune2) records the final family list and λ. It also **pins the model**:
+α, f's coefficients, every standardiser and every shrinkage target, all fitted on **train + tune1**.
+
+- The pinned model is committed and tagged `model-v1`.
+- It is used unchanged for tune2, final and forward. There is no refit after amendment A.
+- Amendment A also records the claim-B bet rate and claim-C nomination rate per 1,000 eligible
+  races on tune1. This checks the forward minimums are reachable. If the projected forward counts
+  are below them, that is stated, and the forward result for that claim is expected to be
+  inconclusive. The minimums are not changed.
 
 **Trees and other learners** are exploratory throughout this protocol and cannot become primary.
 
@@ -216,6 +263,11 @@ the commit ID.
 **Intervals (one rule).**
 
 - Percentile bootstrap over race-days, with 10,000 resamples and seed 20261031.
+  - A race-day is a calendar date in Australia/Melbourne, across all meetings.
+  - Each statistic is a **ratio of sums** over the resampled days:
+    - claim A: summed log-loss difference over summed races;
+    - claim B: summed return over summed stakes;
+    - claim C: summed difference over summed nominations.
 - Confirmatory blocks (tune2, final, forward) use the **98.33%** interval: quantiles **0.00833**
   and **0.99167** (Bonferroni across the three claims).
 - tune1 and train results use 95% intervals and are descriptive.
@@ -228,7 +280,9 @@ the commit ID.
    - Claim B historical: the race's bets are excluded; the result is labelled **conditional on no
      late scratching**; the excluded exposure (bets, stake, notional return without deductions)
      is published.
-   - Claim B forward: the bookmaker's actual settlement (refunds, deductions).
+   - Claim B forward: **paper bets**, settled exactly as historical (late-scratching races
+     excluded and labelled the same way), at the quote at T from the recorded bookmaker. No real
+     bets are assumed.
 2. **Dead heat for first.**
    - Claims A and C: the race is excluded from scoring and counted.
    - Claim B: a winning bet returns q_i / k, where k is the number of horses in the dead heat
@@ -253,23 +307,30 @@ the commit ID.
   - q_i ≤ 21.
   More than one runner per race may be backed.
 - **Statistic:** ROI.
-- **Pass:** the interval's lower bound is above 0 on the final block **and** on the forward
-  window.
+- **Pass:** the interval's lower bound is above 0.
+- **Fail:** the upper bound is at or below 0.
+- **Inconclusive:** otherwise.
 
 **C. Upset rule.**
 
 - **Rule.** At T, among non-favourites with P_i ≥ 0.10, take the one with the highest
   P_i / (M_i^α / Σ_j M_j^α). Nominate it if that ratio is ≥ 1.25. Otherwise abstain.
-- **Scratched nominee.** If the nominee is a late scratching, the nomination is **void**: it is
-  removed from the statistic and the void count is published. No substitute is nominated.
-- **Benchmark.** The highest-M non-favourite in the same race. If the benchmark is the nominee,
-  the race still counts, with a difference of 0.
-- **Statistic:** mean over nominated races of [nominee won − benchmark won].
+- **Benchmark.** The highest-M non-favourite in the same race. All roles (favourites, nominee,
+  benchmark) are fixed at T. If the benchmark is the nominee, the race still counts, with a
+  difference of 0.
+- **Void nominations.** A nomination is **void** if the nominee **or** the benchmark is a late
+  scratching. It is removed from the statistic. Both void types are counted and published. No
+  substitute is nominated.
+- **Statistic:** over non-void nominations, sum of [nominee won − benchmark won] over the number
+  of nominations.
 - **Pass:** the interval lies entirely above 0.
+- **Fail:** the upper bound is at or below 0.
+- **Inconclusive:** otherwise.
 - **Secondary:** nominee log-loss and ROI at q.
 
-**One verdict per claim.** The final block and the forward window each give exactly one verdict
-per claim: pass, fail or inconclusive. No subgroup, decision time or bet type can change it.
+**One verdict per claim.** tune2, the final block and the forward window each give exactly one
+verdict per claim: pass, fail or inconclusive. No subgroup, decision time or bet type can change
+it.
 
 ### 6a. Forward stopping and the overall verdict
 
