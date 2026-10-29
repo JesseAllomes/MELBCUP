@@ -1,6 +1,21 @@
 # Review of FACTORS_V2_PROPOSAL.md against the five round-2 constraints (2026-10-29)
 
-**Status:** proposal accepted for drafting protocol v2. Nothing here is frozen.
+**Status:** proposal accepted for drafting protocol v2. Nothing here is frozen. **Protocol v2 stays a
+draft until live observations establish which weight fields are usable**, and historical carried
+weight stays provisional until the pre-race/post-race comparison is available.
+
+**First sample of the live weight fields** (2026-10-29, one snapshot of 49 races, 1,202 entries,
+from a local run of the collector's field query; to be confirmed on the collector's own files):
+
+- `weightCarried` always equals `weight`; both are kilograms as text, e.g. "57.5kg".
+- `weightPrevious` is null for 88 entries (no previous run). Null is kept separate from zero.
+- `apprenticeAllowedClaim` is text: "0" in 978 entries, or 1.5, 2, 3 or 4.
+- `apprenticeCanClaim` is a boolean.
+- Two anomalies to explain:
+  - 29 apprentices can claim but have "0" allowed;
+  - one non-apprentice has a 1.5 kg allowance.
+- This snapshot alone cannot show whether `weightCarried` is before or after the claim. The
+  collector's `field_post` snapshots and the later dumps will.
 
 | Constraint | Met? | Note |
 |---|---|---|
