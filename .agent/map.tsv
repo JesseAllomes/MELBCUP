@@ -1,0 +1,5 @@
+# schema=2
+# root=/home/user/melbcup
+# generated=2026-10-29T06:57:59+00:00
+# COVERAGE: partial
+# engine=python:ast; javascript:regex(partial); others=UNSUPPORTED

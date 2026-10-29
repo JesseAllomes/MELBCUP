@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "root": "/home/user/melbcup",
+  "head": "20437a696b0ebb02a894509691fe3b0df0471a66",
+  "dirty_fingerprint": "b9a8816e585d5eaae36410a797c929afa619999265d5b3e4b5cebab270c98a51",
+  "dirty_files": 0,
+  "verify_config_fingerprint": "00ce9ee58ad8770625f9898500af160bb6ba911f48358a89368194ce77da1176",
+  "verify_block_fingerprint": "absent",
+  "verify_entries": 0,
+  "config_files": [],
+  "generated": "2026-10-29T06:57:59+00:00",
+  "scan": {
+    "files": 0,
+    "lines": 0,
+    "depth2": [],
+    "skipped_links": []
+  },
+  "stack": [
+    "unknown(no recognised manifest)"
+  ],
+  "languages": [],
+  "dead_code_candidates": [],
+  "gate3_required": true
+}
