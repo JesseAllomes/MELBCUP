@@ -145,6 +145,7 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .runners summary { padding-block: 4px; }
 .runners table { margin-top: 4px; }
 .runners td:first-child { overflow-wrap: anywhere; }
+.runners .split { color: var(--accent); }
 
 .placings { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 14px; margin: 4px 0 6px; }
 .placings b { color: var(--muted); font-size: 12px; font-weight: 600; margin-right: 2px; }

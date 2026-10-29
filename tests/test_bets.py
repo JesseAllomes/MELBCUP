@@ -325,3 +325,16 @@ def test_confidence_bands_follow_the_top_picks_chance():
     t = {x.label: x for x in by_confidence(record)}
     assert t["High confidence"].picks == 2 and t["High confidence"].rate == 0.5
     assert t["Low confidence"].picks == 1 and t["Medium confidence"].picks == 0
+
+
+def test_views_split_flags_strong_disagreement_with_the_odds():
+    from melbcup.bets import views_split
+    from melbcup.model.probability import Assessment
+
+    def a(model, feed, market):
+        return Assessment(1, 0.1, 0.3, model, feed, market)
+
+    assert not views_split(a(0.10, 0.12, 0.10))  # all agree
+    assert views_split(a(0.50, None, 0.10))  # form model 5x the odds
+    assert views_split(a(0.10, 0.02, 0.10))  # FormFav a fifth of the odds
+    assert not views_split(a(0.40, None, None))  # no prices yet: nothing to compare

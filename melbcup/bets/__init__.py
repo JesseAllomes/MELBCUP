@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from melbcup.bets.exotics import Exotic, first_fours, quaddies, recommend, trifectas
 from melbcup.bets.multis import Multi, multis
 from melbcup.bets.singles import Single, best, singles
 from melbcup.bets.staking import each_way_stake, exotic_stake, scale_to_budget, stake
-from melbcup.model.probability import RaceModel
+from melbcup.model.probability import Assessment, RaceModel
 
 KINDS = ("top_win", "top_place", "win", "place", "each_way")
 VALUE_KINDS = ("win", "place", "each_way")
@@ -29,6 +30,18 @@ CONFIDENCE = ((0.40, "High"), (0.30, "Medium"), (0.0, "Low"))
 
 def confidence(chance: float) -> str:
     return next(label for floor, label in CONFIDENCE if chance >= floor)
+
+
+# A horse whose form-model or FormFav chance is 4.5x the odds' chance, or under a quarter of it.
+# Held out, such horses (about 1 in 8) won about 0.8 of the wins expected; no milder per-horse
+# rating separated reliable chances from unreliable ones, so this is the only flag shown.
+SPLIT = math.log(4.5)
+
+
+def views_split(a: Assessment) -> bool:
+    if not a.market_win:
+        return False
+    return any(v and abs(math.log(v / a.market_win)) >= SPLIT for v in (a.model_win, a.feed_win))
 
 
 MIN_HIT = {"trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
