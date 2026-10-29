@@ -439,4 +439,47 @@ the train block.
 
 ## Amendments
 
-_(none yet)_
+### Amendment A (2026-10-29, before any tune2 outcome is computed)
+
+Code: `research/analysis/` (`screen.py`, `tune1.py`, `pin.py`, `evaluate.py`). Results:
+`research/analysis/results/`.
+
+**Screening on train** (six folds, λ = 3; kept if better than offset-only in ≥ 4 of 6):
+
+- **Kept (9):** F2, F3, F10, F17, F18, F6, F7, F12, F13.
+- **Dropped (7):** F4, F5, F14, F1, F15, F16, F11.
+- Per-fold α ranged from 1.114 to 1.135.
+
+**Combined fit on train.** λ = 0.3 gave the lowest mean validation log-loss (1.84338). That beats
+offset-only by 0.00058 nats per race, but only in 3 of 6 folds; λ = 1 beats it in 6 of 6 by
+0.00058. λ = 0.3 is taken, as the rule says.
+
+**tune1 refinement.** The rule was fixed before running:
+
+1. λ is re-chosen by tune1 log-loss with all kept families. Result: 0.3.
+2. The family whose removal most lowers tune1 log-loss is dropped, repeatedly, until no removal
+   helps. F10 was dropped; dropping F6 next did not help.
+
+**Final list:** F2, F3, F17, F18, F6, F7, F12, F13, with λ = 0.3.
+
+**Pinned model `model-v1`.**
+
+- Fitted on train + tune1: 21,185 scored races; α = 1.1335.
+- File: `research/analysis/results/model-v1.json` (α, every standardiser, every coefficient).
+- The commit adding this amendment is the `model-v1` commit. Its timestamp starts the forward
+  window. The `protocol-v1` and `model-v1` tags are local; this environment's git proxy refuses
+  tag pushes. Each commit hash on `main` is the anchor.
+
+**tune1 rates** (train-fitted model, 3,718 eligible races):
+
+- Claim B: 3 bets in 1 race, 0.8 per 1,000 races.
+- Claim C: 0 nominations.
+- Projected forward counts are far below the minimums (1,000 bets; 300 nominations). Claims B and
+  C are therefore expected to be **inconclusive** forward. The minimums are not changed.
+- Reason: the pinned correction moves P away from M^α by a few percent at most. The B edge
+  threshold and the C ratio of 1.25 are almost never reached.
+
+**tune1 claim A** (descriptive, 95%; tune1 was used for refinement):
+
+- Mean log-loss gain over M^α is 0.00135, with interval [0.00015, 0.00255].
+- M^α beats the raw market by 0.0040.
