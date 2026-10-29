@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=23 -->
+<!-- drainclamp-build: state; schema=1; generation=25 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -50,7 +50,7 @@ App password required: without APP_PASSWORD pages answer 503 with setup text (re
 | m3 | runner rating + win/place probability model blended with market | melbcup/model/__init__.py;melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | done | m2 |
 | m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | done | m3 |
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
-| m6 | Render deploy config and setup guide | render.yaml;README.md | active | m5 |
+| m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
 | m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | pending | m6 |
 <!-- /DC:ROADMAP -->
 
@@ -72,4 +72,5 @@ App password required: without APP_PASSWORD pages answer 503 with setup text (re
 - 2026-10-29T07:19:34+00:00 10d9afa9 m3: 18-factor form model, market/feed blend, discounted Harville place probs, 43 tests
 - 2026-10-29T07:22:20+00:00 40485c37 m4: singles EV, trifecta/first four/quaddie structures, Sportsbet multis, Kelly staking, 57 tests
 - 2026-10-29T07:28:04+00:00 b0ac4008 m5: live board with adaptive price polling, password-protected phone web app, 75 tests
+- 2026-10-29T07:29:05+00:00 29605fdd m6: Render blueprint, .python-version, README with phone setup
 <!-- /DC:LOG -->
