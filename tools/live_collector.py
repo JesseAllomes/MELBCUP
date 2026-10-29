@@ -1,6 +1,7 @@
 """Live racing.com observer for prospective evaluation: what was on offer, and when we saw it.
 
 Append-only JSON lines, one object per observation. Every record carries
+  obs_id    unique id: <run>:<sequence number within the run>
   obs_utc   when the request was sent (UTC, ms)
   recv_utc  when the response arrived (UTC, ms)
 and keeps racing.com's own timestamps untouched inside the raw payload (race `time` / `officialTime`,
@@ -19,6 +20,8 @@ Record kinds:
   field         getNoCacheRaceForm for one watched race, every SCHEDULE_EVERY cycles: declared weight
                 (weightCarried, weight, weightPrevious), apprentice and allowed claim, jockey and
                 jockeyChanged, handicapRating, gearChanges, barrier, scratched, emergency
+  field_post    the same query once more when a race leaves the watch (resulted, abandoned or past the
+                window): the values as racing.com holds them just after the race
   error         a failed request: what, why, HTTP status
 
 A response identical to the previous one for the same request is stored as a marker instead of again:
@@ -83,6 +86,7 @@ class Log:
         self.out, self.run, self.git, self.seq = out, run, git, 0
         self.fh = self.part = None
         self.opened = 0.0
+        self.n = 0
 
     def write(self, rec):
         if self.fh is None or time.time() - self.opened >= ROTATE_S:
@@ -93,6 +97,8 @@ class Log:
             self.part = os.path.join(self.out, day, f"{self.run}-{self.seq:04d}.jsonl.part")
             self.fh = open(self.part, "w")
             self.opened = time.time()
+        self.n += 1
+        rec = {"obs_id": f"{self.run}:{self.n:07d}", **rec}
         self.fh.write(json.dumps(rec, separators=(",", ":")) + "\n")
         self.fh.flush()
 
@@ -151,6 +157,7 @@ class Collector:
         self.races = {}       # (meet, race number) -> schedule row
         self.cycle = 0
         self.requests = 0
+        self.prev_watched = set()
         self.last = {}        # request key -> (data sha256, obs_utc of the record holding the data)
 
     def fetch(self, kind, query, variables, **meta):
@@ -227,6 +234,9 @@ class Collector:
         results = list(pool.map(one, keys))
         if self.cycle % SCHEDULE_EVERY == 0:   # declared weights, claims, jockeys and gear, as they stood before the race
             list(pool.map(lambda k: self.fetch("field", FIELD, {"m": k[0], "n": k[1]}, meet_code=k[0], race_number=k[1]), keys))
+        left = sorted(self.prev_watched - set(keys))   # just left the watch: the values as held after the race
+        list(pool.map(lambda k: self.fetch("field_post", FIELD, {"m": k[0], "n": k[1]}, meet_code=k[0], race_number=k[1]), left))
+        self.prev_watched = set(keys)
         self.log.write(dict(kind="cycle", run=self.run, cycle=self.cycle, planned_utc=iso(planned), obs_utc=iso(started),
                             recv_utc=iso(now()), meetings=len(self.meets), races_watched=len(keys),
                             market_ok=sum(results), market_failed=len(results) - sum(results), with_flucs=flucs,
