@@ -1,0 +1,225 @@
+{
+ "generated": "2026-10-29T15:08:25.575923+00:00",
+ "files": {
+  "out/column_dictionary.csv": {
+   "sha256": "d963a48895eb0b44fc614eb2e9088160bbd7244aad364bf5a532730d78162be7",
+   "bytes": 15240
+  },
+  "out/column_dictionary_races.csv": {
+   "sha256": "5e79a62e18690bde0899301f43efaebcbe0c7b0928330b1f04320dacc8b56300",
+   "bytes": 4355
+  },
+  "out/columns_races_full.csv": {
+   "sha256": "9c77e393f48bb981c1d1a56200ab0758b4e2efd42a633569a216520f286c0d09",
+   "bytes": 69242
+  },
+  "out/columns_runners_full.csv": {
+   "sha256": "88c0653d42c1b7c78f854048700c69f19e66d4d1ccd174a606fcc496735ec95e",
+   "bytes": 166663
+  },
+  "out/funnel_by_block.csv": {
+   "sha256": "38c1eafeecd64ff0164fe13178085623e9de36f00b599c2e514a04fbb5ac4756",
+   "bytes": 367
+  },
+  "out/funnel_by_year_state.csv": {
+   "sha256": "1a3acc186aa38f0916c698c7c2b5c9269030fe4e8ad08a1829a7983acff61dd2",
+   "bytes": 1716
+  },
+  "out/funnel_overall.csv": {
+   "sha256": "6a79733a8bc54edb6094d7e7631935759e43df09ba55061210811ded4bb1207a",
+   "bytes": 1587
+  },
+  "out/funnel_post_race_by_year_state.csv": {
+   "sha256": "56f339bb62a6730e822b7e9d516847069726fe373c0220fd952e57daf4f9f8b4",
+   "bytes": 1124
+  },
+  "out/funnel_quote_age_sensitivity.csv": {
+   "sha256": "77731402e7f6ac1293144138a77b74c4ad20323eee177b538322284d11a6650c",
+   "bytes": 1582
+  },
+  "out/meta.json": {
+   "sha256": "71ca948487b044ed6a68a8c68de00abad69410664640e2b8db4d843ddf271e8a",
+   "bytes": 38901
+  },
+  "out/races.csv.gz": {
+   "sha256": "0250d762ea9891e61370bb00f1da31d6403c2b7fb320ecfd1ad81745c2a8e2a1",
+   "bytes": 21242699
+  },
+  "out/races.pkl.gz": {
+   "sha256": "ee61df103a37edb66af45d9b8c68a4d23ca396f2029e77a5895795eadbdc5c4a",
+   "bytes": 18178146
+  },
+  "out/races_excluded.csv.gz": {
+   "sha256": "ee79b1ab133e5531132a4cabde6a1231ce4e4b5cd04a227bd4b1471ed9499161",
+   "bytes": 27848723
+  },
+  "out/races_excluded.pkl.gz": {
+   "sha256": "8659fbb078d93f99a3fae074e959776cff81f4c4a3e45055926e1a45d9555fba",
+   "bytes": 25649742
+  },
+  "out/runners.csv.gz": {
+   "sha256": "221382be79fa16f7d909d0f8ad23894c30b2cd1cb918d8784946126529b26b95",
+   "bytes": 347073634
+  },
+  "out/runners.pkl.gz": {
+   "sha256": "352ed76f9e57e60b6543e86920796bec0c4a00b00aa10aaff828998021b22fe3",
+   "bytes": 215162775
+  },
+  "out/runners_excluded.csv.gz": {
+   "sha256": "a407d2725d4e0da006bdda4ac56ef753072c0665ed07657a836f59f659ab34df",
+   "bytes": 477147216
+  },
+  "out/runners_excluded.pkl.gz": {
+   "sha256": "8952099df0fc38b838b6a9ce9743d66e090754b9aca36836d73a9fba4ff5e400",
+   "bytes": 300888586
+  },
+  "reports/ae_by_sp_band.csv": {
+   "sha256": "7af353cb7b50fef781e981f63a98bf5c73ba692210a51746fdcb0350c2780392",
+   "bytes": 2189
+  },
+  "reports/availability_race_state.csv": {
+   "sha256": "aee5c96dcb273bd3917957a9e83f04eb0e6a94a5238bfd686028646b786fc229",
+   "bytes": 1004
+  },
+  "reports/availability_race_year.csv": {
+   "sha256": "3f9f60ff42f2b292de0c57a8d03db6ce1436e20f60070e42ba70fcaab02faf84",
+   "bytes": 950
+  },
+  "reports/availability_year.csv": {
+   "sha256": "3a2aba50b1eb13caf8cd6c42ffe6b27feac0b99df84857168abc61b48684357f",
+   "bytes": 2181
+  },
+  "reports/availability_year_state.csv": {
+   "sha256": "8072e19a6279b21ae3551e0078a99acb9b916f94d6bbceecf3d98fe04a4ecca3",
+   "bytes": 13230
+  },
+  "reports/counts_block.csv": {
+   "sha256": "b54e344ba554127e8d1d81a66208842a597ce0d2deae5b4e8165c6294d09ab2c",
+   "bytes": 212
+  },
+  "reports/counts_year_state.csv": {
+   "sha256": "a786f056ddda9eb350421e681d30be443f890084e463376ad27282e23de3b67e",
+   "bytes": 3519
+  },
+  "reports/executability.csv": {
+   "sha256": "72c729d94cce3cad5359ce5d840226611bb2ca74e66fe0cdd923bb9f49aa424a",
+   "bytes": 1086
+  },
+  "reports/fav_by_block.csv": {
+   "sha256": "0ae4480ef9997bdebb6e83647ed51725164887e5b56c2c3930de8a4a09130671",
+   "bytes": 145
+  },
+  "reports/fav_by_class.csv": {
+   "sha256": "f5f9a34395357fe0012d1abf89a9449b291caaa8839d18e8e9ff20a1573cf103",
+   "bytes": 1237
+  },
+  "reports/fav_by_condition.csv": {
+   "sha256": "9e38f7851cf09d16784c9097f04e4ade7cfc18f47cf8850f9d1e24735f8af91d",
+   "bytes": 972
+  },
+  "reports/fav_by_distance.csv": {
+   "sha256": "e28bda4308a1e76e657035e5403a5435d230a79a8f3d4901fce2a6f8e47ae761",
+   "bytes": 878
+  },
+  "reports/fav_by_field.csv": {
+   "sha256": "b2a6230ed50f08e2bb21abe78abaa404b9323861507e387214449f71a53efa81",
+   "bytes": 825
+  },
+  "reports/fav_by_price_band.csv": {
+   "sha256": "df0938d69f9741bfd0134e52053efaf96c6d3938177b72ba1f16cf3f490648c4",
+   "bytes": 1276
+  },
+  "reports/fav_by_state.csv": {
+   "sha256": "cec9af39cdff6547b48765068adc9e66a2e5cf681e659bb4814c5eb06970f37d",
+   "bytes": 1095
+  },
+  "reports/fav_by_year.csv": {
+   "sha256": "bc753f747661664f82908acb674b2f4156843a6d1fb78ce21b114f62ce211769",
+   "bytes": 469
+  },
+  "reports/fav_change_t30_to_sp.csv": {
+   "sha256": "009260360829684b8b426c62d4c56eaae5f6e1c76c6d4cb22cf5d512486f9ffb",
+   "bytes": 169
+  },
+  "reports/fav_on_excluded.csv": {
+   "sha256": "26b27a5e189963e830822446b05efe46110848ff9a417d2ae56edc81ca0431e6",
+   "bytes": 427
+  },
+  "reports/field_availability.csv": {
+   "sha256": "82b56d6d84f5bf612416082a177012f4cf8ce2e919e4de5f0b2c4214b60a8e3c",
+   "bytes": 4027
+  },
+  "reports/funnel_by_block.csv": {
+   "sha256": "38c1eafeecd64ff0164fe13178085623e9de36f00b599c2e514a04fbb5ac4756",
+   "bytes": 367
+  },
+  "reports/funnel_by_year_state.csv": {
+   "sha256": "1a3acc186aa38f0916c698c7c2b5c9269030fe4e8ad08a1829a7983acff61dd2",
+   "bytes": 1716
+  },
+  "reports/funnel_overall.csv": {
+   "sha256": "bc62def3e689f0de2dc35ae575600570ab32b41dc2e05ecef6328483538d2eda",
+   "bytes": 520
+  },
+  "reports/funnel_post_race_by_year_state.csv": {
+   "sha256": "56f339bb62a6730e822b7e9d516847069726fe373c0220fd952e57daf4f9f8b4",
+   "bytes": 1124
+  },
+  "reports/funnel_quote_age_sensitivity.csv": {
+   "sha256": "77731402e7f6ac1293144138a77b74c4ad20323eee177b538322284d11a6650c",
+   "bytes": 1582
+  },
+  "reports/history_readiness.csv": {
+   "sha256": "6cc60860f423a5946f586c846dc26708147f7fccf043cefe71f1d63a664cfa79",
+   "bytes": 140
+  },
+  "reports/logloss_markets.csv": {
+   "sha256": "841aef91563850398190217ced323601150f216fe98a7eb68ec26ac8fcb3ff16",
+   "bytes": 1420
+  },
+  "reports/overround.csv": {
+   "sha256": "bd289d68d9d2b3dc9e7db8583194737703d337656f8d6c27a1ca238b054b8337",
+   "bytes": 534
+  },
+  "reports/t30_fav_move.csv": {
+   "sha256": "b2d1c510c9b6b459c040f7bf8d8c5c82fd764430a0c9b4578a268c2e7237ed76",
+   "bytes": 448
+  },
+  "reports/timing_flags_year.csv": {
+   "sha256": "24265c9f192ce23c17144e720c520ae05c0844bc1bb38392c9564c058ba9ea2f",
+   "bytes": 783
+  },
+  "reports/validation.md": {
+   "sha256": "f4224a593f5209462896a60d93558836f014f9a50dc5ca9bc074c735a65e4435",
+   "bytes": 43878
+  },
+  "reports/winner_rank_by_field.csv": {
+   "sha256": "0e94dc2e56f7199f2d0584a2029c00c5ac311ccab801eee1f48e1c03c0fd3ce0",
+   "bytes": 375
+  },
+  "reports/winner_rank_sbt30_vs_sp.csv": {
+   "sha256": "80c89c48100832336ea3340f553a12c1952415f2521ba3585689b55f54f2ce1b",
+   "bytes": 274
+  },
+  "reports/winner_sp_bands.csv": {
+   "sha256": "4432d46a496014fd85267d972e9c2cb51fc4942e60d27afc8f01e59f1cfd6eb9",
+   "bytes": 651
+  },
+  "reports/winner_sp_quantiles.csv": {
+   "sha256": "15edf1570964d5493a346c830aee06b4c9ad9a1fada8b572a7c4eab39eae70b1",
+   "bytes": 93
+  },
+  "reports/winner_sp_rank.csv": {
+   "sha256": "71416bb052526d469da763e4fc6ebacd74b39362c20368e61b07ed7f31764dff",
+   "bytes": 159
+  },
+  "build.py": {
+   "sha256": "956702a4c51bf1ddbeb3209ffd31ae580e5e072a29c86f2092ba5610cfb29bd8",
+   "bytes": 90800
+  },
+  "validate.py": {
+   "sha256": "2201f181c512fd5cd2b0adb87526f329a91564bd13c4de6d064388c6146c9aa7",
+   "bytes": 29854
+  }
+ }
+}

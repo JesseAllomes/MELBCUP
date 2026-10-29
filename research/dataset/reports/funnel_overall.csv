@@ -1,0 +1,14 @@
+step,rule,description,removed,remaining
+0,all races in dump,,0.0,90163
+1,non_au,not an Australian state/territory meeting (Hong Kong etc.),3295.0,86868
+2,trial_or_jumpout,trial / jump-out meetings (excluded upstream at collection via isTrial/isJumpOut; none can appear in the dump),0.0,86868
+3,u_lt5,fewer than 5 runners in the universe U at T-30 (non-scratched entries + scratched entries whose last fluc is at or after T-30),1309.0,85559
+4,not_market_eligible,some runner in U has no quote (no fluc at or before T-30) from Sportsbet or Ladbrokes,13854.0,71705
+5,feed_not_live,"Sportsbet or Ladbrokes has no fluc on any entry of the race in [T-30 - 900s, T-30]",39239.0,32466
+6,timing_untrusted,"recorded start > 24h from the last fluc, or no fluc within 3h before the recorded start",0.0,32466
+7,examined,"race listed in research/examined.csv (whole development month 2026-09-29..2026-10-29, Doomben 2026-08-01 R1)",1106.0,31360
+post-race: ok,scoring_status=ok,post-race scoring count among pre-decision-eligible races (not an exclusion),,29275
+post-race: late_scratching,scoring_status=late_scratching,post-race scoring count among pre-decision-eligible races (not an exclusion),,1920
+post-race: no_result,scoring_status=no_result,post-race scoring count among pre-decision-eligible races (not an exclusion),,105
+post-race: dead_heat,scoring_status=dead_heat,post-race scoring count among pre-decision-eligible races (not an exclusion),,58
+post-race: no_winner_recorded,scoring_status=no_winner_recorded,post-race scoring count among pre-decision-eligible races (not an exclusion),,2

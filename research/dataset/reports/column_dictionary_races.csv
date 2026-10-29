@@ -1,0 +1,25 @@
+columns,kind,description
+"race_id, meeting_id, date, mel_date, year, block, examined, venue, state, race_number, start_utc, start_ts, race_name",key,as runners table
+"distance_m, class_raw, class_rdc, class_cat, class_level, race_type, group, track_cond, track_cond_src, track_rating, surface, rail, weather",context (FINAL values),"race context; condition/rail are final values, not point-in-time"
+"n_starters, n_scratched, n_unscratched_nonstarters, places_paid, race_resulted, n_winners",context/outcome,actual starters; scratchings; unscratched non-starters; places paid; any result; winners (dead heat = 2)
+"is_au, is_jumps, excl_reason, in_sample",key/dq,"excl_reason = first PRE-DECISION filter failed: non_au, trial_or_jumpout, u_lt5, not_market_eligible (some U runner unquoted at T-30), feed_not_live, timing_untrusted, examined; blank = in_sample. is_jumps flagged only"
+scoring_status_t30,post-race,"post-race scoring status (precedence late_scratching > dead_heat/no_winner_recorded > no_result; else ok). A COUNT, not an exclusion from the table"
+"U_size_t*, n_late_scratch_t*, mkt_ok_t*, mkt_sbonly_ok_t*, u_max_quote_age_s_t*",protocol market,"|U|, inferred late scratchings, market eligibility (every U runner usable quote from both books / sb only), max quote age over U (apply any age limit)"
+"fav_M_t*, n_cofav_M_t*, M_best_nonfav_t*, winner_M_t*, winner_M_rank_t*",protocol favourite,"favourite by highest M (ties within 1e-9 all favourites; the *_horse/_code/_finish/_won/_placed columns describe one of them), co-favourite count, best non-favourite M, G = fav_M_t*_gap, and where the winner stood"
+"timing_flag_first_gt1d, timing_flag_first_gt7d, timing_flag_first_after_start, first_fluc_days_before_start",dq (timing),recorded start vs the earliest fluc of any entry (days). Markets open 1-4 days ahead so gt1d is true for most races; gt7d / after_start are the plausible anomaly flags
+"last_fluc_min_before_start, timing_flag_last_gt24h, timing_flag_no_fluc_3h, timing_untrusted",dq (timing),"protocol timing rule: recorded start > 24h from the last fluc, or no fluc within 3h before the start -> timing_untrusted (counted and excluded from the eligible table)"
+baseline_ok,dq,"descriptive baseline sample flag (AU, clean result, >=5 starters, one winner, full SP with sane overround, usable legacy SB T-30 market). Independent of the protocol's 900 s rule"
+"n_cofav_sp, n_cofav_*",market,number of runners tied for the shortest price (SP / legacy snapshot)
+"fav_sb_t60_*, fav_sb_t30_*, fav_sb_t10_*, fav_sb_t2_*, fav_lb_t60_*, fav_lb_t30_*, fav_lb_t10_*, fav_lb_t2_*",favourite (legacy),"favourite in the legacy starters-based book market at each decision time: horse, code, finish, won, placed, price, p, sp, sp_rank"
+"sb_t60_coverage, sb_t30_coverage, sb_t10_coverage, sb_t2_coverage, lb_t60_coverage, lb_t30_coverage, lb_t10_coverage, lb_t2_coverage, overround_sb_t60, overround_sb_t30, overround_sb_t10, overround_sb_t2, overround_lb_t60, overround_lb_t30, overround_lb_t10, overround_lb_t2",dq/market,share of starters quoted; overround only when 100% quoted
+"sb_t60_fresh900_cov, sb_t30_feed_age_s",dq,(legacy) see runners dictionary
+"one_winner, race_clean",dq,"one_winner = resulted and exactly one winner. race_clean = resulted, >=1 winner, runnersCount == n_starters, no duplicate-entry artefact, >=2 starters"
+"dup_entries, runners_count_api, field_mismatch_api",dq,see runners dictionary
+"n_sp, sp_coverage, sp_complete, overround_sp, sum_sp_p, sp_quality_ok",dq/market,"SP availability; sp_quality_ok = sp_complete and overround in [1.05,1.50]"
+"fav_sp_*, fav_tied_sp",favourite,favourite by SP (unique rank 1). _price = SP; _p = margin-free prob
+"second_fav_sp_price, second_fav_sp_p, fav_gap_p",favourite,second favourite and probability gap
+winner_*,outcome,the winner (lowest SP rank if a dead heat) and where each market had it
+"sb_has_flucs, lb_has_flucs, sb_feed_stale, lb_feed_stale",dq/market,any flucs at all; feed dead near the off
+fav_changed_t30_sb_to_sp,market,legacy SB T-30 favourite differs from SP favourite
+"race_tempo, race_winning_time_s, race_has_sectionals, race_timing_source, race_std_time_diff_len, race_last600_s",post-race,race-level post-race timing info
+"hist_ok, days_into_coverage, f7_L",dq / F7 input,history trust flag for the race date; f7_L = pace count (see runners dictionary)

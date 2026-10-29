@@ -1,0 +1,2146 @@
+{
+ "files": 12129,
+ "parsed_now": 11974,
+ "failed": 5,
+ "skipped_fresh": 0,
+ "races_skipped_no_start_time": 346,
+ "races_skipped_no_start_time_list": [
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "5171529",
+   "date": "2022-09-01",
+   "state": "NSW",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "5171489",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "5171489",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "5171536",
+   "date": "2022-09-03",
+   "state": "NSW",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "5172833",
+   "date": "2022-09-03",
+   "state": "QLD",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "5171530",
+   "date": "2022-09-04",
+   "state": "NSW",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "5171523",
+   "date": "2022-09-05",
+   "state": "NSW",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1409911",
+   "date": "2022-09-21",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1411087",
+   "date": "2022-10-05",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1411414",
+   "date": "2022-10-09",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1411713",
+   "date": "2022-10-12",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1412024",
+   "date": "2022-10-16",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1412300",
+   "date": "2022-10-19",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1412621",
+   "date": "2022-10-23",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1412897",
+   "date": "2022-10-26",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1413190",
+   "date": "2022-10-30",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1413489",
+   "date": "2022-11-02",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1413775",
+   "date": "2022-11-06",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1414044",
+   "date": "2022-11-09",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1414340",
+   "date": "2022-11-12",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1414620",
+   "date": "2022-11-16",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1414907",
+   "date": "2022-11-20",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1415187",
+   "date": "2022-11-23",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1415471",
+   "date": "2022-11-27",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1415744",
+   "date": "2022-11-30",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 1
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 2
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 3
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 4
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 5
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 6
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 7
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 8
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 9
+  },
+  {
+   "meeting_id": "HK1416029",
+   "date": "2022-12-04",
+   "state": "HK",
+   "race_number": 10
+  },
+  {
+   "meeting_id": "HK1416312",
+   "date": "2022-12-07",
+   "state": "HK",
+   "race_number": 1
+  }
+ ],
+ "source_files_seen": 12129,
+ "non_au_rows": 41299,
+ "non_au_states": {
+  "HK": 41299
+ },
+ "races_with_start_date_mismatch": 16,
+ "races_where_melbourne_date_differs_from_meeting_date_by_1day": 2729,
+ "earliest_date": "2022-07-01",
+ "latest_date": "2026-10-29",
+ "contiguous_coverage_start": "2022-07-01",
+ "history_complete_from": "2022-09-29",
+ "gap_note": "coverage_start = day after the latest run of >=3 consecutive days with no AU meeting dump",
+ "examined_rules": [
+  {
+   "scope": "all",
+   "date_from": "2026-09-29",
+   "date_to": "2026-10-29",
+   "venue": "*",
+   "race": "*",
+   "races_marked": 1763
+  },
+  {
+   "scope": "meeting",
+   "date_from": "2026-08-01",
+   "date_to": "2026-08-01",
+   "venue": "Doomben",
+   "race": "1",
+   "races_marked": 1
+  }
+ ],
+ "funnel_overall": [
+  {
+   "step": 0,
+   "rule": "all races in dump",
+   "description": "",
+   "removed": 0.0,
+   "remaining": 90163
+  },
+  {
+   "step": 1,
+   "rule": "non_au",
+   "description": "not an Australian state/territory meeting (Hong Kong etc.)",
+   "removed": 3295.0,
+   "remaining": 86868
+  },
+  {
+   "step": 2,
+   "rule": "trial_or_jumpout",
+   "description": "trial / jump-out meetings (excluded upstream at collection via isTrial/isJumpOut; none can appear in the dump)",
+   "removed": 0.0,
+   "remaining": 86868
+  },
+  {
+   "step": 3,
+   "rule": "u_lt5",
+   "description": "fewer than 5 runners in the universe U at T-30 (non-scratched entries + scratched entries whose last fluc is at or after T-30)",
+   "removed": 1309.0,
+   "remaining": 85559
+  },
+  {
+   "step": 4,
+   "rule": "not_market_eligible",
+   "description": "some runner in U has no quote (no fluc at or before T-30) from Sportsbet or Ladbrokes",
+   "removed": 13854.0,
+   "remaining": 71705
+  },
+  {
+   "step": 5,
+   "rule": "feed_not_live",
+   "description": "Sportsbet or Ladbrokes has no fluc on any entry of the race in [T-30 - 900s, T-30]",
+   "removed": 39239.0,
+   "remaining": 32466
+  },
+  {
+   "step": 6,
+   "rule": "timing_untrusted",
+   "description": "recorded start > 24h from the last fluc, or no fluc within 3h before the recorded start",
+   "removed": 0.0,
+   "remaining": 32466
+  },
+  {
+   "step": 7,
+   "rule": "examined",
+   "description": "race listed in research/examined.csv (whole development month 2026-09-29..2026-10-29, Doomben 2026-08-01 R1)",
+   "removed": 1106.0,
+   "remaining": 31360
+  },
+  {
+   "step": "post-race: ok",
+   "rule": "scoring_status=ok",
+   "description": "post-race scoring count among pre-decision-eligible races (not an exclusion)",
+   "removed": NaN,
+   "remaining": 29275
+  },
+  {
+   "step": "post-race: late_scratching",
+   "rule": "scoring_status=late_scratching",
+   "description": "post-race scoring count among pre-decision-eligible races (not an exclusion)",
+   "removed": NaN,
+   "remaining": 1920
+  },
+  {
+   "step": "post-race: no_result",
+   "rule": "scoring_status=no_result",
+   "description": "post-race scoring count among pre-decision-eligible races (not an exclusion)",
+   "removed": NaN,
+   "remaining": 105
+  },
+  {
+   "step": "post-race: dead_heat",
+   "rule": "scoring_status=dead_heat",
+   "description": "post-race scoring count among pre-decision-eligible races (not an exclusion)",
+   "removed": NaN,
+   "remaining": 58
+  },
+  {
+   "step": "post-race: no_winner_recorded",
+   "rule": "scoring_status=no_winner_recorded",
+   "description": "post-race scoring count among pre-decision-eligible races (not an exclusion)",
+   "removed": NaN,
+   "remaining": 2
+  }
+ ],
+ "shapes": {
+  "runners": [
+   401099,
+   471
+  ],
+  "runners_excluded": [
+   684308,
+   471
+  ],
+  "races": [
+   31360,
+   283
+  ],
+  "races_excluded": [
+   58803,
+   283
+  ]
+ },
+ "change_event_check": {
+  "consecutive_pairs": 47723713.0,
+  "same_price_pairs": 1664394.0,
+  "share_same": 0.03487561833254676
+ },
+ "built_at": "2026-10-29T15:06:57.280263+00:00",
+ "columns_runners": [
+  "meeting_id",
+  "date",
+  "venue",
+  "state",
+  "race_number",
+  "start_ts",
+  "race_name",
+  "distance_m",
+  "class_raw",
+  "class_rdc",
+  "race_type",
+  "group",
+  "track_cond",
+  "track_cond_src",
+  "track_rating",
+  "surface",
+  "runners_count_api",
+  "rail",
+  "weather",
+  "penetrometer",
+  "rainfall",
+  "dup_entries",
+  "race_tempo",
+  "race_winning_time_s",
+  "race_has_sectionals",
+  "race_timing_source",
+  "race_std_time_diff_len",
+  "race_last600_s",
+  "horse_code",
+  "horse_name",
+  "entry_no",
+  "scratched",
+  "emergency",
+  "starter",
+  "barrier",
+  "weight_kg",
+  "jockey_id",
+  "jockey",
+  "trainer_id",
+  "trainer",
+  "handicap_rating",
+  "gear_changes",
+  "speed_value_unverified",
+  "horse_age_now",
+  "horse_sex_now",
+  "sire",
+  "dam",
+  "sire_of_dam_code",
+  "rc_fluc_open",
+  "rc_fluc_m1",
+  "rc_fluc_m2",
+  "finish_code",
+  "sp",
+  "res_settled",
+  "res_pos800",
+  "res_pos400",
+  "res_comment",
+  "res_time_s",
+  "res_top_speed",
+  "res_speed_early",
+  "res_speed_mid",
+  "res_speed_late",
+  "res_dist_travelled",
+  "res_dist_from_rail",
+  "res_std_time_diff_len",
+  "res_time_sectional_raw",
+  "res_last600_s",
+  "res_last200_s",
+  "res_last200_rank_api",
+  "final_V",
+  "final_N",
+  "final_Q",
+  "final_BT",
+  "final_PB3",
+  "final_BTOTE",
+  "final_OP",
+  "sb_final",
+  "sb_open",
+  "sb_open_min",
+  "sb_n_flucs",
+  "sb_last_fluc_min",
+  "sb_last_rel_s",
+  "sb_n_same_prev",
+  "sb_t60",
+  "sb_t60_age_s",
+  "sb_t60_n_later",
+  "sb_t30",
+  "sb_t30_age_s",
+  "sb_t30_n_later",
+  "sb_t10",
+  "sb_t10_age_s",
+  "sb_t10_n_later",
+  "sb_t2",
+  "sb_t2_age_s",
+  "sb_t2_n_later",
+  "lb_final",
+  "lb_open",
+  "lb_open_min",
+  "lb_n_flucs",
+  "lb_last_fluc_min",
+  "lb_last_rel_s",
+  "lb_n_same_prev",
+  "lb_t60",
+  "lb_t60_age_s",
+  "lb_t60_n_later",
+  "lb_t30",
+  "lb_t30_age_s",
+  "lb_t30_n_later",
+  "lb_t10",
+  "lb_t10_age_s",
+  "lb_t10_n_later",
+  "lb_t2",
+  "lb_t2_age_s",
+  "lb_t2_n_later",
+  "sb_feed_stale",
+  "sb_last_pre_min",
+  "lb_feed_stale",
+  "lb_last_pre_min",
+  "is_au",
+  "race_id",
+  "start_utc",
+  "mel_date",
+  "year",
+  "start_date_mismatch",
+  "n_starters",
+  "n_scratched",
+  "race_resulted",
+  "class_cat",
+  "class_level",
+  "cond_ord",
+  "age_at_race_est",
+  "places_paid",
+  "field_mismatch_api",
+  "dnf",
+  "finish_pos",
+  "won",
+  "placed",
+  "n_winners",
+  "win_margin_len",
+  "margin_behind_len",
+  "sp_p",
+  "sp_rank",
+  "fav_sp",
+  "cofav_sp",
+  "sp_coverage",
+  "sp_inv",
+  "sp_race_sum_inv",
+  "fav_tied_sp",
+  "sb_open_p",
+  "sb_open_rank",
+  "fav_sb_open",
+  "cofav_sb_open",
+  "sb_open_coverage",
+  "sb_t60_p",
+  "sb_t60_rank",
+  "fav_sb_t60",
+  "cofav_sb_t60",
+  "sb_t60_coverage",
+  "sb_t60_later_fluc",
+  "sb_t60_usable",
+  "sb_t30_p",
+  "sb_t30_rank",
+  "fav_sb_t30",
+  "cofav_sb_t30",
+  "sb_t30_coverage",
+  "sb_t30_later_fluc",
+  "sb_t30_usable",
+  "sb_t10_p",
+  "sb_t10_rank",
+  "fav_sb_t10",
+  "cofav_sb_t10",
+  "sb_t10_coverage",
+  "sb_t10_later_fluc",
+  "sb_t10_usable",
+  "sb_t2_p",
+  "sb_t2_rank",
+  "fav_sb_t2",
+  "cofav_sb_t2",
+  "sb_t2_coverage",
+  "sb_t2_later_fluc",
+  "sb_t2_usable",
+  "sb_final_p",
+  "sb_final_rank",
+  "fav_sb_final",
+  "cofav_sb_final",
+  "sb_final_coverage",
+  "lb_open_p",
+  "lb_open_rank",
+  "fav_lb_open",
+  "cofav_lb_open",
+  "lb_open_coverage",
+  "lb_t60_p",
+  "lb_t60_rank",
+  "fav_lb_t60",
+  "cofav_lb_t60",
+  "lb_t60_coverage",
+  "lb_t60_later_fluc",
+  "lb_t60_usable",
+  "lb_t30_p",
+  "lb_t30_rank",
+  "fav_lb_t30",
+  "cofav_lb_t30",
+  "lb_t30_coverage",
+  "lb_t30_later_fluc",
+  "lb_t30_usable",
+  "lb_t10_p",
+  "lb_t10_rank",
+  "fav_lb_t10",
+  "cofav_lb_t10",
+  "lb_t10_coverage",
+  "lb_t10_later_fluc",
+  "lb_t10_usable",
+  "lb_t2_p",
+  "lb_t2_rank",
+  "fav_lb_t2",
+  "cofav_lb_t2",
+  "lb_t2_coverage",
+  "lb_t2_later_fluc",
+  "lb_t2_usable",
+  "lb_final_p",
+  "lb_final_rank",
+  "fav_lb_final",
+  "cofav_lb_final",
+  "lb_final_coverage",
+  "fav_changed_t30_sb_to_sp",
+  "sp_over_sb_t30",
+  "first_fluc_min_before_start",
+  "inU_t60",
+  "late_scratch_t60",
+  "scratch_ambiguous_t60",
+  "feed_live_sb_t60",
+  "feed_live_lb_t60",
+  "feed_live_t60",
+  "U_size_t60",
+  "m_sb_t60",
+  "u_all_usable_sb_t60",
+  "m_lb_t60",
+  "u_all_usable_lb_t60",
+  "mkt_ok_t60",
+  "mkt_sbonly_ok_t60",
+  "M_t60",
+  "M_rank_t60",
+  "fav_M_t60",
+  "cofav_M_t60",
+  "u_max_quote_age_s_t60",
+  "f10_move_t60",
+  "inU_t30",
+  "late_scratch_t30",
+  "scratch_ambiguous_t30",
+  "feed_live_sb_t30",
+  "feed_live_lb_t30",
+  "feed_live_t30",
+  "U_size_t30",
+  "m_sb_t30",
+  "u_all_usable_sb_t30",
+  "m_lb_t30",
+  "u_all_usable_lb_t30",
+  "mkt_ok_t30",
+  "mkt_sbonly_ok_t30",
+  "M_t30",
+  "M_rank_t30",
+  "fav_M_t30",
+  "cofav_M_t30",
+  "u_max_quote_age_s_t30",
+  "f10_move_t30",
+  "inU_t10",
+  "late_scratch_t10",
+  "scratch_ambiguous_t10",
+  "feed_live_sb_t10",
+  "feed_live_lb_t10",
+  "feed_live_t10",
+  "U_size_t10",
+  "m_sb_t10",
+  "u_all_usable_sb_t10",
+  "m_lb_t10",
+  "u_all_usable_lb_t10",
+  "mkt_ok_t10",
+  "mkt_sbonly_ok_t10",
+  "M_t10",
+  "M_rank_t10",
+  "fav_M_t10",
+  "cofav_M_t10",
+  "u_max_quote_age_s_t10",
+  "f10_move_t10",
+  "inU_t2",
+  "late_scratch_t2",
+  "scratch_ambiguous_t2",
+  "feed_live_sb_t2",
+  "feed_live_lb_t2",
+  "feed_live_t2",
+  "U_size_t2",
+  "m_sb_t2",
+  "u_all_usable_sb_t2",
+  "m_lb_t2",
+  "u_all_usable_lb_t2",
+  "mkt_ok_t2",
+  "mkt_sbonly_ok_t2",
+  "M_t2",
+  "M_rank_t2",
+  "fav_M_t2",
+  "cofav_M_t2",
+  "u_max_quote_age_s_t2",
+  "f10_move_t2",
+  "f10_move",
+  "f11_sb_lb",
+  "f11_abs",
+  "f12_fav",
+  "f12_G",
+  "n_unscratched_nonstarters",
+  "res_last600_rank",
+  "res_last600_vs_best",
+  "res_time_behind_winner_s",
+  "block",
+  "examined",
+  "days_into_coverage",
+  "hist_ok",
+  "ls_start_utc",
+  "ls_date",
+  "ls_finish",
+  "ls_won",
+  "ls_field",
+  "ls_finish_pct",
+  "ls_margin_behind",
+  "ls_win_margin",
+  "ls_sp",
+  "ls_sp_p",
+  "ls_sp_rank",
+  "ls_settled",
+  "ls_pos800",
+  "ls_pos400",
+  "ls_last600_s",
+  "ls_last600_rank",
+  "ls_last600_vs_best",
+  "ls_last200_s",
+  "ls_time_behind_winner_s",
+  "ls_std_time_diff_len",
+  "ls_speed_late",
+  "ls_comment",
+  "ls_gear_changes",
+  "ls_distance_m",
+  "ls_class_rdc",
+  "ls_class_cat",
+  "ls_class_level",
+  "ls_venue",
+  "ls_state",
+  "ls_track_cond",
+  "ls_cond_ord",
+  "ls_surface",
+  "ls_weight_kg",
+  "ls_jockey_id",
+  "ls_barrier",
+  "ls_handicap_rating",
+  "runs_in_ds",
+  "wins_in_ds",
+  "places_in_ds",
+  "last3_avg_finish_pct",
+  "last5_wins",
+  "last3_avg_sp_p",
+  "ls_has_comment",
+  "f1_last",
+  "f1_avg3",
+  "f1_gap",
+  "f2_last",
+  "f2_avg3",
+  "f3_any",
+  "f3_count3",
+  "f4_bad",
+  "f5_avg3",
+  "f6_last",
+  "f6_avg3",
+  "f7_style",
+  "ls_f3_slow",
+  "ls_f3_held",
+  "ls_f3_checked",
+  "ls_f3_wide",
+  "ls_f3_keen",
+  "ls_kw_slow_begin",
+  "ls_kw_awkward_start",
+  "ls_kw_held_up",
+  "ls_kw_no_clear_run",
+  "ls_kw_checked",
+  "ls_kw_wide_no_cover",
+  "ls_kw_raced_wide",
+  "ls_kw_raced_keenly",
+  "ls_kw_hung_or_laid",
+  "ls_kw_eased",
+  "ls_kw_vet_issue",
+  "ls_kw_disappointing",
+  "ls_kw_stewards_action",
+  "days_since_last_run",
+  "chg_distance_m",
+  "chg_class_level",
+  "chg_class_cat",
+  "chg_venue",
+  "chg_surface",
+  "chg_cond_ord",
+  "chg_weight_kg",
+  "chg_jockey",
+  "chg_barrier",
+  "chg_handicap_rating",
+  "f16_dr",
+  "ls_gear_changed",
+  "gear_changed_today",
+  "ls_pos_gain_800_to_finish",
+  "ls_pos_gain_400_to_finish",
+  "jk90_n",
+  "jk90_wins",
+  "jk90_sr",
+  "jk90_ae",
+  "jk365_n",
+  "jk365_wins",
+  "jk365_sr",
+  "jk365_ae",
+  "f13_jockey",
+  "f13_n",
+  "f13_change",
+  "tr90_n",
+  "tr90_wins",
+  "tr90_sr",
+  "tr90_ae",
+  "tr365_n",
+  "tr365_wins",
+  "tr365_sr",
+  "tr365_ae",
+  "f14_14d",
+  "f14_14d_n",
+  "f14_365d",
+  "f14_365d_n",
+  "f15_pair",
+  "f15_n",
+  "f17_prior_runs_band",
+  "f17_newdist",
+  "f17_prior_runs_venue",
+  "f17_newtrack",
+  "f17_prior_wet_run",
+  "f17_sire_wet_ae10",
+  "f17_sire_wet_n",
+  "f18_cell",
+  "f18_n",
+  "sameday_jk_n",
+  "sameday_jk_wins",
+  "sameday_jk_exp_wins_sp",
+  "sameday_tr_n",
+  "sameday_tr_wins",
+  "sameday_tr_exp_wins_sp",
+  "sameday_mtg_n_races",
+  "sameday_mtg_w_barrier_rel_mean",
+  "sameday_mtg_w_settled_rel_mean",
+  "sameday_mtg_w_front_mean",
+  "sameday_mtg_w_fav_mean",
+  "sameday_mtg_fav_wins",
+  "sameday_mtg_w_logsp_mean",
+  "f7_L",
+  "f1_missing",
+  "f2_missing",
+  "f3_missing",
+  "f4_missing",
+  "f5_missing",
+  "f6_missing",
+  "f7_missing",
+  "f10_missing",
+  "f11_missing",
+  "f12_missing",
+  "f13_missing",
+  "f14_missing",
+  "f15_missing",
+  "f16_missing",
+  "f18_missing",
+  "f17_missing",
+  "excl_reason",
+  "race_in_sample"
+ ],
+ "columns_races": [
+  "race_id",
+  "meeting_id",
+  "date",
+  "mel_date",
+  "year",
+  "block",
+  "venue",
+  "state",
+  "race_number",
+  "start_utc",
+  "start_ts",
+  "race_name",
+  "distance_m",
+  "class_raw",
+  "class_rdc",
+  "class_cat",
+  "class_level",
+  "race_type",
+  "group",
+  "track_cond",
+  "track_cond_src",
+  "track_rating",
+  "surface",
+  "rail",
+  "weather",
+  "n_starters",
+  "n_scratched",
+  "n_unscratched_nonstarters",
+  "places_paid",
+  "race_resulted",
+  "n_winners",
+  "dup_entries",
+  "runners_count_api",
+  "field_mismatch_api",
+  "race_tempo",
+  "race_winning_time_s",
+  "race_has_sectionals",
+  "race_timing_source",
+  "race_std_time_diff_len",
+  "race_last600_s",
+  "hist_ok",
+  "days_into_coverage",
+  "examined",
+  "is_au",
+  "f7_L",
+  "start_date_mismatch",
+  "is_jumps",
+  "first_fluc_days_before_start",
+  "timing_flag_first_gt1d",
+  "timing_flag_first_gt7d",
+  "timing_flag_first_after_start",
+  "last_fluc_min_before_start",
+  "timing_flag_last_gt24h",
+  "timing_flag_no_fluc_3h",
+  "timing_flag_start_date_mismatch",
+  "timing_untrusted",
+  "n_sp",
+  "sp_coverage",
+  "sp_complete",
+  "overround_sp",
+  "sum_sp_p",
+  "sp_quality_ok",
+  "n_cofav_sp",
+  "one_winner",
+  "race_clean",
+  "winner_horse",
+  "winner_sp",
+  "winner_sp_p",
+  "winner_sp_rank",
+  "winner_barrier",
+  "winner_M_t60",
+  "winner_M_rank_t60",
+  "winner_sb_t60",
+  "winner_sb_t60_p",
+  "winner_sb_t60_rank",
+  "winner_lb_t60",
+  "winner_lb_t60_p",
+  "winner_lb_t60_rank",
+  "winner_M_t30",
+  "winner_M_rank_t30",
+  "winner_sb_t30",
+  "winner_sb_t30_p",
+  "winner_sb_t30_rank",
+  "winner_lb_t30",
+  "winner_lb_t30_p",
+  "winner_lb_t30_rank",
+  "winner_M_t10",
+  "winner_M_rank_t10",
+  "winner_sb_t10",
+  "winner_sb_t10_p",
+  "winner_sb_t10_rank",
+  "winner_lb_t10",
+  "winner_lb_t10_p",
+  "winner_lb_t10_rank",
+  "winner_M_t2",
+  "winner_M_rank_t2",
+  "winner_sb_t2",
+  "winner_sb_t2_p",
+  "winner_sb_t2_rank",
+  "winner_lb_t2",
+  "winner_lb_t2_p",
+  "winner_lb_t2_rank",
+  "fav_sp_horse",
+  "fav_sp_code",
+  "fav_sp_finish",
+  "fav_sp_won",
+  "fav_sp_placed",
+  "fav_sp_price",
+  "fav_sp_p",
+  "fav_tied_sp",
+  "fav_sp_sb_t30",
+  "second_fav_sp_price",
+  "second_fav_sp_p",
+  "fav_gap_p",
+  "sb_has_flucs",
+  "sb_feed_stale",
+  "fav_sb_t60_horse",
+  "fav_sb_t60_code",
+  "fav_sb_t60_finish",
+  "fav_sb_t60_won",
+  "fav_sb_t60_placed",
+  "fav_sb_t60_price",
+  "fav_sb_t60_p",
+  "fav_sb_t60_sp",
+  "fav_sb_t60_sp_rank",
+  "sb_t60_coverage",
+  "n_cofav_sb_t60",
+  "overround_sb_t60",
+  "fav_sb_t30_horse",
+  "fav_sb_t30_code",
+  "fav_sb_t30_finish",
+  "fav_sb_t30_won",
+  "fav_sb_t30_placed",
+  "fav_sb_t30_price",
+  "fav_sb_t30_p",
+  "fav_sb_t30_sp",
+  "fav_sb_t30_sp_rank",
+  "sb_t30_coverage",
+  "n_cofav_sb_t30",
+  "overround_sb_t30",
+  "fav_sb_t10_horse",
+  "fav_sb_t10_code",
+  "fav_sb_t10_finish",
+  "fav_sb_t10_won",
+  "fav_sb_t10_placed",
+  "fav_sb_t10_price",
+  "fav_sb_t10_p",
+  "fav_sb_t10_sp",
+  "fav_sb_t10_sp_rank",
+  "sb_t10_coverage",
+  "n_cofav_sb_t10",
+  "overround_sb_t10",
+  "fav_sb_t2_horse",
+  "fav_sb_t2_code",
+  "fav_sb_t2_finish",
+  "fav_sb_t2_won",
+  "fav_sb_t2_placed",
+  "fav_sb_t2_price",
+  "fav_sb_t2_p",
+  "fav_sb_t2_sp",
+  "fav_sb_t2_sp_rank",
+  "sb_t2_coverage",
+  "n_cofav_sb_t2",
+  "overround_sb_t2",
+  "lb_has_flucs",
+  "lb_feed_stale",
+  "fav_lb_t60_horse",
+  "fav_lb_t60_code",
+  "fav_lb_t60_finish",
+  "fav_lb_t60_won",
+  "fav_lb_t60_placed",
+  "fav_lb_t60_price",
+  "fav_lb_t60_p",
+  "fav_lb_t60_sp",
+  "fav_lb_t60_sp_rank",
+  "lb_t60_coverage",
+  "n_cofav_lb_t60",
+  "overround_lb_t60",
+  "fav_lb_t30_horse",
+  "fav_lb_t30_code",
+  "fav_lb_t30_finish",
+  "fav_lb_t30_won",
+  "fav_lb_t30_placed",
+  "fav_lb_t30_price",
+  "fav_lb_t30_p",
+  "fav_lb_t30_sp",
+  "fav_lb_t30_sp_rank",
+  "lb_t30_coverage",
+  "n_cofav_lb_t30",
+  "overround_lb_t30",
+  "fav_lb_t10_horse",
+  "fav_lb_t10_code",
+  "fav_lb_t10_finish",
+  "fav_lb_t10_won",
+  "fav_lb_t10_placed",
+  "fav_lb_t10_price",
+  "fav_lb_t10_p",
+  "fav_lb_t10_sp",
+  "fav_lb_t10_sp_rank",
+  "lb_t10_coverage",
+  "n_cofav_lb_t10",
+  "overround_lb_t10",
+  "fav_lb_t2_horse",
+  "fav_lb_t2_code",
+  "fav_lb_t2_finish",
+  "fav_lb_t2_won",
+  "fav_lb_t2_placed",
+  "fav_lb_t2_price",
+  "fav_lb_t2_p",
+  "fav_lb_t2_sp",
+  "fav_lb_t2_sp_rank",
+  "lb_t2_coverage",
+  "n_cofav_lb_t2",
+  "overround_lb_t2",
+  "U_size_t60",
+  "n_late_scratch_t60",
+  "n_scratch_ambiguous_t60",
+  "feed_live_t60",
+  "mkt_ok_t60",
+  "mkt_sbonly_ok_t60",
+  "u_max_quote_age_s_t60",
+  "fav_M_t60_horse",
+  "fav_M_t60_code",
+  "fav_M_t60_finish",
+  "fav_M_t60_won",
+  "fav_M_t60_placed",
+  "fav_M_t60_M",
+  "n_cofav_M_t60",
+  "M_best_nonfav_t60",
+  "fav_M_t60_gap",
+  "U_size_t30",
+  "n_late_scratch_t30",
+  "n_scratch_ambiguous_t30",
+  "feed_live_t30",
+  "mkt_ok_t30",
+  "mkt_sbonly_ok_t30",
+  "u_max_quote_age_s_t30",
+  "fav_M_t30_horse",
+  "fav_M_t30_code",
+  "fav_M_t30_finish",
+  "fav_M_t30_won",
+  "fav_M_t30_placed",
+  "fav_M_t30_M",
+  "n_cofav_M_t30",
+  "M_best_nonfav_t30",
+  "fav_M_t30_gap",
+  "U_size_t10",
+  "n_late_scratch_t10",
+  "n_scratch_ambiguous_t10",
+  "feed_live_t10",
+  "mkt_ok_t10",
+  "mkt_sbonly_ok_t10",
+  "u_max_quote_age_s_t10",
+  "fav_M_t10_horse",
+  "fav_M_t10_code",
+  "fav_M_t10_finish",
+  "fav_M_t10_won",
+  "fav_M_t10_placed",
+  "fav_M_t10_M",
+  "n_cofav_M_t10",
+  "M_best_nonfav_t10",
+  "fav_M_t10_gap",
+  "U_size_t2",
+  "n_late_scratch_t2",
+  "n_scratch_ambiguous_t2",
+  "feed_live_t2",
+  "mkt_ok_t2",
+  "mkt_sbonly_ok_t2",
+  "u_max_quote_age_s_t2",
+  "fav_M_t2_horse",
+  "fav_M_t2_code",
+  "fav_M_t2_finish",
+  "fav_M_t2_won",
+  "fav_M_t2_placed",
+  "fav_M_t2_M",
+  "n_cofav_M_t2",
+  "M_best_nonfav_t2",
+  "fav_M_t2_gap",
+  "fav_changed_t30_sb_to_sp",
+  "baseline_ok",
+  "excl_reason",
+  "in_sample",
+  "scoring_status_t30"
+ ],
+ "blocks": [
+  [
+   "history_only",
+   "2022-07-01",
+   "2022-12-31"
+  ],
+  [
+   "train",
+   "2023-01-01",
+   "2025-06-30"
+  ],
+  [
+   "tune1",
+   "2025-07-01",
+   "2025-12-31"
+  ],
+  [
+   "tune2",
+   "2026-01-01",
+   "2026-04-30"
+  ],
+  [
+   "final",
+   "2026-05-01",
+   "2026-09-28"
+  ],
+  [
+   "excluded",
+   "2026-09-29",
+   "2026-10-29"
+  ]
+ ]
+}

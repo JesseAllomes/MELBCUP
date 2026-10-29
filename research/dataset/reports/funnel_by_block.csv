@@ -1,0 +1,7 @@
+block,total_races,non_au,trial_or_jumpout,u_lt5,not_market_eligible,feed_not_live,timing_untrusted,examined,INCLUDED
+excluded,1763,91,0,35,237,295,0,1105,0
+final,8208,269,0,112,763,1755,0,1,5308
+history_only,10467,115,0,222,5186,2761,0,0,2183
+train,52646,2115,0,668,5796,26470,0,0,17597
+tune1,10256,354,0,153,1191,4840,0,0,3718
+tune2,6823,351,0,119,681,3118,0,0,2554
