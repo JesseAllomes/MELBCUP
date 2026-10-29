@@ -43,7 +43,14 @@ def entries(day: DayPicks) -> list[dict]:
             pick = {"hit": line.hit, "value": line.value, "returned": line.returned}
             if key in ("win", "place", "each_way"):
                 s = rp.best[key]
-                pick.update(no=s.number, name=s.name, chance=round(s.prob, 3), price=s.price)
+                pick.update(
+                    no=s.number,
+                    name=s.name,
+                    chance=round(s.prob, 3),
+                    price=s.price,
+                    place_price=s.place_price if key != "win" else None,
+                    estimated=s.estimated,
+                )
             else:
                 rec = next(
                     e
@@ -93,6 +100,7 @@ class Tally:
     label: str
     picks: int
     correct: int
+    returned: float | None = None  # total back from $1 on every pick; None if a dividend is unknown
 
     @property
     def failed(self) -> int:
@@ -102,12 +110,31 @@ class Tally:
     def rate(self) -> float | None:
         return self.correct / self.picks if self.picks else None
 
+    @property
+    def profit(self) -> float | None:
+        """Return per $1 staked, after the stake: +0.05 means 5c profit per dollar."""
+        if self.returned is None or not self.picks:
+            return None
+        return self.returned / self.picks - 1.0
 
-def tally(history: list[dict]) -> list[Tally]:
+
+def tally(history: list[dict], *, value_only: bool = False) -> list[Tally]:
+    """One row per pick type; ``value_only`` keeps just the picks flagged as value bets."""
     out = []
     for cat, label in CATEGORIES:
-        picked = [e["picks"][cat] for e in history if cat in e["picks"]]
-        out.append(Tally(label, len(picked), sum(1 for p in picked if p["hit"])))
+        picked = [
+            e["picks"][cat]
+            for e in history
+            if cat in e["picks"] and (not value_only or e["picks"][cat].get("value"))
+        ]
+        valued = [p for p in picked if p.get("returned") is not None]
+        unknown_wins = sum(1 for p in picked if p["hit"] and p.get("returned") is None)
+        # A stray missing price is left out; missing dividends throughout (exotics on saved
+        # races) leave the figure blank rather than count only the losses.
+        returned = None
+        if valued and unknown_wins <= 0.02 * len(picked):
+            returned = sum(p["returned"] for p in valued) * len(picked) / len(valued)
+        out.append(Tally(label, len(picked), sum(1 for p in picked if p["hit"]), returned))
     return out
 
 

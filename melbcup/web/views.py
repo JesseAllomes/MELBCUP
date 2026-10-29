@@ -213,6 +213,7 @@ class Views:
             ctx.update(
                 record=record,
                 tallies=history.tally(record),
+                value_tallies={t.label: t for t in history.tally(record, value_only=True)},
                 groups=history.meetings(record),
                 archive_closed=archive is not None and not archive.open,
                 saved_count=len(saved),

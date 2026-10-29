@@ -12,17 +12,29 @@
     <p>No graded races yet. Races are added here as their results come in.</p>
   {% else %}
   <p class="small">{{ '{:,}'.format(record | length) }} races, {{ groups | length }} meetings,
-    {{ record[-1].date | isoday }} to {{ record[0].date | isoday }}. The pick in each column is what the
-    app showed: its value bet when it had one, otherwise its top-rated runner. Each way counts as
-    landed when the runner placed.{% if saved_count %} The saved races up to 29 Oct were also used to
-    fit the model, which flatters these figures a little; races from Derby Day on are the clean test.{% endif %}</p>
+    {{ record[-1].date | isoday }} to {{ record[0].date | isoday }}.</p>
+  <details class="explain"><summary>How the picks and figures work</summary>
+    <p class="small">Win is the best win value, or the top-rated runner when there is none. Place is the
+      best place value among runners with a real chance of placing. Each way is the best each-way value
+      at $5 to $21, so some races have none; it counts as landed when the runner placed.</p>
+    <p class="small">Per $1 is profit or loss per dollar staked at the prices shown. Saved races use
+      starting prices, with place prices estimated from them (the place market's measured 40% margin
+      included); exotic dividends were not saved. Those races were also used to fit the model, which
+      flatters them a little: races from Derby Day on are the clean test.</p>
+  </details>
 
   <table class="tally">
-    <thead><tr><th>Pick</th><th>Picks</th><th>Landed</th><th>Missed</th><th>Rate</th></tr></thead>
+    <thead><tr><th>Pick</th><th>Picks</th><th>Landed</th><th>Missed</th><th>Rate</th><th>Per $1</th></tr></thead>
     <tbody>
     {% for t in tallies %}
       <tr><td>{{ t.label }}</td><td class="num">{{ '{:,}'.format(t.picks) }}</td><td class="num">{{ '{:,}'.format(t.correct) }}</td><td class="num">{{ '{:,}'.format(t.failed) }}</td>
-        <td class="num rate">{{ t.rate | pct(1) }}<span class="bar"><span style="width: {{ (100 * (t.rate or 0)) | round(1) }}%"></span></span></td></tr>
+        <td class="num rate">{{ t.rate | pct(1) }}<span class="bar"><span style="width: {{ (100 * (t.rate or 0)) | round(1) }}%"></span></span></td>
+        <td class="num">{{ t.profit | edge if t.profit is not none else 'n/a' }}</td></tr>
+      {% set v = value_tallies.get(t.label) %}
+      {% if v and v.picks %}
+      <tr class="sub-row"><td>value only</td><td class="num">{{ '{:,}'.format(v.picks) }}</td><td class="num">{{ '{:,}'.format(v.correct) }}</td><td class="num">{{ '{:,}'.format(v.failed) }}</td>
+        <td class="num">{{ v.rate | pct(1) }}</td><td class="num">{{ v.profit | edge if v.profit is not none else 'n/a' }}</td></tr>
+      {% endif %}
     {% endfor %}
     </tbody>
   </table>
@@ -45,7 +57,7 @@
       <div class="pick {{ 'hit' if p.hit else 'miss' }}">
         <dt>{{ label }}</dt>
         <dd>{% if p.no %}<span class="who"><span class="cloth">{{ p.no }}</span> {{ p.name }}</span>
-            <span class="fig">{{ p.chance | pct }}{% if p.price %} · {{ p.price | money }}{% endif %}{% if p.value %} · <em>value</em>{% endif %}</span>
+            <span class="fig">{{ p.chance | pct }}{% if p.price %} · {{ p.price | money }}{% endif %}{% if p.place_price and cat == 'each_way' %} / {{ p.place_price | money }}{% endif %}{% if p.estimated %} est.{% endif %}{% if p.value %} · <em>value</em>{% endif %}</span>
           {% else %}<span class="who">{{ p.legs }}</span><span class="fig">{{ p.combos }} combos</span>{% endif %}</dd>
         <span class="mark">{{ '✓' if p.hit else '✗' }}</span>
       </div>

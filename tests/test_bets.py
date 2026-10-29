@@ -239,3 +239,56 @@ def test_implausible_edges_and_big_prices_are_never_value():
     assert huge.ev == pytest.approx(0.8) and not huge.value
     assert long_.ev == pytest.approx(0.56) and not long_.value
     assert not any(s.value for s in sl if s.number == 2)  # place and each-way follow the win price
+
+
+def test_place_pick_looks_past_a_short_favourite():
+    # The favourite places 85% of the time but pays $1.10: the second favourite at $1.90 with
+    # a 60% chance is the better place bet.
+    m = make_model(1, [0.5, 0.25, 0.15, 0.1], [2.0, 4.5, 7.0, 11.0], [1.10, 1.90, 2.60, 3.20])
+    place = best(singles(m), "place")
+    assert place.number != 1
+
+
+def test_each_way_needs_a_price_where_the_place_half_matters():
+    short = make_model(1, [0.5, 0.3, 0.2], [2.0, 3.0, 4.5], [1.2, 1.5, 1.9])
+    assert best(singles(short), "each_way") is None  # nobody at $5 or more
+    m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.0, 2.5, 3.0, 3.5])
+    ew = best(singles(m), "each_way")
+    assert ew is not None and 5.0 <= ew.price <= 21.0
+
+
+def test_place_price_estimated_only_for_races_judged_at_sp():
+    from melbcup.bets.singles import PLACE_MARGIN, estimate_place_price
+
+    assert estimate_place_price(0.5) == pytest.approx(1 / (PLACE_MARGIN * 0.5), abs=0.01)
+    assert estimate_place_price(0.95) == 1.01  # never below a dollar
+    m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0])
+    assert all(s.place_price is None for s in singles(m))  # live race, no place market: no guess
+    m.race.priced_from_sp = True
+    for n, p in m.race.prices.items():
+        p.consensus_prob = FIELD[n - 1]
+    assert all(s.estimated and s.place_price for s in singles(m))
+
+
+def test_history_tally_reports_profit_per_dollar():
+    from melbcup.history import tally
+
+    record = [
+        {"picks": {"win": {"hit": True, "returned": 3.0}}},
+        {"picks": {"win": {"hit": False, "returned": 0.0}}},
+        {"picks": {"trifecta": {"hit": True, "returned": None}}},
+    ]
+    t = {x.label: x for x in tally(record)}
+    assert t["Win"].profit == pytest.approx(0.5) and t["Win"].rate == 0.5
+    assert t["Trifecta"].profit is None  # dividend unknown
+
+
+def test_history_tally_can_keep_only_value_picks():
+    from melbcup.history import tally
+
+    record = [
+        {"picks": {"win": {"hit": True, "returned": 4.0, "value": True}}},
+        {"picks": {"win": {"hit": False, "returned": 0.0, "value": False}}},
+    ]
+    v = {t.label: t for t in tally(record, value_only=True)}
+    assert v["Win"].picks == 1 and v["Win"].profit == pytest.approx(3.0)

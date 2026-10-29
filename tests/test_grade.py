@@ -94,3 +94,10 @@ def test_unpriced_race_is_judged_at_starting_prices():
     assert race.priced_from_sp and race.prices[1].best_win.bookmaker == "SP"
     assert sum(p.consensus_prob for p in race.prices.values()) == pytest.approx(1.0)
     assert "market" in assess(race).sources
+
+
+def test_a_losing_pick_returns_nothing_even_without_a_price():
+    res = result({1: 1, 2: 2, 3: 3, 4: 4})
+    assert _single(single("win", 4, None), res, 3).returned == 0.0
+    assert _single(single("win", 1, None), res, 3).returned is None  # won, price unknown
+    assert _single(single("each_way", 4, None, None), res, 3).returned == 0.0

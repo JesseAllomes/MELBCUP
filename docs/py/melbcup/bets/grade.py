@@ -78,18 +78,16 @@ def _single(s: Single, result: RaceResult, places_paid: int) -> Graded:
     won = pos == 1
     placed = pos is not None and pos <= places_paid
     place_price = s.place_price or result.place_dividend.get(s.number)
+    # A losing part returns nothing whatever its price; a winning part is unknown without one.
+    win_part = (s.price if won else 0.0) if s.kind != "place" else None
+    place_part = place_price if placed else 0.0
     if s.kind == "win":
-        hit = won
-        ret = None if s.price is None else (s.price if won else 0.0)
+        hit, ret = won, win_part
     elif s.kind == "place":
-        hit = placed
-        ret = place_price if placed else 0.0
+        hit, ret = placed, place_part
     else:
         hit = placed
-        if s.price is None or (placed and place_price is None):
-            ret = None
-        else:
-            ret = 0.5 * (s.price if won else 0.0) + 0.5 * (place_price if placed else 0.0)
+        ret = None if win_part is None or place_part is None else 0.5 * (win_part + place_part)
     label = {"win": "Win", "place": "Place", "each_way": "Each way"}[s.kind]
     return Graded(label, f"{s.number}. {s.name}", hit, ret, s.value)
 
