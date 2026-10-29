@@ -15,6 +15,7 @@ Three questions:
 
 from __future__ import annotations
 
+import copy
 import math
 import random
 from collections.abc import Callable
@@ -82,8 +83,11 @@ class Sample:
 
 
 def prepare(data: list[tuple[Race, Result]]) -> list[Sample]:
+    """Build samples from copies: the leak adjustment must never touch the caller's races, or a
+    second call would subtract each result twice and leak it back in, inverted."""
     out = []
-    for race, result in data:
+    for original, result in data:
+        race = copy.deepcopy(original)
         starters = {r.number for r in race.starters}
         w = winner(result)
         market = sp_probs(result, starters)
@@ -142,7 +146,10 @@ def default_weights() -> dict[str, float]:
 
 
 def compare(
-    samples: list[Sample], weights: dict[str, float] | None = None, scale: float | None = None
+    samples: list[Sample],
+    weights: dict[str, float] | None = None,
+    scale: float | None = None,
+    mix: dict[str, float] | None = None,
 ) -> list[Score]:
     w = weights or default_weights()
     sc = probability.SOFTMAX_SCALE if scale is None else scale
@@ -151,7 +158,7 @@ def compare(
         return model_from_weights(s, w, sc)
 
     def blended(s: Sample) -> dict[int, float]:
-        return blend({"market": s.market, "feed": feed_probs(s), "model": model(s)})
+        return blend({"market": s.market, "feed": feed_probs(s), "model": model(s)}, mix)
 
     return [
         score("Form model", samples, model),
@@ -164,35 +171,45 @@ def compare(
 # --- fitting weights ------------------------------------------------------------------------
 
 
+def _dense(samples: list[Sample], keys: list[str]):
+    """Per race: (winner index, factor rows, market log-probs), as plain lists for speed."""
+    out = []
+    for s in samples:
+        order = list(s.z)
+        rows = [[s.z[n].get(k, 0.0) for k in keys] for n in order]
+        logm = [math.log(max(s.market[n], 1e-6)) for n in order]
+        out.append((order.index(s.winner), rows, logm))
+    return out
+
+
 def fit_weights(
     samples: list[Sample],
     l2: float = 2.0,
-    steps: int = 400,
-    lr: float = 0.5,
+    steps: int = 600,
+    lr: float = 0.2,  # 0.8 oscillates on correlated factors and never settles
     offset_market: bool = False,
 ) -> dict[str, float]:
     """Conditional logit by gradient ascent. With ``offset_market`` the market's log-odds are a
     fixed offset, so the weights learn only what the market misses (the residual edge)."""
     keys = [f.key for f in FACTORS]
-    w = dict.fromkeys(keys, 0.0)
+    dense = _dense(samples, keys)
+    nk, w = len(keys), [0.0] * len(keys)
     for _ in range(steps):
-        grad = dict.fromkeys(keys, 0.0)
-        for s in samples:
-            scores = {}
-            for n, zs in s.z.items():
-                v = sum(w[k] * zs.get(k, 0.0) for k in keys)
-                if offset_market:
-                    v += math.log(max(s.market[n], 1e-6))
-                scores[n] = v
-            top = max(scores.values())
-            exp = {n: math.exp(v - top) for n, v in scores.items()}
-            total = sum(exp.values())
-            for k in keys:
-                expected = sum(exp[n] / total * s.z[n].get(k, 0.0) for n in s.z)
-                grad[k] += s.z[s.winner].get(k, 0.0) - expected
-        for k in keys:
-            w[k] += lr * (grad[k] - l2 * w[k]) / len(samples)
-    return w
+        grad = [0.0] * nk
+        for win, rows, logm in dense:
+            scores = [sum(a * b for a, b in zip(w, row, strict=True)) for row in rows]
+            if offset_market:
+                scores = [x + m for x, m in zip(scores, logm, strict=True)]
+            top = max(scores)
+            exp = [math.exp(x - top) for x in scores]
+            total = sum(exp)
+            probs = [e / total for e in exp]
+            for j in range(nk):
+                grad[j] += rows[win][j] - sum(
+                    p * row[j] for p, row in zip(probs, rows, strict=True)
+                )
+        w = [wj + lr * (g - l2 * wj) / len(dense) for wj, g in zip(w, grad, strict=True)]
+    return dict(zip(keys, w, strict=True))
 
 
 def split_by_day(samples: list[Sample], test_share: float = 0.3, seed: int = 1):
@@ -214,21 +231,41 @@ def best_scale(samples: list[Sample], weights: dict[str, float]) -> float:
 
 def fit_mix(samples: list[Sample], weights: dict[str, float], scale: float) -> dict[str, float]:
     """Grid-search the blend exponents for market, FormFav model and form model."""
-    cache = [(s, feed_probs(s), model_from_weights(s, weights, scale)) for s in samples]
-    grid = [x / 20 for x in range(0, 25)]
+    cache = []
+    for s in samples:
+        feed, model = feed_probs(s), model_from_weights(s, weights, scale)
+        order = list(model)
+        cache.append(
+            (
+                order.index(s.winner),
+                [math.log(max(s.market[n], 1e-6)) for n in order],
+                [math.log(max(feed[n], 1e-6)) for n in order] if feed else None,
+                [math.log(max(model[n], 1e-6)) for n in order],
+            )
+        )
+    grid = [x / 10 for x in range(0, 16)]
     best, best_ll = dict(probability.BLEND), math.inf
     for m in grid:
         for f in grid:
             for d in grid:
-                if m + f + d == 0 or m + f + d > 1.6:
+                total = m + f + d
+                if total == 0 or total > 1.6:
                     continue
-                mix = {"market": m, "feed": f, "model": d}
                 ll = 0.0
-                for s, feed, model in cache:
-                    p = blend({"market": s.market, "feed": feed, "model": model}, mix)
-                    ll -= math.log(max(p.get(s.winner, 0.0), 1e-6))
+                for win, lm, lf, ld in cache:
+                    present = m + d + (f if lf else 0.0)
+                    if present == 0:
+                        ll = math.inf
+                        break
+                    k = total / present  # missing feed: scale the others up, as blend() does
+                    sc = [
+                        k * (m * a + d * c + (f * b if lf else 0.0))
+                        for a, b, c in zip(lm, lf or lm, ld, strict=True)
+                    ]
+                    top = max(sc)
+                    ll -= sc[win] - top - math.log(sum(math.exp(x - top) for x in sc))
                 if ll < best_ll:
-                    best, best_ll = mix, ll
+                    best, best_ll = {"market": m, "feed": f, "model": d}, ll
     return best
 
 
@@ -423,7 +460,11 @@ def patterns(samples: list[Sample]) -> list[PatternStat]:
 
 
 def value_bets_at_sp(
-    samples: list[Sample], weights: dict[str, float], scale: float, edge: Callable[[float], float]
+    samples: list[Sample],
+    weights: dict[str, float],
+    scale: float,
+    edge: Callable[[float], float],
+    mix: dict[str, float] | None = None,
 ) -> tuple[int, int, float]:
     """Level $1 win bets where the blend beats SP by the app's value bar. Market in the blend is
     the SP itself, so this is a conservative proxy: on the day the app compares with the best
@@ -436,7 +477,8 @@ def value_bets_at_sp(
                 "market": s.market,
                 "feed": feed_probs(s),
                 "model": model_from_weights(s, weights, scale),
-            }
+            },
+            mix,
         )
         for n, prob in p.items():
             sp = s.result[n][0]

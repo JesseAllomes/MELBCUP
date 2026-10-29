@@ -27,19 +27,52 @@ spent until you tap:
 
 The page itself re-reads the app every minute; that costs nothing.
 
+## Backtest
+
+`melbcup/backtest.py` replays 1,131 Australian races (29 September to 29 October 2026). It uses
+only what was known before each race: Racing Australia acceptances and FormFav's point-in-time
+form. It then compares the predictions with the official starting prices and results.
+
+| On days the fit never saw (10 splits) | Log loss (lower is better) |
+|---|---|
+| Market starting prices | 1.725 |
+| MELBCUP blend | 1.716 |
+
+The market is the best single predictor. Its favourite won 38.7% of races, against 30% for
+FormFav's model and 31% for the fitted form model alone. Win bets the app marks VALUE, at an
+edge of +5% to +40% and $21 or shorter, returned **+9.8% at starting price** over 1,075 held-out
+bets. Across the splits that ranged from −3% to +29%. It is promising, not proven: roughly 340
+independent bets, about one standard error above break-even. Real fixed prices are usually
+better than starting price. Edges above +40% and runners over $21 lost heavily, so the app
+never calls them value.
+
+What winners had in common, against what the market expected (A/E above 1 means under-rated):
+
+| Pattern | A/E |
+|---|---|
+| FormFav's top pick | 1.18 (the strongest signal) |
+| Top handicap rating in the field | 1.15 |
+| Won last start | 1.13 |
+| Jockey with 15%+ wins at the track | 1.08 |
+| Mares and fillies | 0.95 |
+| Unplaced last start | 0.93 |
+| Third up from a spell | 0.82 |
+
+The factor weights in `melbcup/model/features.py` are the fitted ones.
+
 ## How it decides
 
-1. **Form model.** 18 factors per runner: recent finishing positions and margins, career, track,
+1. **Form model.** 24 factors per runner: recent finishing positions and margins, career, track,
    distance, track-and-distance and going records, first- and second-up records, handicap
    rating, class rating, weight, jockey and trainer form over the last 90 days and at
-   Flemington, barrier bias at this distance, speed-map position, and days since the last run.
-   Each factor is scored against the rest of the field.
-2. **Blend.** That model is combined with FormFav's own prediction model and the bookmakers'
-   combined market, with each bookmaker's margin removed first. The market carries half the
-   weight because it is the hardest to beat.
+   Flemington, barrier bias at this distance, speed-map position, days since the last run, sex,
+   last-start finish, weight and rating changes, first-time gear, and FormFav's own rating.
+   Each factor is scored against the rest of the field, and weighted as the backtest found.
+2. **Blend.** That model is combined with the bookmakers' combined market, with each bookmaker's
+   margin removed first. The backtest set the mix: market 1.0, form model 0.3.
 3. **Value.** A price is marked **VALUE** only when it beats the fair price by enough. The bar is
-   +5% at short prices and rises with the price, to +25% for long shots. That is because
-   estimates are least reliable at big prices.
+   +5% at short prices and rises with the price. It is never given above +40% or over $21,
+   where the backtest lost.
 4. **Placings.** Place, trifecta, first four and quaddie chances come from the win chances. They
    use the Harville method with the standard discount for minor placings.
 5. **Stakes (optional).** If you enter a day budget, stakes use quarter-Kelly sizing. No single

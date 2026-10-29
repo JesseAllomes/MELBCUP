@@ -12,18 +12,27 @@ MIN_WIN_PROB = 0.04  # ignore extreme long shots: their probabilities are the le
 # must show grows with it: +5% at $2, +10% at $6, capped at +25% from $22 up.
 EDGE_PER_DOLLAR = 0.01
 MAX_EDGE = 0.25
+# Backtest, 1,131 races (Sep-Oct 2026), held-out days: edges of +5% to +40% returned a profit at
+# SP; edges above +40% and runners over $21 lost heavily. A huge edge means the model is wrong,
+# not that the bet is good, so neither is ever called value.
+MAX_BELIEVABLE_EDGE = 0.40
+MAX_VALUE_PRICE = 21.0
 
 
 def required_edge(price: float) -> float:
     return min(MAX_EDGE, VALUE_EDGE + EDGE_PER_DOLLAR * max(0.0, price - 1.0))
 
 
-def _is_value(ev: float | None, price: float | None, win_prob: float) -> bool:
+def _is_value(
+    ev: float | None, price: float | None, win_prob: float, win_price: float | None
+) -> bool:
     return (
         ev is not None
         and price is not None
+        and win_price is not None
         and win_prob >= MIN_WIN_PROB
-        and ev >= required_edge(price)
+        and win_price <= MAX_VALUE_PRICE
+        and required_edge(price) <= ev <= MAX_BELIEVABLE_EDGE
     )
 
 
@@ -78,7 +87,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_win,
                 ev_win,
                 1 / a.win,
-                _is_value(ev_win, win_price, a.win),
+                _is_value(ev_win, win_price, a.win, win_price),
                 a.reasons_for,
             )
         )
@@ -95,7 +104,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_place,
                 ev_place,
                 1 / a.place if a.place else float("inf"),
-                _is_value(ev_place, place_price, a.win),
+                _is_value(ev_place, place_price, a.win, win_price),
                 a.reasons_for,
             )
         )
@@ -114,7 +123,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_win,
                 ev_ew,
                 1 / a.win,
-                _is_value(ev_ew, win_price, a.win),  # the bar follows the win price
+                _is_value(ev_ew, win_price, a.win, win_price),  # the bar follows the win price
                 a.reasons_for,
             )
         )

@@ -2,7 +2,9 @@
 
 1. Each factor is standardised within the race (z-score); a runner missing a factor scores 0.
 2. Weighted sum -> softmax gives the form model's win probability.
-3. Log-linear blend with FormFav's model and the margin-free bookmaker consensus.
+3. Log-linear blend with the margin-free bookmaker consensus. Fitted exponents (backtest, 1,131
+   races): market 1.0, form model 0.3. FormFav's model enters as a factor inside the form model
+   (its own blend weight fitted to 0).
 4. Finishing-order probabilities use Harville with the Lo/Bacon-Shone discount, which corrects
    Harville's known over-rating of long shots for the minor placings.
 """
@@ -17,8 +19,8 @@ from itertools import permutations
 from melbcup.domain import Race
 from melbcup.model.features import FACTORS, raw_factors
 
-SOFTMAX_SCALE = 0.9
-BLEND = {"market": 0.5, "feed": 0.25, "model": 0.25}
+SOFTMAX_SCALE = 1.0
+BLEND = {"market": 1.0, "feed": 0.0, "model": 0.3}
 # Harville discount exponents for 1st, 2nd, 3rd, 4th place.
 DISCOUNT = (1.0, 0.81, 0.65, 0.55)
 EXACT_LIMIT = 15_000  # enumerate finishing orders up to this many; simulate beyond it
@@ -89,13 +91,16 @@ def blend(
 ) -> dict[int, float]:
     """Weighted geometric mean of the available probability sets, renormalised.
 
-    The exponents need not sum to 1: a total above 1 sharpens the result, below 1 flattens it.
-    When a source is missing the others are scaled up to keep that total."""
+    With every weighted source present the fitted exponents apply as they are (their total may
+    exceed 1, which sharpens). When one is missing, the rest are averaged with weights summing
+    to 1, so a lone source is used as it stands rather than sharpened by weight meant for
+    another."""
     weights = weights or BLEND
-    present = {k: v for k, v in components.items() if v and weights.get(k, 0) > 0}
+    wanted = {k for k, w in weights.items() if w > 0}
+    present = {k: v for k, v in components.items() if v and k in wanted}
     if not present:
         return {}
-    scale = sum(weights.values()) / sum(weights[k] for k in present)
+    scale = 1.0 if wanted <= set(present) else 1.0 / sum(weights[k] for k in present)
     runners = set.intersection(*(set(v) for v in present.values()))
     logp = {}
     for n in runners:
@@ -174,7 +179,13 @@ def assess(race: Race) -> RaceModel:
     if len(market) < len(starters):
         market = {}
     win = blend({"market": market, "feed": feed, "model": model})
-    sources = [name for name, v in (("market", market), ("feed", feed), ("model", model)) if v]
+    sources = [
+        name
+        for name, v in (("market", market), ("feed", feed), ("model", model))
+        if v and BLEND.get(name, 0) > 0
+    ]
+    if feed and "model" in sources:
+        sources[sources.index("model")] = "model (incl. FormFav)"
     place = top_k_probs(win, race.places_paid) if win else {}
 
     runners = {}

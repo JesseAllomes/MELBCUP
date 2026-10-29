@@ -228,3 +228,14 @@ def test_box_label():
     tri = trifectas(make_model(1, FIELD))
     box = next(t for t in tri if t.title == "Box of top 4")
     assert box.leg_labels == ["Box 1, 2, 3, 4"]
+
+
+def test_implausible_edges_and_big_prices_are_never_value():
+    # 30% at $6 is +80%: the model is more likely wrong than the market. 6% at $26: too long.
+    m = make_model(1, [0.30, 0.06, 0.64], [6.0, 26.0, 1.6])
+    sl = singles(m)
+    huge = next(s for s in sl if s.kind == "win" and s.number == 1)
+    long_ = next(s for s in sl if s.kind == "win" and s.number == 2)
+    assert huge.ev == pytest.approx(0.8) and not huge.value
+    assert long_.ev == pytest.approx(0.56) and not long_.value
+    assert not any(s.value for s in sl if s.number == 2)  # place and each-way follow the win price

@@ -128,7 +128,7 @@ def test_assess_full_card_uses_all_three_sources():
     race = card.race(2)
     apply_market(race, pe.card_prices(RACE_DATE, VENUE)[2])
     m = assess(race)
-    assert m.sources == ["market", "feed", "model"]
+    assert m.sources == ["market", "model (incl. FormFav)"]  # FormFav enters as a factor
     assert sum(a.win for a in m.runners.values()) == pytest.approx(1.0)
     assert sum(a.place for a in m.runners.values()) == pytest.approx(3.0)
     top = m.ranked()[0]
@@ -152,3 +152,10 @@ def test_assess_empty_race():
     m = assess(Race(venue=VENUE, race_date=RACE_DATE, number=9))
     assert m.runners == {} and m.sources == []
     assert not math.isnan(sum(a.win for a in m.runners.values()))
+
+
+def test_lone_source_is_not_sharpened():
+    market = {1: 0.5, 2: 0.3, 3: 0.2}
+    assert blend({"market": market}) == pytest.approx(market)
+    model = {1: 0.4, 2: 0.4, 3: 0.2}
+    assert blend({"model": model}) == pytest.approx(model)

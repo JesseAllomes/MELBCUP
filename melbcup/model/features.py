@@ -1,7 +1,8 @@
 """Per-runner handicapping factors, each a raw number where higher means better.
 
 A factor the data cannot support is left out (None), never guessed. Weights live here beside
-the factors they apply to; they are priors, not fitted values, and are tuned in m7.
+the factors they apply to. They were fitted by maximum likelihood (melbcup.backtest) on 1,131
+Australian races, 29 Sep to 29 Oct 2026, from pre-race data, and checked on held-out days.
 """
 
 from __future__ import annotations
@@ -189,32 +190,38 @@ def first_time_gear(r: Runner, race: Race) -> float | None:
     return float("FIRST TIME" in (r.gear_changes or "").upper())
 
 
+def feed_rating(r: Runner, race: Race) -> float | None:
+    """FormFav's own model as one factor among the rest (log of its win chance)."""
+    return None if not r.feed_win_prob else math.log(max(r.feed_win_prob, 1e-4))
+
+
 FACTORS: tuple[Factor, ...] = (
-    Factor("form", "Recent form", 0.35, recent_form),
-    Factor("career_win", "Career strike rate", 0.12, _stat_factor("career", place=False, k=6)),
-    Factor("career_place", "Career place rate", 0.08, _stat_factor("career", place=True, k=6)),
-    Factor("track", "Track record", 0.05, _stat_factor("track", place=True)),
-    Factor("distance", "Distance record", 0.08, _stat_factor("distance", place=True)),
-    Factor("track_distance", "Track + distance", 0.04, _stat_factor("track_distance", place=True)),
-    Factor("going", "Going record", 0.06, _stat_factor("going", place=True)),
-    Factor("spell", "First/second-up record", 0.04, spell_record),
-    Factor("hcp", "Handicap rating", 0.22, handicap_rating),
-    Factor("class", "Class rating", 0.15, class_rating),
-    Factor("weight", "Weight relief", 0.06, weight_relief),
-    Factor("jockey", "Jockey form", 0.10, _person("jockey_stats", "recent", 0.1, 30)),
-    Factor("jockey_track", "Jockey at track", 0.05, _person("jockey_stats", "at_track", 0.1, 30)),
-    Factor("trainer", "Trainer form", 0.08, _person("trainer_stats", "recent", 0.1, 30)),
+    Factor("form", "Recent form", 0.192, recent_form),
+    Factor("career_win", "Career strike rate", 0.049, _stat_factor("career", place=False, k=6)),
+    Factor("career_place", "Career place rate", 0.019, _stat_factor("career", place=True, k=6)),
+    Factor("track", "Track record", 0.064, _stat_factor("track", place=True)),
+    Factor("distance", "Distance record", 0.005, _stat_factor("distance", place=True)),
+    Factor("track_distance", "Track + distance", 0.012, _stat_factor("track_distance", place=True)),
+    Factor("going", "Going record", 0.059, _stat_factor("going", place=True)),
+    Factor("spell", "First/second-up record", -0.111, spell_record),
+    Factor("hcp", "Handicap rating", 0.279, handicap_rating),
+    Factor("class", "Class rating", -0.032, class_rating),
+    Factor("weight", "Weight relief", 0.105, weight_relief),
+    Factor("jockey", "Jockey form", 0.04, _person("jockey_stats", "recent", 0.1, 30)),
+    Factor("jockey_track", "Jockey at track", 0.13, _person("jockey_stats", "at_track", 0.1, 30)),
+    Factor("trainer", "Trainer form", -0.053, _person("trainer_stats", "recent", 0.1, 30)),
     Factor(
-        "trainer_track", "Trainer at track", 0.04, _person("trainer_stats", "at_track", 0.1, 30)
+        "trainer_track", "Trainer at track", 0.121, _person("trainer_stats", "at_track", 0.1, 30)
     ),
-    Factor("barrier", "Barrier bias", 0.06, barrier_bias),
-    Factor("map", "Speed map position", 0.04, track_position),
-    Factor("fresh", "Freshness", 0.03, freshness),
-    Factor("unplaced_last", "Unplaced last start", 0.0, last_start_unplaced),
-    Factor("female", "Mare or filly", 0.0, female),
-    Factor("weight_drop", "Weight drop since last start", 0.0, weight_drop),
-    Factor("rating_drop", "Class drop by rating", 0.0, rating_drop),
-    Factor("gear", "Gear change first time", 0.0, first_time_gear),
+    Factor("barrier", "Barrier bias", 0.066, barrier_bias),
+    Factor("map", "Speed map position", 0.03, track_position),
+    Factor("fresh", "Freshness", -0.006, freshness),
+    Factor("unplaced_last", "Unplaced last start", -0.057, last_start_unplaced),
+    Factor("female", "Mare or filly", -0.102, female),
+    Factor("weight_drop", "Weight drop since last start", -0.074, weight_drop),
+    Factor("rating_drop", "Class drop by rating", 0.004, rating_drop),
+    Factor("gear", "Gear change first time", 0.058, first_time_gear),
+    Factor("feed", "FormFav rating", 0.466, feed_rating),
 )
 
 
