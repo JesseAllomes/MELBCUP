@@ -1,59 +1,141 @@
-# Candidate corrections f(X): what the market may underuse
+# Correction families f(X): executable definitions (v0.3)
 
-Each family is built under PROTOCOL.md section 3:
-- history comes only from earlier days at other meetings, or earlier races at the same meeting;
-- only whitelisted per-run fields are used;
-- features are computed event by event.
+**Common rules** (PROTOCOL.md section 3):
 
-Coverage figures come from a 600-meeting sample (Apr–Sep 2026, 42,464 runners).
-The final availability table is in the protocol.
+- **History.** "History" means the runner's own **earlier** runs on **earlier calendar days**
+  (Australia/Melbourne), Australian non-trial races only, newest first.
+- **Previous-run fields.** "Last start" means history[0]; "last 3" means history[0..2]. Only
+  whitelisted fields are used.
+- **Missing values.** A value that cannot be computed is missing (0 after within-race z-scoring,
+  with the family's missing indicator set to 1).
+- **Expected wins.** E for a past runner is its margin-free starting-price probability in that race.
+  A/E figures are shrunk as AE_k = (W + k) / (E + k), where W is wins and E is the sum of
+  expected wins over the window.
+- **Windows.** Counted in days before the current race's date. Only completed earlier-day races
+  count.
 
-**How it really ran last time (previous runs only)**
+**Primary families (screened under section 5)**
 
-| Family | Built from | Coverage | Why the odds may miss it |
-|---|---|---|---|
-| Closing-sectional rank | last-600 `timeSectional` rank within its race; vs finish position | 86% | Punters read the finish, not the closing speed |
-| Ground made | settled → 800 → 400 → finish positions | 87–89% | Effort hidden by an ordinary finish |
-| Stewards' excuse | keyword flags on `commentStewards`: slow to begin, held up / checked / crowded, wide no cover, raced keenly, blundered | 47% | Casual money ignores excuses |
-| Bad-sign comments | bled, lame, eased, vet, irregular heart rhythm | same | Short favourites with hidden problems |
-| Wide run / distance travelled | `timing.distanceTravelled`, `distanceFromRail` | 17% | Rarely visible |
-| Top speed / 200 m splits | `timing.topSpeed`, `times[]` | 26% | Not readably published |
+**F1 Closing sectional**
 
-**Today's race shape**
+- For a past race, the runner's last-600 rank among that race's finishers with a `timeSectional`
+  (1 = fastest), scaled to s = 1 − (rank − 1) / (n − 1).
+- n ≥ 4 finishers with sectionals is required; otherwise the run is missing.
+- Features:
+  - `f1_last`: s at last start.
+  - `f1_avg3`: mean s over last 3 (at least 1 run with s).
+  - `f1_gap`: s at last start minus (1 − (finish − 1)/(field − 1)), i.e. closing speed better
+    than its finish.
 
-| Family | Built from | Coverage | Why the odds may miss it |
-|---|---|---|---|
-| Run style vs expected pace | each runner's settled positions over earlier runs; field's count of habitual leaders | from history | Pace is the most common reason favourites lose |
-| Same-meeting bias | winners' settled position and barrier in earlier races at this meeting today | sequential | The market adapts slowly |
-| Track / rail change | per-race `trackConditions` vs the morning; rail position | 98% | Early prices are set on old conditions |
+**F2 Ground made**
 
-**The market itself (quotes at or before T only)**
+- For a past race, g = (position at 800 − finish) / field size, using `positionAt800Abv`.
+- Features: `f2_last`, and `f2_avg3` (at least 1 run with g).
 
-| Family | Built from | Coverage | Why the odds may miss it |
-|---|---|---|---|
-| Market move | each bookmaker's open → T price change | 93% | Informed money |
-| Bookmaker disagreement | sb vs lb margin-free probabilities at T | 93% | One side knows something |
-| Favourite strength | gap to second favourite; favourite's own move | 93% | Weak favourites |
+**F3 Excuse (last start's stewards' comment)**
 
-**Connections in context (as of the race, from earlier days)**
+Case-insensitive regular expressions on `commentStewards`:
 
-| Family | Built from | Why the odds may miss it |
-|---|---|---|
-| Jockey up/downgrade | today's jockey's prior-180-day strike and A/E vs last start's jockey | Stable intent |
-| Stable form | trainer's prior-14-day and 90-day strike and A/E | Faster than season stats |
-| Jockey × trainer | prior A/E of the pair | Needs the big sample |
+| Flag | Pattern |
+|---|---|
+| `slow` | `slow(ly)?\s+(to\s+begin\|away)\|began\s+(awkwardly\|slowly\|poorly)\|dwelt\|missed\s+the\s+start` |
+| `held` | `held\s+up\|(unable\s+to\|could\s+not\|did\s+not)\s+(obtain\|get)\s+(clear\s+)?(running\|a\s+run)\|denied\s+(clear\s+)?(running\|a\s+run)\|blocked` |
+| `checked` | `checked\|crowded\|bumped\|hampered\|tightened\|squeezed\|inconvenienced\|shifted\s+(in\|out)\s+(abruptly\|sharply)` |
+| `wide` | `wide\s+(throughout\|without\s+cover\|and\s+without\s+cover)\|caught\s+wide\|(three\|four\|five)\s+wide` |
+| `keen` | `over-?rac(ed\|ing)\|raced\s+(keenly\|ungenerously\|fiercely)\|pulled\s+hard\|hung\s+(in\|out)` |
 
-**Horse in context**
+Features:
 
-| Family | Built from | Why the odds may miss it |
-|---|---|---|
-| Class / rating change | race class and `handicapRating` vs last start (rating flagged as possibly revised) | Drops over- or under-bet |
-| Unproven conditions | first time at the trip, track or going (from its earlier runs), plus the sire's prior wet A/E | Uncertainty |
-| Barrier × field × distance × track | prior A/E by cell, shrunk | Specific combinations |
+- `f3_any`: any flag at last start.
+- `f3_count3`: number of runs in the last 3 with any flag.
+- Missing only if there is no history (an empty comment means no flag).
 
-**Favourite-specific composites (exploratory unless fixed in amendment A)**
+**F4 Bad sign (last start)**
 
-- **False favourite:** short price not backed by form, e.g. a soft last-start win, or big-name
-  connections with a weak sectional.
-- **Favourite exposed:** wide barrier, backmarker against a slow pace, unproven today, drifting
-  from open to T.
+- Pattern: `bled\|bleed\|blood\|lame\|cardiac\|irregular\s+heart\|arrhythm\|pulled\s+up\|eased\s+(down\|out\|right\s+down)\|vet(erinary)?\s+(examination\|inspection)\|distressed\|respiratory`.
+- Feature: `f4_bad`, last start only.
+
+**F5 Distance travelled**
+
+- For a past race, t = `distanceTravelled` − race distance (metres), where present.
+- Feature: `f5_avg3`, the mean of t over last 3 (at least 1). Lower means covered less extra ground.
+
+**F6 Top speed**
+
+- For a past race, v = `topSpeed` / median `topSpeed` of that race (at least 4 values).
+- Features: `f6_last`, `f6_avg3`.
+
+**F7 Run style vs pace**
+
+- A runner's style S is the mean over its last 5 runs of
+  (numeric `positionAtSettledAbv` − 1) / (field − 1). At least 2 runs are required, else missing.
+- The race's pace count L is the number of runners in U with S ≤ 0.25 (known style only).
+- Features: `f7_style` = S; `f7_pace` = L; `f7_fit` = S × (L − mean L of that race's fold-train
+  races).
+
+**F10 Market move**
+
+- For each bookmaker, open is its first fluctuation for the runner. Move is
+  ln(open price / quote at T).
+- Feature: `f10_move`, the mean of the available books' moves (at least 1).
+
+**F11 Bookmaker disagreement**
+
+- Features: `f11_sb_lb` = ln(m_sb,i / m_lb,i); `f11_abs` = its absolute value.
+
+**F12 Favourite strength**
+
+- Applies only to favourites (zero for others).
+- Features: `f12_gap` = fav × (M_fav − M of the highest non-favourite); `f12_move` = fav ×
+  f10_move.
+
+**F13 Jockey**
+
+- For a jockey code, AE20 over the prior 365 days.
+- Features: `f13_jockey` = AE20 of today's jockey; `f13_change` = AE20 of today's jockey minus
+  AE20 of last start's jockey.
+- A jockey with fewer than 10 rides in the window counts as missing.
+
+**F14 Stable form**
+
+- Trainer AE5 over the prior 14 days, and AE20 over the prior 365 days.
+- Features: `f14_14d`, `f14_365d`.
+- Fewer than 3 runners in the 14-day window makes `f14_14d` missing.
+
+**F15 Jockey × trainer**
+
+- Pair AE10 over the prior 730 days.
+- Feature: `f15_pair` (fewer than 5 rides makes it missing).
+
+**F16 Rating change**
+
+- `f16_dr` = today's `handicapRating` minus last start's (missing if either is absent).
+- Reported with and without this family (revision risk).
+
+**F17 Unproven conditions**
+
+- Bands:
+  - distance band: nearest 200 m;
+  - wet: Soft or Heavy;
+  - track: venue name.
+- Features:
+  - `f17_newdist`: no prior run in today's band;
+  - `f17_newtrack`: no prior run at this venue;
+  - `f17_newwet`: today's race was **declared** wet in the earliest record available before T
+    (where unavailable, the feature is missing; **today's final condition is never used**) and
+    the runner has no prior wet run;
+  - `f17_sire_wet`: the sire's progeny AE10 on wet races over the prior 1,095 days, times the
+    wet flag.
+
+**F18 Barrier cell**
+
+- Cell = (venue, distance band, barrier group {1–3, 4–6, 7–9, 10+}).
+- A/E over the prior 1,095 days, shrunk AE20.
+- Feature: `f18_cell` (fewer than 30 runners in the cell makes it missing).
+
+**Exploratory only (never primary in this protocol)**
+
+- `sameday_*`: same-meeting bias, and connections' form earlier the same day.
+- Track condition or rail change during the day (needs timestamped observations).
+- False favourite and favourite exposed composites.
+- Any tree-based model.
