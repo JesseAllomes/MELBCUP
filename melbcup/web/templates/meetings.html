@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Choose a meeting · MELBCUP{% endblock %}
+{% block refresh %}0{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Choose a meeting</h1>
+  <p class="sub">Now: {{ snap.venue }} · {{ snap.race_date.strftime('%a %-d %b %Y') }}. Switching
+    clears the current card; nothing is spent until you tap Load card.</p>
+
+  <h2>Flemington Cup Carnival</h2>
+  <div class="buttons">
+    {% for label, d in carnival %}
+    <form method="post" action="/actions/meeting?date={{ d.isoformat() }}&venue=Flemington">
+      <button type="submit" class="{{ 'on' if d == snap.race_date and snap.venue|lower == 'flemington' }}">{{ label }} <span>{{ d.strftime('%a %-d %b') }}</span></button>
+    </form>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <h2>Any other day</h2>
+  <form method="get" action="/meetings" class="budget">
+    <label for="date">Date</label>
+    <div class="row">
+      <input id="date" name="date" type="date" value="{{ pick.isoformat() }}">
+      <button type="submit">Show</button>
+    </div>
+  </form>
+  {% if found is none %}
+    <form method="post" action="/actions/find?date={{ pick.isoformat() }}" class="buttons" style="margin-top:10px">
+      <button type="submit" class="primary">Find meetings on {{ pick.strftime('%a %-d %b') }} <span>2 cr</span></button>
+    </form>
+  {% elif found %}
+    <p class="sub" style="margin-top:10px">{{ found | length }} meeting{{ '' if found | length == 1 else 's' }} on {{ pick.strftime('%a %-d %b') }}:</p>
+    <div class="buttons">
+      {% for v in found %}
+      <form method="post" action="/actions/meeting?date={{ pick.isoformat() }}&venue={{ v | urlencode }}">
+        <button type="submit">{{ v }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="sub" style="margin-top:10px">No acceptances published for {{ pick.strftime('%a %-d %b') }}
+      yet. Fields are usually published two to four days ahead.</p>
+  {% endif %}
+  <p class="sub" style="margin-top:10px">Bookmakers open prices the evening before a race day,
+    so only today's and tomorrow's meetings can be priced. Form and picks work for any day with a
+    published field.</p>
+</section>
+{% endblock %}

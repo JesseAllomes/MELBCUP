@@ -27,6 +27,15 @@ spent until you tap:
 
 The page itself re-reads the app every minute; that costs nothing.
 
+**Any meeting, any day:** tap the meeting name at the top (**change**). The Cup Carnival days at
+Flemington are one tap each. For any other day, pick the date and tap **Find meetings** (2 credits)
+to list every Australian meeting with a published field, then tap one. Switching costs nothing;
+**Load card** then fetches it. Bookmakers price a meeting from the evening before, so prices
+exist only for today's and tomorrow's meetings. Form and picks work for any day with a field.
+
+After Render wakes the app from sleep, it starts on `RACE_DATE`/`VENUE` (Cup day at Flemington
+unless set), so choose the meeting again if you were on another.
+
 ## Backtest
 
 `melbcup/backtest.py` replays 1,131 Australian races (29 September to 29 October 2026). It uses
@@ -120,8 +129,8 @@ Australia's acceptances and are shown, but not scored, because no feed has owner
 On the free plan the app sleeps after 15 minutes without a visitor, and the first visit after
 that takes about a minute to wake it. Keep the page open on race day and it stays awake.
 
-To try it on a different meeting day before Cup day, set `RACE_DATE` (YYYY-MM-DD) and `VENUE`
-in Render. FormFav serves race days from 30 days back to 7 days ahead.
+`RACE_DATE` (YYYY-MM-DD) and `VENUE` in Render set the meeting the app starts on. FormFav serves
+race days from 30 days back to 7 days ahead.
 
 ## Run it locally
 

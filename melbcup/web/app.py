@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -37,6 +37,21 @@ BOOKMAKERS = {
 }
 KIND_LABELS = {"win": "Win", "place": "Place", "each_way": "Each way"}
 MAX_BUDGET = 100_000
+CARNIVAL = (  # Flemington, Melbourne Cup Carnival 2026: one tap, no lookup
+    ("Derby Day", date(2026, 10, 31)),
+    ("Cup Day", date(2026, 11, 3)),
+    ("Oaks Day", date(2026, 11, 5)),
+    ("Stakes Day", date(2026, 11, 7)),
+)
+
+
+def _date(text: str | None) -> date | None:
+    try:
+        return date.fromisoformat(text) if text else None
+    except ValueError:
+        return None
+
+
 BASIC_AUTH = HTTPBasic(auto_error=False)
 
 
@@ -166,6 +181,34 @@ def create_app(
     def load(request: Request):
         board.load_card_now()
         return back(request)
+
+    @app.get("/meetings", response_class=HTMLResponse, dependencies=[Depends(require_login)])
+    def meetings(request: Request):
+        ctx = context(request)
+        pick = _date(request.query_params.get("date")) or ctx["snap"].race_date
+        ctx.update(
+            pick=pick,
+            found=ctx["snap"].meetings.get(pick),
+            carnival=CARNIVAL,
+            here=f"/meetings?date={pick.isoformat()}",
+        )
+        return templates.TemplateResponse(request, "meetings.html", ctx)
+
+    @app.post("/actions/find", dependencies=[Depends(require_login)])
+    def find(request: Request):
+        pick = _date(request.query_params.get("date"))
+        if pick is not None:
+            board.find_meetings(pick)
+            return RedirectResponse(f"/meetings?date={pick.isoformat()}", status_code=303)
+        return RedirectResponse("/meetings", status_code=303)
+
+    @app.post("/actions/meeting", dependencies=[Depends(require_login)])
+    def meeting(request: Request):
+        pick = _date(request.query_params.get("date"))
+        venue = request.query_params.get("venue", "")
+        if pick is not None and board.set_meeting(pick, venue):
+            return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/meetings", status_code=303)
 
     @app.post("/actions/auto", dependencies=[Depends(require_login)])
     def auto(request: Request):

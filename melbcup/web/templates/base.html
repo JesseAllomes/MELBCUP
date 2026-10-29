@@ -11,9 +11,9 @@
 <body>
   <header class="top">
     <a class="brand" href="/{{ budget_q }}">MELBCUP</a>
-    <span class="meet">{{ settings.venue }} · {{ settings.race_date.strftime('%a %-d %b') }}</span>
+    <a class="meet" href="/meetings{{ budget_q }}">{{ snap.venue }} · {{ snap.race_date.strftime('%a %-d %b') }} <span class="change">change</span></a>
   </header>
-  <main id="main" data-refresh="60">
+  <main id="main" data-refresh="{% block refresh %}60{% endblock %}">
     {% if settings.has_price_source %}
     <div class="controls">
       <div class="credits">

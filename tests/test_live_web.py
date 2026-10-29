@@ -256,3 +256,45 @@ def test_filters():
     assert money(3.5) == "$3.50" and money(250) == "$250"
     assert edge(0.123) == "+12%" and edge(-0.05) == "-5%"
     assert local_time(datetime(2026, 11, 3, 4, 0, tzinfo=MELBOURNE)) == "4:00am"
+
+
+def test_find_meetings_then_switch_and_load_share_one_call():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    assert board.find_meetings(RACE_DATE) == ["Flemington"]
+    assert board.find_meetings(RACE_DATE) == ["Flemington"]  # cached per day
+    assert board.set_meeting(RACE_DATE, "Flemington")
+    board.load_card_now(wait=True)
+    assert router.hits["/v1/racing/acceptances"] == 1  # lookup and load shared one call
+    assert board.snapshot().models
+
+
+def test_switching_meeting_drops_the_old_card():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    assert board.snapshot().card is not None
+    other = RACE_DATE - timedelta(days=3)
+    assert board.set_meeting(other, "Flemington")
+    snap = board.snapshot()
+    assert snap.card is None and snap.models == [] and snap.priced_at is None
+    assert (snap.race_date, snap.venue) == (other, "Flemington")
+    assert not board.set_meeting(other, "  ")
+
+
+def test_meetings_page_and_switch(client):
+    html = client.get("/meetings", auth=AUTH).text
+    assert "Derby Day" in html and "Cup Day" in html and 'type="date"' in html
+    assert 'data-refresh="0"' in html
+    r = client.post(
+        "/actions/meeting?date=2026-10-31&venue=Flemington", auth=AUTH, follow_redirects=False
+    )
+    assert r.status_code == 303 and r.headers["location"] == "/"
+    home = client.get("/", auth=AUTH).text
+    assert "Sat 31 Oct" in home and "No card loaded yet" in home
+    r = client.post("/actions/find?date=2026-11-03", auth=AUTH, follow_redirects=False)
+    assert r.headers["location"] == "/meetings?date=2026-11-03"
+    listed = client.get("/meetings?date=2026-11-03", auth=AUTH).text
+    assert "venue=Flemington" in listed and "1 meeting on" in listed
+    bad = client.post("/actions/meeting?date=nope&venue=X", auth=AUTH, follow_redirects=False)
+    assert bad.headers["location"] == "/meetings"

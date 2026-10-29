@@ -43,7 +43,8 @@ a { color: inherit; }
   border-bottom: 3px solid var(--accent);
 }
 .brand { font-weight: 800; letter-spacing: 0.08em; text-decoration: none; }
-.meet { opacity: 0.85; font-size: 14px; }
+.meet { opacity: 0.9; font-size: 14px; text-decoration: none; }
+.meet .change { font-size: 12px; text-decoration: underline; opacity: 0.8; margin-left: 4px; }
 main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; }
 .controls {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;

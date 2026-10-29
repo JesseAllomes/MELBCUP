@@ -258,13 +258,18 @@ class PuntersEdgeClient:
         self._credits = (_int(info.get("credits_remaining")), _int(info.get("credits_limit")))
         self.src.last_headers = {}
 
+    def _acceptances(self, race_date: date) -> dict[str, Any]:
+        """Every meeting's acceptances for the day in one call (2 credits), cached 10 minutes so
+        finding meetings and then loading one costs a single call."""
+        return self.src.get("/v1/racing/acceptances", {"date": race_date.isoformat()}, ttl=600)
+
     def acceptances(self, race_date: date, venue: str) -> Card:
-        data = self.src.get(
-            "/v1/racing/acceptances",
-            {"date": race_date.isoformat(), "venue": venue},
-            ttl=600,
-        )
-        return parse_acceptances(data, venue, race_date)
+        return parse_acceptances(self._acceptances(race_date), venue, race_date)
+
+    def meetings(self, race_date: date) -> list[str]:
+        """Venue names with published acceptances on this day."""
+        data = self._acceptances(race_date)
+        return sorted(m["venue"] for m in data.get("meetings", []) if m.get("venue"))
 
     def field_form(
         self, race_date: date, venue: str, race_number: int

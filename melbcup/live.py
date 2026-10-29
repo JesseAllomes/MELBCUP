@@ -18,7 +18,7 @@ import logging
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from melbcup.bets import DayPicks, build_picks
 from melbcup.config import Settings
@@ -62,6 +62,9 @@ class Snapshot:
     loading: bool = False
     priced_at: datetime | None = None
     form_at: datetime | None = None
+    race_date: date | None = None
+    venue: str = ""
+    meetings: dict[date, list[str]] = field(default_factory=dict)
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -86,6 +89,9 @@ class LiveBoard:
         )
         self.clock = clock
         self.auto = settings.auto_refresh
+        self.race_date = settings.race_date
+        self.venue = settings.venue
+        self._meetings: dict[date, list[str]] = {}
         self._lock = threading.Lock()
         self._work = threading.Lock()  # one load or refresh at a time
         self._stop = threading.Event()
@@ -114,6 +120,9 @@ class LiveBoard:
                 loading=self._loading,
                 priced_at=self._priced_at,
                 form_at=self._form_at,
+                race_date=self.race_date,
+                venue=self.venue,
+                meetings=dict(self._meetings),
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -132,7 +141,7 @@ class LiveBoard:
             self._errors = errors
 
     def _load_form(self, now: datetime) -> None:
-        card = load_card(self.pe, self.ff, self.settings.race_date, self.settings.venue)
+        card = load_card(self.pe, self.ff, self.race_date, self.venue)
         with self._lock:
             self._carry_prices(card)
             self._card = card
@@ -141,7 +150,7 @@ class LiveBoard:
             self._updated_at = now
 
     def _load_prices(self, now: datetime) -> None:
-        snaps = self.pe.card_prices(self.settings.race_date, self.settings.venue)
+        snaps = self.pe.card_prices(self.race_date, self.venue)
         with self._lock:
             for race in self._card.races:
                 if race.number in snaps:
@@ -187,6 +196,35 @@ class LiveBoard:
 
     def set_auto(self, on: bool) -> None:
         self.auto = on
+
+    def set_meeting(self, race_date: date, venue: str) -> bool:
+        """Switch to another meeting. The old card is dropped; nothing is fetched until Load."""
+        venue = venue.strip()
+        if not venue or self._loading:
+            return False
+        with self._work, self._lock:
+            if (race_date, venue.lower()) == (self.race_date, self.venue.lower()):
+                return True
+            self.race_date, self.venue = race_date, venue
+            self._card, self._models = None, {}
+            self._form_at = self._priced_at = self._updated_at = None
+            self._errors = []
+        return True
+
+    def find_meetings(self, race_date: date) -> list[str]:
+        """The day's meetings (2 credits, then cached for this day)."""
+        if self.pe is None:
+            return []
+        if race_date not in self._meetings:
+            try:
+                found = self.pe.meetings(race_date)
+            except SourceError as exc:
+                with self._lock:
+                    self._errors = [str(exc)]
+                return []
+            with self._lock:
+                self._meetings[race_date] = found
+        return self._meetings[race_date]
 
     def check_credits(self) -> None:
         """Read the balance once (free) so the page can show it before anything is spent."""

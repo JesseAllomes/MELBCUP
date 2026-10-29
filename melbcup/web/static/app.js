@@ -26,7 +26,8 @@
 
   var main = document.getElementById("main");
   if (!main) return;
-  var seconds = parseInt(main.getAttribute("data-refresh"), 10) || 60;
+  var seconds = parseInt(main.getAttribute("data-refresh"), 10);
+  if (!(seconds > 0)) return; // pages with forms being filled in opt out
 
   function openDetails() {
     return Array.prototype.map.call(main.querySelectorAll("details"), function (d) { return d.open; });
