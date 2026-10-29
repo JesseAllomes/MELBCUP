@@ -1,8 +1,10 @@
 """Entry point for the browser build (GitHub Pages, run by Pyodide in a Web Worker).
 
 The page's JavaScript calls ``init`` once, then ``render`` for every page and ``act`` for every
-button. There are no threads in the browser, so card loads run to completion one request at a
-time, and API calls are synchronous XMLHttpRequests (allowed inside a Web Worker). The loaded
+button. There are no threads in the browser and API calls are synchronous XMLHttpRequests
+(allowed inside a Web Worker), one at a time. So before a card load the page calls ``warm``,
+which fetches the load's ~100 requests six at a time and caches them; the load then reads them
+from the cache. The loaded
 card, prices and results are handed back by ``save`` for the page to keep on the phone, so
 reopening the page never re-spends credits.
 """
@@ -11,8 +13,9 @@ from __future__ import annotations
 
 import base64
 import pickle
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime
+from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
 from melbcup import sources
@@ -25,6 +28,9 @@ from melbcup.web.views import NotFound, Views
 
 STATE_VERSION = 1
 _views: Views | None = None
+# (urls, headers, label) -> awaitable list of [status, text]: the page's parallel fetch.
+FetchMany = Callable[[list[str], dict[str, str], str], Awaitable[Any]]
+_fetch_many: FetchMany | None = None
 
 
 def _parse_headers(raw: str) -> dict[str, str]:
@@ -113,8 +119,10 @@ def init(
     requester: http.Requester | None = None,
     archive_reader: Callable[[str], str | None] | None = None,
     clock: Callable[[], datetime] | None = None,
+    fetch_many: FetchMany | None = None,
 ) -> None:
-    global _views
+    global _views, _fetch_many
+    _fetch_many = fetch_many
     sources.WORKERS = 1
     http.DEFAULT_REQUESTER = requester or xhr_requester(progress)
     settings = load_settings(
@@ -132,6 +140,33 @@ def init(
         _restore(board, saved)
     board.check_credits()  # free: shows the balance before anything is spent
     _views = Views(settings, board, browser=True)
+
+
+async def warm(manual: bool = False) -> int:
+    """Before a card load, fetch its requests side by side and cache the replies, so the load
+    itself runs from the cache instead of making ~100 calls one after another. Spends nothing
+    the load would not (the acceptances are cached for it too). A request that fails here is
+    simply made again by the load, which reports it as usual. Returns the replies cached."""
+    board = _views.board if _views else None
+    if _fetch_many is None or board is None or not board.load_due(board.clock(), manual=manual):
+        return 0
+    try:
+        card = board.pe.acceptances(board.race_date, board.venue)
+    except http.SourceError:
+        return 0  # the load asks again and shows the reason
+    cached = 0
+    for client, label in ((board.pe, "recent form"), (board.ff, "form and stats")):
+        if client is None:
+            continue
+        todo = client.src.missing(client.load_requests(card))
+        if not todo:
+            continue
+        replies = await _fetch_many([url for _, url, _ in todo], client.src.headers, label)
+        replies = replies.to_py() if hasattr(replies, "to_py") else replies
+        for (key, _, ttl), (status, text) in zip(todo, replies, strict=True):
+            if status == 200:
+                cached += client.src.seed(key, text, ttl)
+    return cached
 
 
 def _split(url: str) -> tuple[str, dict[str, str]]:

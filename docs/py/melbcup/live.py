@@ -185,6 +185,16 @@ class LiveBoard:
             return self.race_date - timedelta(days=2)
         return None
 
+    def load_due(self, now: datetime, *, manual: bool = False) -> bool:
+        """A card load from the feeds is about to run: the Load button (``manual``), or Auto's
+        first load. The browser uses this to fetch the load's requests side by side first."""
+        if self.pe is None or self.field_due(now) is not None or self._archived(now):
+            return False
+        if manual:
+            return True
+        paused = self._paused_until is not None and now < self._paused_until
+        return self.auto and self._card is None and not paused
+
     def _load_form(self, now: datetime) -> None:
         if (due := self.field_due(now)) is not None:
             raise SourceError(

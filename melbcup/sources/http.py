@@ -116,9 +116,46 @@ class JsonSource:
             resp.status_code, {k.lower(): v for k, v in resp.headers.items()}, resp.text
         )
 
+    @staticmethod
+    def _key(path: str, params: dict[str, Any] | None) -> tuple:
+        clean = {k: v for k, v in (params or {}).items() if v is not None}
+        return path, tuple(sorted((k, str(v)) for k, v in clean.items()))
+
+    @property
+    def headers(self) -> dict[str, str]:
+        return dict(self._headers)
+
+    def missing(self, requests: list[tuple[str, dict[str, Any], float]]) -> list[tuple]:
+        """(key, url, ttl) for each request not already cached, without sending anything."""
+        now, out, seen = self._clock(), [], set()
+        for path, params, ttl in requests:
+            key = self._key(path, params)
+            with self._lock:
+                hit = self._cache.get(key)
+            if key in seen or (hit and hit[0] > now):
+                continue
+            seen.add(key)
+            query = f"?{urlencode(dict(key[1]))}" if key[1] else ""
+            out.append((key, self._base + path + query, ttl))
+        return out
+
+    def seed(self, key: tuple, text: str, ttl: float) -> bool:
+        """Cache a reply fetched elsewhere (the browser fetches a load's requests side by side
+        first); ``get`` then answers from it as if it had made the call."""
+        import json
+
+        try:
+            data = json.loads(text)
+        except ValueError:
+            return False
+        with self._lock:
+            self.calls += 1
+            self._cache[key] = (self._clock() + ttl, data)
+        return True
+
     def get(self, path: str, params: dict[str, Any] | None = None, *, ttl: float = 0) -> Any:
         clean = {k: v for k, v in (params or {}).items() if v is not None}
-        key = (path, tuple(sorted((k, str(v)) for k, v in clean.items())))
+        key = self._key(path, clean)
         now = self._clock()
         with self._lock:
             hit = self._cache.get(key)

@@ -79,3 +79,35 @@ def test_actions_route_like_the_server():
     assert browser.act("/actions/nonsense") == "/"
     assert browser.act("/actions/auto?on=1&next=/meetings") == "/meetings"
     assert browser.tick() in (True, False)
+
+
+def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
+    import asyncio
+
+    router = Router()
+    fetched: list[str] = []
+
+    async def fetch_many(urls, headers, label):
+        fetched.extend(urls)
+        replies = [requester_for(router)(u, headers) for u in urls]
+        return [[r.status, r.text] for r in replies]
+
+    browser.init(
+        "pe",
+        "ff",
+        requester=requester_for(router),
+        clock=lambda: CUP_MORNING,
+        fetch_many=fetch_many,
+    )
+    cached = asyncio.run(browser.warm(False))  # Auto's first load is coming
+    assert cached > 10 and any("/v1/stats/jockey/" in u for u in fetched)
+    before = dict(router.hits)
+    assert browser.tick()  # the load
+    after = dict(router.hits)
+    assert after["/v1/racing/acceptances"] == before["/v1/racing/acceptances"] == 1
+    assert after.get("/v1/racing/form") == before.get("/v1/racing/form")  # no credits twice
+    assert after.get("/v1/form") == before.get("/v1/form")
+    stats = [k for k in after if k.startswith("/v1/stats/")]
+    assert stats and all(after[k] == before.get(k) for k in stats)  # people came from the cache
+    assert "Lexus Melbourne Cup" in browser.render("/")
+    assert asyncio.run(browser.warm(False)) == 0  # card loaded: Auto will not load again

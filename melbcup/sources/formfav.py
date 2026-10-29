@@ -12,7 +12,7 @@ from datetime import date
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
-from melbcup.domain import PersonStats, StatLine, going_band
+from melbcup.domain import Card, PersonStats, StatLine, going_band
 
 if TYPE_CHECKING:
     import httpx
@@ -193,10 +193,34 @@ class FormFavClient:
         )
         return parse_predictions(data)
 
+    @staticmethod
+    def _person_path(role: str, name: str) -> str:
+        return f"/v1/stats/{role}/{quote(name, safe='')}"
+
+    def load_requests(self, card: Card) -> list[tuple[str, dict[str, Any], float]]:
+        """The requests a card load makes, as (path, params, ttl), matching the methods here."""
+        out = []
+        for race in card.races:
+            params = self._race_params(card.race_date, card.venue, race.number)
+            out += [("/v1/form", params, 900), ("/v1/predictions", params, 600)]
+        out.append((f"/v1/stats/track-bias/{track_slug(card.venue)}", {}, 6 * 3600))
+        people = sorted(
+            {
+                (role, name)
+                for race in card.races
+                for r in race.runners
+                for role, name in (("jockey", r.jockey), ("trainer", r.trainer))
+                if name
+            }
+        )
+        window = {"window": STATS_WINDOW_DAYS}
+        out += [(self._person_path(role, name), window, 6 * 3600) for role, name in people]
+        return out
+
     def _person(self, role: str, name: str, venue: str) -> PersonStats:
         """Big stables can make FormFav's windowed query fail server-side; fall back to a
         shorter window, then to all-time figures."""
-        path = f"/v1/stats/{role}/{quote(name, safe='')}"
+        path = self._person_path(role, name)
         for window in (STATS_WINDOW_DAYS, 30):
             try:
                 data = self._get("stats", path, {"window": window}, ttl=6 * 3600)

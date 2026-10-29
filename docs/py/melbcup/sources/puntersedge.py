@@ -317,17 +317,22 @@ class PuntersEdgeClient:
     def field_form(
         self, race_date: date, venue: str, race_number: int
     ) -> dict[int, tuple[list[PastRun], StatLine | None]]:
-        data = self.src.get(
-            "/v1/racing/form",
-            {
-                "venue": venue,
-                "meeting_date": race_date.isoformat(),
-                "race_number": race_number,
-                "runs": 10,
-            },
-            ttl=3600,
-        )
-        return parse_form(data)
+        path, params, ttl = self._form_request(race_date, venue, race_number)
+        return parse_form(self.src.get(path, params, ttl=ttl))
+
+    @staticmethod
+    def _form_request(race_date: date, venue: str, race_number: int) -> tuple[str, dict, float]:
+        params = {
+            "venue": venue,
+            "meeting_date": race_date.isoformat(),
+            "race_number": race_number,
+            "runs": 10,
+        }
+        return "/v1/racing/form", params, 3600
+
+    def load_requests(self, card: Card) -> list[tuple[str, dict[str, Any], float]]:
+        """The requests a card load makes after the acceptances (3 credits each)."""
+        return [self._form_request(card.race_date, card.venue, r.number) for r in card.races]
 
     def results(self, race_date: date, venue: str) -> dict[int, RaceResult]:
         """The meeting's settled results with SPs and dividends (2 credits)."""
