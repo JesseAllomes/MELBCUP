@@ -18,6 +18,7 @@ from melbcup.domain import (
     PastRun,
     Quote,
     Race,
+    RaceResult,
     Runner,
     RunnerPrices,
     StatLine,
@@ -232,6 +233,46 @@ def _int(value: Any) -> int | None:
         return None
 
 
+def parse_result(item: dict[str, Any]) -> RaceResult:
+    finish, sp, names = {}, {}, {}
+    for r in item.get("runners") or item.get("placings") or []:
+        n = r.get("number")
+        if n is None or r.get("status", "ran") != "ran":
+            continue
+        names[n] = r.get("name") or str(n)
+        if r.get("position"):
+            finish[n] = int(r["position"])
+        if r.get("sp"):
+            sp[n] = float(r["sp"])
+    div = item.get("dividends") or {}
+    place_div = {
+        d["number"]: float(d["amount"])
+        for d in div.get("straight") or []
+        if d.get("market") == "PLC" and d.get("product") == "FIXED" and d.get("amount")
+    }
+    exotics: dict[str, tuple[tuple[int, ...], float]] = {}
+    for d in div.get("exotics") or []:
+        code, sel = d.get("code"), d.get("selection") or ""
+        if code and d.get("amount") and code not in exotics:
+            try:
+                exotics[code] = (tuple(int(x) for x in sel.split(",")), float(d["amount"]))
+            except ValueError:
+                continue
+    return RaceResult(item.get("status") or "interim", finish, sp, names, place_div, exotics)
+
+
+def parse_results(data: list[dict[str, Any]], venue: str, race_date: date) -> dict[int, RaceResult]:
+    out = {}
+    for item in data:
+        start = _utc(item.get("start_time"))
+        if (item.get("venue") or "").lower() != venue.lower() or start is None:
+            continue
+        if start.astimezone(MELBOURNE).date() != race_date or not item.get("runners"):
+            continue
+        out[int(item["race_number"])] = parse_result(item)
+    return out
+
+
 class PuntersEdgeClient:
     def __init__(self, api_key: str, *, transport: httpx.BaseTransport | None = None):
         self.src = JsonSource("PuntersEdge", BASE_URL, api_key, transport=transport)
@@ -285,6 +326,14 @@ class PuntersEdgeClient:
             ttl=3600,
         )
         return parse_form(data)
+
+    def results(self, race_date: date, venue: str) -> dict[int, RaceResult]:
+        """The meeting's settled results with SPs and dividends (2 credits)."""
+        data = self.src.get(
+            "/v1/racing/results",
+            {"date": race_date.isoformat(), "venue": venue, "country": "AU", "category": "horse"},
+        )
+        return parse_results(data if isinstance(data, list) else [], venue, race_date)
 
     def card_prices(self, race_date: date, venue: str) -> dict[int, MarketSnapshot]:
         """Every priced race at the meeting in one call (2 credits on every plan).

@@ -22,6 +22,7 @@
         <span class="sub">
           {% if snap.priced_at %}Prices {{ snap.priced_at | local_time }}{% else %}No prices yet{% endif %}
           {% if snap.form_at %} · Form {{ snap.form_at | local_time }}{% endif %}
+          {% if snap.results_at %} · Results {{ snap.results_at | local_time }}{% endif %}
           {% if snap.loading %} · <strong>loading card…</strong>{% endif %}
         </span>
       </div>
@@ -29,6 +30,11 @@
         {% if card %}
         <form method="post" action="/actions/prices?next={{ here | urlencode }}">
           <button type="submit" class="primary">Refresh prices <span>2 cr</span></button>
+        </form>
+        {% endif %}
+        {% if card and snap.race_date <= today %}
+        <form method="post" action="/actions/results?next={{ here | urlencode }}">
+          <button type="submit">Get results <span>2 cr</span></button>
         </form>
         {% endif %}
         <form method="post" action="/actions/load?next={{ here | urlencode }}">

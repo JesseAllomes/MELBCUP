@@ -25,6 +25,22 @@
   </section>
 {% else %}
 
+  {% if grade %}
+  {% set tp = grade.tally(grade.value_lines) %}{% set ex = grade.exotic_lines %}{% set te = grade.tally(ex) %}
+  <section class="card score">
+    <h2>How the model went · {{ grade.graded }} race{{ '' if grade.graded == 1 else 's' }} run</h2>
+    <div class="tiles">
+      <div><b>{{ grade.top_pick_wins }}/{{ grade.graded }}</b><span>top pick won</span></div>
+      <div><b>{{ grade.top_pick_places }}/{{ grade.graded }}</b><span>top pick placed</span></div>
+      <div><b>{{ '%+.2f' % tp[2] if tp[0] else '–' }}</b><span>value bets, $1 each ({{ tp[1] }}/{{ tp[0] }} won)</span></div>
+      <div><b>{{ '%+.2f' % te[2] if te[0] else '–' }}</b><span>tri + first 4, $1 each ({{ te[1] }}/{{ te[0] }} hit)</span></div>
+    </div>
+    {% for g in grade.quaddies + grade.multis %}{% include "_graded.html" %}{% endfor %}
+    <p class="sub">Profit per $1 at the prices the app showed (starting prices where none were taken).
+      Exotics assume $1 spread flexi across the structure.</p>
+  </section>
+  {% endif %}
+
   {% if top_value %}
   <section class="card">
     <h2>Best value right now</h2>
@@ -47,10 +63,13 @@
       <span class="rname">{{ race.name or 'Race ' ~ race.number }}</span>
       <span class="sub">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m</span>
     </a>
+    {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+    {% if rg %}{% include "_result.html" %}{% else %}
     {% for kind in ['win', 'place', 'each_way'] %}
       {% set s = rp.best[kind] %}
       {% if s %}{% include "_pick.html" %}{% endif %}
     {% endfor %}
+    {% endif %}
     {% set tri = rp.trifectas | selectattr('recommended') | first %}
     {% set ff = rp.first_fours | selectattr('recommended') | first %}
     <div class="exo-line">

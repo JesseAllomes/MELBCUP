@@ -111,6 +111,21 @@ class RunnerPrices:
 
 
 @dataclass
+class RaceResult:
+    """Official result: finishing positions, starting prices and $1 dividends."""
+
+    status: str  # "final" | "interim"
+    finish: dict[int, int]  # runner number -> position, starters only
+    sp: dict[int, float]
+    names: dict[int, str]
+    place_dividend: dict[int, float] = field(default_factory=dict)  # fixed place, per $1
+    exotics: dict[str, tuple[tuple[int, ...], float]] = field(default_factory=dict)  # TF/FF/...
+
+    def placegetters(self, n: int = 4) -> list[int]:
+        return [num for num, pos in sorted(self.finish.items(), key=lambda kv: kv[1]) if pos <= n]
+
+
+@dataclass
 class Race:
     venue: str
     race_date: date
@@ -127,6 +142,8 @@ class Race:
     prices: dict[int, RunnerPrices] = field(default_factory=dict)
     barrier_advantage: dict[int, float] = field(default_factory=dict)
     prices_at: datetime | None = None
+    result: RaceResult | None = None
+    priced_from_sp: bool = False
 
     def runner(self, number: int) -> Runner | None:
         return next((r for r in self.runners if r.number == number), None)

@@ -24,7 +24,7 @@ from melbcup.bets import DayPicks, build_picks
 from melbcup.config import Settings
 from melbcup.domain import Card, Race
 from melbcup.model.probability import RaceModel, assess
-from melbcup.sources import apply_market, load_card
+from melbcup.sources import apply_market, apply_result, load_card
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import PuntersEdgeClient
@@ -65,6 +65,7 @@ class Snapshot:
     race_date: date | None = None
     venue: str = ""
     meetings: dict[date, list[str]] = field(default_factory=dict)
+    results_at: datetime | None = None
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -92,6 +93,7 @@ class LiveBoard:
         self.race_date = settings.race_date
         self.venue = settings.venue
         self._meetings: dict[date, list[str]] = {}
+        self._results_at: datetime | None = None
         self._lock = threading.Lock()
         self._work = threading.Lock()  # one load or refresh at a time
         self._stop = threading.Event()
@@ -123,6 +125,7 @@ class LiveBoard:
                 race_date=self.race_date,
                 venue=self.venue,
                 meetings=dict(self._meetings),
+                results_at=self._results_at,
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -194,6 +197,32 @@ class LiveBoard:
             self._work.release()
         return True
 
+    def fetch_results_now(self) -> bool:
+        """Settled results for the meeting (2 credits). Ignored within 15 s of the last fetch."""
+        if self.pe is None or self._card is None:
+            return False
+        now = self.clock()
+        if self._results_at is not None and now - self._results_at < MIN_MANUAL_GAP:
+            return False
+        if not self._work.acquire(blocking=False):
+            return False
+        try:
+
+            def run() -> None:
+                results = self.pe.results(self.race_date, self.venue)
+                with self._lock:
+                    for race in self._card.races:
+                        if race.number in results:
+                            apply_result(race, results[race.number])
+                            self._models[race.number] = assess(race)
+                    self._results_at = now
+                    self._updated_at = now
+
+            self._guarded(now, run)
+        finally:
+            self._work.release()
+        return True
+
     def set_auto(self, on: bool) -> None:
         self.auto = on
 
@@ -207,7 +236,7 @@ class LiveBoard:
                 return True
             self.race_date, self.venue = race_date, venue
             self._card, self._models = None, {}
-            self._form_at = self._priced_at = self._updated_at = None
+            self._form_at = self._priced_at = self._updated_at = self._results_at = None
             self._errors = []
         return True
 
@@ -277,12 +306,14 @@ class LiveBoard:
         return now - self._priced_at >= min(intervals)
 
     def _carry_prices(self, card: Card) -> None:
-        """A form reload must not wipe the prices already fetched."""
+        """A form reload must not wipe the prices or results already fetched."""
         if self._card is None:
             return
         for race in card.races:
             old = self._card.race(race.number)
-            if old is not None and old.prices:
+            if old is not None and old.result is not None:
+                apply_result(race, old.result)
+            if old is not None and old.prices and not race.prices:
                 race.prices, race.places_paid = old.prices, old.places_paid
                 race.prices_at = old.prices_at
                 race.start_time = old.start_time or race.start_time

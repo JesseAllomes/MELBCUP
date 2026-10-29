@@ -15,7 +15,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
-from melbcup.domain import Card, PersonStats, Race
+from melbcup.domain import Card, PersonStats, Quote, Race, RaceResult, RunnerPrices
 from melbcup.sources.formfav import FormFavClient, FormFavRunner
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import MarketSnapshot, PuntersEdgeClient
@@ -147,3 +147,23 @@ def apply_market(race: Race, snap: MarketSnapshot) -> None:
     for runner in race.runners:
         if runner.number in snap.scratched:
             runner.scratched = True
+
+
+def apply_result(race: Race, result: RaceResult) -> None:
+    """Attach the official result. Runners that did not start are scratched. A race the app
+    never priced before the jump gets starting prices as its market, so the model can be judged
+    as the backtest judges it; one it did price keeps those pre-race prices."""
+    race.result = result
+    for runner in race.runners:
+        if runner.number not in result.names:
+            runner.scratched = True
+    if race.prices or not result.sp:
+        return
+    inv = {n: 1.0 / p for n, p in result.sp.items() if p > 1.0}
+    total = sum(inv.values())
+    race.prices = {
+        n: RunnerPrices(n, best_win=Quote(p, "SP"), consensus_prob=inv[n] / total, books=1)
+        for n, p in result.sp.items()
+        if n in inv
+    }
+    race.priced_from_sp = True

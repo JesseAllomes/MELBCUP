@@ -132,3 +132,15 @@ table.exo tr.rec td { background: var(--good-bg); }
 .legs { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); }
 .setup code { font-size: 12px; }
 footer { max-width: 860px; margin: 0 auto; padding: 8px 16px 32px; color: var(--muted); font-size: 12px; }
+.result { border-top: 1px solid var(--line); padding-top: 6px; }
+.placings { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.placings b { display: inline-block; width: 34px; color: var(--muted); font-size: 12px; }
+.sub-inline { color: var(--muted); font-size: 12px; }
+.graded { display: grid; grid-template-columns: 18px 1fr auto; gap: 6px; font-size: 13px; padding: 4px 0; border-top: 1px dashed var(--line); }
+.graded .mark { font-weight: 800; }
+.graded.hit .mark, .graded.hit .ret { color: var(--good); font-weight: 700; }
+.graded.miss { color: var(--muted); }
+.score .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.score .tiles div { background: var(--bg); border-radius: 8px; padding: 8px; }
+.score .tiles b { display: block; font-size: 20px; }
+.score .tiles span { font-size: 12px; color: var(--muted); }

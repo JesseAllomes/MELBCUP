@@ -27,6 +27,13 @@ spent until you tap:
 
 The page itself re-reads the app every minute; that costs nothing.
 
+**Results and how the model went:** once races have run, tap **Get results** (2 credits). Each race
+then shows the placings with starting prices, where our top pick finished, and a tick or cross
+with the return per $1 for the Win, Place, Each-way, Trifecta and First Four picks. Exotics are
+paid at the official dividend, spread flexi across the structure. The top of the day page keeps
+score: top pick wins and placings, profit on value bets and exotics, and whether each quaddie and
+multi landed. A past meeting the app never priced is judged at starting prices, as in the backtest.
+
 **Any meeting, any day:** tap the meeting name at the top (**change**). The Cup Carnival days at
 Flemington are one tap each. For any other day, pick the date and tap **Find meetings** (2 credits)
 to list every Australian meeting with a published field, then tap one. Switching costs nothing;

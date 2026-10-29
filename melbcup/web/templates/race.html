@@ -15,6 +15,8 @@
     · pays {{ race.places_paid }} places</p>
   <p class="sub">Probabilities from: {{ rp.model.sources | join(', ') or 'nothing yet' }}
     {% if race.prices_at %} · prices {{ race.prices_at | local_time }}{% endif %}</p>
+  {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+  {% if rg %}<h2>Result</h2>{% include "_result.html" %}<h2 style="margin-top:12px">Our picks before the race</h2>{% endif %}
   {% for kind in ['win', 'place', 'each_way'] %}
     {% set s = rp.best[kind] %}
     {% if s %}{% include "_pick.html" %}{% endif %}
@@ -36,6 +38,7 @@
       <tr class="{{ 'value' if w and w.value }}">
         <td class="horse">
           <strong>{{ a.number }}. {{ r.name }}</strong> <span class="sub">({{ r.barrier or '?' }})</span>
+          {% if race.result and race.result.finish.get(a.number) %}<span class="badge {{ 'good' if race.result.finish[a.number] <= race.places_paid }}">{{ race.result.finish[a.number] }}{{ {1:'st',2:'nd',3:'rd'}.get(race.result.finish[a.number], 'th') }}</span>{% endif %}
           <div class="sub">{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %}</div>
         </td>
         <td class="num">{{ a.win | pct(1) }}</td>

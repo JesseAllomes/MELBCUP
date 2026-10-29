@@ -298,3 +298,25 @@ def test_meetings_page_and_switch(client):
     assert "venue=Flemington" in listed and "1 meeting on" in listed
     bad = client.post("/actions/meeting?date=nope&venue=X", auth=AUTH, follow_redirects=False)
     assert bad.headers["location"] == "/meetings"
+
+
+def test_results_button_hidden_before_race_day(client):
+    assert "Get results" not in client.get("/", auth=AUTH).text  # Cup day is still ahead
+
+
+def test_results_button_grades_the_day(board_and_router, monkeypatch):
+    from melbcup.web import app as web
+
+    monkeypatch.setattr(web, "melbourne_today", lambda: RACE_DATE)
+    board, router = board_and_router
+    app = create_app(load_settings(ENV), board, start_background=False)
+    with TestClient(app) as c:
+        assert "Get results" in c.get("/", auth=AUTH).text
+        r = c.post("/actions/results?next=/", auth=AUTH, follow_redirects=False)
+        assert r.status_code == 303
+        assert router.hits["/v1/racing/results"] == 1
+        html = c.get("/", auth=AUTH).text
+        assert "How the model went" in html and "top pick won" in html and "✓" in html
+        assert "Best value right now" not in html  # every race has run
+        race = c.get("/race/2", auth=AUTH).text
+        assert "Our picks before the race" in race and "1st" in race

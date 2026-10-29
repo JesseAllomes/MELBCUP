@@ -14,6 +14,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings, load_settings
 from melbcup.live import LiveBoard
 
@@ -43,6 +44,10 @@ CARNIVAL = (  # Flemington, Melbourne Cup Carnival 2026: one tap, no lookup
     ("Oaks Day", date(2026, 11, 5)),
     ("Stakes Day", date(2026, 11, 7)),
 )
+
+
+def melbourne_today() -> date:
+    return datetime.now(MELBOURNE).date()
 
 
 def _date(text: str | None) -> date | None:
@@ -160,7 +165,11 @@ def create_app(
             "card": snap.card,
             "budget": budget,
             "budget_q": f"?budget={budget:g}" if budget else "",
-            "picks": snap.picks(budget) if snap.models else None,
+            "picks": (picks := snap.picks(budget) if snap.models else None),
+            "grade": grade_day(picks)
+            if picks and any(rp.model.race.result for rp in picks.races)
+            else None,
+            "today": melbourne_today(),
             "here": request.url.path + (f"?budget={budget:g}" if budget else ""),
             "load_cost": 2 + 3 * (len(snap.card.races) if snap.card else 10),
             "now": datetime.now(UTC),
@@ -175,6 +184,11 @@ def create_app(
     @app.post("/actions/prices", dependencies=[Depends(require_login)])
     def refresh_prices(request: Request):
         board.refresh_prices_now()
+        return back(request)
+
+    @app.post("/actions/results", dependencies=[Depends(require_login)])
+    def results(request: Request):
+        board.fetch_results_now()
         return back(request)
 
     @app.post("/actions/load", dependencies=[Depends(require_login)])
@@ -223,7 +237,13 @@ def create_app(
     def day(request: Request):
         ctx = context(request)
         if ctx["picks"]:
-            singles = [s for rp in ctx["picks"].races for s in rp.best.values() if s and s.value]
+            singles = [
+                s
+                for rp in ctx["picks"].races
+                if rp.model.race.result is None  # only races still to run
+                for s in rp.best.values()
+                if s and s.value
+            ]
             ctx["top_value"] = sorted(singles, key=lambda s: s.ev or 0, reverse=True)[:6]
         return templates.TemplateResponse(request, "day.html", ctx)
 

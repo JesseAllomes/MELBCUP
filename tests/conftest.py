@@ -169,6 +169,43 @@ def ntg_race(race: int, scratched: tuple[int, ...] = ()) -> dict:
     }
 
 
+def results_payload() -> list[dict]:
+    """Every race finishes in saddlecloth order (1 wins, 2 second...), SP = Sportsbet price."""
+    out = []
+    for race, field in FIELDS.items():
+        sp = WIN_PRICES[race]["sportsbet"]
+        nums = [f[0] for f in field]
+        out.append(
+            {
+                "venue": VENUE,
+                "race_number": race,
+                "start_time": ntg_race(race)["start_time"],
+                "status": "final",
+                "runners": [
+                    {"number": n, "name": name, "position": i + 1, "status": "ran", "sp": sp[n]}
+                    for i, (n, name, *_) in enumerate(field)
+                ],
+                "dividends": {
+                    "straight": [
+                        {
+                            "number": n,
+                            "position": i + 1,
+                            "market": "PLC",
+                            "product": "FIXED",
+                            "amount": round(1 + (sp[n] - 1) / 4, 2),
+                        }
+                        for i, n in enumerate(nums[:3])
+                    ],
+                    "exotics": [
+                        {"code": "TF", "selection": ",".join(map(str, nums[:3])), "amount": 60.0},
+                        {"code": "FF", "selection": ",".join(map(str, nums[:4])), "amount": 400.0},
+                    ],
+                },
+            }
+        )
+    return out
+
+
 def ff_form_payload(race: int) -> dict:
     runners = []
     for num, name, *_ in FIELDS[race]:
@@ -268,6 +305,8 @@ class Router:
                     json=[ntg_race(n, self.scratched.get(n, ())) for n in FIELDS],
                     headers=credits,
                 )
+            if path == "/v1/racing/results":
+                return httpx.Response(200, json=results_payload(), headers=credits)
             if path == "/v1/racing/form":
                 return httpx.Response(
                     200, json=pe_form_payload(int(q["race_number"])), headers=credits
