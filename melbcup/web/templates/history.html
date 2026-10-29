@@ -32,7 +32,9 @@
     <thead><tr><th></th><th>Races</th><th>Favourite won</th><th>Our pick won</th></tr></thead>
     <tbody>
       <tr><td>Every race</td><td class="num">{{ '{:,}'.format(h2h.races) }}</td><td class="num">{{ (h2h.favourite_won / h2h.races) | pct(1) }}</td><td class="num">{{ (h2h.pick_won / h2h.races) | pct(1) }}</td></tr>
-      {% if h2h.disagreed %}<tr><td>Where we disagreed</td><td class="num">{{ '{:,}'.format(h2h.disagreed) }}</td><td class="num">{{ (h2h.favourite_won_disagreed / h2h.disagreed) | pct(1) }}</td><td class="num">{{ (h2h.pick_won_disagreed / h2h.disagreed) | pct(1) }}</td></tr>{% endif %}
+      {% set agreed = h2h.races - h2h.disagreed %}
+      {% if agreed %}<tr><td>Our pick is the favourite</td><td class="num">{{ '{:,}'.format(agreed) }}</td><td class="num" colspan="2">{{ ((h2h.pick_won - h2h.pick_won_disagreed) / agreed) | pct(1) }} won</td></tr>{% endif %}
+      {% if h2h.disagreed %}<tr><td>Our pick is not the favourite</td><td class="num">{{ '{:,}'.format(h2h.disagreed) }}</td><td class="num">{{ (h2h.favourite_won_disagreed / h2h.disagreed) | pct(1) }}</td><td class="num">{{ (h2h.pick_won_disagreed / h2h.disagreed) | pct(1) }}</td></tr>{% endif %}
     </tbody>
   </table>
   <p class="small">The test the model has to pass: where our most likely winner is not the favourite, it has to win
