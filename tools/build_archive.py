@@ -5,7 +5,10 @@ acceptances + FormFav form, with official SPs and placings). Each race's own res
 back out of the jockey and trainer figures (they were fetched afterwards), the result is
 attached, and meetings are sealed with a key derived from PUNTERSEDGE_API_KEY.
 
-    PUNTERSEDGE_API_KEY=... python tools/build_archive.py <dir-with-calib_YYYY-MM-DD.pkl>
+    PUNTERSEDGE_API_KEY=... [HISTORY_PASSWORD=...] \
+        python tools/build_archive.py <dir-with-calib_YYYY-MM-DD.pkl>
+
+The PuntersEdge key or the History password (for friends using their own keys) opens it.
 """
 
 from __future__ import annotations
@@ -53,12 +56,13 @@ def main() -> None:
     secret = os.environ.get("PUNTERSEDGE_API_KEY")
     if not secret or len(sys.argv) != 2:
         sys.exit(__doc__)
+    secrets = [secret] + [p for p in [os.environ.get("HISTORY_PASSWORD")] if p]
     cards = cards_from(sys.argv[1])
     out = ROOT / "docs" / "data"
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
     record = merge(*(entries(build_picks([assess(r) for r in c.races])) for c in cards))
-    archive.write(str(out), cards, secret, history=record)
+    archive.write(str(out), cards, secrets, history=record)
     races = sum(len(c.races) for c in cards)
     size = sum(f.stat().st_size for f in out.rglob("*") if f.is_file())
     print(

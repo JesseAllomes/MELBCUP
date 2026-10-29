@@ -1,13 +1,16 @@
 """Meetings already downloaded, kept so opening them again costs no credits.
 
-The site is public, so each meeting is sealed with a key derived from the owner's PuntersEdge key
-(PBKDF2-HMAC-SHA256): only a phone holding that key can read it, and the providers' data is not
-republished in the clear. Sealing uses only hashlib/hmac, which the browser build has: a
-SHA-256 counter-mode keystream with a random nonce, then HMAC-SHA256 over nonce and ciphertext.
+The site is public, so the meetings are sealed under one random content key, and the index
+holds that key locked once per secret (the owner's PuntersEdge key, and a History password the
+owner can give friends), each through PBKDF2-HMAC-SHA256. Only a phone holding one of the
+secrets can read them, and the providers' data is not republished in the clear. Sealing uses
+only hashlib/hmac, which the browser build has: a SHA-256 counter-mode keystream with a random
+nonce, then HMAC-SHA256 over nonce and ciphertext.
 
 Layout under the archive root:
-    index.json                         {"salt", "check", "meetings": {"YYYY-MM-DD": [venue, ...]}}
+    index.json      {"locks": [{"salt", "key"}, ...], "meetings": {"YYYY-MM-DD": [venue, ...]}}
     YYYY-MM-DD/<venue-slug>.bin         base64 of nonce | ciphertext | tag
+    history.bin                         the model's record on every saved race, sealed the same way
 """
 
 from __future__ import annotations
@@ -92,15 +95,25 @@ def slug(venue: str) -> str:
     return "-".join(venue.lower().split())
 
 
-def check_value(keys: tuple[bytes, bytes]) -> str:
-    return hmac.new(keys[1], b"melbcup-archive", hashlib.sha256).hexdigest()[:16]
+def _open(index: dict, secrets: list[str]) -> tuple[bytes, bytes] | None:
+    """The content key, unlocked by the first secret that fits one of the index's locks."""
+    for secret in secrets:
+        for lock in index.get("locks", []):
+            try:
+                content = unseal(
+                    base64.b64decode(lock["key"]), derive(secret, bytes.fromhex(lock["salt"]))
+                )
+            except ArchiveError:
+                continue
+            return content[:32], content[32:]
+    return None
 
 
 class Archive:
     """Read side. ``read`` maps a path under the archive root to its text, or None if absent
     (a file read on a server, a same-origin request in the browser)."""
 
-    def __init__(self, read: Callable[[str], str | None], secret: str):
+    def __init__(self, read: Callable[[str], str | None], *secrets: str | None):
         self._read = read
         self._index: dict[date, list[str]] = {}
         self._keys: tuple[bytes, bytes] | None = None
@@ -108,11 +121,9 @@ class Archive:
         if raw is None:
             return
         index = json.loads(raw)
-        keys = derive(secret, bytes.fromhex(index["salt"]))
-        if not hmac.compare_digest(check_value(keys), index["check"]):
-            return  # a different PuntersEdge key: the archive stays closed
-        self._keys = keys
-        self._index = {date.fromisoformat(d): v for d, v in index["meetings"].items()}
+        self._keys = _open(index, [s for s in secrets if s])
+        if self._keys is not None:  # otherwise none of the secrets fits: it stays closed
+            self._index = {date.fromisoformat(d): v for d, v in index["meetings"].items()}
 
     @property
     def open(self) -> bool:
@@ -145,10 +156,18 @@ class Archive:
         return pickle.loads(zlib.decompress(unseal(base64.b64decode(raw), self._keys)))
 
 
-def write(root: str, cards: list[Card], secret: str, history: list[dict] | None = None) -> None:
-    """Build side (tools/build_archive.py): seal every card, the history and the index."""
-    salt = os.urandom(16)
-    keys = derive(secret, salt)
+def write(
+    root: str, cards: list[Card], secrets: list[str], history: list[dict] | None = None
+) -> None:
+    """Build side (tools/build_archive.py): seal every card and the history under a fresh content
+    key, and lock that key once per secret in the index."""
+    content = os.urandom(64)
+    keys = (content[:32], content[32:])
+    locks = []
+    for secret in secrets:
+        salt = os.urandom(16)
+        blob = seal(content, derive(secret, salt))
+        locks.append({"salt": salt.hex(), "key": base64.b64encode(blob).decode()})
     meetings: dict[str, list[str]] = {}
     for card in sorted(cards, key=lambda c: (c.race_date, c.venue)):
         folder = os.path.join(root, card.race_date.isoformat())
@@ -162,6 +181,4 @@ def write(root: str, cards: list[Card], secret: str, history: list[dict] | None 
         with open(os.path.join(root, "history.bin"), "w") as fh:
             fh.write(base64.b64encode(blob).decode())
     with open(os.path.join(root, "index.json"), "w") as fh:
-        json.dump(
-            {"salt": salt.hex(), "check": check_value(keys), "meetings": meetings}, fh, indent=1
-        )
+        json.dump({"locks": locks, "meetings": meetings}, fh, indent=1)

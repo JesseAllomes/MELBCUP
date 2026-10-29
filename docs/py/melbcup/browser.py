@@ -121,6 +121,7 @@ def init(
     archive_reader: Callable[[str], str | None] | None = None,
     clock: Callable[[], datetime] | None = None,
     fetch_many: FetchMany | None = None,
+    history_password: str | None = None,
 ) -> None:
     global _views, _fetch_many
     _fetch_many = fetch_many
@@ -135,7 +136,9 @@ def init(
         }
     )
     reader = archive_reader or (xhr_text if requester is None else None)
-    archive = Archive(reader, pe_key) if pe_key and reader else None
+    # The owner's PuntersEdge key opens the saved meetings; friends with their own key use the
+    # History password the owner gave them.
+    archive = Archive(reader, pe_key, history_password) if reader else None
     board = LiveBoard(
         settings, archive=archive, rc=RacingComClient(), **({"clock": clock} if clock else {})
     )

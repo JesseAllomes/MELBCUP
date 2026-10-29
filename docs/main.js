@@ -137,6 +137,7 @@
     const keys = readKeys();
     $("pe-key").value = keys.pe || "";
     $("ff-key").value = keys.ff || "";
+    $("hp-key").value = keys.hp || "";
     $("keys").hidden = false;
     $("app").hidden = true;
     $("boot").hidden = true;
@@ -146,7 +147,7 @@
     e.preventDefault();
     const pe = $("pe-key").value.trim();
     if (!pe) { $("keys-note").textContent = "The PuntersEdge key is required: it supplies the field and the prices."; return; }
-    store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim() }));
+    store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim(), hp: $("hp-key").value.trim() }));
     location.reload();
   });
 
@@ -172,7 +173,7 @@
     };
     worker.onerror = (e) => showError(e.message || "the app could not start");
     try {
-      await send("init", { pe: keys.pe, ff: keys.ff || "", saved: store.get(STATE) });
+      await send("init", { pe: keys.pe, ff: keys.ff || "", hp: keys.hp || "", saved: store.get(STATE) });
     } catch (err) {
       // A saved card from an older build can stop start-up: drop it once and retry.
       if (store.get(STATE)) { store.set(STATE, null); location.reload(); return; }

@@ -40,7 +40,7 @@ def saved_meeting(tmp_path, day: date):
                 "final", finish, {n: 5.0 for n in finish}, {r.number: r.name for r in race.runners}
             ),
         )
-    archive.write(str(tmp_path), [card], "pe-key")
+    archive.write(str(tmp_path), [card], ["pe-key"])
 
     def read(path):
         f = tmp_path / path
@@ -59,6 +59,22 @@ def test_archive_needs_the_right_key(tmp_path):
     wrong = archive.Archive(read, "someone-else")
     assert not wrong.open and wrong.venues(day) == []
     assert not archive.Archive(lambda p: None, "pe-key").open
+
+
+def test_a_history_password_opens_it_for_friends_with_their_own_keys(tmp_path):
+    day = date(2026, 10, 24)
+    card = archive.Archive(saved_meeting(tmp_path, day), "pe-key").load(day, VENUE)
+    shared = tmp_path / "shared"
+    archive.write(str(shared), [card], ["pe-key", "cup-week-pass"])
+
+    def read(path):
+        f = shared / path
+        return f.read_text() if f.is_file() else None
+
+    assert archive.Archive(read, "pe-key").open  # the owner, as before
+    friend = archive.Archive(read, "friends-own-pe-key", "cup-week-pass")
+    assert friend.open and friend.load(day, VENUE).races
+    assert not archive.Archive(read, "friends-own-pe-key", "wrong-pass").open
 
 
 def board(tmp_path, day, now, router):
@@ -164,7 +180,7 @@ def test_history_page_tallies_saved_and_new_races(tmp_path, monkeypatch):
     saved_card = archive.Archive(read, "pe-key").load(day, VENUE)
     record = history.entries(build_picks([assess(r) for r in saved_card.races]))
     assert len(record) == 2 and {"top_win", "top_place", "trifecta"} <= set(record[0]["picks"])
-    archive.write(str(tmp_path), [saved_card], "pe-key", history=record)
+    archive.write(str(tmp_path), [saved_card], ["pe-key"], history=record)
 
     router = Router()
     t = httpx.MockTransport(router)
@@ -199,4 +215,4 @@ def test_history_says_when_the_saved_races_are_locked(tmp_path, monkeypatch):
         archive=archive.Archive(read, "a-different-key"),
     )
     html = v.Views(b.settings, b, browser=True).page("/history", {})
-    assert "locked with a different PuntersEdge key" in html
+    assert "saved races are locked" in html and "History password" in html

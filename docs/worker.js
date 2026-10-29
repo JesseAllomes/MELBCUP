@@ -51,7 +51,10 @@ async function boot(msg) {
     calls += 1;
     postMessage({ type: "progress", text: "Fetching " + what + " (" + calls + ")" });
   };
-  browser.init.callKwargs(msg.pe, msg.ff, msg.saved || null, progress, { fetch_many: fetchMany });
+  browser.init.callKwargs(msg.pe, msg.ff, msg.saved || null, progress, {
+    fetch_many: fetchMany,
+    history_password: msg.hp || null,
+  });
   return { browser, build: manifest.build };
 }
 
