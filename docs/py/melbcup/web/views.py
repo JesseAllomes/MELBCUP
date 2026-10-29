@@ -191,7 +191,7 @@ class Views:
             "marks": marks,
             "today": melbourne_today(),
             "here": path + (f"?budget={budget:g}" if budget else ""),
-            "load_cost": 2 + 3 * (len(snap.card.races) if snap.card else 10),
+            "load_cost": self.board.card_cost(len(snap.card.races) if snap.card else 10),
             "now": datetime.now(UTC),
         }
 

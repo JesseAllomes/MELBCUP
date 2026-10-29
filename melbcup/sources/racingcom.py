@@ -1,6 +1,7 @@
-"""racing.com's public form service: each runner's recent runs with the stewards' comment on
-each, where it settled, and its finish. National coverage, free, and no key from the user: the
-key is the public one racing.com's own form pages send with every request.
+"""racing.com's public form service: each runner's recent runs (finish, margin, starting price,
+weight, jockey, class, where it settled, and the stewards' comment). National coverage, free,
+and no key from the user: the key is the public one racing.com's own form pages send. It
+replaces PuntersEdge's recent-form call (3 credits a race), which stays as the fallback.
 """
 
 from __future__ import annotations
@@ -9,7 +10,7 @@ import json
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
-from melbcup.domain import Card, RunNote
+from melbcup.domain import Card, RunNote, parse_margin
 from melbcup.sources.http import JsonSource, SourceError
 
 if TYPE_CHECKING:
@@ -29,15 +30,23 @@ FIELD = (
     "raceNumber: $raceNumber) { formRaceEntries { raceEntryNumber horseCode } } }"
 )
 RUNS = (
-    "query($horseCode: ID!) { GetRaceEntryItemByHorsePaged(horseCode: $horseCode, limit: 8) {"
-    " finish positionAtSettledAbv commentStewards"
-    " race { date isTrial isJumpOut venueAbbr distance trackCondition } } }"
+    "query($horseCode: ID!) { GetRaceEntryItemByHorsePaged(horseCode: $horseCode, limit: 12) {"
+    " finish margin startingPrice weightCarried jockeyName positionAtSettledAbv commentStewards"
+    " race { date isTrial isJumpOut venueAbbr distance trackCondition class runnersCount } } }"
 )
 
 
 def _int(text: Any) -> int | None:
     digits = "".join(ch for ch in str(text or "") if ch.isdigit())
     return int(digits) if digits else None
+
+
+def _number(text: Any) -> float | None:
+    cleaned = str(text or "").replace("$", "").replace("kg", "").replace(",", "").strip()
+    try:
+        return float(cleaned) if cleaned else None
+    except ValueError:
+        return None
 
 
 def parse_runs(data: dict[str, Any]) -> list[RunNote]:
@@ -48,15 +57,22 @@ def parse_runs(data: dict[str, Any]) -> list[RunNote]:
         if race.get("isTrial") or race.get("isJumpOut") or not race.get("date"):
             continue
         note = (item.get("commentStewards") or "").strip()
+        finish = _int(item.get("finish"))
         out.append(
             RunNote(
                 run_date=date.fromisoformat(race["date"][:10]),
                 venue=race.get("venueAbbr") or "",
                 distance_m=_int(race.get("distance")),
                 condition=race.get("trackCondition"),
-                finish=_int(item.get("finish")),
+                finish=finish,
                 settled=_int(item.get("positionAtSettledAbv")),
                 stewards=" ".join(note.split()) or None,
+                field_size=_int(race.get("runnersCount")),
+                margin_l=0.0 if finish == 1 else parse_margin(item.get("margin")),
+                sp=_number(item.get("startingPrice")),
+                weight_kg=_number(item.get("weightCarried")),
+                jockey=item.get("jockeyName"),
+                race_class=race.get("class"),
             )
         )
     return sorted(out, key=lambda n: n.run_date, reverse=True)

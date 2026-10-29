@@ -317,6 +317,8 @@ def test_confidence_bands_follow_the_top_picks_chance():
         "Medium",
         "Low",
     ]
+    assert confidence(0.36, priced=False) == "High"  # form only: lower floors
+    assert confidence(0.27, priced=False) == "Medium" and confidence(0.2, priced=False) == "Low"
     record = [
         {"picks": {"top_win": {"chance": 0.5, "hit": True, "returned": 2.0}}},
         {"picks": {"top_win": {"chance": 0.45, "hit": False, "returned": 0.0}}},

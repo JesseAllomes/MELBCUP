@@ -1,7 +1,8 @@
 """Keeps the card, models and picks fresh, spending PuntersEdge credits sparingly.
 
-Manual mode spends nothing on its own: the page's buttons load the card (about 2 + 3 per race
-credits), refresh prices and fetch results (2 credits each, for the whole card).
+Manual mode spends nothing on its own: the page's buttons load the card (2 credits; recent form
+comes free from racing.com, with PuntersEdge's 3 per race only as the fallback), refresh prices
+and fetch results (2 credits each, for the whole card).
 
 Auto mode (the phone's default) does the same on a fixed, frugal plan:
     the card       once, when the meeting is opened (scratchings arrive with the prices)
@@ -404,6 +405,10 @@ class LiveBoard:
             return True
         return any(self._priced_at < t <= now for t in price_check_times(self._card.races))
 
+    def card_cost(self, races: int) -> int:
+        """Credits to load a card: the field, plus recent form unless racing.com supplies it."""
+        return 2 if self.rc is not None else 2 + 3 * races
+
     def auto_credits_left(self, now: datetime) -> int | None:
         """PuntersEdge credits Auto still plans to spend on this meeting: 2 per price check
         still to come, 2 per race still to be resulted, and the card if it is not loaded."""
@@ -412,7 +417,7 @@ class LiveBoard:
         if self.field_due(now) is not None:
             return None  # nothing can be fetched until the field is published
         if self._card is None:
-            return 2 + 3 * 10 + 2  # a typical card, then a first price check
+            return self.card_cost(10) + 2  # a typical card, then a first price check
         checks = (
             [t for t in price_check_times(self._card.races) if t > now]
             if self._prices_window(now)

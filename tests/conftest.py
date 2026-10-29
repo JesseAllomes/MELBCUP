@@ -299,6 +299,10 @@ def rc_payload(query: str, variables: dict) -> dict:
         def run(day: str, finish: str, comment: str | None) -> dict:
             return {
                 "finish": finish,
+                "margin": "1.5L",
+                "startingPrice": "$6.50",
+                "weightCarried": "57kg",
+                "jockeyName": "J.Kah",
                 "positionAtSettledAbv": "4th",
                 "commentStewards": comment,
                 "race": {
@@ -308,6 +312,8 @@ def rc_payload(query: str, variables: dict) -> dict:
                     "venueAbbr": "FLEM",
                     "distance": "1600m",
                     "trackCondition": "Good 4",
+                    "class": "BM78",
+                    "runnersCount": 12,
                 },
             }
 

@@ -74,13 +74,18 @@ def load_card(
 ) -> Card:
     card = pe.acceptances(race_date, venue)
     with _pool() as pool:
+        if rc is not None:
+            enrich_from_racingcom(card, rc, pool)
+        # PuntersEdge's recent form (3 credits a race) only for races with a runner racing.com
+        # did not find (a first starter it found has no runs, which is not missing).
+        missing = [r for r in card.races if any(x.run_notes is None for x in r.starters)]
         forms = pool.map(
             lambda r: _try(
                 card, "Recent form (PuntersEdge)", lambda: pe.field_form(race_date, venue, r.number)
             ),
-            card.races,
+            missing,
         )
-        for race, form in zip(card.races, forms, strict=True):
+        for race, form in zip(missing, forms, strict=True):
             for runner in race.runners:
                 if form and runner.number in form:
                     runner.runs, record = form[runner.number]
@@ -91,8 +96,6 @@ def load_card(
             )
         else:
             enrich_from_formfav(card, ff, pool)
-        if rc is not None:
-            enrich_from_racingcom(card, rc, pool)
     return card
 
 
@@ -112,6 +115,7 @@ def enrich_from_racingcom(
             if notes is not None:
                 earlier = [n for n in notes if n.run_date < card.race_date]
                 runner.run_notes = earlier[:RUNS_KEPT]
+                runner.runs = [n.as_past_run() for n in earlier[:10]]
 
 
 def _apply_ff_form(race: Race, ff_form: list[FormFavRunner] | None) -> None:

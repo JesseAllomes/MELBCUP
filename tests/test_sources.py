@@ -345,6 +345,10 @@ def test_card_load_adds_racingcom_stewards_comments_from_before_race_day():
     assert r1.run_notes[0].finish == 5 and r1.run_notes[0].settled == 4
     assert card.race(1).runner(2).last_start_note is None  # ran, no comment
     assert not any("racing.com" in w for w in card.warnings)
+    run = r1.runs[0]  # the model's recent form now comes from racing.com
+    assert (run.position, run.margin_l, run.sp, run.weight_kg) == (5, 1.5, 6.5, 57.0)
+    assert (run.field_size, run.race_class, run.jockey) == (12, "BM78", "J.Kah")
+    assert "/v1/racing/form" not in router.hits  # no PuntersEdge form credits spent
 
 
 def test_racingcom_outage_only_adds_a_warning():
@@ -356,3 +360,5 @@ def test_racingcom_outage_only_adds_a_warning():
     card = load_card(pe, ff, RACE_DATE, VENUE, RacingComClient(transport=down))
     assert card.race(1).runner(1).run_notes is None
     assert any("racing.com" in w for w in card.warnings)
+    assert router.hits["/v1/racing/form"] == len(card.races)  # PuntersEdge fills in
+    assert card.race(1).runner(1).runs

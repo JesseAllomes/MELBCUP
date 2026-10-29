@@ -65,6 +65,27 @@ class RunNote:
     finish: int | None
     settled: int | None
     stewards: str | None
+    field_size: int | None = None
+    margin_l: float | None = None
+    sp: float | None = None
+    weight_kg: float | None = None
+    jockey: str | None = None
+    race_class: str | None = None
+
+    def as_past_run(self) -> PastRun:
+        return PastRun(
+            run_date=self.run_date,
+            venue=self.venue,
+            distance_m=self.distance_m,
+            condition=self.condition,
+            position=self.finish,
+            field_size=self.field_size,
+            margin_l=self.margin_l,
+            sp=self.sp,
+            weight_kg=self.weight_kg,
+            jockey=self.jockey,
+            race_class=self.race_class,
+        )
 
 
 @dataclass

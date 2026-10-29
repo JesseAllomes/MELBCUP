@@ -13,7 +13,8 @@
 {% set tw, tp = rp.best.top_win, rp.best.top_place %}
 {% set same = tw and tp and tw.number == tp.number %}
 <div class="picks">
-  <h3 class="line">Most likely{% if tw %} <span class="conf {{ tw.prob | confidence | lower }}">{{ tw.prob | confidence }} confidence</span>{% endif %}</h3>
+  {% set priced = 'market' in rp.model.sources %}
+  <h3 class="line">Most likely{% if tw %} <span class="conf {{ tw.prob | confidence(priced) | lower }}" title="{{ 'From the odds and form' if priced else 'Form only: no prices yet' }}">{{ tw.prob | confidence(priced) }} confidence{{ '' if priced else ' (form only)' }}</span>{% endif %}</h3>
   <dl>
     {% if tw %}
     {% call row('Win & place' if same else 'Win', tw, [marks.get('top_win'), marks.get('top_place') if same]) %}wins {{ tw.prob | pct }}{% if same %} · places {{ tp.prob | pct }}{% endif %}{% if tw.price %} · {{ tw.price | money }} {{ tw.bookmaker | book }}{% if same and tp.price %} / {{ tp.price | money }}{% endif %}{% endif %}{% endcall %}

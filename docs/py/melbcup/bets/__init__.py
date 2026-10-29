@@ -26,10 +26,15 @@ LABELS = {
 # pick won 50% at 40%+, 33% at 30-40% and 26% under 30%. Requiring the odds, the form model
 # and FormFav to agree made the High band smaller, not more accurate, so it is not used.
 CONFIDENCE = ((0.40, "High"), (0.30, "Medium"), (0.0, "Low"))
+# Before prices the form model alone is overconfident at the top: held out, its picks at 40%+
+# won about 38%, not 49%. These floors give High / Medium / Low top picks winning about
+# 38% / 31% / 22% in that mode.
+CONFIDENCE_FORM_ONLY = ((0.34, "High"), (0.26, "Medium"), (0.0, "Low"))
 
 
-def confidence(chance: float) -> str:
-    return next(label for floor, label in CONFIDENCE if chance >= floor)
+def confidence(chance: float, priced: bool = True) -> str:
+    bands = CONFIDENCE if priced else CONFIDENCE_FORM_ONLY
+    return next(label for floor, label in bands if chance >= floor)
 
 
 # A horse whose form-model or FormFav chance is 4.5x the odds' chance, or under a quarter of it.
