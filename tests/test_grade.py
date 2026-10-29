@@ -56,10 +56,10 @@ def test_single_grading():
 def test_exotic_grading_is_flexi():
     res = result({5: 1, 2: 2, 7: 3}, exotics={"TF": ((5, 2, 7), 120.0)})
     box = Exotic("trifecta", "Box", [[2, 5, 7, 9]] * 3, ["Box 2, 5, 7, 9"], 24, 0.1, [1])
-    g = _exotic(box, res, "TF", 3)
+    g = _exotic(box, res, "trifecta", 3)
     assert g.hit and g.returned == pytest.approx(120.0 / 24)
     miss = Exotic("trifecta", "Straight", [[2], [5], [7]], ["2", "5", "7"], 1, 0.01, [1])
-    assert _exotic(miss, res, "TF", 3).returned == 0.0
+    assert _exotic(miss, res, "trifecta", 3).returned == 0.0
 
 
 def test_grade_a_priced_card_end_to_end():
@@ -80,8 +80,10 @@ def test_grade_a_priced_card_end_to_end():
     assert cup.top_pick == 1 and cup.top_rank_of_winner == 1
     assert grade.top_pick_wins >= 1
     assert all(not race.priced_from_sp for race in card.races)  # pre-race prices kept
-    labels = {g.label for g in cup.lines}
-    assert {"Win", "Place", "Each way", "Trifecta", "First Four"} <= labels
+    kinds = {g.kind for g in cup.lines}
+    assert {"top_win", "top_place", "trifecta", "first_four"} <= kinds
+    assert all(g.value for g in cup.lines if g.kind in ("win", "place", "each_way"))
+    assert next(g for g in cup.lines if g.kind == "top_win").label == "Most likely win"
 
 
 def test_unpriced_race_is_judged_at_starting_prices():

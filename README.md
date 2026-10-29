@@ -4,7 +4,14 @@ Preparing for the Melbourne Cup.
 
 MELBCUP is a live, password-protected web app for your phone. It rates every runner on
 Melbourne Cup day (Flemington, Tuesday 3 November 2026) using form, connections and market
-data. It then shows the best bet in each category:
+data. Each race shows two lines of picks:
+
+- **Most likely**: the runner with the highest chance of winning, and of placing, whatever the
+  price. When it is the same horse (almost always), it is shown once as *Win & place*.
+- **Best price for chance**: win, place and each-way bets whose price beats the runner's chance
+  by enough. Many races have none, and the page says so.
+
+Then the exotics. In detail:
 
 | Category | What you get |
 |---|---|
@@ -35,8 +42,8 @@ score: top pick wins and placings, profit on value bets and exotics, and whether
 multi landed. A past meeting the app never priced is judged at starting prices, as in the backtest.
 
 **History:** the History page (top right) lists every race the app holds results for: each
-race's placings beside the model's Win, Place, Each-way, Trifecta and First Four picks, ticked or
-crossed. At the top, a tally per pick type gives picks, landed, missed and the rate. It starts with
+race's placings beside the model's Most likely, Value and exotic picks, ticked or crossed. At the
+top, a tally per pick type gives picks, landed, missed, the rate and the return per $1. It starts with
 the 1,160 saved races and adds each new meeting as its results come in.
 
 **Any meeting, any day:** tap the meeting name at the top (**change**). The Cup Carnival days at

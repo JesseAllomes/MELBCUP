@@ -106,8 +106,15 @@ button[disabled] { opacity: 0.5; cursor: default; }
 
 /* the picks */
 .picks { margin: 6px 0 0; }
+.picks dl { margin: 0; }
+.picks .line {
+  font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--accent); margin: 10px 0 0; padding-bottom: 2px;
+}
+.picks .line:first-child { margin-top: 2px; }
+.picks .none { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
 .pick {
-  display: grid; grid-template-columns: 5.6em minmax(0, 1fr) 1.2em; gap: 0 10px;
+  display: grid; grid-template-columns: 5.6em minmax(0, 1fr) minmax(1.2em, auto); gap: 0 10px;
   padding-block: 5px; border-top: 1px dashed var(--rule); align-items: baseline;
 }
 .pick:first-child { border-top: 0; }
@@ -115,9 +122,12 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .pick dd { margin: 0; display: flex; flex-wrap: wrap; column-gap: 10px; min-width: 0; }
 .pick .who { font-size: 15px; overflow-wrap: anywhere; }
 .pick .fig { color: var(--muted); font-size: 13px; }
-.pick .mark { font-weight: 800; text-align: right; }
+.pick .mark { font-weight: 800; text-align: right; white-space: nowrap; }
 .pick.hit .mark { color: var(--hit); }
 .pick.miss .mark { color: var(--miss); }
+.pick .mark b { font-weight: 800; }
+.pick .mark b.ok { color: var(--hit); }
+.pick .mark b.no { color: var(--miss); }
 .pick.miss .who { color: var(--muted); }
 
 .placings { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 14px; margin: 4px 0 6px; }

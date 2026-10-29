@@ -1,8 +1,9 @@
 """The model's record: one plain entry per resulted race, and a tally per bet type.
 
 Entries are small dicts so they can be saved on the phone, sealed into the archive, and read
-by a template without the model's objects. The pick in each category is what the app showed
-before the race: its value bet when it had one, otherwise its top-rated runner.
+by a template without the model's objects. The picks are what the app showed before the race:
+the runners most likely to win and to place, whatever their price, and the value bets, which
+exist only when a price beat the runner's chance by enough.
 """
 
 from __future__ import annotations
@@ -10,23 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from melbcup.bets import DayPicks
+from melbcup.bets import KINDS, LABELS, VALUE_KINDS, DayPicks
 from melbcup.bets.grade import grade_day
 
-CATEGORIES = (
-    ("win", "Win"),
-    ("place", "Place"),
-    ("each_way", "Each way"),
-    ("trifecta", "Trifecta"),
-    ("first_four", "First four"),
-)
-_GRADE_LABELS = {
-    "Win": "win",
-    "Place": "place",
-    "Each way": "each_way",
-    "Trifecta": "trifecta",
-    "First Four": "first_four",
-}
+CATEGORIES = tuple(LABELS.items())
 
 
 def entries(day: DayPicks) -> list[dict]:
@@ -39,16 +27,16 @@ def entries(day: DayPicks) -> list[dict]:
         race = rp.model.race
         picks: dict[str, dict] = {}
         for line in g.lines:
-            key = _GRADE_LABELS[line.label]
+            key = line.kind
             pick = {"hit": line.hit, "value": line.value, "returned": line.returned}
-            if key in ("win", "place", "each_way"):
+            if key in KINDS:
                 s = rp.best[key]
                 pick.update(
                     no=s.number,
                     name=s.name,
                     chance=round(s.prob, 3),
                     price=s.price,
-                    place_price=s.place_price if key != "win" else None,
+                    place_price=s.place_price if key not in ("win", "top_win") else None,
                     estimated=s.estimated,
                 )
             else:
@@ -118,15 +106,20 @@ class Tally:
         return self.returned / self.picks - 1.0
 
 
-def tally(history: list[dict], *, value_only: bool = False) -> list[Tally]:
-    """One row per pick type; ``value_only`` keeps just the picks flagged as value bets."""
+def shown(entry: dict, cat: str) -> dict | None:
+    """The entry's pick in one category, if the app made one. Value categories hold only
+    value bets: entries saved before the two lines split also kept a fallback there."""
+    pick = entry["picks"].get(cat)
+    if pick is None or (cat in VALUE_KINDS and not pick.get("value")):
+        return None
+    return pick
+
+
+def tally(history: list[dict]) -> list[Tally]:
+    """One row per pick type."""
     out = []
     for cat, label in CATEGORIES:
-        picked = [
-            e["picks"][cat]
-            for e in history
-            if cat in e["picks"] and (not value_only or e["picks"][cat].get("value"))
-        ]
+        picked = [p for e in history if (p := shown(e, cat)) is not None]
         valued = [p for p in picked if p.get("returned") is not None]
         unknown_wins = sum(1 for p in picked if p["hit"] and p.get("returned") is None)
         # A stray missing price is left out; missing dividends throughout (exotics on saved

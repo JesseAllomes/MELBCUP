@@ -10,7 +10,17 @@ from melbcup.bets.singles import Single, best, singles
 from melbcup.bets.staking import each_way_stake, exotic_stake, scale_to_budget, stake
 from melbcup.model.probability import RaceModel
 
-KINDS = ("win", "place", "each_way")
+KINDS = ("top_win", "top_place", "win", "place", "each_way")
+VALUE_KINDS = ("win", "place", "each_way")
+LABELS = {
+    "top_win": "Most likely win",
+    "top_place": "Most likely place",
+    "win": "Value win",
+    "place": "Value place",
+    "each_way": "Value each way",
+    "trifecta": "Trifecta",
+    "first_four": "First four",
+}
 MIN_HIT = {"trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
 
 

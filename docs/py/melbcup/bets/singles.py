@@ -163,39 +163,24 @@ def singles(model: RaceModel) -> list[Single]:
 
 
 def best(single_list: list[Single], kind: str) -> Single | None:
-    """The pick of one kind in a race. Each kind answers its own question:
+    """The pick of one kind in a race. Two questions, answered separately:
 
-    win       the best win value; failing that, the top-rated runner
-    place     the best place value among runners with a real chance of placing (35%+) and a
-              win price of $21 or less; without place prices, the likeliest placegetter
-    each way  the best each-way value among runners from $5 to $21, where the place half
-              matters; none when no runner is in that range
+    Most likely, whatever the price:
+    top_win    the runner with the highest chance of winning
+    top_place  the runner with the highest chance of running a place
+
+    Best price for chance, only when a price beats the runner's chance by enough (the value
+    rule); otherwise none:
+    win        the best win value
+    place      the best place value among runners with a real chance of placing (35%+)
+    each_way   the best each-way value from $5 to $21, where the place half matters
     """
-    pool = [s for s in single_list if s.kind == kind]
+    if kind in ("top_win", "top_place"):
+        pool = [s for s in single_list if s.kind == kind.removeprefix("top_")]
+        return max(pool, key=lambda s: s.prob, default=None)
+    pool = [s for s in single_list if s.kind == kind and s.value]
     if kind == "place":
-        priced = [
-            s
-            for s in pool
-            if s.price is not None
-            and s.prob >= MIN_PLACE_PROB
-            and (s.win_price is None or s.win_price <= MAX_VALUE_PRICE)
-        ]
-        if not priced:
-            return max(pool, key=lambda s: s.prob) if pool else None
-        pool = priced
+        pool = [s for s in pool if s.prob >= MIN_PLACE_PROB]
     elif kind == "each_way":
-        pool = [
-            s
-            for s in pool
-            if s.price is not None
-            and s.place_price is not None
-            and EW_MIN_PRICE <= s.price <= MAX_VALUE_PRICE
-        ]
-    if not pool:
-        return None
-    value = [s for s in pool if s.value]
-    if value:
-        return max(value, key=lambda s: s.ev or 0.0)
-    if kind == "win" or all(s.ev is None for s in pool):
-        return max(pool, key=lambda s: 1 / s.fair_price)
-    return max(pool, key=lambda s: s.ev if s.ev is not None else -1.0)
+        pool = [s for s in pool if s.place_price is not None and EW_MIN_PRICE <= s.price]
+    return max(pool, key=lambda s: s.ev or 0.0, default=None)

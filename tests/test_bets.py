@@ -62,11 +62,20 @@ def test_singles_ev_and_value_flag():
     assert best(sl, "win").number == 1
 
 
-def test_best_without_value_returns_top_rated_not_nothing():
+def test_most_likely_ignores_price_and_value_needs_an_edge():
     m = make_model(1, FIELD, [2.0, 2.5, 4.0, 6.0, 8.0, 9.0])
     sl = singles(m)
-    pick = best(sl, "win")
-    assert pick.number == 1 and not pick.value
+    top = best(sl, "top_win")
+    assert top.number == 1 and not top.value  # most likely, though the price is short
+    assert top.prob == max(s.prob for s in sl if s.kind == "win")
+    assert best(sl, "top_place").prob == max(s.prob for s in sl if s.kind == "place")
+    assert best(sl, "win") is None  # no price beats its chance: no value pick
+
+
+def test_most_likely_exists_without_prices():
+    sl = singles(make_model(1, FIELD))
+    assert best(sl, "top_win") is not None and best(sl, "top_place") is not None
+    assert all(best(sl, k) is None for k in ("win", "place", "each_way"))
 
 
 def test_singles_without_prices_have_no_ev():
@@ -182,7 +191,9 @@ def test_build_picks_end_to_end_with_budget():
     assert rec.outlay == 2 and rec.flexi_pct == pytest.approx(100 * 2 / rec.combos, abs=0.1)
     assert {e.kind for e in day.quaddies} == {"quaddie", "early_quaddie"}
     total = sum(
-        (s.stake or 0) for rp in day.races for s in {id(x): x for x in rp.best.values()}.values()
+        (s.stake or 0)
+        for rp in day.races
+        for s in {id(x): x for x in rp.best.values() if x is not None}.values()
     )
     total += sum(e.outlay or 0 for rp in day.races for e in rp.trifectas + rp.first_fours)
     total += sum(e.outlay or 0 for e in day.quaddies) + sum(m.stake or 0 for m in day.multis)
@@ -242,19 +253,19 @@ def test_implausible_edges_and_big_prices_are_never_value():
 
 
 def test_place_pick_looks_past_a_short_favourite():
-    # The favourite places 85% of the time but pays $1.10: the second favourite at $1.90 with
-    # a 60% chance is the better place bet.
-    m = make_model(1, [0.5, 0.25, 0.15, 0.1], [2.0, 4.5, 7.0, 11.0], [1.10, 1.90, 2.60, 3.20])
-    place = best(singles(m), "place")
-    assert place.number != 1
+    # The favourite almost always places but pays $1.10: the second favourite at $1.35 is the
+    # place value, while the favourite stays the most likely placegetter.
+    m = make_model(1, [0.5, 0.25, 0.15, 0.1], [2.0, 4.5, 7.0, 11.0], [1.10, 1.35, 1.60, 2.00])
+    sl = singles(m)
+    assert best(sl, "place").number == 2 and best(sl, "top_place").number == 1
 
 
 def test_each_way_needs_a_price_where_the_place_half_matters():
     short = make_model(1, [0.5, 0.3, 0.2], [2.0, 3.0, 4.5], [1.2, 1.5, 1.9])
     assert best(singles(short), "each_way") is None  # nobody at $5 or more
-    m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.0, 2.5, 3.0, 3.5])
+    m = make_model(1, FIELD, [3.5, 3.0, 8.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.2, 2.5, 3.0, 3.5])
     ew = best(singles(m), "each_way")
-    assert ew is not None and 5.0 <= ew.price <= 21.0
+    assert ew is not None and ew.number == 3 and ew.value and 5.0 <= ew.price <= 21.0
 
 
 def test_place_price_estimated_only_for_races_judged_at_sp():
@@ -274,21 +285,22 @@ def test_history_tally_reports_profit_per_dollar():
     from melbcup.history import tally
 
     record = [
-        {"picks": {"win": {"hit": True, "returned": 3.0}}},
-        {"picks": {"win": {"hit": False, "returned": 0.0}}},
+        {"picks": {"top_win": {"hit": True, "returned": 3.0}}},
+        {"picks": {"top_win": {"hit": False, "returned": 0.0}}},
         {"picks": {"trifecta": {"hit": True, "returned": None}}},
     ]
     t = {x.label: x for x in tally(record)}
-    assert t["Win"].profit == pytest.approx(0.5) and t["Win"].rate == 0.5
+    assert t["Most likely win"].profit == pytest.approx(0.5)
+    assert t["Most likely win"].rate == 0.5
     assert t["Trifecta"].profit is None  # dividend unknown
 
 
-def test_history_tally_can_keep_only_value_picks():
+def test_history_value_rows_count_only_value_picks():
     from melbcup.history import tally
 
-    record = [
+    record = [  # the second was saved before the split, when a fallback filled the slot
         {"picks": {"win": {"hit": True, "returned": 4.0, "value": True}}},
         {"picks": {"win": {"hit": False, "returned": 0.0, "value": False}}},
     ]
-    v = {t.label: t for t in tally(record, value_only=True)}
-    assert v["Win"].picks == 1 and v["Win"].profit == pytest.approx(3.0)
+    v = {t.label: t for t in tally(record)}
+    assert v["Value win"].picks == 1 and v["Value win"].profit == pytest.approx(3.0)

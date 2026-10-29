@@ -163,7 +163,7 @@ def test_history_page_tallies_saved_and_new_races(tmp_path, monkeypatch):
     read = saved_meeting(tmp_path, day)
     saved_card = archive.Archive(read, "pe-key").load(day, VENUE)
     record = history.entries(build_picks([assess(r) for r in saved_card.races]))
-    assert len(record) == 2 and {"win", "place", "each_way", "trifecta"} <= set(record[0]["picks"])
+    assert len(record) == 2 and {"top_win", "top_place", "trifecta"} <= set(record[0]["picks"])
     archive.write(str(tmp_path), [saved_card], "pe-key", history=record)
 
     router = Router()
@@ -183,9 +183,10 @@ def test_history_page_tallies_saved_and_new_races(tmp_path, monkeypatch):
     assert "4 races, 2 meetings" in html
     assert "Tue 3 Nov" in html and "Sat 24 Oct" in html
     assert "Lexus Melbourne Cup" in html and "✓" in html
+    assert "Most likely" in html
     tallies = {t.label: t for t in history.tally(history.merge(record, b.history()))}
-    assert tallies["Win"].picks == 4 and 0 <= tallies["Win"].correct <= 4
-    assert tallies["Win"].failed == 4 - tallies["Win"].correct
+    top = tallies["Most likely win"]
+    assert top.picks == 4 and 0 <= top.correct <= 4 and top.failed == 4 - top.correct
 
 
 def test_history_says_when_the_saved_races_are_locked(tmp_path, monkeypatch):

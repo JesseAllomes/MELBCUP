@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from itertools import product
 
-from melbcup.bets import DayPicks, RacePicks
+from melbcup.bets import KINDS, LABELS, VALUE_KINDS, DayPicks, RacePicks
 from melbcup.bets.exotics import Exotic
 from melbcup.bets.singles import Single
 from melbcup.domain import RaceResult
@@ -19,6 +19,7 @@ class Graded:
     hit: bool
     returned: float | None  # per $1 staked; None when the dividend is unknown
     value: bool = False  # the app flagged it as a value bet
+    kind: str = ""  # a key of LABELS for race picks; empty for quaddies and multis
 
     @property
     def profit(self) -> float | None:
@@ -64,14 +65,14 @@ class DayGrade:
 
     @property
     def value_lines(self) -> list[Graded]:
-        return [g for r in self.races for g in r.lines if g.value]
+        return [g for r in self.races for g in r.lines if g.kind in VALUE_KINDS and g.value]
 
     @property
     def exotic_lines(self) -> list[Graded]:
-        return [g for r in self.races for g in r.lines if g.label in ("Trifecta", "First Four")]
+        return [g for r in self.races for g in r.lines if g.kind in ("trifecta", "first_four")]
 
 
-def _single(s: Single, result: RaceResult, places_paid: int) -> Graded:
+def _single(s: Single, result: RaceResult, places_paid: int, kind: str | None = None) -> Graded:
     """Win at the win price shown; place at the place price shown, or the official fixed place
     dividend when the app had none; each way as half of each."""
     pos = result.finish.get(s.number)
@@ -88,23 +89,22 @@ def _single(s: Single, result: RaceResult, places_paid: int) -> Graded:
     else:
         hit = placed
         ret = None if win_part is None or place_part is None else 0.5 * (win_part + place_part)
-    label = {"win": "Win", "place": "Place", "each_way": "Each way"}[s.kind]
-    return Graded(label, f"{s.number}. {s.name}", hit, ret, s.value)
+    kind = kind or s.kind
+    return Graded(LABELS[kind], f"{s.number}. {s.name}", hit, ret, s.value, kind)
 
 
-def _exotic(e: Exotic, result: RaceResult, code: str, depth: int) -> Graded:
+def _exotic(e: Exotic, result: RaceResult, kind: str, depth: int) -> Graded:
     actual = tuple(result.placegetters(depth))
     combos = {c for c in product(*e.legs) if len(set(c)) == len(c)}
     hit = len(actual) == depth and actual in combos
-    dividend = result.exotics.get(code)
+    dividend = result.exotics.get("TF" if kind == "trifecta" else "FF")
     if not hit:
         ret = 0.0
     elif dividend and dividend[0] == actual:
         ret = dividend[1] / e.combos  # $1 spread across every combination (flexi)
     else:
         ret = None
-    label = "Trifecta" if code == "TF" else "First Four"
-    return Graded(label, f"{e.title}: {' / '.join(e.leg_labels)}", hit, ret)
+    return Graded(LABELS[kind], f"{e.title}: {' / '.join(e.leg_labels)}", hit, ret, kind=kind)
 
 
 def grade_race(rp: RacePicks) -> RaceGrade | None:
@@ -126,14 +126,14 @@ def grade_race(rp: RacePicks) -> RaceGrade | None:
         ranked[0] if ranked else None,
         ranked.index(winner) + 1 if winner in ranked else None,
     )
-    for kind in ("win", "place", "each_way"):
+    for kind in KINDS:
         s = rp.best.get(kind)
         if s is not None:
-            g.lines.append(_single(s, result, race.places_paid))
-    for group, code, depth in ((rp.trifectas, "TF", 3), (rp.first_fours, "FF", 4)):
+            g.lines.append(_single(s, result, race.places_paid, kind))
+    for group, kind, depth in ((rp.trifectas, "trifecta", 3), (rp.first_fours, "first_four", 4)):
         rec = next((e for e in group if e.recommended), None)
         if rec is not None:
-            g.lines.append(_exotic(rec, result, code, depth))
+            g.lines.append(_exotic(rec, result, kind, depth))
     return g
 
 

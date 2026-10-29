@@ -14,6 +14,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from melbcup import history
+from melbcup.bets import LABELS
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -37,7 +38,6 @@ BOOKMAKERS = {
     "boombet": "BoomBet",
     "SP": "SP",
 }
-KIND_LABELS = {"win": "Win", "place": "Place", "each_way": "Each way"}
 MAX_BUDGET = 100_000
 CARNIVAL = (  # Flemington, Melbourne Cup Carnival 2026: one tap, no lookup
     ("Derby Day", date(2026, 10, 31)),
@@ -144,7 +144,8 @@ def make_env() -> Environment:
         isoday=isoday,
         racename=racename,
     )
-    env.globals["KIND_LABELS"] = KIND_LABELS
+    env.globals["LABELS"] = LABELS
+    env.globals["shown"] = history.shown
     return env
 
 
@@ -175,16 +176,7 @@ class Views:
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
         )
-        keys = {
-            "Win": "win",
-            "Place": "place",
-            "Each way": "each_way",
-            "Trifecta": "trifecta",
-            "First Four": "first_four",
-        }
-        marks = {
-            rg.race: {keys[g.label]: g for g in rg.lines} for rg in (grade.races if grade else [])
-        }
+        marks = {rg.race: {g.kind: g for g in rg.lines} for rg in (grade.races if grade else [])}
         return {
             "settings": self.settings,
             "browser": self.browser,
@@ -213,7 +205,6 @@ class Views:
             ctx.update(
                 record=record,
                 tallies=history.tally(record),
-                value_tallies={t.label: t for t in history.tally(record, value_only=True)},
                 groups=history.meetings(record),
                 archive_closed=archive is not None and not archive.open,
                 saved_count=len(saved),
