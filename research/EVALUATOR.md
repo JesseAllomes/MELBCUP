@@ -1,9 +1,11 @@
 > **Status in this repository (2026-10-29).**
 > - `research/evaluator.py` is a **candidate evaluator for protocol v2**. `research/analysis/evaluate.py`
 >   remains authoritative for every v1 result.
-> - The export adapter (`research/analysis/export_predictions.py`) and the suites
->   `tests/test_research_evaluator.py` and `tests/test_evaluator_parity.py` described below were not
->   part of this upload and are not in the repository yet.
+> - The export adapter (`research/analysis/export_predictions.py`), the suites
+>   `tests/test_research_evaluator.py` and `tests/test_evaluator_parity.py`, and
+>   `research/__init__.py` were added from the support archive. All 27 tests pass, and
+>   `research/evaluator.py` is byte-identical to the supplied copy. The support archive does not
+>   replace the committed evaluator or any v1 result.
 > - `tests/test_evaluator_parity_synthetic.py` (run with `MELBCUP_DATA=x MELBCUP_RESULTS=<tmp>`)
 >   checks 12 point estimates against v1 on 5 random scenarios of 400 races, with scratchings,
 >   dead heats, bets and nominations. All agree to 1e-9.

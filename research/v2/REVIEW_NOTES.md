@@ -15,6 +15,22 @@
 - **Forward-selection optimism.** The combined +0.00213 comes from forward selection over the
   same out-of-fold screening results. Treat it as optimistic. v1 halved from train to tune2.
   Protocol v2 should re-estimate the shortlist on tune1 before pinning, under the rules above.
+- **Owner's pre-freeze conditions (2026-10-29).** These are binding on protocol v2.
+  1. **Carried weight stays provisional.** A missing claim field does not establish that historical
+     weight already includes claims. Before the effect is interpreted, compare these from the live
+     log: timestamped pre-race declarations (`weightCarried`, `weight`, `apprenticeAllowedClaim`,
+     `apprenticeCanClaim`) and post-race values from the dumps.
+  2. **Claim D must beat a market-only closing-move forecast.**
+     - Compare the model's closing-price predictions against a market-only forecast of the T−30 →
+       close move: M^α's own implied move, plus market-only terms such as the open→T move, fitted
+       on development data.
+     - A positive slope of ln(SP/M) on ln(P/P_mkt) alone could reflect the odds correction or
+       shared market inputs rather than horse information.
+     - The statistic should be the gain over that market-only forecast.
+  3. **"No stale-book window" is qualified.** An eight-second median lag implies difficult
+     execution, not that every opportunity is unbettable. Measure availability and latency directly
+     from the live log: quote survival from first live observation, and cross-book lag at collection
+     time.
 - **Carried weight semantics (V1).**
   - Historical `weightCarried` may have been revised after the race.
   - The live collector now records declared weight, `apprenticeAllowedClaim`, jockey and gear
