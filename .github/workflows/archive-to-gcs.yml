@@ -1,0 +1,70 @@
+# Private durable copies in Google Cloud Storage, verified after upload.
+#   raw-archive  (run by hand): the raw racing.com / Betfair files from the `data` branch, checked against
+#                research/archive/MANIFEST.sha256, bundled, uploaded, downloaded back and fully restored.
+#   live-mirror  (daily, or by hand): new files from the `live` branch, uploaded and checksum-verified;
+#                nothing in the bucket is ever deleted or overwritten.
+# Needs repository secrets GCP_SA_KEY (a service-account JSON key) and GCS_BUCKET (bucket name).
+name: archive-to-gcs
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "raw-archive or live-mirror"
+        required: true
+        default: raw-archive
+  schedule:
+    - cron: "17 14 * * *"     # daily live mirror, 01:17 Melbourne summer time
+permissions:
+  contents: read
+jobs:
+  raw-archive:
+    if: github.event_name == 'workflow_dispatch' && inputs.job == 'raw-archive'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: code}
+      - uses: actions/checkout@v4
+        with: {ref: data, path: data, fetch-depth: 1}
+      - uses: google-github-actions/auth@v2
+        with: {credentials_json: "${{ secrets.GCP_SA_KEY }}"}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Verify the data branch against the manifest
+        working-directory: data
+        run: sha256sum -c --quiet ../code/research/archive/MANIFEST.sha256 && echo "all $(wc -l < ../code/research/archive/MANIFEST.sha256) files match"
+      - name: Bundle
+        run: |
+          mkdir -p out
+          cd data
+          for y in 2022 2023 2024 2025 2026; do tar -cf ../out/meetings-$y.tar big/meetings/$y-*; done
+          tar -cf ../out/racingcom-history.tar racingcom/history
+          tar -cf ../out/racingcom-runs.tar racingcom/runs
+          tar -cf ../out/betfair-raw.tar betfair/raw
+          cd ../out
+          sha256sum *.tar > BUNDLES.sha256
+          cp ../code/research/archive/{MANIFEST.sha256,files.jsonl,VERSIONS.json,README.md,restore.sh,adaptive.log,big.log} .
+          cp ../code/research/dataset/{collect_adaptive.py,rcq.py} .
+      - name: Upload (never overwrite)
+        run: gcloud storage cp --no-clobber out/* "gs://${{ secrets.GCS_BUCKET }}/raw-archive/2026-10-29/"
+      - name: Download back and restore every file
+        run: |
+          mkdir check && gcloud storage cp "gs://${{ secrets.GCS_BUCKET }}/raw-archive/2026-10-29/*" check/
+          cd check && sh restore.sh restored
+
+  live-mirror:
+    if: github.event_name == 'schedule' || inputs.job == 'live-mirror'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: live, path: live, fetch-depth: 1}
+      - uses: google-github-actions/auth@v2
+        with: {credentials_json: "${{ secrets.GCP_SA_KEY }}"}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Upload new observation files (no deletes, no overwrites)
+        run: gcloud storage rsync --recursive --no-clobber live/observations "gs://${{ secrets.GCS_BUCKET }}/live/observations"
+      - name: Verify every local file is in the bucket with the same checksum
+        run: |
+          left=$(gcloud storage rsync --recursive --checksums-only --dry-run live/observations "gs://${{ secrets.GCS_BUCKET }}/live/observations" 2>&1 | grep -c "Would copy" || true)
+          echo "files missing or different in the bucket: $left"
+          test "$left" -eq 0
