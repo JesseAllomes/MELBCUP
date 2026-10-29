@@ -264,6 +264,10 @@ def ff_person_payload(name: str, role: str) -> dict:
         "overallPlaceRate": 0.35,
         "trackStats": [{"venue": VENUE, "totalStarts": 80, "wins": 10 + seed, "places": 30}],
         "recentStats": {"totalStarts": 60, "totalWins": 8 + seed, "overallPlaceRate": 0.38},
+        "conditionStats": [
+            {"condition": "Good", "totalStarts": 400, "wins": 50 + seed, "places": 140},
+            {"condition": "Soft", "totalStarts": 90, "wins": 9, "places": 30},
+        ],
     }
 
 

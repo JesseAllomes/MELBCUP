@@ -139,7 +139,16 @@ def parse_person(data: dict[str, Any], venue: str) -> PersonStats:
         starts = int(rs["totalStarts"])
         place_rate = float(rs.get("overallPlaceRate") or 0)
         recent = StatLine(starts, int(rs.get("totalWins") or 0), round(place_rate * starts))
-    return PersonStats(name=name, overall=overall, at_track=at_track, recent=recent)
+    by_going = {}
+    for c in data.get("conditionStats") or []:
+        band = going_band(c.get("condition"))
+        if band and c.get("totalStarts"):
+            by_going[band] = StatLine(
+                int(c["totalStarts"]), int(c.get("wins") or 0), int(c.get("places") or 0)
+            )
+    return PersonStats(
+        name=name, overall=overall, at_track=at_track, recent=recent, by_going=by_going or None
+    )
 
 
 def parse_track_bias(data: dict[str, Any], distance_m: int | None) -> dict[int, float]:

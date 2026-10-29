@@ -32,6 +32,11 @@ class PersonStats:
     overall: StatLine | None = None
     at_track: StatLine | None = None
     recent: StatLine | None = None
+    by_going: dict[str, StatLine] | None = None  # career record on each going band
+
+    def on_going(self, condition: str | None) -> StatLine | None:
+        band = going_band(condition)
+        return (self.by_going or {}).get(band) if band else None
 
 
 @dataclass(frozen=True)

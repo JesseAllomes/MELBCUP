@@ -56,8 +56,8 @@
             <dt>Career, track, distance, going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
             {% if r.first_up or r.second_up %}<dt>First and second up</dt><dd>{{ r.first_up | statline }} · {{ r.second_up | statline }}</dd>{% endif %}
             {% if r.running_style %}<dt>Speed map</dt><dd>{{ r.running_style }}{% if r.settling_position %}, settles about {{ '%.0f' % r.settling_position }}{% endif %}</dd>{% endif %}
-            {% if r.jockey_stats %}<dt>Jockey</dt><dd>last 90 days {{ r.jockey_stats.recent | statline }} · at {{ race.venue }} {{ r.jockey_stats.at_track | statline }}</dd>{% endif %}
-            {% if r.trainer_stats %}<dt>Trainer</dt><dd>last 90 days {{ r.trainer_stats.recent | statline }} · at {{ race.venue }} {{ r.trainer_stats.at_track | statline }}</dd>{% endif %}
+            {% if r.jockey_stats %}<dt>Jockey</dt><dd>last 90 days {{ r.jockey_stats.recent | statline }} · at {{ race.venue }} {{ r.jockey_stats.at_track | statline }}{% if r.jockey_stats.on_going and r.jockey_stats.on_going(race.condition) %} · on {{ race.condition }} going {{ r.jockey_stats.on_going(race.condition) | statline }}{% endif %}</dd>{% endif %}
+            {% if r.trainer_stats %}<dt>Trainer</dt><dd>last 90 days {{ r.trainer_stats.recent | statline }} · at {{ race.venue }} {{ r.trainer_stats.at_track | statline }}{% if r.trainer_stats.on_going and r.trainer_stats.on_going(race.condition) %} · on {{ race.condition }} going {{ r.trainer_stats.on_going(race.condition) | statline }}{% endif %}</dd>{% endif %}
             {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
             {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
             {% if r.notes %}<dt>Notes</dt><dd>{{ r.notes | join(', ') }}</dd>{% endif %}

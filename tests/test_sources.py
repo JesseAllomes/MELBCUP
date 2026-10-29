@@ -318,3 +318,15 @@ def test_rain_on_the_day_switches_each_runners_going_record():
     assert assess(race).runners[1].win > before  # the wet-tracker's chance rises
     update_going(race, "Good 4")  # dries out again
     assert race.condition_was is None and race.runner(1).going is dry
+
+
+def test_person_stats_keep_the_record_on_each_going():
+    from conftest import ff_person_payload
+
+    from melbcup.domain import StatLine
+    from melbcup.sources.formfav import parse_person
+
+    p = parse_person(ff_person_payload("Jamie Kah", "jockey"), VENUE)
+    assert p.on_going("Soft 6") == StatLine(90, 9, 30)
+    assert p.on_going("Good 4").starts == 400
+    assert p.on_going("Heavy 9") is None and p.on_going(None) is None
