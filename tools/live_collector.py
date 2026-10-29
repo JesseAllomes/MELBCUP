@@ -16,6 +16,9 @@ Record kinds:
   market        GetBettingData for one race: entry ids, horse codes, scratched, isLateScratching, emergency,
                 win/place price and update time from Sportsbet (sb), Ladbrokes (lb), PointsBet (pb) and
                 bet365 (bt); sb/lb fluctuation series when with_flucs is true (tote prices are not kept)
+  field         getNoCacheRaceForm for one watched race, every SCHEDULE_EVERY cycles: declared weight
+                (weightCarried, weight, weightPrevious), apprentice and allowed claim, jockey and
+                jockeyChanged, handicapRating, gearChanges, barrier, scratched, emergency
   error         a failed request: what, why, HTTP status
 
 A response identical to the previous one for the same request is stored as a marker instead of again:
@@ -50,6 +53,9 @@ MEETINGS = ("query($s:String!,$b:Int!,$f:Int!,$u:String!){GetRaceMeetingsByState
             "daysForward:$f,userDate:$u){id venue date state isTrial isJumpOut}}")
 SCHEDULE = ("query($m:ID!){getNoCacheRacesForMeet(meetCode:$m){id raceNumber time officialTime raceStatus "
             "bettingStatus status meetStatus distance}}")
+FIELD = ("query($m:ID!,$n:Int!){getNoCacheRaceForm(meetCode:$m,raceNumber:$n){id formRaceEntries{id raceEntryNumber "
+         "horseCode barrierNumber weightCarried weight weightPrevious apprentice apprenticeAllowedClaim apprenticeCanClaim "
+         "jockeyCode jockeyName jockeyChanged handicapRating gearChanges scratched emergency}}}")
 BOOKS = {"sb": "SB2", "lb": "LB2", "pb": "PB3", "bt": "BT"}   # fixed-price bookmakers: Sportsbet, Ladbrokes, PointsBet, bet365
 PRICE = "oddsWin oddsPlace updated placeUpdated oddsIsFavouriteWin"
 
@@ -219,6 +225,8 @@ class Collector:
             return err is None
 
         results = list(pool.map(one, keys))
+        if self.cycle % SCHEDULE_EVERY == 0:   # declared weights, claims, jockeys and gear, as they stood before the race
+            list(pool.map(lambda k: self.fetch("field", FIELD, {"m": k[0], "n": k[1]}, meet_code=k[0], race_number=k[1]), keys))
         self.log.write(dict(kind="cycle", run=self.run, cycle=self.cycle, planned_utc=iso(planned), obs_utc=iso(started),
                             recv_utc=iso(now()), meetings=len(self.meets), races_watched=len(keys),
                             market_ok=sum(results), market_failed=len(results) - sum(results), with_flucs=flucs,
