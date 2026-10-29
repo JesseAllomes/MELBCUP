@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}R{{ race.number }} · MELBCUP{% endblock %}
+{% block content %}
+<nav class="racenav">
+  {% for r in picks.races %}
+    <a href="/race/{{ r.model.race.number }}{{ budget_q }}" class="{{ 'on' if r.model.race.number == race.number }}">R{{ r.model.race.number }}</a>
+  {% endfor %}
+</nav>
+
+<section class="card">
+  <h1>R{{ race.number }} {{ race.name or '' }}</h1>
+  <p class="sub">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m
+    · {{ race.race_class or '' }} · {{ race.condition or card.condition or '' }}
+    {% if race.prize_total %} · ${{ '{:,}'.format(race.prize_total) }}{% endif %}
+    · pays {{ race.places_paid }} places</p>
+  <p class="sub">Probabilities from: {{ rp.model.sources | join(', ') or 'nothing yet' }}
+    {% if race.prices_at %} · prices {{ race.prices_at | local_time }}{% endif %}</p>
+  {% for kind in ['win', 'place', 'each_way'] %}
+    {% set s = rp.best[kind] %}
+    {% if s %}{% include "_pick.html" %}{% endif %}
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Field</h2>
+  <div class="tablewrap">
+  <table class="field">
+    <thead><tr>
+      <th>Horse</th><th>Win</th><th>Place</th><th>Market</th><th>Fair</th><th>Best</th><th>SB</th><th>Edge</th>
+    </tr></thead>
+    <tbody>
+    {% for a in rp.model.ranked() %}
+      {% set r = race.runner(a.number) %}
+      {% set p = race.prices.get(a.number) %}
+      {% set w = rp.singles | selectattr('kind', 'equalto', 'win') | selectattr('number', 'equalto', a.number) | first %}
+      <tr class="{{ 'value' if w and w.value }}">
+        <td class="horse">
+          <strong>{{ a.number }}. {{ r.name }}</strong> <span class="sub">({{ r.barrier or '?' }})</span>
+          <div class="sub">{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %}</div>
+        </td>
+        <td class="num">{{ a.win | pct(1) }}</td>
+        <td class="num">{{ a.place | pct }}</td>
+        <td class="num">{{ a.market_win | pct(1) }}</td>
+        <td class="num">{{ (1 / a.win) | money }}</td>
+        <td class="num">{% if p and p.best_win %}{{ p.best_win.price | money }}<div class="sub">{{ p.best_win.bookmaker | book }}</div>{% else %}–{% endif %}</td>
+        <td class="num">{{ p.sportsbet_win | money if p else '–' }}</td>
+        <td class="num">{{ w.ev | edge if w else '–' }}</td>
+      </tr>
+      <tr class="detail"><td colspan="8">
+        <details>
+          <summary>Form, connections and why</summary>
+          <dl>
+            {% if a.reasons_for %}<dt>For</dt><dd>{{ a.reasons_for | join(', ') }}</dd>{% endif %}
+            {% if a.reasons_against %}<dt>Against</dt><dd>{{ a.reasons_against | join(', ') }}</dd>{% endif %}
+            <dt>Model / FormFav / market</dt><dd>{{ a.model_win | pct(1) }} / {{ a.feed_win | pct(1) }} / {{ a.market_win | pct(1) }}</dd>
+            <dt>Last 10</dt><dd>{{ r.last10 or '–' }}{% if r.hcp_rating %} · rating {{ r.hcp_rating }}{% endif %}{% if r.class_rating %} · class {{ r.class_rating }}{% endif %}</dd>
+            <dt>Career / track / dist / going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
+            {% if r.first_up or r.second_up %}<dt>1st-up / 2nd-up</dt><dd>{{ r.first_up | statline }} · {{ r.second_up | statline }}</dd>{% endif %}
+            {% if r.running_style %}<dt>Speed map</dt><dd>{{ r.running_style }}{% if r.settling_position %}, settles ~{{ '%.0f' % r.settling_position }}{% endif %}</dd>{% endif %}
+            {% if r.jockey_stats %}<dt>Jockey</dt><dd>last 90 days {{ r.jockey_stats.recent | statline }} · at {{ race.venue }} {{ r.jockey_stats.at_track | statline }}</dd>{% endif %}
+            {% if r.trainer_stats %}<dt>Trainer</dt><dd>last 90 days {{ r.trainer_stats.recent | statline }} · at {{ race.venue }} {{ r.trainer_stats.at_track | statline }}</dd>{% endif %}
+            {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
+            {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
+            {% if r.notes %}<dt>Notes</dt><dd>{{ r.notes | join(', ') }}</dd>{% endif %}
+          </dl>
+          {% if r.runs %}
+          <table class="runs">
+            <thead><tr><th>Date</th><th>Track</th><th>m</th><th>Going</th><th>Pos</th><th>Mgn</th><th>SP</th></tr></thead>
+            <tbody>{% for run in r.runs[:6] %}
+              <tr><td>{{ run.run_date.strftime('%-d %b') }}</td><td>{{ run.venue }}</td><td>{{ run.distance_m or '' }}</td><td>{{ run.condition or '' }}</td>
+                <td>{{ run.position or '–' }}/{{ run.field_size or '?' }}</td><td>{{ run.margin_l if run.margin_l is not none else '' }}</td><td>{{ run.sp | money }}</td></tr>
+            {% endfor %}</tbody>
+          </table>
+          {% endif %}
+        </details>
+      </td></tr>
+    {% endfor %}
+    {% for r in race.runners if r.scratched %}
+      <tr class="scratched"><td colspan="8">{{ r.number }}. {{ r.name }} — scratched</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="sub">Win = our blended chance. Fair = the price that chance is worth. Edge = expected
+    return at the best price on offer; VALUE needs at least +5%.</p>
+</section>
+
+<section class="card">
+  <h2>Trifecta</h2>
+  <table class="exo">
+    <thead><tr><th>Structure</th><th>Combos</th><th>Hits</th><th>Fair div</th><th>Bet</th></tr></thead>
+    <tbody>{% for e in rp.trifectas %}{% include "_exotic.html" %}{% endfor %}</tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h2>First Four</h2>
+  <table class="exo">
+    <thead><tr><th>Structure</th><th>Combos</th><th>Hits</th><th>Fair div</th><th>Bet</th></tr></thead>
+    <tbody>{% for e in rp.first_fours %}{% include "_exotic.html" %}{% endfor %}</tbody>
+  </table>
+  <p class="sub">Fair div = what a $1 unit must pay to break even. Compare with the TAB's
+    approximate dividends before the jump.</p>
+</section>
+{% endblock %}

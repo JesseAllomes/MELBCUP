@@ -8,6 +8,23 @@ from melbcup.model.probability import RaceModel
 
 VALUE_EDGE = 0.05  # demand a 5% edge before calling a price "value": the model is not perfect
 MIN_WIN_PROB = 0.04  # ignore extreme long shots: their probabilities are the least reliable
+# Estimates are least certain at big prices (the favourite-long-shot bias), so the edge a price
+# must show grows with it: +5% at $2, +10% at $6, capped at +25% from $22 up.
+EDGE_PER_DOLLAR = 0.01
+MAX_EDGE = 0.25
+
+
+def required_edge(price: float) -> float:
+    return min(MAX_EDGE, VALUE_EDGE + EDGE_PER_DOLLAR * max(0.0, price - 1.0))
+
+
+def _is_value(ev: float | None, price: float | None, win_prob: float) -> bool:
+    return (
+        ev is not None
+        and price is not None
+        and win_prob >= MIN_WIN_PROB
+        and ev >= required_edge(price)
+    )
 
 
 @dataclass
@@ -61,7 +78,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_win,
                 ev_win,
                 1 / a.win,
-                ev_win is not None and ev_win >= VALUE_EDGE and a.win >= MIN_WIN_PROB,
+                _is_value(ev_win, win_price, a.win),
                 a.reasons_for,
             )
         )
@@ -78,7 +95,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_place,
                 ev_place,
                 1 / a.place if a.place else float("inf"),
-                ev_place is not None and ev_place >= VALUE_EDGE and a.win >= MIN_WIN_PROB,
+                _is_value(ev_place, place_price, a.win),
                 a.reasons_for,
             )
         )
@@ -97,7 +114,7 @@ def singles(model: RaceModel) -> list[Single]:
                 sb_win,
                 ev_ew,
                 1 / a.win,
-                ev_ew is not None and ev_ew >= VALUE_EDGE and a.win >= MIN_WIN_PROB,
+                _is_value(ev_ew, win_price, a.win),  # the bar follows the win price
                 a.reasons_for,
             )
         )

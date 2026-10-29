@@ -1,0 +1,26 @@
+{# One best-bet row. Needs: s (Single), kind #}
+<div class="pick {{ 'value' if s.value else 'novalue' }}">
+  <div class="kind">{{ KIND_LABELS[kind] }}</div>
+  <div class="who">
+    <strong>{{ s.number }}. {{ s.name }}</strong>
+    <span class="sub">
+      {% if kind == 'place' %}{{ s.prob | pct }} to place{% else %}{{ (1 / s.fair_price) | pct }} to win{% endif %}
+      · fair {{ s.fair_price | money }}
+    </span>
+  </div>
+  <div class="price">
+    {% if s.price %}
+      <strong>{{ s.price | money }}</strong>
+      <span class="sub">{{ s.bookmaker | book }}{% if kind == 'each_way' and s.place_price %} / pl {{ s.place_price | money }}{% endif %}</span>
+      {% if s.sportsbet and s.bookmaker != 'sportsbet' %}<span class="sub">Sportsbet {{ s.sportsbet | money }}</span>{% endif %}
+    {% else %}
+      <span class="sub">no price yet</span>
+    {% endif %}
+  </div>
+  <div class="verdict">
+    {% if s.value %}<span class="badge good">VALUE {{ s.ev | edge }}</span>
+    {% elif s.ev is not none %}<span class="badge">no value {{ s.ev | edge }}</span>
+    {% else %}<span class="badge">top rated</span>{% endif %}
+    {% if s.stake %}<span class="stake">Bet ${{ s.stake }}</span>{% endif %}
+  </div>
+</div>

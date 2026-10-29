@@ -54,7 +54,10 @@ def _structure(
     kind: str, title: str, win: dict[int, float], legs: list[list[int]], race: int
 ) -> Exotic:
     combos = _ordered_combos(legs)
-    labels = [", ".join(map(str, leg)) for leg in legs]
+    if all(leg == legs[0] for leg in legs):
+        labels = ["Box " + ", ".join(map(str, sorted(legs[0])))]
+    else:
+        labels = [", ".join(map(str, leg)) for leg in legs]
     return Exotic(
         kind, title, legs, labels, len(combos), sum(seq_prob(win, c) for c in combos), [race]
     )

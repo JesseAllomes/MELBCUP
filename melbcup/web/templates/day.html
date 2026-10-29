@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="budget" method="get" action="/">
+  <label for="budget">Day budget (optional, for bet sizes)</label>
+  <div class="row">
+    <input id="budget" name="budget" inputmode="decimal" placeholder="e.g. 200"
+           value="{{ '%g' % budget if budget else '' }}">
+    <button type="submit">Size my bets</button>
+  </div>
+</form>
+
+{% if not settings.has_price_source %}
+  <section class="card setup">
+    <h2>Add your data keys</h2>
+    <p>The app needs a <strong>PuntersEdge</strong> API key (prices, field, form) and works best
+      with a <strong>FormFav</strong> key too (long-form history, jockey and trainer records).
+      Add them as <code>PUNTERSEDGE_API_KEY</code> and <code>FORMFAV_API_KEY</code> in the host's
+      environment settings, then restart.</p>
+  </section>
+{% elif not picks %}
+  <section class="card"><p>Loading the card… this page refreshes itself.</p></section>
+{% else %}
+
+  {% if top_value %}
+  <section class="card">
+    <h2>Best value right now</h2>
+    {% for s in top_value %}
+      <a class="rowlink" href="/race/{{ s.race }}{{ budget_q }}">
+        <span class="rn">R{{ s.race }}</span>
+        <span>{{ KIND_LABELS[s.kind] }}: <strong>{{ s.number }}. {{ s.name }}</strong></span>
+        <span>{{ s.price | money }} {{ s.bookmaker | book }}</span>
+        <span class="badge good">{{ s.ev | edge }}</span>
+      </a>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% for rp in picks.races %}
+  {% set race = rp.model.race %}
+  <section class="card race" id="r{{ race.number }}">
+    <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}">
+      <span class="rn">R{{ race.number }}</span>
+      <span class="rname">{{ race.name or 'Race ' ~ race.number }}</span>
+      <span class="sub">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m</span>
+    </a>
+    {% for kind in ['win', 'place', 'each_way'] %}
+      {% set s = rp.best[kind] %}
+      {% if s %}{% include "_pick.html" %}{% endif %}
+    {% endfor %}
+    {% set tri = rp.trifectas | selectattr('recommended') | first %}
+    {% set ff = rp.first_fours | selectattr('recommended') | first %}
+    <div class="exo-line">
+      {% if tri %}<span>Trifecta: {{ tri.leg_labels | join(' / ') }} · {{ tri.prob | pct }} · {{ tri.combos }} combos</span>{% endif %}
+      {% if ff %}<span>First 4: {{ ff.leg_labels | join(' / ') }} · {{ ff.prob | pct(1) }} · {{ ff.combos }} combos</span>{% endif %}
+    </div>
+    <a class="more" href="/race/{{ race.number }}{{ budget_q }}">Full analysis →</a>
+  </section>
+  {% endfor %}
+
+  <section class="card">
+    <h2>Quaddies</h2>
+    {% if picks.quaddies %}
+    <table class="exo">
+      <thead><tr><th>Structure</th><th>Combos</th><th>Hits</th><th>Fair div</th><th>Bet</th></tr></thead>
+      <tbody>{% for e in picks.quaddies %}{% include "_exotic.html" %}{% endfor %}</tbody>
+    </table>
+    <p class="sub">Fair div = what a $1 unit must pay to break even. If the TAB's approximate
+      dividend is higher, the quaddie is value.</p>
+    {% else %}<p class="sub">Needs at least four races with a field.</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Multis (Sportsbet)</h2>
+    {% if picks.multis %}
+      {% for m in picks.multis %}
+      <div class="pick {{ 'value' if m.value else 'novalue' }}">
+        <div class="kind">{{ m.legs | length }}-leg</div>
+        <div class="who">
+          {% for leg in m.legs %}<div>R{{ leg.race }} {{ leg.number }}. {{ leg.name }} <span class="sub">{{ leg.price | money }}</span></div>{% endfor %}
+        </div>
+        <div class="price"><strong>{{ m.price | money }}</strong><span class="sub">{{ m.prob | pct(1) }} to land</span></div>
+        <div class="verdict">
+          {% if m.value %}<span class="badge good">VALUE {{ m.ev | edge }}</span>{% else %}<span class="badge">no value {{ m.ev | edge }}</span>{% endif %}
+          {% if m.stake %}<span class="stake">Bet ${{ m.stake }}</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}<p class="sub">No multi has legs with at least a 15% chance and a Sportsbet price yet.</p>{% endif %}
+  </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b3d2e">
+  <title>{% block title %}MELBCUP{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/{{ budget_q }}">MELBCUP</a>
+    <span class="meet">{{ settings.venue }} · {{ settings.race_date.strftime('%a %-d %b') }}</span>
+  </header>
+  <main id="main" data-refresh="60">
+    <div class="status">
+      {% if snap.updated_at %}
+        <span>Updated {{ snap.updated_at | local_time }}</span>
+      {% endif %}
+      <span>API calls this session: {{ snap.credits_used }}</span>
+    </div>
+    {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}
+    {% if card %}{% for w in card.warnings %}<p class="warn">{{ w }}</p>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    <p>Estimates from form and market data. They improve your odds of making a good decision;
+      they do not guarantee a result. Bet only what you can afford to lose.</p>
+    <p>Gambling Help Online: <a href="tel:1800858858">1800 858 858</a> ·
+      <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
+  </footer>
+</body>
+</html>

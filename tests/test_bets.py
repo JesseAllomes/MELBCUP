@@ -194,3 +194,37 @@ def test_build_picks_without_budget_has_no_stakes():
     day = build_picks(models)
     assert all(s is None or s.stake is None for rp in day.races for s in rp.best.values())
     assert all(e.outlay is None for e in day.quaddies)
+
+
+def test_required_edge_grows_with_price():
+    from melbcup.bets.singles import required_edge
+
+    assert required_edge(2.0) == pytest.approx(0.06)
+    assert required_edge(6.0) == pytest.approx(0.10)
+    assert required_edge(51.0) == 0.25
+
+
+def test_longshot_needs_a_bigger_edge_than_a_favourite():
+    # Both runners show +15%: fine at $3.50, not enough at $23.
+    m = make_model(1, [0.33, 0.05, 0.62], [3.5, 23.0, 1.5])
+    sl = singles(m)
+    fav = next(s for s in sl if s.kind == "win" and s.number == 1)
+    roughie = next(s for s in sl if s.kind == "win" and s.number == 2)
+    assert fav.ev == pytest.approx(0.155) and fav.value
+    assert roughie.ev == pytest.approx(0.15) and not roughie.value
+
+
+def test_multi_search_tries_every_qualifying_leg():
+    # Best-edge legs (R1 #2, R2 #2) combine under 8%; favourites together clear it.
+    models = [
+        make_model(1, [0.35, 0.16, 0.49], [3.2, 7.0, 2.5]),
+        make_model(2, [0.38, 0.16, 0.46], [2.6, 8.0, 2.4]),
+    ]
+    ms = multis(models)
+    assert ms and all(m.prob >= 0.08 for m in ms)
+
+
+def test_box_label():
+    tri = trifectas(make_model(1, FIELD))
+    box = next(t for t in tri if t.title == "Box of top 4")
+    assert box.leg_labels == ["Box 1, 2, 3, 4"]

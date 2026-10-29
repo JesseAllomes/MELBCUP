@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from itertools import combinations
+from itertools import combinations, product
 
 from melbcup.model.probability import RaceModel
 
@@ -59,14 +59,12 @@ def multis(models: list[RaceModel], *, max_results: int = 3) -> list[Multi]:
     for size in (2, 3):
         best_for_size: list[Multi] = []
         for races in combinations(sorted(per_race), size):
-            # Within one race choose the leg with the best edge (prob x price).
-            legs = [max(per_race[r], key=lambda leg: leg.prob * leg.price) for r in races]
-            prob = math.prod(leg.prob for leg in legs)
-            if prob < MIN_MULTI_PROB[size]:
-                continue
-            best_for_size.append(
-                Multi(legs, prob, math.prod(leg.price for leg in legs), "sportsbet")
-            )
+            for legs in product(*(per_race[r] for r in races)):
+                prob = math.prod(leg.prob for leg in legs)
+                if prob < MIN_MULTI_PROB[size]:
+                    continue
+                price = math.prod(leg.price for leg in legs)
+                best_for_size.append(Multi(list(legs), prob, price, "sportsbet"))
         best_for_size.sort(key=lambda m: m.ev, reverse=True)
         out.extend(best_for_size[:max_results])
     return out
