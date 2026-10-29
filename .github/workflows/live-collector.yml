@@ -1,0 +1,34 @@
+# Live racing.com observations for prospective evaluation (tools/live_collector.py).
+# Runs back to back: each run collects for about 5 h 40 min; a new run queues every 20 minutes and
+# starts when the previous one ends. Observations are committed append-only to the `live` branch.
+name: live-collector
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch: {}
+concurrency:
+  group: live-collector
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Collector code (main)
+        uses: actions/checkout@v4
+        with:
+          path: code
+      - name: Observation store (live branch)
+        uses: actions/checkout@v4
+        with:
+          ref: live
+          path: store
+          fetch-depth: 1
+      - name: Collect
+        working-directory: store
+        run: |
+          git config user.name "melbcup-live-collector"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 ../code/tools/live_collector.py --out observations --git . --max-seconds 20400
