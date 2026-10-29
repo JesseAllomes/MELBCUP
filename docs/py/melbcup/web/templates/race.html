@@ -11,7 +11,7 @@
   <header>
     <h1><span class="cloth big">{{ race.number }}</span> {{ race.name | racename or 'Race ' ~ race.number }}</h1>
     <p class="meta">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m
-      · {{ race.race_class or '' }} · {{ race.condition or card.condition or '' }}
+      · {{ race.race_class or '' }} · {{ race.condition or card.condition or '' }}{% if race.weather %}, {{ race.weather | lower }}{% endif %}{% if race.condition_was %} (was {{ race.condition_was }}){% endif %}
       {% if race.prize_total %} · ${{ '{:,}'.format(race.prize_total) }}{% endif %} · pays {{ race.places_paid }} places</p>
     <p class="small">Chances from {{ rp.model.sources | join(' and ') or 'nothing yet' }}{% if race.prices_at %}; prices at {{ race.prices_at | local_time }}{% endif %}{% if race.priced_from_sp %}; judged at starting prices{% endif %}.</p>
   </header>

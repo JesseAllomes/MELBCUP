@@ -16,7 +16,16 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
-from melbcup.domain import Card, PersonStats, Quote, Race, RaceResult, RunnerPrices
+from melbcup.domain import (
+    Card,
+    PersonStats,
+    Quote,
+    Race,
+    RaceResult,
+    RunnerPrices,
+    going_band,
+    same_going,
+)
 from melbcup.sources.formfav import FormFavClient, FormFavRunner
 from melbcup.sources.http import SourceError
 from melbcup.sources.puntersedge import MarketSnapshot, PuntersEdgeClient
@@ -88,6 +97,7 @@ def _apply_ff_form(race: Race, ff_form: list[FormFavRunner] | None) -> None:
         runner.career = f.career or runner.career
         runner.track, runner.distance = f.track, f.distance
         runner.track_distance, runner.going = f.track_distance, f.going
+        runner.going_records = f.going_records or None
         runner.first_up, runner.second_up = f.first_up, f.second_up
         runner.running_style, runner.early_speed = f.running_style, f.early_speed
         runner.settling_position = f.settling_position
@@ -169,6 +179,29 @@ def apply_market(race: Race, snap: MarketSnapshot) -> None:
     for runner in race.runners:
         if runner.number in snap.scratched:
             runner.scratched = True
+    race.weather = snap.weather or race.weather
+    if snap.condition:
+        update_going(race, snap.condition)
+
+
+def update_going(race: Race, condition: str) -> None:
+    """The track condition on the day, from each price check. Rain that turns a Good track Soft
+    swaps every runner's going record for its record on the new going, so its chance (and the
+    confidence rating) moves with it; the bookmakers' prices move as well."""
+    if same_going(race.condition, condition):
+        return
+    if race.condition and race.condition_was is None:
+        race.condition_was = race.condition
+    band_before = going_band(race.condition)
+    race.condition = condition
+    if same_going(condition, race.condition_was):  # back to how it started
+        race.condition_was = None
+    band = going_band(condition)
+    if band is None or band == band_before:
+        return
+    for runner in race.runners:
+        if runner.going_records is not None:
+            runner.going = runner.going_records.get(band)
 
 
 def apply_result(race: Race, result: RaceResult) -> None:

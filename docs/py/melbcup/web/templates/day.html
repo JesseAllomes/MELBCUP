@@ -36,7 +36,8 @@
   <article class="race" id="r{{ race.number }}">
     <header>
       <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}"><span class="cloth big">{{ race.number }}</span><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span></a>
-      <p class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners</p>
+      <p class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners{% if race.condition %} · {{ race.condition }}{% endif %}{% if race.weather %}, {{ race.weather | lower }}{% endif %}</p>
+      {% if race.condition_was %}<p class="going-change">Track now {{ race.condition }}, was {{ race.condition_was }} when the card loaded: chances use each horse's record on the new going.</p>{% endif %}
     </header>
     {% if rg %}{% include "_placings.html" %}{% endif %}
     {% with marks = marks.get(race.number) %}{% include "_picks.html" %}{% endwith %}

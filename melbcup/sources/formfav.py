@@ -56,6 +56,7 @@ class FormFavRunner:
     distance: StatLine | None
     track_distance: StatLine | None
     going: StatLine | None
+    going_records: dict[str, StatLine]
     first_up: StatLine | None
     second_up: StatLine | None
     running_style: str | None
@@ -92,6 +93,9 @@ def parse_form(data: dict[str, Any]) -> list[FormFavRunner]:
                 distance=_stat(stats.get("distance")),
                 track_distance=_stat(stats.get("trackDistance")),
                 going=_stat(conditions.get(band)) if band else None,
+                going_records={
+                    k: line for k, v in conditions.items() if (line := _stat(v)) is not None
+                },
                 first_up=_stat(stats.get("firstUp")),
                 second_up=_stat(stats.get("secondUp")),
                 running_style=speed.get("runningStyle"),

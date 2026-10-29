@@ -289,3 +289,32 @@ def test_formfav_over_quota_blocks_the_whole_key():
     with pytest.raises(SourceError):
         ff.form(RACE_DATE, VENUE, 1)
     assert ff.src.calls == calls + 1
+
+
+def test_rain_on_the_day_switches_each_runners_going_record():
+    from datetime import date
+
+    from melbcup.domain import Race, Runner, StatLine
+    from melbcup.model.probability import assess
+    from melbcup.sources import update_going
+    from melbcup.sources.puntersedge import MarketSnapshot
+
+    wet, dry = StatLine(6, 3, 5), StatLine(6, 0, 1)
+    race = Race("Flemington", date(2026, 11, 3), 1, condition="Good 4")
+    race.runners = [
+        Runner(1, "Mudlark", going=dry, going_records={"good": dry, "soft": wet}),
+        Runner(2, "Dry Track Dan", going=wet, going_records={"good": wet, "soft": dry}),
+        Runner(3, "No Record"),
+    ]
+    update_going(race, "Good4")  # the same going, written another way: nothing changes
+    assert race.condition_was is None and race.runner(1).going is dry
+    before = assess(race).runners[1].win
+    snap = MarketSnapshot({}, 3, None, set(), condition="Soft 6", weather="Showers")
+    apply_market(race, snap)
+    assert race.condition == "Soft 6" and race.condition_was == "Good 4"
+    assert race.weather == "Showers"
+    assert race.runner(1).going is wet and race.runner(2).going is dry
+    assert race.runner(3).going is None
+    assert assess(race).runners[1].win > before  # the wet-tracker's chance rises
+    update_going(race, "Good 4")  # dries out again
+    assert race.condition_was is None and race.runner(1).going is dry

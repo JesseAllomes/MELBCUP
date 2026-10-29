@@ -162,6 +162,8 @@ class MarketSnapshot:
     observed_at: datetime | None
     scratched: set[int]
     start_time: datetime | None = None
+    condition: str | None = None  # the track condition now, which can change on the day
+    weather: str | None = None
 
 
 def parse_race_prices(race: dict[str, Any]) -> MarketSnapshot:
@@ -210,7 +212,15 @@ def parse_race_prices(race: dict[str, Any]) -> MarketSnapshot:
         prices[n].consensus_prob = p / total if total else None
         prices[n].books = len(per_runner[n])
     places_paid = int(race.get("places_paid") or 3)
-    return MarketSnapshot(prices, places_paid, latest, scratched, _utc(race.get("start_time")))
+    return MarketSnapshot(
+        prices,
+        places_paid,
+        latest,
+        scratched,
+        _utc(race.get("start_time")),
+        race.get("track_condition") or None,
+        race.get("weather") or None,
+    )
 
 
 def parse_next_to_go(

@@ -77,7 +77,8 @@ class Runner:
     track: StatLine | None = None
     distance: StatLine | None = None
     track_distance: StatLine | None = None
-    going: StatLine | None = None
+    going: StatLine | None = None  # record on today's going band
+    going_records: dict[str, StatLine] | None = None  # record on every band, from FormFav
     first_up: StatLine | None = None
     second_up: StatLine | None = None
     running_style: str | None = None
@@ -134,6 +135,8 @@ class Race:
     race_id: str | None = None
     distance_m: int | None = None
     condition: str | None = None
+    condition_was: str | None = None  # the condition at card load, once the feed has changed it
+    weather: str | None = None
     race_class: str | None = None
     prize_total: int | None = None
     start_time: datetime | None = None
@@ -192,6 +195,11 @@ def going_band(condition: str | None) -> str | None:
         return None
     m = _GOING.search(condition)
     return m.group(1).lower() if m else None
+
+
+def same_going(a: str | None, b: str | None) -> bool:
+    """``Good 4`` and ``Good4`` are the same going; ``Soft 6`` is not."""
+    return (going_band(a), going_rating(a)) == (going_band(b), going_rating(b))
 
 
 def going_rating(condition: str | None) -> int | None:
