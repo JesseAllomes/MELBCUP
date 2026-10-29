@@ -340,3 +340,17 @@ def test_views_split_flags_strong_disagreement_with_the_odds():
     assert views_split(a(0.50, None, 0.10))  # form model 5x the odds
     assert views_split(a(0.10, 0.02, 0.10))  # FormFav a fifth of the odds
     assert not views_split(a(0.40, None, None))  # no prices yet: nothing to compare
+
+
+def test_head_to_head_counts_where_our_pick_and_the_favourite_differ():
+    from melbcup.history import head_to_head
+
+    record = [
+        {"favourite": {"no": 1, "hit": True}, "picks": {"top_win": {"no": 1, "hit": True}}},
+        {"favourite": {"no": 1, "hit": False}, "picks": {"top_win": {"no": 3, "hit": True}}},
+        {"favourite": {"no": 2, "hit": True}, "picks": {"top_win": {"no": 4, "hit": False}}},
+        {"favourite": None, "picks": {"top_win": {"no": 4, "hit": False}}},
+    ]
+    h = head_to_head(record)
+    assert (h.races, h.favourite_won, h.pick_won) == (3, 2, 2)
+    assert (h.disagreed, h.pick_won_disagreed, h.favourite_won_disagreed) == (2, 1, 1)

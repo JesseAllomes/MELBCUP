@@ -26,6 +26,20 @@
       flatters them a little: races from Derby Day on are the clean test.</p>
   </details>
 
+  {% if h2h.races %}
+  <h2>Our pick against the favourite</h2>
+  <table class="tally h2h">
+    <thead><tr><th></th><th>Races</th><th>Favourite won</th><th>Our pick won</th></tr></thead>
+    <tbody>
+      <tr><td>Every race</td><td class="num">{{ '{:,}'.format(h2h.races) }}</td><td class="num">{{ (h2h.favourite_won / h2h.races) | pct(1) }}</td><td class="num">{{ (h2h.pick_won / h2h.races) | pct(1) }}</td></tr>
+      {% if h2h.disagreed %}<tr><td>Where we disagreed</td><td class="num">{{ '{:,}'.format(h2h.disagreed) }}</td><td class="num">{{ (h2h.favourite_won_disagreed / h2h.disagreed) | pct(1) }}</td><td class="num">{{ (h2h.pick_won_disagreed / h2h.disagreed) | pct(1) }}</td></tr>{% endif %}
+    </tbody>
+  </table>
+  <p class="small">The test the model has to pass: where our most likely winner is not the favourite, it has to win
+    more often than the favourite does. Saved races used the starting price, so they flatter the favourite
+    slightly; races from Derby Day on use the prices the app saw before the jump.</p>
+  {% endif %}
+
   <table class="tally">
     <thead><tr><th>Pick</th><th>Picks</th><th>Landed</th><th>Missed</th><th>Rate</th><th>Per $1</th></tr></thead>
     <tbody>

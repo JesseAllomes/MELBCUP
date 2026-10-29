@@ -212,6 +212,7 @@ class Views:
                 record=record,
                 tallies=history.tally(record),
                 by_confidence=history.by_confidence(record),
+                h2h=history.head_to_head(record),
                 groups=history.meetings(record),
                 archive_closed=archive is not None and not archive.open and not saved,
                 saved_count=len(saved),

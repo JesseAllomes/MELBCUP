@@ -49,6 +49,16 @@ def entries(day: DayPicks) -> list[dict]:
                     legs=" / ".join(rec.leg_labels), combos=rec.combos, chance=round(rec.prob, 3)
                 )
             picks[key] = pick
+        market = {a.number: a.market_win for a in rp.model.ranked() if a.market_win}
+        favourite = None
+        if market:
+            fav = max(market, key=market.get)
+            runner = race.runner(fav)
+            favourite = {
+                "no": fav,
+                "name": runner.name if runner else str(fav),
+                "hit": race.result.finish.get(fav) == 1,
+            }
         out.append(
             {
                 "date": race.race_date.isoformat(),
@@ -61,6 +71,7 @@ def entries(day: DayPicks) -> list[dict]:
                 "placings": [[num, name, sp] for pos, num, name, sp in g.placings if pos <= 3],
                 "top_rank_of_winner": g.top_rank_of_winner,
                 "picks": picks,
+                "favourite": favourite,  # the market's favourite before the race
             }
         )
     return out
@@ -146,6 +157,34 @@ def by_confidence(history: list[dict]) -> list[Tally]:
             Tally(f"{label} confidence", len(picked), sum(p["hit"] for p in picked), returned)
         )
     return out
+
+
+@dataclass
+class HeadToHead:
+    """Our most likely winner against the market's favourite, race by race."""
+
+    races: int = 0
+    favourite_won: int = 0
+    pick_won: int = 0
+    disagreed: int = 0
+    pick_won_disagreed: int = 0
+    favourite_won_disagreed: int = 0
+
+
+def head_to_head(history: list[dict]) -> HeadToHead:
+    h = HeadToHead()
+    for e in history:
+        fav, pick = e.get("favourite"), e["picks"].get("top_win")
+        if not fav or not pick:
+            continue
+        h.races += 1
+        h.favourite_won += fav["hit"]
+        h.pick_won += pick["hit"]
+        if pick["no"] != fav["no"]:
+            h.disagreed += 1
+            h.pick_won_disagreed += pick["hit"]
+            h.favourite_won_disagreed += fav["hit"]
+    return h
 
 
 def meetings(history: list[dict]) -> list[tuple[str, str, list[dict]]]:
