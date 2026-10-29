@@ -121,14 +121,17 @@ def test_top_k_whole_field_is_certain():
     assert top_k_probs({1: 0.6, 2: 0.4}, 3) == {1: 1.0, 2: 1.0}
 
 
-def test_assess_full_card_uses_all_three_sources():
+def test_priced_chances_are_the_margin_free_market_alone():
     t = httpx.MockTransport(Router())
     pe, ff = PuntersEdgeClient("k", transport=t), FormFavClient("k", transport=t)
     card = load_card(pe, ff, RACE_DATE, VENUE)
     race = card.race(2)
     apply_market(race, pe.card_prices(RACE_DATE, VENUE)[2])
     m = assess(race)
-    assert m.sources == ["market", "model (incl. FormFav)"]  # FormFav enters as a factor
+    assert m.sources == ["market"]  # the form model does not move priced chances
+    market = {n: p.consensus_prob for n, p in race.prices.items() if n in m.runners}
+    total = sum(market.values())
+    assert all(m.runners[n].win == pytest.approx(v / total) for n, v in market.items())
     assert sum(a.win for a in m.runners.values()) == pytest.approx(1.0)
     assert sum(a.place for a in m.runners.values()) == pytest.approx(3.0)
     top = m.ranked()[0]
@@ -139,13 +142,13 @@ def test_assess_full_card_uses_all_three_sources():
 
 def test_assess_without_prices_or_feed_falls_back_to_model():
     m = assess(simple_race())
-    assert m.sources == ["model"]
+    assert m.sources == ["form model (experimental)"]
     assert m.ranked()[0].number == 1
 
 
 def test_partial_market_is_ignored_rather_than_mixed():
     race = simple_race(prices={1: RunnerPrices(1, consensus_prob=0.9)})
-    assert assess(race).sources == ["model"]
+    assert assess(race).sources == ["form model (experimental)"]
 
 
 def test_assess_empty_race():

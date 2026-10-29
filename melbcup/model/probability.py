@@ -2,9 +2,11 @@
 
 1. Each factor is standardised within the race (z-score); a runner missing a factor scores 0.
 2. Weighted sum -> softmax gives the form model's win probability.
-3. Log-linear blend with the margin-free bookmaker consensus. Fitted exponents (backtest, 1,131
-   races): market 1.0, form model 0.3. FormFav's model enters as a factor inside the form model
-   (its own blend weight fitted to 0).
+3. Production: with prices, a runner's chance is the margin-free bookmaker consensus alone; the
+   form model is used only before any prices exist, and is experimental. Its weights were fitted
+   on one month that also shaped the design, with jockey and trainer figures that include later
+   races, so it must not move priced chances until a clean, frozen test says it helps. BLEND
+   (market 1.0, form 0.3) is kept for research only.
 4. Finishing-order probabilities use Harville with the Lo/Bacon-Shone discount, which corrects
    Harville's known over-rating of long shots for the minor placings.
 """
@@ -178,14 +180,12 @@ def assess(race: Race) -> RaceModel:
     )
     if len(market) < len(starters):
         market = {}
-    win = blend({"market": market, "feed": feed, "model": model})
-    sources = [
-        name
-        for name, v in (("market", market), ("feed", feed), ("model", model))
-        if v and BLEND.get(name, 0) > 0
-    ]
-    if feed and "model" in sources:
-        sources[sources.index("model")] = "model (incl. FormFav)"
+    if market:
+        win, sources = _normalise(dict(market)), ["market"]
+    else:  # no prices yet: the experimental form model, until prices arrive
+        win, sources = (
+            (_normalise(dict(model)), ["form model (experimental)"]) if model else ({}, [])
+        )
     place = top_k_probs(win, race.places_paid) if win else {}
 
     runners = {}
