@@ -1,0 +1,63 @@
+                                                     Play Now
+
+                                                  Thursday
+
+
+Cost to play
+ Ticket type              No. of games              Price for 1 draw
+ 2 games                   2                        $3.15
+ 3 games                   3                        $4.70
+ 4 games                   4                        $6.25
+ 5 games                   5                        $7.85
+ 6 games                   6                        $9.40
+ 7 games                   7                        $11.00
+ 8 games                   8                        $12.55
+ 9 games                   9                        $14.10
+ 10 games                  10                       $15.70
+ 11 games                  11                       $17.25
+ 12 games                  12                       $18.80
+ 13 games                  13                       $20.40
+ 14 games                  14                       $21.95
+ 15 games                  15                       $23.50
+ 16 games                  16                       $25.10
+ 17 games                  17                       $26.65
+ 18 games                  18                       $28.20
+ 19 games                  19                       $29.80
+ 20 games                  20                       $31.35
+ 21 games                  21                       $32.95
+ 22 games                  22                       $34.50
+ 23 games                  23                       $36.05
+ 24 games                  24                       $37.65
+ 25 games                  25                       $39.20
+ 26 games                  26                       $40.75
+ 27 games                  27                       $42.35
+ 28 games                  28                       $43.90
+ 29 games                  29                       $45.45
+ 30 games                  30                       $47.05
+ 35 games                  35                       $54.90
+ 40 games                  40                       $62.70
+ 45 games                  45                       $70.55
+ 50 games                  50                       $78.40
+
+
+ Ticket type              No. of games              Price for 1 draw
+ System 5                  435                      $682.10
+ System 6                  29                       $45.45
+ System 8                  8                        $12.55
+ System 9                  36                       $56.45
+ System 10                 120                      $188.15
+ System 11                 330                      $517.45
+ System 12                 792                      $1,241.85
+
+
+ Ticket type              No. of games              Price for 1 draw
+ Powerpik 6                580                      $909.45
+ Powerpik 7                20                       $31.35
+ Powerpik 8                160                      $250.90
+ Powerpik 9                720                      $1,128.95
+
+System tickets are available up to System 19 and Powerpiks up to
+Powerpik 13. System prices are for single games only. Prices include retailer
+commission. Bankers’ rounding may affect the average price per game
+when buying multiple games on one ticket.
+

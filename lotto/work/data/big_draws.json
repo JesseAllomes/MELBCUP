@@ -1,0 +1,37 @@
+{
+  "_note": "Dividend tables for selected large draws, transcribed from lotteryextreme.com pages fetched 2026-10-30 (third-party mirror of The Lott published dividends). Winners = bloc-wide winning games; pool = winners x dividend.",
+  "draws": [
+    {
+      "game": "Powerball", "draw": 1446, "date": "2024-02-01", "advertised_div1": 200000000,
+      "source": "https://www.lotteryextreme.com/australia/powerball-dividends(2024-02-01)",
+      "divisions": [[1, 2, 100000000.00], [2, 22, 177092.75], [3, 406, 11930.35], [4, 8326, 505.90], [5, 16781, 188.25], [6, 247836, 79.90], [7, 323298, 47.55], [8, 1569422, 20.80], [9, 4604190, 12.20]],
+      "subscription_price": 1.20, "retail_price": 1.35
+    },
+    {
+      "game": "Powerball", "draw": 1445, "date": "2024-01-25", "advertised_div1": 150000000,
+      "source": "https://www.lotteryextreme.com/australia/powerball-dividends(2024-01-25)",
+      "divisions": [[1, 0, 0], [2, 26, 110213.60], [3, 295, 12076.55], [4, 5963, 519.50], [5, 13264, 175.15], [6, 192330, 75.70], [7, 252756, 44.75], [8, 1198271, 20.05], [9, 3439665, 12.00]],
+      "subscription_price": 1.20, "retail_price": 1.35
+    },
+    {
+      "game": "Powerball", "draw": 1441, "date": "2023-12-28", "advertised_div1": 30000000,
+      "source": "https://www.lotteryextreme.com/australia/powerball-dividends(2023-12-28)",
+      "divisions": [[1, 0, 0], [2, 0, 0], [3, 41, 23889.05], [4, 799, 590.75], [5, 1840, 192.40], [6, 27388, 81.00], [7, 35951, 47.90], [8, 174039, 21.00], [9, 505282, 12.45]],
+      "subscription_price": 1.20, "retail_price": 1.35,
+      "_note": "advertised_div1 for this draw is approximate (jackpot sequence leading to the $200M draw)."
+    },
+    {
+      "game": "Powerball", "draw": 1463, "date": "2024-05-30", "advertised_div1": 8000000,
+      "source": "https://www.lotteryextreme.com/australia/powerball-dividends(2024-05-30)",
+      "divisions": [[1, 0, 0], [2, 1, 270217.65], [3, 35, 9598.45], [4, 511, 571.70], [5, 1141, 192.00], [6, 17268, 79.50], [7, 21547, 49.50], [8, 111436, 20.30], [9, 326742, 11.90]],
+      "subscription_price": 1.20, "retail_price": 1.35,
+      "_note": "base draw immediately after the $150M win of 23 May 2024; advertised_div1 approximate."
+    },
+    {
+      "game": "OzLotto", "draw": 1616, "date": "2025-02-04", "advertised_div1": 100000000,
+      "source": "https://www.lotteryextreme.com/australia/ozlotto-dividends(2025-02-04)",
+      "divisions": [[1, 1, 100000000.00], [2, 26, 59597.70], [3, 362, 5058.75], [4, 3311, 425.45], [5, 19572, 57.60], [6, 514574, 27.10], [7, 1343788, 16.65]],
+      "subscription_price": 1.30, "retail_price": 1.45
+    }
+  ]
+}

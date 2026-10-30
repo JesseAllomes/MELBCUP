@@ -1,0 +1,1848 @@
+                                             KENO RULES
+1.     General
+         These Rules govern the playing of Keno and are effective on and from 19 May 2017.
+         Subject to the Act and these Rules, the Game of Keno is the exclusive responsibility of the Licensees
+         and the Venues.
+
+2.     Definitions
+       (a)      In these Rules unless inconsistent with the context:
+                (i)    “Act” means the Public Lotteries Act 1996 and any regulations made thereunder, as may
+                       be amended from time to time;
+               (ii)    “Approved” means approved in writing by the Minister and “Approval” has a
+                       corresponding meaning;
+              (iii)    “Backup Site” means the site at which the computer system which acts as a backup to the
+                       Central Site Computer is located;
+              (iv)     “Bonus Prize” means an Approved prize offered to Subscribers to a Game of Keno over
+                       and above those prizes indicated on any Schedule of Prizes, but excludes Jackpot
+                       Guarantees;
+               (v)     “Box” or “Boxed” means an option on the “Quinella Place”, “Quinella”, “Exact Quinella”,
+                       “Trio”, “Trifecta”, “Quartet”, “Five Up” and “Superfecta” bet types in a game of Keno
+                       Racing that allows a Subscriber to forecast the result of the game by combining their
+                       selected Rows into all possible combinations on one Entry. A Subscription is payable in
+                       respect of each combination;
+              (vi)     “Casino Licensee” means a holder of a licence granted under Section 18 of the Casino
+                       Control Act 1992;
+             (vii)     “Cash Game” means a game in which an approved Bonus Prize is offered.
+             (viii)    “Cash Voucher” means a ticket issued by a Terminal and exchanged for cash or received
+                       in lieu of cash that a Subscriber may use to make an Entry to a Game of Keno, receive as
+                       all or part of the Total Prize Money, receive as change from an Entry to a Game of Keno
+                       and which may be redeemed for the face value of the ticket in cash;
+              (ix)     “Category”, and references to a game being of a particular “Category”, means a Category
+                       listed in a table in the licence held by the Licensees, which governs the apportionment of
+                       each Subscription for each game and the Keno Prize Fund Contribution. Each type of game
+                       is allocated a Category under these Rules;
+               (x)     “Central Site” means the site at which the Central Site Computer is operative and in direct
+                       control of the computing of the Game of Keno;
+              (xi)     “Central Site Computer” means the computer system that is used to process, store and
+                       display the Game of Keno;
+             (xii)     “Chip” means a chip issued by a Casino Licensee under the Casino Control Act 1992;
+             (xiii)    “Club” means a club holding a certificate of registration under the Registered Clubs Act
+                       1976.
+             (xiv)     “Column” or “Columns” means the 12 numbers in 1 column of the Keno Roulette Grid
+                       whereby:
+                       Column 1 means the numbers: 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31 and 34,
+                       Column 2 means the numbers: 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32 and 35 and
+                       Column 3 means the numbers: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33 and 36;
+             (xv)      “Combination” means a combination of 1 to 10, 15, 20 and 40 Spots selected by the
+
+
+NSW Keno Rules effective 19 May 2017                                                           Page 1 of 34
+                       Subscriber from the 80 available numbers, where each Combination is taken to be a
+                       separate Game played by the Subscriber;
+            (xvi)      “Combination Bet” means an advanced form of Entry whereby a Subscriber may play 2 or
+                       more different Combinations in the same game on the same Entry;
+                       The Subscriber (or in the case of a Standard Superplay, the Central Site Computer) selects
+                       the Spots and creates non-intersecting groups of those Spots (“Groups”) on the one Entry.
+                       A Group may comprise of a minimum one Spot only. A Spot may not form (and will not
+                       be counted as forming) part of more than one Group. All Spots forming part of a particular
+                       Group will be identified on the Receipt Ticket by the same alpha or alpha numeric
+                       character, which character will be different from the characters allocated to the Spots
+                       comprising other Groups.
+                       The Combinations are formed by combining all the Spots in a Group or by combining all
+                       the Spots in a Group with all the Spots in another Group or Groups. The Subscriber must
+                       nominate the types of Combinations (except in the case of a Superplay, in which case the
+                       types of Combinations are pre-programmed), the amount to be wagered for each
+                       Combination and the number of games to be played. A Subscriber may (but need not)
+                       nominate all types of Combinations capable of being formed using the Groups selected
+                       (“All Combinations Bet”). For each type of Combination, the Subscriber must play the
+                       maximum number of Combinations which can be played using the Groups selected. This
+                       maximum number is as calculated by the Central Site Computer and specified on the
+                       Receipt Ticket;
+           (xvii)      “Combo Bet” has the same meaning as Combination Bet;
+          (xviii)      “Commission” means an amount paid to a Venue by Subscribers, in the Venue’s own right
+                       (and not as agent of the Licensees), and which:
+                       (A) the Venue is entitled to deduct and retain from the Gross Subscription which the
+                           Venue receives from the Subscriber and deals with as agent of the Subscriber,
+                           pursuant to Rule 7(f); or
+                       (B) the Operating Company is directed by the Subscriber to pay to the Venue, on behalf
+                           of the Subscriber, from the face value of a Prepaid Voucher, in accordance with the
+                           terms of the Prepaid Voucher and Rule 9B(a); or
+                       (C) the Venue is entitled to deduct and retain from the amount received from a Subscriber
+                           for the purchase of a Gift Voucher, in accordance with Rule 9A(b);
+            (xix)      “Corner” or “Corners” means a square of 4 adjacent numbers in the Keno Roulette Grid;
+             (xx)      “Crossed Cheque” means a cheque crossed as referred to in section 53 of the Cheques Act
+                       1986 of the Commonwealth;
+            (xxi)      “Customer Session” means the period of time when a Subscriber either:
+                       (i)    makes an Entry in a Game of Keno; or
+                       (ii)   checks a Receipt Ticket; or
+                       (iii) cancels an Entry in a Game of Keno
+                       to that time in the case of an Entry made through a Venue, when the End Customer
+                       Terminal key is activated or in the case of an Entry made through the Internet Platform,
+                       when the Subscriber confirms the details of their Entry on the Internet Confirmation Screen
+                       or the Subscriber cancels that Entry via the Internet Platform in accordance with Rule
+                       11(b);
+           (xxii)      “Customised Superplay” means a form of Combination Bet where the types of
+                       Combinations, the Groups and the Spots forming part of each Group applicable to that
+                       Combination Bet have been previously programmed for a particular Venue to
+                       accommodate particular Subscribers at that Venue and made available by that Venue from
+                       time to time;
+          (xxiii)      “Delayed Start Entry” means an Entry for a game which is not open at the time the
+                       Receipt Ticket for that Entry is issued;
+           (xxiv)      “Delayed Start Game” means an Approved game in which Delayed Start Entries are
+
+NSW Keno Rules effective 19 May 2017                                                           Page 2 of 34
+                       permitted;
+           (xxv)       “Drawing”, “Draw” or “Drawn” means the random selection by a Draw Device of 20
+                       winning numbers;
+           (xxvi)      “Draw Device” means a device Approved for conducting a Draw being an electronically
+                       operated device which selects at random and one at a time from a set of one to eighty
+                       numbers, the 20 winning numbers, in each Game of Keno;
+          (xxvii)      “Entry” means an entry referred to in Rules 7 and 7A;
+         (xxviii)      “Entry Form” means an Approved form that may be completed by a person wishing to
+                       enter a Game of Keno;
+           (xxix)      “Game of Keno” means the competition styled “Club Keno” or “Star Keno” conducted
+                       under the Act and “Keno”, “Keno game” and “game” shall have the same meaning;
+           (xxx)       “Game Results Inquiry” means a request from a Subscriber to display on a Terminal, to
+                       display on and print from a Terminal or to display on a device connected to the Internet
+                       Platform the results of a game or games;
+           (xxxi)      “Gift Voucher” means an Approved document issued by a Venue which is the
+                       acknowledgment of the payment of money by a Subscriber and which entitles the holder
+                       (whether the initial Subscriber or another) to enter a particular type of Game of Keno;
+          (xxxii)      “Group” has the meaning given in Rule 2(a)(xvi);
+         (xxxiii)      “Gross Subscription” means (subject to Rule 11 regarding cancellation of Entries) the
+                       amount prescribed by the Minister to be paid by a Subscriber for an Entry to a Game of
+                       Keno, and includes the amount of Commission received and retained by a Venue pursuant
+                       to Rule 7(f), and also includes the face value of Gift Vouchers, Prepaid Vouchers and
+                       Subscription Chips which have been used as Subscriptions for Games of Keno, and the
+                       applicable amount of the face value of SST Receipts and Cash Vouchers that is used as
+                       Subscriptions for Games of Keno;
+         (xxxiv)       “Heads or Tails?” means the form of the Game of Keno, being a Category Q game, which
+                       may be played separately to other forms of the Game of Keno, the object of which is to
+                       forecast the distribution of the Drawn numbers. In this form of game, a Subscriber attempts
+                       to forecast the result of a single Game of Keno as being one of “Heads”, “Tails” or “Evens”
+                       as described following:
+                       (a)   The result of a game is “Heads” when 11 or more of the 20 numbers Drawn in that
+                             Game of Keno are numbers in the range 1 to 40 inclusive;
+                       (b) The result of a game is “Tails” when 11 or more of the 20 numbers Drawn in that
+                           Game of Keno are numbers in the range 41 to 80 inclusive;
+                       (c)   The result of a game is “Evens” when ten (10) of the 20 numbers Drawn in that Game
+                             of Keno are numbers in the range 1 to 40 inclusive and ten (10) of the 20 numbers
+                             Drawn in the same Game of Keno are numbers in the range 41 to 80 inclusive;
+                       If the Subscriber correctly forecasts the result of that game, then, subject to these Rules, a
+                       prize will be payable calculated in accordance with Rule 18(e);
+          (xxxv)       “Hotel” means the holder of a Hotel Licence under the Liquor Act 2007 but not being a
+                       general bar licence;
+         (xxxvi)       “Inspector” means a person appointed by the Minister as an inspector under Section 69 of
+                       the Act to undertake functions associated with the conduct of the Game of Keno;
+        (xxxvii)       “Internet Acknowledgement” means the screen appearing after a Subscriber completes
+                       the purchase of an Entry into a Game of Keno through the Internet Platform which sets out
+                       the details of the Entry made by the Subscriber;
+        (xxxviii)      “Internet Confirmation Screen” means the screen that displays the details of the Entry
+                       for a relevant Game of Keno that the Subscriber proposes to make through the Internet
+                       Platform and requires a Subscriber to confirm that such details are correct and complete the
+                       purchase of the Entry;
+         (xxxix)       “Internet Platform” includes any website of the Licensee and any other Internet enabled
+
+
+NSW Keno Rules effective 19 May 2017                                                               Page 3 of 34
+                       device (as applicable) published from time to time through which a Subscriber can make an
+                       Entry;
+             (xl)      “Jackpot” means the Regular Keno Jackpot, Keno $2 Game Jackpot and Keno Racing
+                       Jackpot;
+             (xli)     “Jackpot Fill” means the sum described as the Jackpot Fill (if any) in Rule 18;
+            (xlii)     “Jackpot Growth” means (as the case may be):
+                        (a)     for the Regular Keno Jackpot, a percentage of Gross Subscriptions in a Regular
+                                Keno Jackpot, as determined by the Licensees from time to time, allocated from
+                                Net Subscriptions on that Regular Keno Jackpot to the Regular Keno Jackpot Prize
+                                available for that Regular Keno Jackpot and, in the event a Pooled Jackpot is in
+                                existence, contributed to the Pooled Jackpot;
+                        (b)     for the Keno $2 Game Jackpot, a percentage of Gross Subscriptions in a Keno $2
+                                Game, as determined by the Licensees from time to time, allocated from Net
+                                Subscriptions on that Keno $2 Game Jackpot to the Keno $2 Game Jackpot Prize
+                                available for that Keno $2 Game Jackpot and in the event a Keno $2 Game Pooled
+                                Jackpot is in existence, contributed to the Keno $2 Game Pooled Jackpot; and
+                        (c)     for the Keno Racing Jackpot, the amount accrued at any given time in respect of
+                                the relevant Game of Keno as provided for in Rule 10(c) and 10(d);
+           (xliii)     “Jackpot Guarantee” means a Jackpot prize amount guaranteed by the Licensees, over
+                       and above those prizes indicated on the Schedule of Prizes and in addition to Jackpot
+                       Growth;
+           (xliv)      “Keno $2 Game” means the form of Game of Keno, being a Category L game, in which a
+                       person selects 1 to 10, 15, 20 or 40 numbers, from the set: 1 to 80, the object being to match
+                       (or in some cases not to match) those numbers against the 20 winning numbers Drawn in
+                       each game. The Keno $2 Game is available in addition to Regular Keno in respect of the
+                       Draw and offers an alternative Approved Schedule of Prizes to Regular Keno. The Keno
+                       $2 Game will be known as “Keno Mega Millions”;
+            (xlv)      “Keno $2 Game Keno Jackpot” means the form of the Keno $2 Game the object of which
+                       is to match all seven (7), eight (8), nine (9) or ten (10) spots selected, as the case may be,
+                       against the winning numbers Drawn in that game;
+           (xlvi)      “Keno $2 Game Keno Jackpot Prize” means the prize offered in respect of a Keno $2
+                       Game Jackpot game played by a Subscriber which matches all Spots selected against the 20
+                       winning numbers Drawn in that game.
+          (xlvii)      “Keno $2 Game Pooled Jackpot” means the combining, by all participating jurisdictions,
+                       of Jackpot Growth for Keno $2 Game Jackpot into a pool;
+          (xlviii)     “Keno $2 Game Pooled Jackpot Amount” means the total amount of Jackpot Growth
+                       contributed by all participating jurisdictions at any given time for Keno $2 Game Jackpots,
+                       as displayed in Venues;
+           (xlix)      “Keno Bonus” means the form of the Game of Keno, being a Category I game, which may
+                       only be played in conjunction with certain other forms of the Game of Keno as determined
+                       by the Operating Company (except Keno Racing and the Keno $2 Game), by which:
+                       (a)    the Subscription for the Game of Keno it is played in conjunction with is multiplied
+                              by the Multiplier for the sole purpose of determining the prize payable on that Game
+                              of Keno in accordance with the Schedule of Prizes; and
+                       (b)    where Keno Bonus is played in conjunction with a Regular Keno Jackpot, the Keno
+                              Bonus Jackpot Prize is payable on winning a Regular Keno Jackpot game;
+               (l)     “Keno Bonus Jackpot Prize” means the prize offered in respect of a Keno Bonus game
+                       played by a Subscriber in conjunction with Regular Keno Jackpot where a Regular Keno
+                       Jackpot Prize is payable and the Multiplier is either 2, 3, 4, 5 or 10;
+              (li)     “Keno Day” means the period between the start of Keno trading and the close of Keno
+                       trading, identified by the calendar day on which that period commenced;
+             (lii)     “Keno Grid” means the standard layout of the range of the numbers 1 to 80 on a Standard
+
+NSW Keno Rules effective 19 May 2017                                                             Page 4 of 34
+                       Game Entry Form;
+            (liii)     "Keno Player Card” or “KPC” means an Approved card or device issued by the
+                       Operating Company to a successful applicant. An applicant can store their favourite
+                       numbers on the KPC and use the KPC to enter a Game of Keno;
+             (liv)     “Keno Prize Fund” means the account established for payment of prizes that receives
+                       from Net Subscriptions an amount equal to the Keno Prize Fund Contributions;
+             (lv)      “Keno Prize Fund Contribution” means:
+                        (a)     for Heads or Tails? and Keno Roulette, being Category Q games - an amount equal
+                                to 80% of Subscriptions;
+                        (b)     for Regular Keno, Keno Racing, Lucky Last and Keno Bonus, all being Category I
+                                games - an amount equal to 75% of Subscriptions; and
+                        (c)     for the Keno $2 Game, being a Category L game – an amount equal to 76.5% of
+                                Subscriptions.
+             (lvi)     “Keno Racing” means the form of the Game of Keno, being a Category I game, which
+                       may be played separately to other forms of the Game of Keno, the object of which is to
+                       forecast the distribution of the Drawn numbers across the Rows of the Keno Grid in each
+                       game. In this form of the Game of Keno, a Subscriber attempts to forecast which Row
+                       shall be “First”, “Second”, “Third”, “Fourth”, “Fifth” or “Sixth” as described following:
+                        (a)     “First” is the Row that has the most amount of Drawn numbers at the end of the
+                                Game of Keno;
+                        (b)     “Second” is the Row that has the second most amount of Drawn numbers at the
+                                end of the Game of Keno;
+                        (c)     “Third” is the Row that has the third most amount of Drawn numbers at the end of
+                                the Game of Keno;
+                        (d)     “Fourth” is the Row that has the fourth most amount of Drawn numbers at the end
+                                of the Game of Keno;
+                        (e)     “Fifth” is the Row that has the fifth most amount of Drawn numbers at the end of
+                                the Game of Keno;
+                        (f)     “Sixth” is the Row that has the sixth most amount of Drawn numbers at the end of
+                                the Game of Keno;
+                       Where two or more Rows have the same amount of Drawn numbers at the end of the Game
+                       of Keno, the Row that achieved that amount of Drawn numbers earliest in time in the Game
+                       of Keno shall be placed ahead of the other Row or Rows and so on until an order is
+                       achieved. (In the event that two or more Rows each have no Drawn numbers at the end of
+                       the Game of Keno, each of these Rows shall be deemed to finish equal in the next available
+                       place in that Game).
+                       In this form of Game of Keno, a Subscriber may select one or more bet types in attempting
+                       to forecast the order of the Rows. These bet types are described as follows:
+                       (a)      “Win”, where a Subscriber attempts to forecast which Row shall be “First”;
+                       (b)      “Place”, where a Subscriber attempts to forecast that a selected Row shall be either
+                                “First”, “Second” or “Third” ;
+                       (c)      “Quinella Place”, where a Subscriber attempts to forecast any two Rows that shall
+                                be “First”, “Second” or “Third” irrespective of their order;
+                       (d)      “Quinella”, where a Subscriber attempts to forecast which two Rows shall be
+                                “First” and “Second” irrespective of their order;
+                       (e)      An “Exact Quinella”, where a Subscriber attempts to forecast which two Rows
+                                shall be “First” and “Second” in the correct order;
+                       (f)      A “Trio”, where a Subscriber attempts to forecast which three Rows shall be
+                                “First”, “Second” and “Third” irrespective of their order;
+
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 5 of 34
+                       (g)      A “Trifecta”, where a Subscriber attempts to forecast which three Rows shall be
+                                “First”, “Second” and “Third” in the correct order;
+                       (h)      A “Quartet”, where a Subscriber attempts to forecast which four Rows shall be
+                                “First”, “Second”, “Third” and “Fourth” in the correct order;
+                       (i)      A “Five Up”, where a Subscriber attempts to forecast which five Rows shall be
+                                “First”, “Second”, “Third”, “Fourth” and “Fifth” in the correct order; and
+                       (j)      A “Superfecta”, where a Subscriber attempts to forecast which six Rows shall be
+                                “First”, “Second”, “Third”, “Fourth”, “Fifth” and “Sixth” in the correct order.
+                       If the Subscriber correctly forecasts the result of that game, then, subject to these Rules, a
+                       prize shall be payable calculated in accordance with Rule 18(f);
+            (lvii)     “Keno Racing Jackpot” means the form of the Game of Keno Racing, the object of which
+                       is to correctly forecast either the first four Rows in the correct order (“Quartet”), the first
+                       five Rows in the correct order (“Five Up”) or the first six Rows in the correct order
+                       (“Superfecta”);
+           (lviii)     “Keno Racing Jackpot Prize” means the prize offered in respect of an Entry in a Keno
+                       Racing Jackpot which correctly forecasts either the first four rows in the correct order
+                       (“Quartet”), the first five rows in the correct order (“Five Up”) or the first six rows in the
+                       correct order (“Superfecta”);
+             (lix)     “Keno Roulette” means the form of the Game of Keno, being a Category Q game, which
+                       may be played separately to other forms of the Game of Keno, the object of which is to
+                       forecast the Keno Roulette Number. In this form of the game, a Subscriber may select one
+                       or more bet types in attempting to forecast the result of a single game. These bet types are
+                       described as follows:
+                       (a) “Straight Up” means a type of bet where a Subscriber attempts to forecast that the
+                            Keno Roulette Number will be a single selected number in the range 1 to 36, 0 or 00
+                            in the Keno Roulette Grid;
+                       (b) “Splits” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number will be one of two selected bordering numbers in the Keno Roulette
+                            Grid;
+                       (c) “Rows” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number willll be one of a single selected Row of numbers in the Keno
+                            Roulette Grid;
+                       (d) “Corners” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number will be one of a selected Corner of numbers in the Keno Roulette
+                            Grid;
+                       (e) “Columns” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number will be one of a selected single Column of numbers in the Keno
+                            Roulette Grid;
+                       (f) “Six-Line” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number will be one of any six numerically consecutive numbers (the first of
+                            which must commence in the 1st Column) in the Keno Roulette Grid;
+                       (g) “Dozens” means a type of bet where a Subscriber attempts to forecast that the Keno
+                            Roulette Number will be one of a selected dozen of numbers, being between either 1
+                            – 12 inclusive, 13 – 24 inclusive or 25 – 36 inclusive;
+                       (h) “Low or High” means a type of bet where a Subscriber attempts to forecast that the
+                            Keno Roulette Number will be one of a “low” number (being any of numbers 1 – 18
+                            inclusive) or a “high” number (being any of numbers 19 – 36 inclusive);
+                       (i) “Red or Black” means a type of bet where a Subscriber attempts to forecast that the
+                            Keno Roulette Number will be either “red” (being any numbers of 1, 3, 5, 7, 9, 12, 14,
+                            16, 18, 19, 21, 23, 25, 27, 30, 32, 34 or 36) or “black” (being any numbers of 2, 4, 6,
+                            8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33 or 35);
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                               Page 6 of 34
+                       (j) “Odd or Even” means a type of bet where a Subscriber attempts to forecast that the
+                            Keno Roulette Number will be either an “odd” number (being any of numbers 1, 3, 5,
+                            7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, or 35) or an “even” number (being
+                            any of numbers 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34 or 36);
+                       If the Subscriber correctly forecasts the result of that game, then, subject to these Rules, a
+                       prize will be payable calculated in accordance with Rule 18(g);
+             (lx)      “Keno Roulette Grid” means the standard layout of the range of numbers 0, 00 and 1 to
+                       36 on a Roulette Game Entry Form;
+             (lxi)     “Keno Roulette Number” means the winning number (first “number” Drawn) in a Game
+                       of Keno Roulette. The Keno Roulette Number is one of 1 to 36, “0” or “00”. For the
+                       purposes of clarification, “0” and “00” are different Keno Roulette Numbers. The Keno
+                       roulette Number will be derived from the first number Drawn in each game. Should the
+                       first number Drawn not represent a Keno Roulette Number, the second number Drawn is
+                       used and so on until a Keno Roulette Number has been derived. The Keno Roulette
+                       Number is determined as follows:
+                       Drawn numbers 1 to 36 represent Keno Roulette Numbers 1 to 36 respectively;
+                       Drawn numbers 41 to 76 represent Keno Roulette Numbers 1 to 36 respectively;
+                       Drawn numbers 37 and 77 represent keno Roulette Number “0”;
+                       Drawn numbers 38 and 78 represent Keno Roulette Number “00”;
+                       Drawn numbers 39, 40, 79 and 80 do not represent a Keno Roulette Number and the next
+                       number Drawn will be used;
+            (lxii)     “Keno Runner” means a person authorised by a Venue to collect Subscriptions directly
+                       from the Subscriber;
+           (lxiii)     “Key Employee” has the meaning assigned to “key employee” by Section 4 of the Act;
+           (lxiv)      “Kwikpik” means the form of Entry whereby:
+                       (a) a Subscriber nominates the Subscription for each game, the number of Spots and the
+                       number of games and the Terminal selects the Spots; or
+                       (b) in Keno Racing, a Subscriber nominates the bet type, the Subscription and, where
+                       applicable, whether the bet shall be Boxed and the Terminal selects the Rows; or
+                       (c) in Keno Roulette, a Subscriber nominates the bet type, the number of selections to be
+                       made, the Subscription and the Terminal selects the Straight Ups, Splits, Rows, Corners,
+                       Columns, Six Line, Dozens, Low or High, Red or Black and Odds or Evens as applicable;
+                       or
+                       (d) in Heads or Tails? Prepick and Let it Run, a Subscriber nominates the bet type, the
+                       number of games, the Subscription and the Terminal selects the Heads, Tails or Evens
+                       selection for each game;
+                       More than one Kwikpik (a Multipik) can be played on a single ticket.
+            (lxv)      “Let it Run” means the form of Prepick in which, subject to Rule 9(d) and 9(l), if the
+                       Subscriber correctly forecasts the result of the first game in a chosen series, the amount of
+                       the prize as specified in Rule 18(e) on that game is carried over as the Subscription for the
+                       next game in the series and in which this procedure continues until such time as the series
+                       of games is complete or the Subscriber incorrectly forecasts one of the game results in the
+                       series or the Subscriber cancels the ticket;
+           (lxvi)      “Licensees” means Clubkeno Holdings Pty Limited ABN 51 002 821 570 and Keno
+                       (NSW) Pty Ltd ABN 16 003 992 327;
+          (lxvii)      “Lucky Last” means the form of the Game of Keno, being a Category I game, which may
+                       only be played in conjunction with certain other forms of the Game of Keno as determined
+                       by the Licensees (except Heads or Tails?, Keno Racing and Keno Roulette), the object of
+                       which is to match a selected number against the last number Drawn in that game;
+          (lxviii)     “Major Prize” means a prize of more than $1,000 won in a Game of Keno but does not
+                       include that part of the prize comprising the Jackpot Fill, Jackpot Growth or Keno Bonus
+
+NSW Keno Rules effective 19 May 2017                                                               Page 7 of 34
+                       Jackpot Prize (if any);
+           (lxix)      “Minister” means the Minister for the time being administering the Act or the Minister’s
+                       duly appointed representative, delegate or replacement;
+            (lxx)      “Multi - Game” means the form of Entry whereby a Subscriber enters a number of games;
+           (lxxi)      “Multipik” means when more than one Kwikpik is played on a single ticket
+          (lxxii)      “Multiplier” means the multiplier that applies to the cumulative total of the twenty
+                       numbers Drawn from numbers between 1 and 80 where:
+                       (a) the multiplier of 1x is assigned to the cumulative totals set out in Part A of the
+                           schedule;
+                       (b) the multiplier of 2x is assigned to the cumulative totals set out in Part B of the
+                           schedule;
+                       (c) the multiplier of 3x is assigned to the cumulative totals set out in Part C of the
+                           schedule;
+                       (d) the multiplier of 4x is assigned to the cumulative totals set out in Part D of the
+                           schedule;
+                       (e) the multiplier of 5x is assigned to the cumulative totals set out in Part E of the
+                           schedule; and
+                       (f) the multiplier of 10x is assigned to the cumulative totals set out in Part F of the
+                           schedule;
+                         The multiplier does not apply to Keno Racing.
+          (lxxiii)     “Net Subscription” means the amount which the Venues hold and deal with as agent of
+                       the Licensees in accordance with Rule 7(h), being the Gross Subscription less the
+                       Commission including that part of the face value of a Gift Voucher, Prepaid Voucher or a
+                       Subscription Chip or an SST Receipt or Cash Voucher which has been used as a
+                       Subscription, remaining after payment of the Venue’s Commission in accordance with Rule
+                       9A(b), Rule 9B(a) or Rule 9C(c), as the case may be;
+          (lxxiv)      “Operating Company” means Keno (NSW) Pty Ltd ABN 16 003 992 327;
+           (lxxv)      “Parlay” means the form of Entry whereby a Subscriber, subject to Rule 15(d), chooses to
+                       subscribe all or part of the Total Prize Money instead of collecting the Total Prize Money;
+          (lxxvi)      “Permitted Area” means the Venue’s licenced area, including the portions of land and
+                       buildings which are owned or occupied by a club, Hotel or casino (the Venue or agent) or
+                       by any wholly owned subsidiary of the Venue or a nominee of the Venue and which are
+                       subject of a licence held by the Venue, and any other form of licence under the Liquor Act
+                       2007 (NSW) in respect of which the Venue or is wholly owned subsidiary or nominee is the
+                       business owner.
+         (lxxvii)      “Pooled Jackpot” means the combining, by all participating jurisdictions, of Jackpot
+                       Growth for each Regular Keno Jackpot into a pool;
+        (lxxviii)      “Pooled Jackpot Amount” means the total amount of Jackpot Growth contributed by all
+                       participating jurisdictions at any given time for Regular Keno Jackpots, as displayed in
+                       Venues.
+          (lxxix)      “Premises” means the premises owned or occupied by a Venue, at which a Venue is
+                       permitted to accept Entries and Subscriptions for Games of Keno pursuant to these Rules,
+                       and in respect of a Casino Licensee means the area or areas defined or redefined as the
+                       boundaries of the casino pursuant to section 19 of the Casino Control Act 1992, and
+                       includes the Permitted Area;
+           (lxxx)      “Prepaid Voucher” means an Approved document issued by the Operating Company or a
+                       Venue, which is an acknowledgment of the payment of money (whether by the Operating
+                       Company or a Venue) and which operates as a direction to the Operating Company to pay
+                       an amount on behalf of the holder, and entitles the holder to enter a particular type of Game
+                       of Keno;
+          (lxxxi)      “Prepick” means the form of Heads or Tails? in which a Subscriber can vary a selection of
+
+NSW Keno Rules effective 19 May 2017                                                            Page 8 of 34
+                       Heads, Tails or Evens over a series of up to five (5) consecutive games of Heads or Tails?
+                       in a single Entry;
+         (lxxxii)      “Print Pay Ticket” means a ticket issued by a Terminal detailing all games entered and all
+                       prizes won by an Entry;
+        (lxxxiii)      “Pro-rating” means the proportional reduction in value of all Major Prizes, Bonus Prizes
+                       and additional Approved prizes, in a Game of Keno so that the aggregate value of those
+                       prizes equals $3,000,000;
+        (lxxxiv)       “Promotional Activity” means any activity, offer or prize promoting or relating to a
+                       Category of the Game of Keno including, but not limited to, a prize (in any form), Jackpot
+                       Guarantee or additional prize money;
+         (lxxxv)       “Promotional Sub-Account” means a sub-account within the Keno Prize Fund comprising
+                       the portion of Keno Prize Fund Contributions allocated by the Operating Company
+                       pursuant to Rule 10B;
+        (lxxxvi)       “Quick Pick” has the same meaning as Kwikpik;
+        (lxxxvii)      “Receipt Ticket” means the serial numbered ticket issued by a Terminal on which is
+                       recorded the particulars of an Entry;
+       (lxxxviii)      “Regular Keno” means the form of Game of Keno, being a Category I game, in which a
+                       person selects 1 to 10, 15, 20 or 40 numbers, from the set: 1 to 80, the object being to match
+                       (or in some cases not to match) those numbers against the 20 winning numbers Drawn in
+                       each game. Regular Keno will be known as “Keno Classic”;;
+        (lxxxix)       “Regular Keno Jackpot” means the form of Regular Keno the object of which is to match
+                       all seven (7), eight (8), nine (9) or ten (10) spots selected, as the case may be, against the
+                       winning numbers Drawn in that game;
+             (xc)      “Regular Keno Jackpot Prize” means the prize offered in respect of a Regular Keno
+                       Jackpot game played by a Subscriber which matches all Spots selected against the 20
+                       winning numbers Drawn in that game.
+            (xci)      “Replay” means the form of Entry whereby a Subscriber submits a Receipt Ticket and
+                       issues verbal instructions for any particular of the Entry which varies from the particulars
+                       recorded on the Receipt Ticket or in the case of an Entry via the Internet Platform, the
+                       Subscriber submits a previous Entry which may vary from the particulars recorded on the
+                       Internet Acknowledgement;
+           (xcii)      “Roulette Game Entry Form” means a form that may be completed by a person wishing
+                       to play Keno Roulette;
+           (xciii)     “Row” or “Rows” means a range of 3 numbers in one row of the Keno Roulette Grid
+                       whereby:
+                         Row 1 means the range 1 to 3 inclusive,
+                         Row 2 means the range 4 to 6 inclusive,
+                         Row 3 means the range 7 to 9 inclusive,
+                         Row 4 means the range 10 to 12 inclusive,
+                         Row 5 means the range 13 to 15 inclusive,
+                         Row 6 means the range 16 to 18 inclusive,
+                         Row 7 means the range 19 to 21 inclusive,
+                         Row 8 means the range 22 to 24 inclusive;
+                         Row 9 means the range 25 to 27 inclusive;
+                         Row 10 means the range 28 to 30 inclusive;
+                         Row 11 means the range 31 to 33 inclusive;
+                         Row 12 means the range 34 to 36 inclusive;
+            (xciv)       “Self Service Terminal” or “SST” means a Subscriber operated Terminal that provides
+
+
+NSW Keno Rules effective 19 May 2017                                                             Page 9 of 34
+                          Subscribers with the option of purchasing Entries (such Entries may be purchased
+                          independently or in conjunction with a person submitting their Keno Player Card),
+                          checking and redeeming Receipt Tickets and issuing and using SST Receipts.
+             (xcv)       “Schedule of Prizes” means the lists of prizes specified in Rule 18;
+             (xcvi)      “Senior Writer” means the person authorised by a Venue to be in control of the
+                         operation of Keno at the Premises of that Venue;
+            (xcvii)      “Set Bet” has the same meaning as Superplay;
+           (xcviii)      “Split” or “Splits” means a range of 2 vertically or horizontally adjacent numbers in the
+                         Keno Roulette Grid;
+             (xcix)      “Spot” means an integer selected from the range of 1 to 80;
+                (c)      “SST Receipt” means a ticket issued by a Terminal which is an acknowledgement in
+                         place of cash to make an Entry, give change from an Entry or pay out winnings that a
+                         Subscriber may redeem up to the face value of cash and/or tender for payment of a
+                         Subscription for a Game of Keno.
+               (ci)      “Standard Game Entry Form” means the form that may be completed by a person
+                         wishing to play Regular Keno;
+               (cii)     “Standard Superplay” means a form of Combination Bet where the number of Groups,
+                         the size of each Group and the types of Combinations applicable to that Combination Bet
+                         have been pre-programmed into the Central Site Computer by the Operating Company
+                         and made available to Subscribers generally from time to time, the details for which are
+                         set out in the officially sanctioned brochures displayed or available for inspection at any
+                         Venue. The Central Site Computer selects the Spots forming part of each Combination;
+              (ciii)     “Standout” means an option on the “Quinella Place”, “Quinella”, “Exact Quinella”,
+                         “Trio”, “Trifecta”, “Quartet”, “Five Up” and “Superfecta” bet types in a game of Keno
+                         Racing that allows a Subscriber to nominate a particular Row or Rows that will finish
+                         “First” or “Second”, in the case of a “Quinella” or “Exact Quinella”; “First”, “Second” or
+                         “Third” in the case of a “Quinella Place”; “Trio” or “Trifecta”; “First”, “Second”,
+                         “Third” or “Fourth” in the case of a “Quartet”; “First, “Second”, “Third”, “Fourth” or
+                         “Fifth in the case of a “Five Up”; “First”, “Second”, “Third”, “Fourth”, “Fifth” or “Sixth”
+                         in the case of a “Superfecta” and to forecast the results of the game by combining these
+                         selections with other selected Rows to fill the other placing(s). A Subscription is payable
+                         in respect of each combination;
+              (civ)      “Subscriber” means:
+                         (i)      a person who subscribes to the Game of Keno by way of Entry; and
+                         (ii)     where the context permits in, and for the purposes of, Rules 9A, 9B and 9D a
+                                  person who purchases a Gift Voucher, a person who receives a Prepaid Voucher
+                                  or a person who receives a SST Receipt or Cash Voucher; and
+                         (iii)    where, in its absolute discretion, the Operating Company thinks it appropriate,
+                                  includes a person who bears or submits a Receipt Ticket; and
+                         (iv)     where any person defined in sub paragraph (i), (ii) or (iii) is under a legal
+                                  incapacity or has died, includes the legal personal representative of such person;
+               (cv)      “Subscriber Account” means an account opened by the Subscriber through the Internet
+                         Platform in accordance with the Subscriber Account Terms and Conditions for the
+                         purposes of depositing funds to purchase Entries into Games of Keno for which Entry is
+                         permitted to be made via the Internet and to receive and withdraw prizes in accordance
+                         with these Rules and the Subscriber Account Terms and Conditions;
+              (cvi)      “Subscriber Account Terms and Conditions” means the terms and conditions as
+                         amended from time to time that apply to Subscriber Accounts and the Internet Platform
+                         and which a Subscriber must accept prior to their Subscriber Account being available for
+                         use;
+             (cvii)      “Subscription” means a Gross Subscription unless otherwise stated in these Rules;
+            (cviii)      “Subscription Chip” means a Chip used by a Subscriber either for entry to a Game of
+
+NSW Keno Rules effective 19 May 2017                                                            Page 10 of 34
+                         Keno or for the purchase of a Gift Voucher;
+               (cix)     “Superplay” means the form of Entry whereby a Subscriber nominates:
+                         (a) a Standard Superplay; or
+                         (b) a Customised Superplay.
+                         In both cases the Subscriber nominates the amount to be wagered for each Combination
+                         and the number of games;
+                (cx)     “Supervisor” means a person appointed by the Operating Company to supervise the
+                         operation of Keno games;
+               (cxi)     “Terminal” means an Approved device for either:
+                         (i)      the processing of Entries, the issuing of Receipt Tickets, or Cash Vouchers and
+                                  the processing of claims; or
+                         (ii)      the processing of Entries and the issuing of Receipt Tickets or SST Receipts;
+               (cxii)    “Total Prize Money” means the total amount of money payable to a person, as a result of
+                         the person winning money in respect of a Customer Session in a Game of Keno (whether
+                         or not that Customer Session relates to one, or more than one, game or Entry in the Game
+                         of Keno);
+              (cxiii)    “Unclaimed Prize” means a prize for an entry made through a Venue that remains
+                         unclaimed for a period of 12 months after the date on which the Game of Keno to which
+                         the prize relates was conducted, or an SST Receipt or Cash Voucher that has not been
+                         redeemed in full for cash or tendered by way of Subscription in a Game of Keno within
+                         12 months of its date of issue or a prize for an entry made through a Venue that remains
+                         unclaimed for the alternative period prescribed in the Act;
+              (cxiv)     “Unclaimed Prize Claim Form” means the document to be completed by a Subscriber
+                         in the event that:
+                         (a) a Receipt Ticket,SST Receipt or Cash Voucher is lost or mutilated; or
+                         (b) a Receipt Ticket's, SST Receipt’s or Cash Voucher’s record is no longer resident on
+                             computer media on the Central Site Computer;
+               (cxv)     “Venue” means a Club, a Casino Licensee or a Hotel, appointed by the Licensees with
+                         Approval to accept Subscriptions for games of keno, and refers to the Venue acting in its
+                         own right, or as agent of the Licensees or of the Subscriber, as the context requires.
+              (cxvi)     “Verbal Entry” means the form of Entry which may be effected by the issue of verbal
+                         instructions by a person wishing to enter a Game of Keno and the issue of a Receipt
+                         Ticket (such verbal instructions may be issued independently or in conjunction with a
+                         person submitting their Keno Player Card);
+             (cxvii)      “With the Field” means an option on the “Quinella Place”, “Quinella”, “Exact
+                         Quinella”, “Trio”, “Trifecta”, “Quartet”, “Five Up” and “Superfecta” bet types in a game
+                         of Keno Racing that allows a Subscriber to combine their selected Rows with all the
+                         remaining Rows in the Keno Grid. A Subscription is payable in respect of each
+                         combination;
+             (cxviii)    “Writer” means a person authorised by a Venue to operate a Terminal at the Premises of
+                         that Venue.
+       (b)      In these Rules unless inconsistent with the context:
+                (i)     a reference to the singular shall include the plural, and vice versa;
+                (ii)    a reference to a person shall include an organisation of persons whether incorporated or
+                        unincorporated;
+                (iii)   except in relation to a Delayed Start Entry a reference to a number of games shall be taken
+                        to mean a number of consecutive games commencing with the game which is open at the
+                        time the Receipt Ticket for that Entry is issued;
+                (iv)    headings are for convenient reference only and have no effect in limiting or extending the
+                        language of the provisions to which they refer;
+
+NSW Keno Rules effective 19 May 2017                                                            Page 11 of 34
+                (v)       all references to sums of money are references to Australian dollars.
+
+3.     Application of these Rules
+       (a)      These Rules are to be read subject to the Act, and in conjunction with the Subscriber Account
+                Terms and Conditions, and shall apply to every Game of Keno. If there is any inconsistency
+                between these Rules and the Act, the Act will prevail to the extent of any inconsistency. If there is
+                any inconsistency between the Subscriber Account Terms and Conditions and the Act or these
+                Rules, the Act and these Rules will prevail to the extent of any inconsistency.
+       (b)      These Rules shall be binding on all Subscribers and by making an Entry in a Game of Keno,
+                purchasing a Gift Voucher or accepting a Prepaid Voucher, Subscribers agree to be bound by these
+                Rules.
+
+4.     Object
+         The object of the Game of Keno, known as Regular Keno, is to select from 1 to 10, 15, 20 or 40
+         numbers, from the set: 1 to 80 and to match (or in some games not to match) those numbers against the
+         20 winning numbers Drawn in each game. A number of other forms of the Game of Keno also exist.
+         These may be varied or discontinued and other forms of the Game of Keno may be introduced by the
+         Operating Company from time to time.
+
+5.     Eligibility for Inclusion in a Game of Keno
+         In order to be eligible for inclusion in a Game of Keno:
+          (a)         for an Entry made through a Venue, a Receipt Ticket the details of which must be recorded
+                      and be resident on computer media at the Central Site, must be issued to the Subscriber.
+          (b)         For an Entry made through the Internet Platform, the details for the Entry must be recorded
+                      and be resident on storage media at the Central Site, and the Entry recorded in the Subscriber
+                      Account.
+
+5A. Ineligibility of Certain Persons to Enter a Game of Keno
+       (a)      A Key Employee, an Inspector or an employee of the Licensees must not enter a Game of Keno.
+       (b)      An employee of a Venue during such time as that employee is in any way engaged in the operation
+                of a Game of Keno must not enter a Game of Keno.
+       (c)      No person under the age of 18 years shall be permitted to enter a Game of Keno, whether
+                personally, through another person, by mail, by using a Self Service Terminal, by electronic
+                means, via the Internet Platform or otherwise.
+       (d)      No person may make an Entry on behalf of a person under the age of 18 years.
+       (e)      No person shall be permitted to withdraw a prize from the Subscriber’s Account unless the
+                Subscriber has satisfied all necessary identification verification requirements as described on the
+                Internet Platform and any other relevant requirements, as outlined in the Subscriber Account
+                Terms and Conditions.
+
+6.     Key Staff
+       (a)      Operating Company
+         A Supervisor must be present at all times while the game is in progress at the Central Site or at the
+         Backup Site where a Draw Device is operative and the Supervisor is responsible for ensuring that the
+         game is conducted in accordance with these Rules.
+       (b)      Venue
+         A Senior Writer must be present at the Premises at all times while the game is in progress at those
+         Premises and the Senior Writer is responsible for ensuring that the game is conducted in accordance
+         with these Rules.
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                              Page 12 of 34
+6A.      Responsibility of Venue
+         (a)   A Venue that is a Club must at all times ensure that Games of Keno conducted on its Premises are
+               conducted in accordance with the Registered Clubs Act 1976 and regulations made under that Act,
+               the Public Lotteries Act 1996 and these Rules.
+         (b)   A Venue that is a Casino Licensee must at all times ensure that Games of Keno conducted on its
+               Premises are conducted in accordance with the Casino Control Act 1992 and regulations made
+               under that Act, the Public Lotteries Act 1996 and these Rules.
+         (c)   A Venue that is a Hotel must at all times ensure that Games of Keno conducted on its Premises are
+               conducted in a manner that does not contravene the , the Liquor Act 2007 and regulations made
+               under that Act, the Public Lotteries Act 1996 and these Rules.
+
+7.     Entry and Entry Forms
+       (a)     Entry in a Game of Keno may only be made through a Venue or through the Internet Platform in
+               accordance with these Rules.
+       (b)     Entry in a Game of Keno, not being a Delayed Start Game, may only be made:
+               (i) either:
+                         (a)     by way of an Entry Form;
+                         (b)     by way of Self Service Terminal;
+                         (c)     by Replay; or
+                         (d)     by way of Verbal Entry (including in conjunction with a KPC), in relation to:
+                                (i)      Regular Keno;
+                                (ii)     Keno $2 Game;
+                                (iii)    Lucky Last;
+                                (iv)     Heads or Tails?;
+                                (v)      Keno Racing;
+                                (vi)     Keno Roulette;
+                                (vii)    Parlay;
+                                (viii)   Kwikpik;
+                                (ix)     Superplay; or
+                                (x)      Keno Bonus; or
+                         (e)     Through the Internet Platform in accordance with Rule 7A of these Rules; and
+               (ii) by payment of the appropriate Subscription.
+       (c)     A Subscriber to a game of Heads or Tails? may only make one selection (ie. “Heads” or “Tails” or
+               “Evens”) per Game per Entry.
+       (d)     A Subscriber to a game of Keno Racing or Keno Roulette may make more than 1 selection per
+               Entry.
+       (e)     Subject to Rule 9A relating to Gift Vouchers, Rule 9B relating to Prepaid Vouchers, Rule 9C
+               relating to Subscription Chips, and Rule 9D relating to SST Receipts and Cash Vouchers, each
+               Gross Subscription must be paid by a Subscriber to a Venue (or to a Keno Runner on behalf of a
+               Venue) and the Venue will hold the Gross Subscription as agent of the Subscriber until the Entry
+               is completed.
+       (f)     Subject to Rule 9A relating to Gift Vouchers, Rule 9B relating to Prepaid Vouchers and Rule 9D
+               relating to SST Receipts and Cash Vouchers, a Subscriber must pay a Commission to the Venue in
+               consideration for the Venue acting as agent of the Subscriber, and for that purpose authorises the
+               Venue to retain from the Gross Subscription received from the Subscriber for a Game of Keno a
+               Commission calculated:
+
+
+NSW Keno Rules effective 19 May 2017                                                           Page 13 of 34
+               (i)     as agreed by the Venue and the Operating Company in accordance with the agency
+                       agreement between the Venue and the Operating Company; or
+               (ii)    if there is no express written agreement between the Venue and the Operating Company
+                       regarding the calculation of the Commission, calculated as follows:
+
+                             [Gross Subscription - Keno Prize Fund Contribution] x 44%,
+
+                             after the Entry is completed.
+       (g)     After a Subscriber has completed an Entry Form, an Entry by way of Self Service Terminal, a
+               Replay or a Verbal Entry and the Gross Subscription has been received by the Venue, the Venue,
+               on behalf of the Licensees, will deliver a Receipt Ticket to the Subscriber. A separate Receipt
+               Ticket will be issued in respect of a Delayed Start Entry. The Entry is completed by the delivery
+               of the Receipt Ticket and the Venue is taken to have discharged its duty as agent to the Subscriber
+               by the delivery of the Receipt Ticket in accordance with this Rule.
+       (h)      Subject to Rule 9A relating to Gift Vouchers, Rule 9B relating to Prepaid Vouchers, Rule 9C
+               relating to Subscription Chips and Rule 9D relating to SST Receipts and Cash Vouchers, once the
+               Entry is completed the Venue will be entitled to apply the Commission to its own account and will
+               hold the Net Subscription as agent for and on behalf of the Licensees.
+       (i)     All marks appearing on an Entry Form shall be taken to have been made exclusively by the
+               Subscriber and it is the responsibility of the Subscriber to ensure that the particulars recorded on a
+               Receipt Ticket are identical to those submitted by the Subscriber either by way of an Entry Form,
+               Verbal Entry or Entry by way of Self Service Terminal.
+       (j)     If the particulars recorded on a Receipt Ticket are inconsistent with the particulars resident on
+               computer media at the Central Site, the latter shall prevail to the exclusion of the former and shall
+               determine what prize, if any, a Subscriber is entitled to claim.
+       (k)     Except in relation to a Delayed Start Game, an Entry will be for the game which is open at the
+               time the Receipt Ticket for that Entry is issued. A Delayed Start Entry will be for the next Delayed
+               Start Game.
+       (l)     Instructions printed on an Entry Form, available on the Self Service Terminal are to be read and
+               construed as part of these Rules except that, in the event of any inconsistency, the latter shall
+               prevail to the exclusion of the former.
+       (m)     An Entry Form shall be returned to the Subscriber on request.
+       (n)     Where a Subscriber enters a Game of Keno as the trustee, representative or nominee of another
+               person, the Licensees, the Venue and every other person shall be taken not to have knowledge or
+               to be on notice, whether actual or constructive, of any such arrangement and the transaction will be
+               taken to have been conducted solely with the Subscriber.
+       (o)     Upon presentation of a Receipt Ticket a Subscriber may on the Keno Day on which that Receipt
+               Ticket was issued but after the payment of any prize won by the Entry of which that Receipt
+               Ticket is evidence request a Print Pay Ticket. A Subscriber shall be taken to have requested in
+               accordance with this Rule a Print Pay Ticket in respect of each Entry affected by a Keno Runner
+               on that Subscriber's behalf.
+       (p)     Upon presentation of a SST Receipt or Cash Voucher a Subscriber may on the Keno Day on which
+               that SST Receipt or Cash Voucher was issued but after the payment of any payout of the SST
+               Receipt or Cash Voucher, request a Print Pay Ticket.
+       (q)     No person may promote or take part in the formation of a syndicate for fee or reward for the
+               purpose of making an Entry in a Game of Keno, except a Venue as authorised by the Operating
+               Company.
+       (r)     No person may advertise by any means that he or she or some other person will accept money for
+               a share in an Entry in a Game of Keno, except as provided by Rule 7(q).
+
+7A       Internet Transactions
+       (a)     While the Licensees will use reasonable care to provide the Internet Platform, due to technological
+               limitations, the Licensee does not promise that the system will be fault-free.
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 14 of 34
+       (b)         The Internet Platform will display information about how to make an Entry via the Internet
+                   Platform and details about Draws, past results and the odds of winning a Game of Keno. The
+                   Licensees may change the information or the format of the information on the Internet Platform at
+                   any time without notice to the Subscriber.
+       (c)         To be eligible to make an Entry through the Internet Platform, a Subscriber must:
+                   (i)        have a Subscriber Account;
+                   (ii)       log into their Subscriber Account via the Internet Platform using their account number
+                              and password;
+                   (iii)      have a credit balance in their Subscriber Account; and
+                   (iv)       comply with these Rules and the Subscriber Account Terms and Conditions.
+       (d)         A Subscriber must satisfy themselves that all details on the Internet Confirmation Screen for each
+                   Entry made via the Internet Platform are correct.
+       (e)         An Entry made through the Internet Platform is completed and accepted by the Licensees when a
+                   Subscriber confirms the details of their Entry on the Internet Confirmation Screen and is recorded
+                   and resident on storage media at the Central Site.
+       (f)         In the event that:
+                   (i)        an Internet Acknowledgement does not appear after the Subscriber confirms the details of
+                              their Entry on the Internet Confirmation Screen;
+                   (ii)       the details of an Entry made through the Internet Platform does not appear in the account
+                              history section of the Subscriber’s Account; or
+                   (iii)      there is any loss of connection between the Subscriber and the Internet Platform during
+                              the making of an Entry,
+                   it is the Subscriber’s responsibility to contact the Operating Company’s call centre to confirm that
+                   the relevant Entry has been processed or re-submit the Entry if necessary. The Licensees accepts
+                   no responsibility for any Entry where an Internet Acknowledgement has not been issued or the
+                   details of an Entry does not appear in the account history section of the Subscriber’s Account.
+       (g)         A Subscriber can review the history of each Entry they have made through the Internet Platform
+                   by accessing the account history section of their Subscriber Account.
+       (h)         If the particulars recorded on an Internet Acknowledgment or the account history section of the
+                   Subscriber Account are inconsistent with the particulars resident on storage media at the Central
+                   Site, the latter shall prevail to the exclusion of the former and shall determine what prize, if any, a
+                   Subscriber is entitled to claim.
+       (i)         By opening a Subscriber Account, the Subscriber agrees to take all reasonable steps to keep their
+                   log-in and password details confidential, and not share them with any third party.
+
+8.     Keno Runners
+       (a)         A Keno Runner may operate from anywhere within the Premises of the Venue which has
+                   authorised the Keno Runner.
+       (b)         The Keno Runner must return to the Subscriber all original Receipt Tickets, Entry Forms and Print
+                   Pay Tickets.
+       (c)         Any dispute between a Keno Runner and a Subscriber shall be brought to the attention of the
+                   Senior Writer.
+       (d)         A Keno Runner will not be responsible for the placement of Entries in any particular Game of
+                   Keno but will use best endeavours to place the Entry in the next available game. Acceptance of
+                   Subscriptions does not constitute an official Entry until such time as a Receipt Ticket has been
+                   issued.
+
+9.     Subscriptions
+             (a)         Acceptable forms of payment of a Subscription include:
+
+
+
+NSW Keno Rules effective 19 May 2017                                                                 Page 15 of 34
+                (i)           the tender of cash;
+                (ii)          the tender of a Gift Voucher or Prepaid Voucher, in accordance with its terms;
+                (iii)         the tender of a Subscription Chip, but only to a Casino Licensee;
+                (iv)          the tender of a SST Receipt or Cash Voucher;
+                (v)           Parlay;
+                (vi)          the tender of funds held in a Subscriber Account;
+                (vii)         any combination of the above (if available).
+          (b)         No form of credit betting will be allowed.
+          (c)         Except as provided in Rule 9(d) - (l) inclusive the minimum Subscription for a game of:
+                       (i)    Regular Keno is $1 per game; and
+                       (ii) Keno $2 Game is $2 per game,
+                      as described in Keno player guides, on Self Service Terminals and via the Internet Platform,
+                      and the maximum Subscription for any Game of Keno is $9,999 for each Entry, except for an
+                      Entry by means of a Self Service Terminal, the maximum Subscription for which shall be $250.
+          (d)         The minimum Subscription payable in respect of a Combination Bet Entry (excluding a Jackpot
+                      Entry) shall be:
+                (i)          Where not less than 4 and not more than 19 Combinations are played:
+                             (a)   $0.50 per Combination for Regular Keno; and
+                             (b)   $1.00 per Combination for the Keno $2 Game;
+                (ii)         Where not less than 20 and not more than 49 Combinations are played:
+                             (a)   $0.20 per Combination for Regular Keno; and
+                             (b)$0.40 per Combination for the Keno $2 Game; and
+                (iii)        Where not less than 50 Combinations are played:
+                             (a)   $0.10 per Combination for Regular Keno; and
+                             (b)   $0.20 per Combination for the Keno $2 Game.
+          (e)         Subscriptions in respect of Combination Bet Entries where not less than 4 Combinations are
+                      played may increment in multiples of:
+                             (a)   $0.10 per Combination for Regular Keno; and
+                             (b)   $0.20 per Combination for the Keno $2 Game.
+          (f)         A Subscription tendered in respect of a Delayed Start Entry must be for the same amount as the
+                      Subscription tendered in respect of Entry in the game which is open at the time the Delayed
+                      Start Entry is effected.
+          (g)         The minimum Subscription for a game of Heads or Tails? played by a Subscriber (including
+                      Prepick and Let it Run) shall be $1. Subscriptions may increment in multiples of $1 per game
+                      played by a Subscriber (provided that all games played by a Subscriber on an Entry must
+                      increment by the same amount) up to a maximum of $500 per game played by a Subscriber
+                      (excluding Let it Run where the maximum allowable Subscription for the first game played by
+                      a Subscriber which is the subject of the Entry shall be $500 per Entry). In relation to the second
+                      and subsequent Games which are the subject of a Let it Run Entry, the maximum allowable
+                      Subscription specified in Rule 9(c) shall not apply but eligibility for entry in the next Game of
+                      Keno shall be subject to the aggregate Subscription limits set out in Rule 9(i).
+          (h)         The minimum Subscription in respect of a game of Keno Racing shall be $0.50 per each bet
+                      made subject to a minimum aggregate Subscription per game of Keno Racing of $1.
+          (i)         Notwithstanding any Rule to the contrary, the aggregate of the Subscriptions that may be bet on
+                      one of the results of a game of Heads or Tails? in any one Game of Keno between the opening
+                      and closure of that game shall not exceed:
+
+
+NSW Keno Rules effective 19 May 2017                                                                Page 16 of 34
+                       (i)    for all Subscriptions placed on the result of Heads, $500,000;
+                       (ii) for all Subscriptions placed on the result of Tails, $500,000;
+                       (iii) for all Subscriptions placed on the result of Evens, $170,000.
+                      In the event that the prize in respect of any Let it Run game played by a Subscriber would, but
+                      for this Rule, result in the total Subscriptions for the next game exceeding the above limits, the
+                      Entry on the next game played by that Subscriber will not be accepted and the prize in respect
+                      of the previous game will be paid to that Subscriber.
+          (j)         The minimum Subscription in respect of a selection of Keno Roulette will be as per the
+                      following table. Increments must be in multiples of $1.00
+
+                             Bet Type        Keno Roulette
+                                               Minimum
+                                            Subscription per
+                                               selection
+
+                         Straight Up              $1.00
+
+                               Split              $1.00
+
+                               Row                $1.00
+
+                              Corner              $1.00
+
+                             Six Line             $1.00
+
+                             Column               $2.00
+
+                             Dozens               $2.00
+
+                        Low or High               $5.00
+
+                        Red or Black              $5.00
+
+                        Odd or Even               $5.00
+
+
+
+          (k)         The Subscription paid for Keno Bonus must be equivalent to the Subscription paid for the game
+                      it is played in conjunction with.
+          (l)         In circumstances where Keno Bonus is being played in conjunction with Let it Run, the amount
+                      of the prize that is carried over as the Subscription for the next game in the series shall be
+                      applied as follows:
+                (i)          50% of the prize as Subscription for Keno Bonus; and
+                (ii)         50% of the prize as Subscription for the game Keno Bonus is being played in conjunction
+                             with.
+          (m)         If the number of games of Keno Bonus being played on an Entry is less than the number of
+                      other Games of Keno being played on the Entry, Keno Bonus will be played in conjunction
+                      with the first and following games of Keno.
+          (n)         Subject to Rule 9A relating to Gift Vouchers, Rule 9B relating to Prepaid Vouchers, Rule 9C
+                      relating to Subscription Chips and Rule 9D relating to SST Receipts and Cash Vouchers,
+                      Subscriptions will be received by a Venue as follows:
+                (i)           until the Entry is completed the Venue will hold the Gross Subscription as agent of the
+                              Subscriber pursuant to Rule 7(e);
+                (ii)          once the Entry is completed, the Venue will:
+
+
+NSW Keno Rules effective 19 May 2017                                                                Page 17 of 34
+                         (a)    retain and hold that part of the Gross Subscription which constitutes the
+                                Commission in its own right (and not as agent of the Licensees); and
+                         (b)    hold the Net Subscriptions, being the balance of the Gross Subscription on behalf
+                                and as agent of the Licensees
+                         in accordance with Rule 7(h).
+
+9A.      Gift Vouchers
+         (a)     A Subscriber must pay to a Venue, for the issue of a Gift Voucher, an amount equal to the face
+                 value of the Gift Voucher or present to a Casino Licensee a Subscription Chip with the face value
+                 equal to the face value of a Gift Voucher.
+         (b)     A Subscriber must pay a Commission to the Venue in respect of the issue of the Gift Voucher,
+                 and for that purpose, the Subscriber authorises the Venue to retain a proportion of the face value
+                 of the Gift Voucher received from the Subscriber calculated:
+                 (i)    as agreed by the Venue and the Operating Company in accordance with the agency
+                        agreement between the Venue and the Operating Company; or
+                 (ii)   if there is no express written agreement between the Venue and the Operating Company
+                        regarding the calculation of the Commission, calculated as follows:
+                        [face value of the Gift Voucher - Keno Prize Fund Contribution for the Category of game
+                        able to be played with that Gift Voucher] x 44%,
+                 by way of Commission.
+         (c)     A Gift Voucher must be presented by way of Subscription in a Game of Keno within 12 months
+                 of the date of purchase, or such shorter period as may be notified at the time of purchase.
+         (d)     Where payment of a Subscription for a Game of Keno is made by the tender of a Gift Voucher in
+                 accordance with Rule 9(a)(ii), the Venue will hold the Gift Voucher, as agent of the Subscriber
+                 until the Entry is completed.
+         (e)     Once the Entry is completed and the Receipt Ticket delivered to the Subscriber, the Venue will
+                 have discharged its duty as agent to the Subscriber.
+         (f)     Notwithstanding Rule 7(f), the Venue is not entitled to charge the Subscriber any Commission
+                 for acting as agent of the Subscriber in accordance with Rule 9A(d).
+
+9B.      Prepaid Vouchers
+         (a)     A Venue is entitled to charge a Commission for the issue of a Prepaid Voucher or for the delivery
+                 (by the Venue) of a Prepaid Voucher issued by the Operating Company, and for that purpose,
+                 under the terms of the Prepaid Voucher, the Subscriber will be taken to direct the Operating
+                 Company to apply a proportion of the face value of the Prepaid Voucher calculated:
+                 (i)    as and agreed by the Venue and the Operating Company in accordance with the agency
+                        agreement between the Venue and the Operating Company; or
+                 (ii) if there is no express written agreement between the Venue and the Operating Company
+                      regarding the calculation of the Commission, calculated as follows:
+                        [face value of Prepaid Voucher - Keno Prize Fund Contribution for the Category of game
+                        able to be played with that Prepaid Voucher] x 44%,
+                 in payment to the Venue, on behalf of the Subscriber, of the Commission charged by the Venue
+                 for the issue or delivery of the Prepaid Voucher.
+         (b)     A Prepaid Voucher must be presented by way of Subscription in a Game of Keno within 7 days
+                 of the date of issue, or such shorter period as may be notified at the time of issue or delivery to
+                 the Subscriber.
+         (c)     Where payment of a Subscription for a Game of Keno is made by the tender of a Prepaid
+                 Voucher in accordance with Rule 9(a)(ii), the Venue will hold the Prepaid Voucher, as agent of
+                 the Subscriber until the Entry is completed.
+
+
+NSW Keno Rules effective 19 May 2017                                                             Page 18 of 34
+         (d)     Once the Entry is completed and the Receipt Ticket delivered to the Subscriber, the Venue will
+                 have discharged its duty as agent to the Subscriber.
+         (e)     Notwithstanding Rule 7(f), the Venue is not entitled to charge the Subscriber any Commission
+                 for acting as agent of the Subscriber in accordance with Rule 9B(c).
+
+9C.      Subscription Chips
+         The provisions of this Rule 9C apply to a Casino Licensee only:
+         (a)     A Subscriber must pay to a Casino Licensee, for the issue of a Subscription Chip, an amount
+                 equal to the face value of the Subscription Chip.
+         (b)     Where payment of a Subscription for a Game of Keno is made by the tender of a Subscription
+                 Chip in accordance with Rule 9(a)(iii), a Casino Licensee will hold the Subscription Chip as
+                 agent of the Subscriber until the Entry is completed.
+         (c)     Once the Entry is completed and the Receipt Ticket delivered to the Subscriber, a Casino
+                 Licensee will have discharged its duty as agent of the Subscriber and will be entitled to retain
+                 from the face value of the Subscription Chip an amount equal to the Commission which a Casino
+                 Licensee is entitled to charge under Rule 7(f), and will hold the amount representing the balance
+                 of the face value of the Subscription Chip as a Net Subscription on behalf and as agent of the
+                 Licensees.
+
+9D.      SST Receipts and Cash Vouchers
+         (a)     A SST Receipt and Cash Voucher must be redeemed in full either for cash or tendered by way of
+                 Subscription in a Game of Keno within 12 months of the date of issue, and thereafter becomes an
+                 Unclaimed Prize.
+         (b)     Where payment of a Subscription for a Game of Keno is made by the tender of a SST Receipt or
+                 and Cash Voucher in accordance with Rule 9(a)(iv), the Venue will hold the SST Receipt or
+                 Cash Voucher, as agent of the Subscriber until the Entry is completed.
+         (c)     Once the Entry is completed and the Receipt Ticket delivered to the Subscriber, the Venue will
+                 have discharged its duty as agent to the Subscriber and will be entitled to retain from the face
+                 value of the SST Receipt or Cash Voucher an amount equal to the Commission which a Venue is
+                 entitled to charge under Rule 7(f), and will hold the amount representing the balance of the face
+                 value of the SST Receipt or Cash Voucher as a Net Subscription on behalf and as agent of the
+                 Licensees.
+         (d)     Notwithstanding Rule 7(f), the Venue is not entitled to charge the Subscriber any Commission
+                 for acting as agent of the Subscriber in accordance with Rule 9D(b).
+
+10. Jackpot
+         (a)         No Regular Keno Jackpot Prize, Keno $2 Game Jackpot Prize, Keno Bonus Jackpot Prize or
+                     Keno Racing Jackpot Prize greater than or equal to $10,000 will be paid until verified by the
+                     Operating Company.
+         (b)         The following amounts will be allocated from Net Subscriptions on the Keno Racing Jackpot to
+                     the Keno Racing Jackpot Prize available for that Keno Racing Jackpot:
+                     (i)   in respect of a “Quartet” Keno Racing Jackpot, an amount equivalent to 10% of Gross
+                             Subscriptions;
+                     (ii) in respect of the “Five Up” Keno Racing Jackpot, an amount equivalent to 10% of Gross
+                            Subscriptions; and
+                     (iii) in respect of the “Superfecta” Keno Racing Jackpot, an amount equivalent to 4% of Gross
+                             Subscriptions.
+         (c)         The Jackpot Fill and Jackpot Growth component of the:
+               (i)          Regular Keno Jackpot Prize, Keno Bonus Jackpot Prize and Keno Racing Jackpot Prize is
+                            fixed and payable in respect of the first $1.00 of the Subscription paid for a game played
+                            by a Subscriber to which that prize relates; and
+
+
+NSW Keno Rules effective 19 May 2017                                                              Page 19 of 34
+               (ii)       Keno $2 Game Jackpot Prize is fixed and payable in respect of the first $2.00 of the
+                          Subscription paid for a game played by a Subscriber to which that prize relates,
+                   irrespective of the amount actually subscribed and does not increase proportionately to the
+                  amount of the Subscription.
+         (d)      The amount of the Regular Keno Jackpot Prize and Keno Racing Jackpot Prize will be the sum
+                  of:
+                  (i)     the Subscription paid in respect of the game multiplied by the prize (with respect to a
+                          Quartet Keno Racing Jackpot Prize as defined in Rule 18(f)) or Major Prize (as the case
+                          may be);
+                  (ii)    the Jackpot Fill (if any); and
+                  (iii)   the Jackpot Growth for the relevant game.
+         (e)      The amount of the Keno $2 Game Jackpot Prize will be the sum of:
+                  (i)     the Subscription paid in respect of the game multiplied by the prize or Major Prize (as the
+                          case may be);
+                  (ii)    the Jackpot Fill (if any); and
+                  (iii)   the Jackpot Growth for the relevant game.
+
+10A. Bonus Prizes
+         (a)     The Operating Company may allocate Approved sums from the Keno Prize Fund to be used for
+                 Bonus Prizes at Approved times of the day and Approved days of the week. Games in which
+                 Bonus Prizes are available are or may be referred to as ‘Cash Games’.
+         (b)     Subject to Rule 10A(c) a Bonus Prize shall be won by the game played by a Subscriber or Entry
+                 (as the case may be) which first meets Approved requirements for that Bonus Prize.
+         (c)     Where in the Game of Keno in which the Approved requirements for a Bonus Prize are first met,
+                 and more than one game played by a Subscriber or Entry (as the case may be) meets those
+                 requirements the Bonus Prize shall be shared among those games or Entries (as the case may be)
+                 in accordance with Rule 19(f).
+         (d)     The word “Bonus” may be printed on Receipt Tickets. The presence of the word “Bonus” on a
+                 Receipt Ticket does not necessarily indicate that an Entry is eligible to win a Bonus Prize. The
+                 absence of the word “Bonus” from a Receipt Ticket does not necessarily indicate that the Entry is
+                 ineligible to win a Bonus Prize.
+         (e)     Combination Bet Entries, Superplay Entries, Lucky Last Entries, Heads or Tails? (including
+                 Prepick and Let it Run) Entries, Keno Racing Entries and Keno Roulette Entries are ineligible to
+                 win a Bonus Prize.
+
+10B. Flexible Keno Prize Fund Contribution and Promotional Sub-Account
+         (a)     The Operating Company may, at any time at its discretion and without Approval:
+                  (i)     Increase a Keno Prize Fund Contribution for any Category of the Game of Keno by up to
+                          5% (Increased Amount); and
+                  (ii)    decrease a Keno Prize Fund Contribution for any Category of the Game of Keno by up to
+                          5% (Decreased Amount),
+                  for a Draw, Keno Day, period of time or otherwise, subject to Rule 10B.
+         (b)     The Operating Company will allocate the sums representing the Increased Amount and
+                 Decreased Amount to the Promotional Sub-Account.
+         (c)     The sums held in the Promotional Sub-Account will be paid to Subscribers in accordance with
+                 Rule 10B, within 12 months of the relevant sums being allocated to the Promotional Sub-
+                 Account.
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 20 of 34
+         (d)     The Operating Company may, at any time and without Approval, use the sums held in the
+                 Promotional Sub-Account for each Category of the Game of Keno for a Promotional Activity
+                 relating to that Category.
+
+11. Cancellations
+         (a)     An Entry purchased through a Venue may be cancelled only:
+                   (i)          at the Premises of the Venue at which the Entry was accepted;
+                   (ii)         on the Keno Day on which the Entry was accepted;
+                   (iii)        during the displayed trading hours of those Premises;
+                   (iv)         in accordance with these Rules; and
+                   (v)         at any time prior to the closure of the game to which that Entry relates or prior to the
+                               Drawing of the first number in the game to which that Entry relates, whichever occurs
+                               first;
+         (b)     An Entry purchased through the Internet Platform may be cancelled only:
+                   (i)         via the Internet Platform;
+                   (ii)        when a Subscriber is located in the Permitted Area of the Venue at which the Entry
+                               was accepted via the Internet Platform;
+                   (iii)       on the Keno Day on which the Entry was accepted via the Internet Platform;
+                   (iv)        during the displayed trading hours of the Venue at which the Entry was accepted via
+                               the Internet Platform;
+                   (v)         in accordance with these Rules; and
+                   (vi)        prior to the closure of the game to which that Entry relates or prior to the Drawing of
+                               the first number in the game to which that Entry relates, whichever occurs first.
+         (c)     A Multi-Game Entry may not be cancelled in respect of those games in which a number has been
+                 Drawn.
+         (d)     Subject to Rule 11(e), if an Entry made through a Venue is cancelled in accordance with these
+                 Rules, the Venue will refund to the Subscriber in cash (or, in the case of a Casino Licensee only,
+                 cash and/or Chips to an equivalent value) the Commission which relates to that Entry and, on
+                 behalf of the Licensees, the Net Subscription in relation to that Entry, and the Gross Subscription
+                 in respect of the cancelled Entry will be reduced by the refunded amount for the purposes of
+                 these Rules.
+         (e)     If an Entry is cancelled in accordance with these Rules and a Gift Voucher or Prepaid Voucher
+                 was tendered for the Subscription for the Entry, the Venue will return the Gift Voucher or
+                 Prepaid Voucher to the Subscriber, or, if some Games of Keno have been Drawn, return to the
+                 Subscriber a replacement Gift Voucher or Prepaid Voucher with a face value equal to the
+                 Subscription payable for the cancelled Games of Keno. The Venue is not entitled to receive any
+                 Commission in respect of the issue of a replacement Gift Voucher or Prepaid Voucher. The
+                 Gross Subscription in respect of the cancelled Entry will be reduced by the value of the
+                 replacement Gift Voucher or Prepaid Voucher for the purposes of these Rules.
+
+12. The Draw
+         (a)     The drawing of the winning numbers must:
+                 (i)       take place:
+                                (a)      by means of a Draw Device;
+                                (b)      at the Central Site, the Premises of a Venue, the Backup Site or other
+                                         Approved site;
+                                (c)      if the Draw takes place at the Premises of a Venue - in an area open at that
+                                         time to those persons who would normally have access to those Premises;
+
+
+
+NSW Keno Rules effective 19 May 2017                                                                Page 21 of 34
+                             (d)       if the Draw takes place at any other Approved site - in an area open to the
+                                       public during Approved hours; and
+                            (e)    in a manner which enables it to be witnessed by an Inspector; and
+                   (ii)   be captured on an Approved medium.
+         (b)     The Operating Company will determine when a game opens and closes.
+         (c)     The Draw will be carried out as soon as practicable after the close of the game. Each Game of
+                 Keno will be identified during the Keno Day on which it is played by a number from 0 to 999
+                 and thereafter by the relevant Keno Day and that number. If an incorrect number is displayed as
+                 having been Drawn the final number will flash until the incorrect number has been removed and
+                 the correct number displayed.
+         (d)     If a Draw Device malfunctions, the Draw will continue in accordance with Approved procedures.
+
+13. Display of Winning Numbers
+         Subject to these Rules the winning numbers of the most recently completed Game of Keno and the
+         Multiplier (as applicable) will be displayed at the Premises of a Venue during the Venue’s displayed
+         trading hours. The winning numbers and the Multiplier (as applicable) will also be available by a Game
+         Results Inquiry. In addition to display at the Venue, the winning numbers and the Multiplier (as
+         applicable) may also be displayed in any other manner and on other media channels at the discretion of
+         the Licensees.
+
+14. Winning Entries
+       (a)     Notwithstanding any other Rule, a winning game played by a Subscriber will be one where the
+               number(s) selected for that game match the number(s) Drawn and resident on computer media at
+               the Central Site as the winning number(s) for that Game of Keno in such a way as to entitle the
+               Subscriber to a prize in accordance with the applicable Schedule of Prizes, to a Bonus Prize or to
+               an additional Approved prize.
+       (b)     Subject to Rule 17, a prize for an Entry purchased through a Venue may only be claimed by
+               submitting a Receipt Ticket.
+       (c)     A prize for an Entry purchased through a Venue will only be payable where the particulars
+               recorded on the Receipt Ticket submitted indicate that the game played by a Subscriber is a
+               winning game and those particulars correspond with the particulars resident on computer media at
+               the Central Site.
+       (d)     A Receipt Ticket submitted in respect of a successful claim or a SST Receipt or Cash Voucher
+               redeemed for cash or a Subscription will not be returned to the Subscriber.
+       (e)     A Game of Keno may include an additional Approved prize or prizes.
+       (f)     A prize for an Entry made through the Internet Platform will only be payable to the Subscriber’s
+               Account where the game played by a Subscriber is a winning game and the particulars of that
+               entry correspond with the particulars resident on storage media at the Central Site.
+
+15. Payouts
+       Payment of Prizes
+       (a)     Regardless of the amount of a Subscription, the maximum liability in respect of:
+
+                   (i) a Regular Keno Jackpot Prize, Keno $2 Game Keno Jackpot Prize and Keno Racing
+                        Jackpot Prize will be the amount showing as the Regular Keno Jackpot Prize, Keno $2
+                        Game Keno Jackpot Prize and Keno Racing Jackpot Prize at that time resident on
+                        computer media at the Central Site, reduced (if required) in accordance with Rule 19 and
+                        increased (if required) in relation to the prize (with respect to a Quartet Keno Racing
+                        Jackpot Prize as defined in Rule 18(d)) or Major Prize (as the case may be) having regard
+                        to the amount of the Subscription and the Multiplier (if relevant).
+
+
+
+NSW Keno Rules effective 19 May 2017                                                              Page 22 of 34
+       (b)     Subject to Rule 15(k), where a win requires the issue of a cheque drawn on the Keno Prize Fund,
+               the details of the payee must be provided by the Subscriber.
+       (c)     Public personal anonymity will be at Subscriber request, made to an employee or representative of
+               the Operating Company or Venue at the time the win is confirmed. The Subscriber acknowledges
+               that the Licensees may publish, or cause to be published the name of the Venue, and/or geographic
+               location at which the Subscription was accepted, the channel from which the Subscription was
+               accepted and the amount of the prize. A Subscriber may at any time revoke a request for
+               anonymity.
+       (d)     Subject to Rules 16, 17 and 20, a claim for the payment of a prize won from an Entry made
+               through a Venue may be made at the Premises of any Venue up to twelve months after the Keno
+               Day on which the game in respect of which the prize is claimed was Drawn.
+       (e)     Where a winning Entry was made through a Venue, the Total Prize Money will be paid as follows:
+              (i)        Up to a maximum of the amount specified in the Act or the lower limit specified by that
+                         Venue (Venue Threshold) may be paid by the Venue, in one or more of the following
+                         ways:
+                         (a) in cash;
+                         (b) by way of a SST Receipt or Cash Voucher (if available);
+                         (d) in the case of a Casino Licensee, by way of cash and/or Chips; and
+                         (e) by means of electronic funds transfer to an account nominated by the claimant (if
+                              those means are available);
+
+               (ii)      Any remaining amount of the Total Prize Money over the Venue Threshold will be drawn
+                         on the Keno Prize Fund and paid by the Licensees by means of:
+                         (a) a Crossed Cheque payable to the claimant; or
+                         (b) if the claimant requests, by electronic funds transfer to an account nominated by the
+                              claimant (if those means are available); and
+
+               (iii)     For prizes over the Venue Threshold, if requested by the claimant the Total Prize Money
+                         will be drawn on the Keno Prize Fund and paid by the Licensees by means of:
+                         (a) a Crossed Cheque payable to the claimant; or
+                         (b) electronic funds transfer to an account nominated by the claimant (if those means
+                               are available).
+       (f)     Where a winning Entry was made via the Internet Platform:
+              (i)        Prizes up to $9,999 will be drawn on the Keno Prize Fund and paid directly into the
+                         Subscriber’s Account immediately after the relevant Draw; and
+
+              (ii)       Prizes of $10,000 and over will be drawn on the Keno Prize Fund and paid directly into
+                         the Subscriber’s Account, following a sufficient period of time after the relevant Draw to
+                         allow the Licensees to internally verify the win.
+       (g)     Prizes arising from a winning Entry/s made via the Internet Platform will not be available for
+               withdrawal from the Subscriber’s Account until the Subscriber has satisfied all necessary
+               identification verification requirements as described on the Internet Platform and any other
+               relevant requirements, as outlined in the Subscriber Account Terms and Conditions.
+       (h)     Payouts resulting from an Unclaimed Prize Claim Form will be paid by cheque drawn on the Prize
+               Fund.
+       (i)     Any cheques issued in payment or part payment of a payout will be crossed and marked “Not
+               Negotiable” and payable to “Account Payee Only” and will be drawn in favour of the Subscriber.
+       (j)     Payouts to Subscribers known to be under legal incapacity or disability or to those Subscribers
+               who are known to have died before receiving any or all of a particular payout shall be made in
+               accordance with the laws of New South Wales.
+       (k)     Prizes won in a Delayed Start Game will be paid no sooner than the Keno Day following the Keno
+               Day on which that Delayed Start Game was Drawn.
+       (l)     Where a payout is calculated to be an amount which is an exact multiple of $0.10 that prize will be
+               payable. Where a prize is calculated to be an amount which is not an exact multiple of $0.10 the
+
+
+
+NSW Keno Rules effective 19 May 2017                                                          Page 23 of 34
+               prize payable will be the nearest amount below the calculated prize which is an exact multiple of
+               $0.10.
+       (m)     A Subscriber accepts and acknowledges that a Regular Keno Jackpot Prize in a Pooled Jackpot, or
+               a Keno $2 Game Jackpot Prize in a Keno $2 Game Pooled Jackpot, may be won in another
+               participating jurisdiction/s, including but not limited to when there is any failure, disruption or
+               malfunction of equipment used in the conduct of Games of Keno whether at the Central Site or at
+               the Premises of a Venue or any other location, electrical power, telecommunications links or
+               computer media at the Central Site.
+
+16. Unclaimed SST Receipts, Cash Vouchers or Prizes
+         (a)     If a Subscriber has been notified of an Unclaimed Prize through their Keno Player Card
+                 registration, to claim their prize they must attend the venue and submit their Receipt Ticket or
+                 SST Receipt or Cash Voucher. If they are unable to present their Receipt Ticket or SST Receipt
+                 or Cash Voucher, the Subscriber must submit details of that ticket or receipt, via an Unclaimed
+                 Prize Form, to the Central Site.
+         (b)     Details of prizes, including SST Receipts and Cash Vouchers, will remain accessible from
+                 computer media on the Central Site Computer for up to 12 calendar months after the Keno Day
+                 to which they relate. After this period payouts may be made only after submission of an
+                 Unclaimed Prize Claim Form forwarded by the Subscriber to the Operating Company.
+         (c)     All correspondence to a Subscriber relevant to an Unclaimed Prize or unclaimed SST Receipt or
+                 Cash Voucher shall bear the signature of a representative of the Operating Company.
+
+17. Lost or Mutilated Receipt Tickets, SST Receipts, Cash Vouchers and
+    Vouchers
+       (a)     If a Receipt Ticket or SST Receipt or Cash Voucher, submitted by a Subscriber for processing, is
+               unable to be read by a Terminal or the Writer, or the Receipt Ticket has been lost, a claim for
+               payment may be made by the submission of an Unclaimed Prize Claim Form.
+       (b)     If the details given by the Subscriber satisfy the Operating Company that a win has occurred, the
+               prize will be paid in accordance with Rule 15.
+       (c)     If a Gift Voucher or Prepaid Voucher, submitted by a person for processing, including a Gift
+               Voucher presented for refund in accordance with Rule 17(d), is unable to be validated by a
+               Terminal or a Writer, or has expired or been lost, a claim for a refund of the face value of the Gift
+               Voucher or Prepaid Voucher may not be made.
+       (d)     If, having purchased a Gift Voucher, a Subscriber does not agree to the conditions of purchase
+               described in Rule 17(c), a refund of the face value of the Gift Voucher can be made. This refund
+               can only be made by returning the Gift Voucher to the same Venue from which the Gift Voucher
+               was purchased and on the same day as the Gift Voucher was purchased.
+
+18. Schedules of Prizes
+         (a)     Rule 18 contains the Approved Schedules of Prizes. The Approved Schedules of Prizes for a
+                 Game of Keno may also be available in Keno player guides, on Self Service Terminals and via
+                 the Internet Platform.
+         (b)     The following Approved Schedule of Prizes applies to all Games of Keno other than the Keno $2
+                 Game, Lucky Last, Heads or Tails?, Keno Racing, Keno Roulette and Keno Bonus where it is
+                 played in conjunction with Lucky Last, Heads or Tails?, Keno Racing or Keno Roulette. Prizes
+                 are based on a Subscription of $1 and are expressed in multiples of $1:
+
+
+           Number of                                    Number of Spots Selected
+         Spots Matched                 1            2               3                4                5
+                 0
+                 1                     3
+
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 24 of 34
+                 2                              12              1                1
+                 3                                             44                4             2
+                 4                                                              120           14
+                 5                                                                           640
+
+
+
+
+           Number of                                 Number of Spots Selected
+         Spots Matched                 6        7               8                9            10
+                 0
+                 3                     1        1
+                 4                     5        3               2                1             1
+                 5                     80       12              7                5             2
+                 6                 1,800       125             60               20             6
+                 7                          $5,000 plus        675              210           50
+                                               Keno
+                                               Bonus
+                                              Jackpot
+                                              Prize of
+                                             $7,000 (if
+                                              payable)
+                                                plus
+                                              Jackpot
+                                              Growth
+                 8                                           $25,000         2,500           580
+                                                            plus Keno
+                                                              Bonus
+                                                             Jackpot
+                                                             Prize of
+                                                            $38,000 (if
+                                                             payable)
+                                                           plus Jackpot
+                                                             Growth
+                 9                                                          $100,000       10,000
+                                                                           plus Keno
+                                                                              Bonus
+                                                                             Jackpot
+                                                                            Prize of
+                                                                           $180,000
+                                                                          (if payable)
+                                                                               plus
+                                                                             Jackpot
+                                                                             Growth
+                 10                                                                       $250,000
+                                                                                         plus Jackpot
+                                                                                             Fill of
+                                                                                          $750,000
+                                                                                          plus Keno
+                                                                                             Bonus
+                                                                                            Jackpot
+                                                                                           Prize of
+                                                                                         $2,900,000
+                                                                                         (if payable)
+                                                                                         plus Jackpot
+                                                                                            Growth
+
+
+NSW Keno Rules effective 19 May 2017                                                     Page 25 of 34
+           Number of                            Number of Spots selected
+         Spots Matched                  15                   20                        40
+                  0                                          100                 250,000
+                  1                                          10                   25,000
+                  2                                           2                   2,200
+                  3                                                                  200
+                  4                                                                    35
+                  5                      1                                             7
+                  6                      2                                             2
+                  7                      4                                             1
+                  8                     20                    2
+                  9                     50                    7
+                 10                     250                  20
+                 11                    2,000                 100
+                 12                    12,000                450
+                 13                    50,000               1,200                      1
+                 14                 100,000                 5,000                      2
+                 15                 250,000                10,000                      7
+                 16                                        15,000                      35
+                 17                                        25,000                    200
+                 18                                        50,000                 2,200
+                 19                                        100,000                25,000
+                 20                                        250,000               250,000
+
+
+         (c)     The following Approved Schedule of Prizes applies to the Keno $2 Game. Prizes are based on a
+                 Subscription of $2 and are expressed in multiples of $1:
+               Number                                 Number of Spots selected
+               of Spots
+               Matched          1                2                 3             4           5
+                 0
+                 1              6
+                 2                              25                2               2           1
+                 3                                                90              7           3
+                 4                                                               260         14
+                 5                                                                          1,300
+
+
+           Number of                                  Number of Spots selected
+             Spots
+            Matched             6                7                 8             9           10
+               0
+               1
+               2
+               3                2                2                 1             1
+               4               10                6                 2             2           2
+               5               160              20                 10            6           4
+               6              3,800             280               100            20          7
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                                Page 26 of 34
+                7                            12,000 plus
+                                               Jackpot        1,280           300            50
+                                               Growth
+                8                                           75,000 plus
+                                                              Jackpot        5,200           600
+                                                              Growth
+                9                                                         300,000 plus
+                                                                            Jackpot        11,000
+                                                                            Growth
+               10
+                                                                                          $500,000
+                                                                                         plus Jackpot
+                                                                                            Fill of
+                                                                                         $4,500,000
+                                                                                         plus Jackpot
+                                                                                           Growth
+
+
+
+
+           Number of                   Number of Spots selected
+             Spots
+            Matched             15                20              40
+               0                                 150         500,000
+               1                                 12           50,000
+               2                                  5            3,700
+               3                                  1             250
+               4                                                 50
+               5                 2                               10
+               6                 4                               6
+               7                 6                  1            2
+               8                45                  5            1
+               9                120                12
+              10                500                25
+              11               5,000               150
+              12              15,000               650           1
+              13              75,000              1,500          2
+              14             200,000              7,500          6
+              15             500,000             20,000          10
+              16                                 50,000          50
+              17                                 75,000         250
+              18                                100,000        3,700
+              19                                200,000       50,000
+              20                                500,000      500,000
+
+
+
+         (d)     The following Approved Schedule of Prizes applies only to games of Lucky Last and Keno
+                 Bonus (where it is played in conjunction with a game of Lucky Last). Prizes are based on a
+                 Subscription of $1 and are expressed in multiples of $1:
+
+
+           Number of                 Lucky Last
+          Spots selected               Prize
+                    1                      60
+                    2                      30
+                    3                      20
+                    4                      15
+                    5                      12
+
+
+NSW Keno Rules effective 19 May 2017                                                                Page 27 of 34
+                  6                       10
+                  7                       8.50
+                  8                       7.50
+                  9                       6.50
+                 10                         6
+                 15                         4
+                 20                         3
+                 40                       1.5
+
+
+         (e)     The following Approved Schedule of Prizes applies only to games of Heads or Tails? and Keno
+                 Bonus (where it is played in conjunction with a game of Heads or Tails?). Prizes are based on a
+                 Subscription of $1 and are expressed in multiples of $1:
+
+
+                             Selections                Result              Heads or Tails? Prize
+                              Heads                    Heads                          2
+                                 Tails                  Tails                         2
+                               Evens                    Evens                         4
+
+
+         (f)     The following Approved Schedule of Prizes applies only to games of Keno Racing. Prizes are
+                 based on a Subscription of $1 and are expressed in multiples of $1:
+
+
+                                 Bet Type                 Keno Racing Prize
+                      Win                                 6
+                      Place                               2
+                      Quinella Place                      7
+                      Quinella                            21
+                      Exact Quinella                      42
+                      Trio                                42
+                      Trifecta                            252
+                      Quartet
+                            First correct                 1
+                            First 2 correct               3
+                            First 3 correct               10
+                            All 4 correct                 800 plus Jackpot Growth
+                      Five Up
+                            First correct                 1
+                            First 2 correct               3
+                            First 3 correct               10
+                            First 4 correct               60
+                            All 5 correct                 3,000 plus Jackpot Growth
+                      Superfecta
+                            First correct                 1
+                            First 2 correct               3
+
+
+NSW Keno Rules effective 19 May 2017                                                         Page 28 of 34
+                            First 3 correct                10
+                            First 4 correct                60
+                            First 5 correct                100
+                            All 6 correct                  10,000 plus Jackpot Growth
+
+
+         (g)     The following Approved Schedule of Prizes applies only to games of Keno Roulette, and Keno
+                 Bonus where it is played in conjunction with a game of Keno Roulette. Prizes are based on
+                 minimum Subscription:
+
+
+                      Bet Type            Minimum           Keno Roulette
+                                         Subscription          Prize
+
+                     Straight Up              $1.00              $30.50
+
+                         Split                $1.00              $15.30
+
+                         Row                  $1.00              $10.20
+
+                       Corner                 $1.00              $7.60
+
+                       Six Line               $1.00              $5.10
+
+                       Column                 $2.00              $5.00
+
+                       Dozens                 $2.00              $5.00
+
+                    Low or High               $5.00              $8.50
+
+                    Red or Black              $5.00              $8.50
+
+                     Odd or Even              $5.00              $8.50
+
+
+
+19. Pro-rating and Sharing of Prizes
+       (a)       The maximum aggregate liability for all Major Prizes in any one Game of Keno, excluding
+                 Bonus Prizes and additional Approved prizes, shall be $3,000,000. Where except for this Rule
+                 19(a) the total amount of such Major Prizes would exceed $3,000,000 Pro-rating shall apply.
+       (b)       Subject to Rule 19(c) where Pro-rating applies the amount payable in respect of each Major Prize
+                 affected shall be as follows:
+                       Amount payable = X÷Y x $3,000,000
+                       where
+                       X = the amount which except for this Rule would have been payable in respect of the game
+                       played by a Subscriber.
+                       Y = the total prize amount which, except for this Rule, would have been payable in respect
+                       of all Major Prizes for a Game of Keno.
+       (c)       Notwithstanding the application of Pro-rating no Major Prize will be reduced to a value less than
+                 $1,000.
+       (d)       Where there is more than one Keno Racing Jackpot winner, the Jackpot Growth and Jackpot Fill
+                 will be shared among those Keno Racing Jackpot winners in the same proportion that the amount
+                 of the Subscription (disregarding Keno Bonus) paid by each winner on the winning combination
+
+
+
+NSW Keno Rules effective 19 May 2017                                                          Page 29 of 34
+                 of Spots bears to the total amount of the Subscriptions (disregarding Keno Bonus) paid by all
+                 winners on the winning combination of Spots.
+       (e)       Where there is more than one Keno Bonus Jackpot Prize winner, the Keno Bonus Jackpot Prize
+                 will be shared amongst those Keno Bonus Jackpot Prize winners in the same proportion that the
+                 amount of the Subscriptions (disregarding Keno Bonus) paid by each winner on the winning
+                 combination of Spots bears to the total amount of the Subscription (disregarding Keno Bonus)
+                 paid by all winner on the winning combination of Spots.
+       (f)       Where there is more than one Keno $2 Game Keno Jackpot Prize winner, the Jackpot Growth
+                 and Jackpot Fill will be shared among those Keno $2 Game Keno Jackpot Prize winners in the
+                 same proportion that the amount of the Subscription (disregarding Keno Bonus) paid by each
+                 winner on the winning combination of Spots bears to the total amount of the Subscriptions
+                 (disregarding Keno Bonus) paid by all winners on the winning combination of Spots.
+       (g)       Where there is more than one Bonus Prize winner, the Bonus Prize will be shared among those
+                 Bonus Prize winners in proportion to the amount of the Subscription paid by each winner on the
+                 winning combination of Spots.
+       (h)       In a Pooled Jackpot game, where there is more than one Regular Keno Jackpot winner:
+               (i)        in this jurisdiction, the Pooled Jackpot Amount and Jackpot Fill will be shared among
+                          those Regular Keno Jackpot winners in the same proportion that the amount of the
+                          Subscription (disregarding Keno Bonus) paid by each winner on the winning
+                          combination of Spots bears to the total amount of the Subscription (disregarding Keno
+                          Bonus) paid by all winners on the winning combination of Spots.
+
+               (ii)       across two or more Pooled Jackpot participating jurisdictions, the Jackpot Fill will be
+                          paid to the winner in this jurisdiction. The Pooled Jackpot Amount will be shared
+                          among all Regular Keno Jackpot winners, in all jurisdictions, in the same proportion that
+                          the amount of the Subscription (disregarding Keno Bonus) paid by each winner on the
+                          winning combination of Spots bears to the total amount of the Subscriptions
+                          (disregarding Keno Bonus) paid by all winners, in all jurisdictions, on the winning
+                          combination of Spots.
+
+       (i)       Where a situation described in Rule 19(h)(ii) occurs, and two or more winners are located in this
+                 jurisdiction, the Regular Keno Jackpot winners in this jurisdiction will share the Jackpot Fill in
+                 the same proportion that the amount of the Subscription paid by each winner on the winning
+                 combination of Spots bears to the total amount of the Subscriptions (disregarding Keno Bonus)
+                 paid by all winners, in this jurisdiction, on the winning combination of Spots. The Pooled
+                 Jackpot Amount will be shared as described in Rule 19(h)(ii).
+       (j)       In a Keno $2 Game Pooled Jackpot game, where there is more than one Keno $2 Game Jackpot
+                 winner:
+               (i)        in this jurisdiction, the Keno $2 Game Pooled Jackpot Amount and Jackpot Fill will be
+                          shared among those Keno $2 Game Jackpot winners in the same proportion that the
+                          amount of the Subscription paid by each winner on the winning combination of Spots
+                          bears to the total amount of the Subscription paid by all winners on the winning
+                          combination of Spots.
+
+               (ii)       across two or more Keno $2 Game Pooled Jackpot participating jurisdictions, the
+                          Jackpot Fill will be paid to the winner in this jurisdiction. The Keno $2 Game Pooled
+                          Jackpot Amount will be shared among all Keno $2 Game Jackpot winners, in all
+                          jurisdictions, in the same proportion that the amount of the Subscription paid by each
+                          winner on the winning combination of Spots bears to the total amount of the
+                          Subscriptions paid by all winners, in all jurisdictions, on the winning combination of
+                          Spots.
+
+       (k)       Where the situation described in Rule 19(j)(ii) occurs, and two or more winners are located in
+                 this jurisdiction, the Keno $2 Game Jackpot winners in this jurisdiction will share the Jackpot Fill
+                 in the same proportion that the amount of the Subscription paid by each winner on the winning
+                 combination of Spots bears to the total amount of the Subscriptions paid by all winners, in this
+
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 30 of 34
+                 jurisdiction, on the winning combination of Spots. The Keno $2 Game Pooled Jackpot Amount
+                 will be shared as described in Rule 19(j)(ii).
+
+
+
+20. Limitation of Liability
+       (a)     Without limitation to the following provisions of this Rule 20, the Licensees shall have no
+               responsibility or liability to a Subscriber until an Entry is validly made and a Receipt Ticket is
+               delivered to that Subscriber, or in the case of an Entry made through the Internet Platform, until an
+               Internet Acknowledgement is displayed and the details of the Entry appears in the account history
+               section of the Subscriber’s Account.
+       (b)     The Licensees shall have no responsibility or liability to a Subscriber or to any other person by
+               reason of the loss or destruction for any reason or from any cause of a Receipt Ticket beyond the
+               amount of the Net Subscription paid in respect of the Receipt Ticket unless, at the discretion of the
+               Licensees, the criteria as set out in Rules 16 and 17 are met.
+       (c)     The Licensees shall have no responsibility or liability to pay a Subscriber who claims a prize and
+               is unable to submit a Receipt Ticket. The Licensees shall have discharged all liability in relation to
+               payment of a prize by making payment to a person who has submitted a prize winning Receipt
+               Ticket. The official record of payment shall be the image resident on computer media at the
+               Central Site.
+       (d)     The Licensees and each of their employees shall have no liability or responsibility to a Subscriber
+               beyond the Net Subscription paid in respect of a Receipt Ticket, or any other person, in respect of:
+               (i)        any negligence, omission, delay or failure whatsoever on the part of any person in the
+                          carrying out or performance of any duty, function or discretion conferred or
+                          contemplated by the Rules in or about the conduct of the Game of Keno; and
+
+               (ii)       without prejudice to the generality of Rule 20(d)(i) hereof, any negligence, omission,
+                          delay or failure in relation to:
+
+                          (i)       the payment of prizes;
+                          (ii)      the processing and issue of a Receipt Ticket following acceptance of an Entry
+                                    Form, Replay Verbal Entry instructions or Entry by way of Self Service
+                                    Terminal;
+                          (iii)     the processing of a prize winning Receipt Ticket or the redeeming of a SST
+                                    Receipt or Cash Voucher;
+                          (iv)      the inclusion of an Entry in a particular Game of Keno received by way of an
+                                    Entry Form, Replay, Verbal Entry instructions, Entry by way of Self Service
+                                    Terminal or Entry made through the Internet Platform;
+       (e)     Each and every Venue shall have no responsibility or liability to a Subscriber or to any other
+               person by reason of the loss or destruction for any reason or from any cause of a SST Receipt,
+               Cash Voucher, or a Receipt Ticket.
+       (f)     Each and every Venue and every employee of a Venue shall have no liability or responsibility to a
+               Subscriber for or in respect of:
+               (i)     any negligence, omission, delay or failure whatsoever on the part of any person in the
+                       carrying out or performance of any duty, function or discretion conferred or contemplated
+                       by the Rules in or about the conduct of any Game of Keno; and
+
+               (ii)    without prejudice to the generality of Rule 20(f)(i) hereof, any negligence, omission, delay
+                       or failure in relation to:
+
+                                  (i)     the payment of payouts;
+                                  (ii)    the processing and issue of a Receipt Ticket following acceptance of an
+                                          Entry Form, Replay, Verbal Entry instructions or Entry by way of Self
+                                          Service Terminal;
+
+
+NSW Keno Rules effective 19 May 2017                                                            Page 31 of 34
+                                 (iii)   the processing of a prize winning Receipt Ticket or the redeeming of a
+                                         SST Receipt or Cash Voucher;
+                                 (iv)    the inclusion of an Entry in any particular Game of Keno received by way
+                                         of an Entry Form, Replay, Verbal Entry instructions , Entry by way of
+                                         Self Service Terminal or Entry made through the Internet Platform.
+       (g)     The Licensees and every Venue, and each employee of the Licensees or a Venue, shall have no
+               liability or responsibility to a Subscriber or any person for or in respect of any failure, disruption
+               or malfunction of equipment used in the conduct of Games of Keno whether at the Central Site or
+               at the Premises of a Venue or any other location, electrical power, telecommunications links or
+               computer media at the Central Site. Further, the Licensees and every Venue, and each employee
+               of the Licensees or a Venue shall have no liability if a Regular Keno Jackpot Prize which is for a
+               Pooled Jackpot, or a Keno $2 Game Jackpot Prize which is for a Keno $2 Game Pooled Jackpot, is
+               won in another participating jurisdiction during a period where there is any failure, disruption or
+               malfunction of equipment used in the conduct of Games of Keno whether at the Central Site or at
+               the Premises of a Venue or any other location, electrical power, telecommunications links or
+               computer media at the Central Site in this jurisdiction.
+       (h)     The Licensees and every Venue, and each employee of the Licensees or a Venue, shall have no
+               liability or responsibility for any consequence of interference with or interruption to any Game of
+               Keno due to fire, storm, flood, riot, civil commotion, strike, failure or disruption of electrical
+               power supply or telecommunications or other cause not within the reasonable control of such
+               person.
+       (i)     The State of New South Wales, the Crown in right of that State, the Government of that State, the
+               Minister, an Inspector, their successors and the employees and agents and every one of them shall
+               have as ample protection from liability in respect of their acts and omissions (whether arising
+               from, or contributed to, by negligence or otherwise) and the acts, omissions and contingencies the
+               subject of Rules 20(a) to 20(i) inclusive as those protected by the said Rules.
+
+21. Disqualifications
+         (a)     Notwithstanding that a Receipt Ticket, SST Receipt, Cash Voucher or Internet
+                 Acknowledgement may have been issued or is displayed, Entry in the Game of Keno may be
+                 disqualified and no claim shall be entered in respect of it if the Licensees are of the opinion that it
+                 should be disqualified.
+         (b)     The reasons for disqualification by the Licensees may include but are not limited to:
+                 (i)      tender of insufficient Subscription or if the form of Subscription is not acceptable;
+
+                 (ii)     the Subscriber has defaulted in payment of any previous fee;
+
+                 (iii)    reasonable suspicion of fraud or attempted fraud (whether computer related or
+                          otherwise);
+
+                 (iv)     a Receipt Ticket, SST Receipt, Cash Voucher or Internet Acknowledgement failing any
+                          security tests run at the Central Site;
+
+                 (v)      reasonable suspicion of unauthorised use of a Terminal or reasonable suspicion of
+                          unauthorised use or manipulation of the Internet Platform;
+
+                 (vi)     reasonable suspicion that the Subscriber is ineligible to enter a game under Rule 5A or
+                          Rule 7(a); or
+
+                 (vii)    any other breach of the Rules which in the opinion of the Licensees justifies
+                          disqualification.
+
+         (c)     An Entry which has been disqualified in accordance with this Rule 21 may, in the absolute
+                 discretion of the Licensees, and with Approval, be reinstated.
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                              Page 32 of 34
+         (d)     Without limiting the operation of Rule 20, the liability of the Licensees to a Subscriber who has
+                 an Entry disqualified and reinstated under this Rule 21 will be limited to the amount of any prize
+                 won by that reinstated Entry.
+
+22. Amendment
+         (a)     These Rules may only be amended, added to or repealed, in whole or in part, at any time by the
+                 Licensees with Approval.
+         (b)     Any amendment, addition or repeal will be effective on the date on which it is published in the
+                 New South Wales Government Gazette, or such later date as is specified in the New South Wales
+                 Government Gazette.
+         (c)     The Licensees shall have no responsibility to a Subscriber or any person for or in respect of any
+                 change to the Rules.
+
+
+
+
+NSW Keno Rules effective 19 May 2017                                                           Page 33 of 34
+                                                                          SCHEDULE
+                                                                   Part A – 1 x Multiplier
+
+       211    212   213      214     216     219     222    223     225    226    228    229    231    233     235     237      239     241    242    244
+       245    247   249      251     252     254     255    258     260    261    263    264    266    269     271     273      276     278    280    281
+       283    285   287      288     290     291     293    295     296    298    300    301    303    304     307     308      311     313    315    316
+       318    321   322      324     326     328     330    332     334    335    337    338    342    344     345     348      350     352    353    355
+       356    358   359      367     370     373     375    378     380    382    385    389    390    393     395     397      407     411    412    416
+       422    424   426      428     430     433     434    437     440    442    444    445    447    450     452     454      456     458    462    464
+       467    469   471      472     474     477     479    481     482    483    484    486    488    489     490     491      494     496    498    499
+       501    503   505      507     511     516     519    521     523    525    528    530    532    534     536     537      538     540    541    543
+       545    546   547      549     552     554     555    556     557    559    561    562    564    566     568     570      573     575    577    579
+       581    583   584      587     589     591     593    595     598    600    607    609    611    613     615     616      618     620    623    626
+       628    630   632      633     635     640     642    643     645    647    649    651    653    655     656     657      658     664    666    669
+       671    673   674      676     677     678     681    682     686    691    692    693    694    695     697     698      706     708    709    710
+       711    712   713      715     717     718     719    721     722    723    725    727    728    730     732     733      736     737    741    743
+       746    747   751      759     762     765     767    768     773    778    783    785    786    788     789     792      793     797    800    802
+       805    807   808      812     813     815     818    820     823    827    828    831    832    834     835     837      842     847    852    853
+       855    858   861      869     873     874     877    879     883    884    887    888    890    892     893     895      897     898    899    901
+       902    903   905      907     908     909     910    911     912    914    922    923    925    926     927     928      929     934    938    939
+       942    943   944      946     947     949     951    954     956    962    963    964    965    967     969     971      973     975    977    978
+       980    985   987      988     990     992     994    997     1000   1002   1004   1005   1007   1009    1011    1013     1020    1022   1025   1027
+      1029   1031   1033     1036    1037    1039    1041   1043    1045   1047   1050   1052   1054   1056    1058    1059     1061    1063   1064   1065
+      1066   1068   1071     1073    1074    1075    1077   1079    1080   1082   1083   1084   1086   1088    1090    1092     1095    1097   1099   1101
+      1104   1109   1113     1115    1117    1119    1121   1122    1124   1126   1129   1130   1131   1132    1134    1136     1137    1138   1139   1141
+      1143   1146   1148     1149    1151    1153    1156   1158    1162   1164   1166   1168   1170   1173    1175    1176     1178    1180   1183   1186
+      1187   1190   1192     1194    1196    1198    1204   1208    1209   1213   1223   1225   1227   1230    1231    1235     1238    1240   1242   1245
+      1247   1250   1253     1261    1262    1264    1265   1267    1268   1270   1272   1275   1276   1278    1282    1283     1285    1286   1288   1290
+      1292   1294   1296     1298    1299    1302    1304   1305    1307   1309   1312   1313   1316   1317    1319    1320     1322    1324   1325   1327
+      1329   1330   1332     1333    1335    1337    1339   1340    1342   1344   1347   1349   1351   1354    1356    1357     1359    1360   1362   1365
+      1366   1368   1369     1371    1373    1375    1376   1378    1379   1381   1383   1385   1387   1389    1391    1392     1394    1395   1397   1398
+      1401   1404   1406     1407    1408    1409
+
+
+
+                                                                   Part B – 2 x Multiplier
+215      218    221        230      234     248     270     277     317    320    327     333    360    362      365     372      374      377    379        381
+383      386    388        392      398     404     406     414     420    425    427     429    436    443      449     453      461      466    473        487
+492      508    510        513      527     531     542     558     567    571    580     585    588    596      601     604      610      634    641        644
+659      660    661        663      668     672     680     683     685    687    690     696    701    703      714     724      731      735    738        742
+749      752    755        756      760     764     766     771     775    776    777     780    781    784      795     798      801      803    806        810
+814      817    819        822      825     836     839     840     843    844    845     849    854    856      860     864      865      868    871        878
+882      885    889        896      906     917     919     924     930    933    935     937    940    948      952     957      959      960    961        976
+979      986    1010   1016      1019       1024    1032    1035   1040    1049   1053   1062   1078    1089    1093     1107     1110    1112    1128   1133
+1147    1154    1159   1167      1171       1177    1184    1191   1193    1195   1200   1206   1214    1216    1222     1228     1232    1234    1237   1239
+1241    1243    1246   1248      1255       1258    1260    1287   1293    1300   1303   1343   1350    1372    1386     1390     1399    1402    1405
+
+
+
+                                                                   Part C – 3 x Multiplier
+
+217      227    232        238      243     250     253     256     259    262    267     272    275    279      282     284      286      289    292        294
+297      299    302        305      306     309     310     312     314    319    323     329    336    339      341     346      347      351    357        361
+363      364    368        369      371     384     391     396     402    408    409     410    417    421      432     435      438      439    441        446
+448      451    455        459      463     465     468     470     475    476    478     480    485    493      495     497      500      502    504        506
+509      512    515        517      518     520     522     524     526    529    533     535    539    544      548     550      551      553    560        563
+565      569    572        574      576     578     582     586     590    592    594     597    602    605      606     608      612      614    617        619
+
+
+
+  NSW Keno Rules effective 19 May 2017                                                                                 Page 34 of 34
+624      625      627      629      631      637      638      639      646      648      650      652      654      662      665     667     670   675    679    689
+700      702      704      707      716      720      726      729      734      739      740      744      745      748      750     753     757   761    763    770
+774      779      787      791      794      796      799      804      809      811      816      821      824      826      829     833     841   846    850    857
+859      863      867      870      872      875      876      880      881      886      891      894      900      904      913     916     918   920    931    941
+945      950      953      955      958      966      968      970      972      974      981      982      983      989      991     993     995   996    1001   1003
+1006     1008     1012     1014     1015     1018     1023     1026     1028    1030     1034     1038     1042     1044     1046     1048   1051   1055   1057   1060
+1067     1069     1070     1072     1076     1081     1085     1087     1091    1094     1096     1098     1100     1102     1103     1105   1108   1111   1114   1116
+1118     1120     1123     1125     1127     1135     1140     1142     1144    1145     1150     1152     1155     1157     1161     1165   1169   1172   1174   1179
+1181     1182     1185     1188     1199     1203     1210     1211     1212    1218     1224     1229     1236     1249     1251     1252   1256   1257   1259   1263
+1269     1273     1274     1279     1281     1284     1291     1297     1301    1306     1308     1310     1311     1314     1315     1318   1321   1323   1326   1328
+1331     1334     1336     1338     1341     1345     1348     1353     1358    1361     1364     1367     1370     1377     1382     1388   1393   1403
+
+
+
+                                                                       Part D – 4 x Multiplier
+210      240      340      343      354      376      400      423      599      622      758      769      772      782      790     830     838   848    851    862
+998      1021     1197     1220     1244     1266     1277     1280     1380    1410
+
+
+                                                                       Part E – 5 x Multiplier
+
+220      236      257      265      274      325      349      366      387      394      399      401      403      405      413     418     419   431    457    460
+514      621      636      688      699      705      754      866      915      921      932      984      999     1106     1160     1163   1189   1201   1202   1207
+1215     1217     1219     1221     1226     1233     1254     1271     1295    1346     1355     1363     1384     1400
+
+                                                                      Part F – 10 x Multiplier
+
+       224      246      268      331      415      603      684      936     1017     1205     1289     1352     1374     1396
+
+
+
+
+  NSW Keno Rules effective 19 May 2017                                                                                              Page 35 of 34
+
