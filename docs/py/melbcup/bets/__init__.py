@@ -32,6 +32,19 @@ CONFIDENCE = ((0.40, "High"), (0.30, "Medium"), (0.0, "Low"))
 CONFIDENCE_FORM_ONLY = ((0.34, "High"), (0.26, "Medium"), (0.0, "Low"))
 
 
+# Sportsbet's price against the fair price (1 / chance). Bookmakers normally pay 85-95% of fair.
+PRICE_VERDICTS = ((1.0, "Good value"), (0.90, "Reasonable"), (0.82, "A bit short"), (0.0, "Short: skip"))
+
+
+def price_verdict(price: float | None, chance: float | None) -> str | None:
+    """How a quoted price compares with the runner's chance, e.g. "Reasonable (92% of fair)"."""
+    if not price or not chance:
+        return None
+    share = price * chance
+    label = next(label for floor, label in PRICE_VERDICTS if share >= floor)
+    return f"{label} ({share:.0%} of fair)"
+
+
 def confidence(chance: float, priced: bool = True) -> str:
     bands = CONFIDENCE if priced else CONFIDENCE_FORM_ONLY
     return next(label for floor, label in bands if chance >= floor)

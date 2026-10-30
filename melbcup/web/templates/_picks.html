@@ -23,6 +23,16 @@
     {% call row('Place', tp, [marks.get('top_place')]) %}places {{ tp.prob | pct }}{% if tp.price %} · {{ tp.price | money }} {{ tp.bookmaker | book }}{% endif %}{% endcall %}
     {% endif %}
     {% set race = rp.model.race %}
+    {% set sbw = race.prices.get(tw.number) if tw else none %}
+    {% set sbp = race.prices.get(tp.number) if tp else none %}
+    {% if (sbw and sbw.sportsbet_win) or (sbp and sbp.sportsbet_place) %}
+    <div class="pick sportsbet">
+      <dt>Sportsbet</dt>
+      <dd>{% if sbw and sbw.sportsbet_win %}<span class="who"><span class="cloth">{{ tw.number }}</span> win {{ sbw.sportsbet_win | money }}</span> <span class="fig">{{ sbw.sportsbet_win | verdict(tw.prob) }}</span>{% endif %}
+        {% if sbp and sbp.sportsbet_place %}<br><span class="who"><span class="cloth">{{ tp.number }}</span> place {{ sbp.sportsbet_place | money }}</span> <span class="fig">{{ sbp.sportsbet_place | verdict(tp.prob) }}</span>{% endif %}
+        <br><span class="small">Bet about 10 minutes before the jump; prices move.</span></dd>
+    </div>
+    {% endif %}
     {% set next = rp.model.ranked() | rejectattr('number', 'in', [tw.number if tw, tp.number if tp]) | sort(attribute='place', reverse=true) | list %}
     {% if next %}
     {% set fin = race.result.finish if race.result else {} %}

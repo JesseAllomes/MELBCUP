@@ -354,3 +354,13 @@ def test_head_to_head_counts_where_our_pick_and_the_favourite_differ():
     h = head_to_head(record)
     assert (h.races, h.favourite_won, h.pick_won) == (3, 2, 2)
     assert (h.disagreed, h.pick_won_disagreed, h.favourite_won_disagreed) == (2, 1, 1)
+
+
+def test_price_verdict_compares_a_quote_with_the_runners_chance():
+    from melbcup.bets import price_verdict
+
+    assert price_verdict(4.8, 1 / 5.21) == "Reasonable (92% of fair)"
+    assert price_verdict(5.5, 0.2) == "Good value (110% of fair)"
+    assert price_verdict(9.0, 1 / 10.62) == "A bit short (85% of fair)"
+    assert price_verdict(9.5, 1 / 13.58) == "Short: skip (70% of fair)"
+    assert price_verdict(None, 0.2) is None and price_verdict(3.0, None) is None

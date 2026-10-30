@@ -14,7 +14,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from melbcup import history
-from melbcup.bets import LABELS, confidence, views_split
+from melbcup.bets import LABELS, confidence, price_verdict, views_split
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -144,6 +144,7 @@ def make_env() -> Environment:
         isoday=isoday,
         racename=racename,
         confidence=confidence,
+        verdict=price_verdict,
     )
     env.globals["LABELS"] = LABELS
     env.globals["shown"] = history.shown

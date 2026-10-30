@@ -5,8 +5,7 @@ Usage: python3 tools/cup_signals.py <meet code> [--race N] [--four-place-race N]
 
 What the signals rest on (research/RESULTS.md, research/v2/*):
 - No form factor beat the market, so a runner's chance is the market's: the margin-free consensus of the
-  fixed-price books (Sportsbet, Ladbrokes, PointsBet, bet365 where priced), sharpened with the favourite-
-  longshot correction p ∝ m^1.13.
+  fixed-price books (Sportsbet, Ladbrokes, PointsBet, bet365 where priced), the same chance the app shows.
 - Prices near the jump forecast better than morning prices, and the best price on offer is worth more than
   any model gain, so every bet is "at the best price, close to the jump".
 - Place and exotic chances come from a Plackett-Luce simulation with the usual discounting of lower places
@@ -21,7 +20,7 @@ import numpy as np
 
 URL = "https://graphql.rmdprod.racing.com/"
 KEY = "da2-6nsi4ztsynar3l3frgxf77q5fe"
-ALPHA = 1.13
+ALPHA = 1.0     # plain market chance, as in the app; the 1.13 odds adjustment is promising but not deployed (research/RESULTS.md)
 BOOKS = {"sb": ("SB2", "Sportsbet"), "lb": ("LB2", "Ladbrokes"), "pb": ("PB3", "PointsBet"), "bt": ("BT", "bet365")}
 HOME = "sb"                # the owner bets only with Sportsbet: every pick shows Sportsbet's price and a verdict on it
 EXOTIC_BAR = 0.20          # show a top-four trifecta box as "a try" only if it comes in at least this often
