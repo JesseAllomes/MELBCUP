@@ -23,6 +23,7 @@ URL = "https://graphql.rmdprod.racing.com/"
 KEY = "da2-6nsi4ztsynar3l3frgxf77q5fe"
 ALPHA = 1.13
 BOOKS = {"sb": ("SB2", "Sportsbet"), "lb": ("LB2", "Ladbrokes"), "pb": ("PB3", "PointsBet"), "bt": ("BT", "bet365")}
+HOME = "sb"                # the owner bets only with Sportsbet: every pick shows Sportsbet's price and a verdict on it
 EXOTIC_BAR = 0.20          # show a top-four trifecta box as "a try" only if it comes in at least this often
 VALUE_EDGE = 0.05          # a price counts as above fair if price x chance - 1 >= 5%
 
@@ -87,6 +88,15 @@ def simulate(p, sims, rng):
     return out
 
 
+def verdict(price, fair):
+    """Sportsbet's price as a share of the fair price (1 / chance). Bookmakers normally pay 85-95% of fair."""
+    if not price:
+        return "no Sportsbet price"
+    r = price / fair
+    word = ("good value" if r >= 1.0 else "reasonable" if r >= 0.90 else "a bit short" if r >= 0.82 else "short: poor value")
+    return f"${price:g} = {r:.0%} of fair, {word}"
+
+
 def places_paid(n, four=False):
     return 4 if four else (3 if n >= 8 else 2 if n >= 5 else 1)
 
@@ -108,24 +118,34 @@ def sheet(meet, n, sims, four_place, rng):
     p, books = c
     order = simulate(p, sims, rng)
     k = places_paid(len(rs), four_place)
-    placed = np.array([(order[:, :k] == i).any(1).mean() for i in range(len(rs))])
+    ks = places_paid(len(rs))      # places the normal place market pays (3, or 2 in small fields)
+    placed = np.array([(order[:, :ks] == i).any(1).mean() for i in range(len(rs))])
     top = np.argsort(-p)
-    lines = [head, f"  chances from {', '.join(BOOKS[b][1] for b in books)}; bet each ~10 min before the jump at the best price shown"]
+    lines = [head, f"  chances from {', '.join(BOOKS[b][1] for b in books)}; bet about 10 min before the jump"]
     for rank, i in enumerate(top[:4], 1):
         r = rs[i]
         wp, wb = best(r["win"])
         pp, pb = best(r["place"])
         conf = "High" if p[i] >= 0.40 else "Medium" if p[i] >= 0.30 else "Low"
         tag = []
-        if wp and p[i] * wp - 1 >= VALUE_EDGE:
-            tag.append("WIN price above fair")
-        if pp and placed[i] * pp - 1 >= 0:
-            tag.append("PLACE price at/above fair")
-        lines.append(f"  {rank}. #{r['no']} {r['name']} (b{r['barrier']}): wins {p[i]:.0%} ({conf}), places {placed[i]:.0%} of {k}; "
-                     f"best win ${wp} {wb}, fair ${1 / p[i]:.2f}; best place ${pp} {pb}" + (f"  <- {'; '.join(tag)}" if tag else ""))
-        if four_place and wp:
-            ev = 0.5 * (p[i] * wp - 1) + 0.5 * (placed[i] * ((wp - 1) / 4 + 1) - 1)
-            lines.append(f"     each-way at 1/4 odds, 4 places (only where offered): expected {ev:+.0%} per $ staked")
+        sw, sp = r["win"].get(HOME), r["place"].get(HOME)
+        if sw and p[i] * sw - 1 >= VALUE_EDGE:
+            tag.append("Sportsbet WIN price above fair")
+        if sp and placed[i] * sp - 1 >= 0:
+            tag.append("Sportsbet PLACE price at/above fair")
+        placed3 = placed[i]
+        lines.append(f"  {rank}. #{r['no']} {r['name']} (b{r['barrier']}): wins {p[i]:.0%} ({conf}), places {placed3:.0%} in the first {ks}")
+        lines.append(f"     Sportsbet win {verdict(sw, 1 / p[i])} (fair ${1 / p[i]:.2f})"
+                     + (f"; best elsewhere ${wp:g} {wb}" if wp and wb != "Sportsbet" else ""))
+        lines.append(f"     Sportsbet place {verdict(sp, 1 / placed3)} (fair ${1 / placed3:.2f})")
+        if tag:
+            lines.append(f"     <- {'; '.join(tag)}")
+        if four_place and sw:
+            top4 = np.mean((order[:, :4] == i).any(1))
+            ev = 0.5 * (p[i] * sw - 1) + 0.5 * (top4 * ((sw - 1) / 4 + 1) - 1)
+            ev3 = 0.5 * (p[i] * sw - 1) + 0.5 * (placed3 * ((sw - 1) / 4 + 1) - 1)
+            lines.append(f"     each-way at Sportsbet's ${sw:g}, 1/4 odds: {ev3:+.0%} per $ with 3 places, {ev:+.0%} if Sportsbet pays 4 places "
+                         f"(places in first 4: {top4:.0%})")
     f4 = set(top[:4].tolist())
     tri = np.mean([set(o[:3]) <= f4 for o in order.tolist()])
     q3 = set(top[:3].tolist())
