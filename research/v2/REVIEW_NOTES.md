@@ -17,6 +17,31 @@ from a local run of the collector's field query; to be confirmed on the collecto
 - This snapshot alone cannot show whether `weightCarried` is before or after the claim. The
   collector's `field_post` snapshots and the later dumps will.
 
+**First race-day collector files** (2026-10-30, check at 03:10 UTC, `tools/live_validate.py`):
+
+- **Timing.** Every record has its request time.
+  - 569 market snapshots were taken before the start with the race open.
+  - All 12 watched races have a snapshot at or before T−30.
+  - Post-start records carry their closed, interim or paying status.
+- **Weight fields** (1,378 pre-race entries):
+  - `weightCarried` equals `weight` in every entry (54–60.5 kg).
+  - `weightPrevious` is null in 135 entries.
+  - Claims: "0" in 1,182 entries, 1.5, 2 or 3 kg otherwise.
+  - Cross-tab: 112 apprentices are flagged able to claim with "0" allowed. These are presumably
+    claims not permitted in that race or already lost; still to be explained. No non-apprentice
+    claim appeared in this sample.
+  - The post-race snapshot (4 races, 44 runners) matched the last pre-race values exactly. No
+    weight or claim changed in the minutes after the race. Later revisions are checked against the
+    next dumps.
+- **Continuity.**
+  - 1,633 records carry an ID and none is duplicated. The 84 records written before IDs existed
+    are counted as legacy.
+  - No unfinished files, and history is append-only (25 commits).
+  - The two restarts on 2026-10-29 are visible as 2.6-minute gaps.
+  - The scheduled run took over when run 3 stopped at 03:03 UTC.
+  - One cycle at 02:22 UTC was lost to a file-rotation race between threads. It is recorded as an
+    error record. The fix (one lock around writes) is on main and applies from the next run.
+
 | Constraint | Met? | Note |
 |---|---|---|
 | 1. Mechanism first, rejection condition | Yes | Each of V1–V5 states who leaves it mispriced, when, and what kills it. V4 (market memory × non-metro) carries a flagged multiple-comparison risk. |

@@ -35,7 +35,7 @@ Files: <out>/<UTC date>/<run>-<seq>.jsonl.gz, each written once (from a .part fi
 With --git <repo>, each closed file is committed and pushed to the `live` branch (retrying); a file that cannot be pushed stays
 in the work tree and goes with the next push.
 """
-import argparse, datetime, gzip, hashlib, json, os, signal, socket, subprocess, sys, time, urllib.error, urllib.request
+import argparse, datetime, gzip, hashlib, json, os, signal, socket, subprocess, sys, threading, time, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from zoneinfo import ZoneInfo
 
@@ -80,17 +80,23 @@ def iso(t):
 
 
 class Log:
-    """append-only rotating JSONL.gz files."""
+    """append-only rotating JSONL.gz files. One lock serialises writes and rotation: the poll threads
+    share this log (a race between two rotations once lost a cycle, 2026-10-30 02:22 UTC)."""
 
     def __init__(self, out, run, git):
         self.out, self.run, self.git, self.seq = out, run, git, 0
         self.fh = self.part = None
         self.opened = 0.0
         self.n = 0
+        self.lock = threading.RLock()
 
     def write(self, rec):
+        with self.lock:
+            self._write(rec)
+
+    def _write(self, rec):
         if self.fh is None or time.time() - self.opened >= ROTATE_S:
-            self.close()
+            self._close()
             day = now().strftime("%Y-%m-%d")
             os.makedirs(os.path.join(self.out, day), exist_ok=True)
             self.seq += 1
@@ -103,6 +109,10 @@ class Log:
         self.fh.flush()
 
     def close(self):
+        with self.lock:
+            self._close()
+
+    def _close(self):
         if self.fh is None:
             return
         self.fh.close()
