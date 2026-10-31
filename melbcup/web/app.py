@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
@@ -19,6 +19,7 @@ from melbcup.archive import Archive
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
+from melbcup.web.offer_api import OfferNotFound, OfferRequestError, offer_response
 from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
@@ -78,6 +79,19 @@ def create_app(
         except NotFound as exc:
             raise HTTPException(404, str(exc)) from exc
         return RedirectResponse(target, status_code=303)
+
+    @app.get("/api/offer", dependencies=[Depends(require_login)])
+    def offer(request: Request):
+        """Offers check as JSON (see melbcup/bets/offers.py). Computes only; places nothing."""
+        try:
+            body = offer_response(
+                board.snapshot(), request.query_params.multi_items(), request.cookies
+            )
+        except OfferNotFound as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except OfferRequestError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return JSONResponse(body, headers={"Cache-Control": "no-store"})
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):

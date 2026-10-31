@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import math
 import random
+from bisect import bisect
 from dataclasses import dataclass, field
-from itertools import permutations
+from itertools import accumulate, permutations
 
 from melbcup.domain import Race
 from melbcup.model.features import FACTORS, raw_factors
@@ -111,13 +112,17 @@ def blend(
     return _normalise({n: math.exp(lp - top) for n, lp in logp.items()})
 
 
-def order_probs(win: dict[int, float], depth: int) -> dict[tuple[int, ...], float]:
-    """Probability of every exact finishing order of length ``depth`` (discounted Harville)."""
+def order_probs(
+    win: dict[int, float], depth: int, discount: tuple[float, ...] = DISCOUNT
+) -> dict[tuple[int, ...], float]:
+    """Probability of every exact finishing order of length ``depth`` (discounted Harville).
+
+    ``discount`` is the exponent per place (the last one repeats); the default is the app's own."""
     depth = min(depth, len(win))
     if depth == 0:
         return {}
     powered = [
-        {n: p ** DISCOUNT[min(i, len(DISCOUNT) - 1)] for n, p in win.items()} for i in range(depth)
+        {n: p ** discount[min(i, len(discount) - 1)] for n, p in win.items()} for i in range(depth)
     ]
     out: dict[tuple[int, ...], float] = {}
     for combo in permutations(win, depth):
@@ -150,18 +155,49 @@ def top_k_probs(win: dict[int, float], k: int, *, seed: int = 7) -> dict[int, fl
 
 
 def _simulate_counts(win: dict[int, float], k: int, seed: int) -> dict[int, int]:
-    rng = random.Random(seed)
     counts = dict.fromkeys(win, 0)
-    runners = list(win)
-    for _ in range(SIMULATIONS):
-        remaining = runners[:]
-        for i in range(k):
-            exp = DISCOUNT[min(i, len(DISCOUNT) - 1)]
-            weights = [win[n] ** exp for n in remaining]
-            pick = rng.choices(remaining, weights)[0]
-            counts[pick] += 1
-            remaining.remove(pick)
+    for place in simulate_positions(win, k, sims=SIMULATIONS, seed=seed):
+        for n, c in place.items():
+            counts[n] += c
     return counts
+
+
+def simulate_positions(
+    win: dict[int, float],
+    depth: int,
+    *,
+    sims: int = SIMULATIONS,
+    seed: int = 7,
+    discount: tuple[float, ...] = DISCOUNT,
+) -> list[dict[int, int]]:
+    """Seeded Monte Carlo of the first ``depth`` places: element i counts, per runner, the draws
+    in which it finished (i+1)-th. The law is the discounted Harville of ``order_probs``: each
+    place is drawn from the strengths ``p ** discount[i]`` of the runners still to be placed.
+    A draw from all the strengths, redrawn when it lands on a placed runner, is exactly a draw
+    from those still to be placed, and lets each place be drawn for every simulation in one go.
+    Runners with no chance are never placed, so fewer than ``depth`` lists may come back."""
+    runners = [n for n, p in win.items() if p > 0]
+    depth = min(depth, len(runners))
+    counts = [[0] * len(runners) for _ in range(depth)]
+    if depth > 0:
+        rng = random.Random(seed)
+        cum = [
+            list(accumulate(win[n] ** discount[min(i, len(discount) - 1)] for n in runners))
+            for i in range(depth)
+        ]
+        index = range(len(runners))
+        draws = [rng.choices(index, cum_weights=cum[i], k=sims) for i in range(depth)]
+        last = len(runners) - 1
+        for s in range(sims):
+            placed: set[int] = set()
+            for i in range(depth):
+                j = draws[i][s]
+                while j in placed:
+                    j = bisect(cum[i], rng.random() * cum[i][-1], 0, last)
+                placed.add(j)
+                counts[i][j] += 1
+    by_runner = {n: i for i, n in enumerate(runners)}
+    return [{n: (c[by_runner[n]] if n in by_runner else 0) for n in win} for c in counts]
 
 
 def assess(race: Race) -> RaceModel:
