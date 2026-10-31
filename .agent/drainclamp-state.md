@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=56 -->
+<!-- drainclamp-build: state; schema=1; generation=57 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -79,7 +79,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | ui2 | every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips summed $); logic only, no restyle | melbcup/web/;tests/test_verdicts.py;docs/ | done |  |
 | ui3 | Silks look via product-ui loop: round 1 prototypes -> owner picks/iterates -> BUILD -> product lock -> implement | scratchpad/proto;.grok/product-ui/;melbcup/web/ | active | ui2 |
 | ui4 | 'Multi picks for the day': 5 best-chance cross-race multis (Sportsbet win, 2-3 legs) with \$ stake, price, chance; engine + view, layout per ui3 lock | melbcup/bets/multis.py;melbcup/web/;tests/ | pending | ui3 |
-| m8 | Late-money study (owner): full rerun on racing.com archive (data branch, flucs 2022+): how win odds move to the jump, whether moves add win chance beyond the late price; BET only where the frozen rule shows it; follows research/PROTOCOL.md blocks; app unchanged until owner approves | research/late_money/;research/LATE_MONEY.md | active |  |
+| m8 | Full rerun (owner: ALL stats and odds): every factor family + price moves + cross-book spread, fitted jointly with the T consensus, no leakage; every bet type (win, place, each-way, quinella, exacta, trifecta, first four, multis) tuned on dev blocks, rule frozen, tested once on an unseen block at takeable prices; per-type verdict | research/late_money/;research/RERUN.md | active |  |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
