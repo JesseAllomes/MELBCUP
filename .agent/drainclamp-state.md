@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=32 -->
+<!-- drainclamp-build: state; schema=1; generation=34 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -63,7 +63,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
 | m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m6 |
-| az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | pending |  |
+| az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | active |  |
 | az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | pending | az1 |
 | az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | pending | az2 |
 <!-- /DC:ROADMAP -->
@@ -90,4 +90,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-29T08:53:14+00:00 46cc835e m7: real-data run, next-to-go prices, manual credit controls, 1,131-race backtest and fitted weights deployed
 - 2026-10-29T09:59:53+00:00 f1d66719 History page with per-pick tally, racebook redesign, field-not-yet guard, saved history sealed
 - 2026-10-31T05:03:14+00:00 6b648089 az: Azure migration project opened; az1-az3 added (verify, dry run, cutover)
+- 2026-10-31T05:07:32+00:00 1cd38880 az1: inventory in .agent/azure-inventory.md; source not in any repo, sites empty, no job logs; blocked on owner (source access)
 <!-- /DC:LOG -->
