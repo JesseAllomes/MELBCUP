@@ -42,7 +42,7 @@
     {% endfor %}
     {% if ns.slips == 0 %}
     <article class="slip hold-card">
-      <ul class="vlist"><li class="vrow hold"><span class="vhead"><span class="chip hold">HOLD</span></span>
+      <ul class="vlist"><li class="vrow hold"><span class="vhead">{{ chip(Call('hold')) }}</span>
         <span class="vwho"><strong>No win or place bets right now</strong></span>
         <span class="vsub">Next: Race {{ ns.next.number }}, {{ ns.next.start_time | local_time }} {{ ns.next.start_time | until }}</span></li></ul>
     </article>
@@ -54,7 +54,7 @@
       <div class="slip-head static"><span class="rname">Quaddies and multis</span></div>
       <ul class="vlist">
         {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e) }}{% endfor %}
-        {% for m in open_multis %}{{ multi_row(m, budget) }}{% endfor %}
+        {% for m in open_multis %}{{ multi_row(m) }}{% endfor %}
       </ul>
     </article>
     {% endif %}
@@ -94,11 +94,11 @@
   {% if picks.quaddies or picks.multis %}
   <details class="race" id="multis">
     <summary><span class="stitle"><span class="rname">Quaddies and multis</span></span>
-      {% if open_n and ((picks.quaddies | selectattr('recommended') | list) or (picks.multis | selectattr('value') | list)) %}{{ chip(Call('bet')) }}{% endif %}</summary>
+      {% set mc = multis_call(picks) %}{% if open_n and mc.kind == 'bet' %}{{ chip(mc) }}{% endif %}</summary>
     <div class="racebody">
       <ul class="vlist">
         {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e, true) }}{% endfor %}
-        {% for m in picks.multis %}{{ multi_row(m, budget) }}{% endfor %}
+        {% for m in picks.multis %}{{ multi_row(m) }}{% endfor %}
       </ul>
       {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
     </div>
