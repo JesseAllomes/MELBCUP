@@ -9,3 +9,4 @@ resume uses `.agent/drainclamp-state.md` alone. This file is for forensics.
 - 2026-10-29T07:17:41+00:00 a1e05e60 m2: PuntersEdge + FormFav clients, card assembly with graceful degradation, 30 tests
 - 2026-10-29T07:19:34+00:00 10d9afa9 m3: 18-factor form model, market/feed blend, discounted Harville place probs, 43 tests
 - 2026-10-29T07:22:20+00:00 40485c37 m4: singles EV, trifecta/first four/quaddie structures, Sportsbet multis, Kelly staking, 57 tests
+- 2026-10-29T07:28:04+00:00 b0ac4008 m5: live board with adaptive price polling, password-protected phone web app, 75 tests
