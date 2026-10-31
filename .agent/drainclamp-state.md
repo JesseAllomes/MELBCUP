@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=35 -->
+<!-- drainclamp-build: state; schema=1; generation=37 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -51,6 +51,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Azure auth? -> Azure CLI device-code login by the owner, CLI config in session scratch only; no credentials, tokens or secret values in the repo, chat or logs; secret and setting names only (source: user + repo decision)
 - Cutover? -> per service: verify, dry run, owner approves, then turn the Azure schedule on and disable the matching GitHub Actions workflow in the same step so nothing runs twice (source: repo decision)
 - MELBCUP timing? -> owner had no preference; Render, live-collector.yml and GCS archive keep running through Cup day (Tue 3 Nov) until the Azure copies are verified (source: repo decision)
+- Azure collector before Cup day? -> no: review found 3 blockers and the GitHub collector already works; Azure collector off through Cup week, fixed and committed to git after (source: repo decision, 2026-10-31)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
@@ -92,4 +93,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T05:03:14+00:00 6b648089 az: Azure migration project opened; az1-az3 added (verify, dry run, cutover)
 - 2026-10-31T05:07:32+00:00 1cd38880 az1: inventory in .agent/azure-inventory.md; source not in any repo, sites empty, no job logs; blocked on owner (source access)
 - 2026-10-31T05:23:13+00:00 bf07a233 owner: grant any permissions needed; owner away - proceed autonomously; Render stays through Cup day
+- 2026-10-31T05:27:51+00:00 4214fe2d az1: function review done (.agent/reviews/azure-func-review.md); collector stays off through Cup week
 <!-- /DC:LOG -->
