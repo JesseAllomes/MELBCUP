@@ -2,10 +2,14 @@
 # Runs back to back: each run collects for about 5 h 40 min; a new run queues every 20 minutes and
 # starts when the previous one ends. Observations are committed append-only to the `live` branch.
 name: live-collector
+# The collector runs on Azure now (azure/function/, timer every minute). Kept as a manual fallback only:
+# run it by hand with manual = yes, and only while COLLECTOR_DISABLED=1 on the Function, or both collect.
 on:
-  schedule:
-    - cron: "*/20 * * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      manual:
+        description: "yes = run on GitHub (only while the Azure collector is off)"
+        default: "no"
 concurrency:
   group: live-collector
   cancel-in-progress: false
@@ -13,6 +17,7 @@ permissions:
   contents: write
 jobs:
   collect:
+    if: github.event.inputs.manual == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:

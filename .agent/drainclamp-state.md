@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=40 -->
+<!-- drainclamp-build: state; schema=1; generation=41 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -97,4 +97,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T05:27:51+00:00 4214fe2d az1: function review done (.agent/reviews/azure-func-review.md); collector stays off through Cup week
 - 2026-10-31T07:19:13+00:00 c3b3a920 owner: launch all, cost audit first, auto-deploy main->Azure behind cost guard. Applied: budget AUD20 alerts 25/50/100%+forecast (both emails), func 512MB x1, storage lifecycle+1d soft delete, Foundry keys off, Log Analytics 0.1GB/day on jobs env, OIDC deploy app 7ab2c182 (Contributor on RG, main only)
 - 2026-10-31T07:47:00+00:00 e2372d2a az2: Function in git + guarded deploy live; collector ON 07:43Z in parallel with GitHub collector; GitHub collector parked after first Azure hour validates
+- 2026-10-31T08:30:33+00:00 b20a3e38 az3: Azure collector validated (first hour: 329 records, 21 cycles, 0 gaps, 0 dups, same mix as GitHub); live-collector.yml manual-only; archive-to-gcs.yml and Render unchanged
 <!-- /DC:LOG -->
