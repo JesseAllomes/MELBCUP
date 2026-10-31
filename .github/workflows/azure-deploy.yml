@@ -2,6 +2,10 @@
 # guard   -> cost_guard, the function tests, ruff on the new files.
 # deploy  -> builds one package (the repo's collector is copied in, so Azure and GitHub run the same file),
 #            checks the live app against azure/limits.json before and after, then publishes.
+# webapp  -> builds the FastAPI app image (Dockerfile) into ghcr.io, then PUTs the Container App spec in
+#            azure/webapp/melbcup-web.json (scale to zero, 1 replica max, 0.25 vCPU / 0.5 GiB).
+#            It skips the PUT until the owner's keys are in Key Vault: while the app does not exist yet,
+#            the PUT only runs once the file azure/webapp/ENABLED is committed.
 # This workflow never touches COLLECTOR_DISABLED: the owner flips that switch by hand.
 name: azure-deploy
 on:
@@ -10,6 +14,10 @@ on:
     paths:
       - "azure/**"
       - "tools/live_collector.py"
+      - "melbcup/**"
+      - "pyproject.toml"
+      - "Dockerfile"
+      - "azure/webapp/**"
       - "tools/cost_guard.py"
       - "tools/cost_guard_inventory.py"
       - ".github/workflows/azure-*.yml"
@@ -27,10 +35,17 @@ permissions:
 env:
   FUNCTION_APP: func-personal-v5ethud2i3cfq
   RESOURCE_GROUP: rg-personal-automation-aue
+  SUBSCRIPTION_ID: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
+  WEBAPP: melbcup-web
+  WEBAPP_ENVIRONMENT: cae-personal-v5ethud2i3cfq
+  WEBAPP_IMAGE: ghcr.io/jesseallomes/melbcup-web
+  WEBAPP_URL: https://management.azure.com/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/containerApps/melbcup-web?api-version=2024-03-01
 jobs:
   guard:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      function: ${{ steps.changes.outputs.function }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,9 +63,19 @@ jobs:
         run: python3 -m pytest tests/test_azure_function.py tests/test_cost_guard.py
       - name: Ruff
         run: ruff check azure/function tools/cost_guard.py tests/test_azure_function.py tests/test_cost_guard.py
+      - name: Does the Function need redeploying
+        id: changes
+        # A redeploy restarts the collector, so app-only pushes (melbcup/**, Dockerfile) leave it alone.
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || git diff --name-only HEAD~1 HEAD | grep -qE '^(azure/function/|azure/limits.json|azure/inventory.json|tools/live_collector.py|tools/cost_guard|\.github/workflows/azure-)'; then
+            echo "function=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "function=false" >> "$GITHUB_OUTPUT"
+          fi
 
   deploy:
     needs: guard
+    if: needs.guard.outputs.function == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -98,3 +123,84 @@ jobs:
           az monitor log-analytics workspace list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,workspaceCapping:workspaceCapping}" -o json > live/workspaces.json
           python3 tools/cost_guard_inventory.py live/inventory.json live/workspaces.json
           python3 tools/cost_guard.py --base-ref HEAD~1 --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
+
+  webapp:
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          provenance: false
+          tags: |
+            ${{ env.WEBAPP_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.WEBAPP_IMAGE }}:latest
+      - uses: azure/login@v2
+        with:
+          client-id: 7ab2c182-e73b-4027-b30b-9cb9ddc841f7
+          tenant-id: f1575bc8-e389-49bf-8ab0-31155227f4c3
+          subscription-id: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
+      - name: Decide whether to deploy
+        id: gate
+        run: |
+          # Control plane only: Key Vault secret values (the owner's keys) cannot be read from here, so
+          # a first deploy waits for the owner to commit azure/webapp/ENABLED.
+          exists=$(az resource list --resource-group "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --name "$WEBAPP" --query "length(@)" -o tsv)
+          if [ "$exists" = "0" ] && [ ! -f azure/webapp/ENABLED ]; then
+            echo "::notice::Container App $WEBAPP does not exist yet and azure/webapp/ENABLED is absent: image pushed, PUT skipped. Put the keys in Key Vault (melbcup-puntersedge-api-key, melbcup-formfav-api-key, melbcup-app-password, ghcr-publish-token), then commit azure/webapp/ENABLED."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Put the Container App
+        if: steps.gate.outputs.deploy == 'true'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          test -n "$DIGEST"
+          az extension add --name containerapp --upgrade --only-show-errors
+          ENVIRONMENT_ID=$(az containerapp env show --name "$WEBAPP_ENVIRONMENT" --resource-group "$RESOURCE_GROUP" --query id -o tsv)
+          test -n "$ENVIRONMENT_ID"
+          IDENTITY=$(jq -r '.configuration.secrets[0].identity' azure/webapp/melbcup-web.json)
+          mkdir -p build
+          jq --arg image "$WEBAPP_IMAGE@$DIGEST" --arg env "$ENVIRONMENT_ID" --arg identity "$IDENTITY" '
+            { location: "australiaeast",
+              identity: { type: "UserAssigned", userAssignedIdentities: { ($identity): {} } },
+              properties: (walk(if . == "IMAGE" then $image elif . == "ENVIRONMENT_ID" then $env else . end)) }
+          ' azure/webapp/melbcup-web.json > build/melbcup-web.put.json
+          if grep -Eq '"(IMAGE|ENVIRONMENT_ID)"' build/melbcup-web.put.json; then echo "unsubstituted placeholder"; exit 1; fi
+          az rest --method put --url "$WEBAPP_URL" --headers "Content-Type=application/json" --body @build/melbcup-web.put.json -o none
+          for attempt in $(seq 1 30); do
+            state=$(az rest --method get --url "$WEBAPP_URL" --query properties.provisioningState -o tsv)
+            echo "provisioningState: $state"
+            case "$state" in
+              Succeeded) break ;;
+              Failed|Canceled) exit 1 ;;
+            esac
+            sleep 10
+          done
+          test "$state" = "Succeeded"
+      - name: Live check of the Container App
+        if: steps.gate.outputs.deploy == 'true'
+        run: |
+          mkdir -p live
+          az rest --method get --url "$WEBAPP_URL" -o json > live/containerapp.json
+          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/containerapp.json

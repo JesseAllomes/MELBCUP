@@ -1,13 +1,19 @@
 {
-  "_comment": "Owner-approved ceilings for the MELBCUP Azure function. Raising any number or adding a list item needs the owner (tools/cost_guard.py rule C10).",
+  "_comment": "Owner-approved ceilings for the MELBCUP Azure function and web container app. Raising any number or adding a list item needs the owner (tools/cost_guard.py rule C10).",
   "prices": {
     "flex_gb_s": 0.000026,
     "flex_per_million_exec": 0.40,
     "flex_free_gb_s": 100000,
-    "flex_free_exec": 250000
+    "flex_free_exec": 250000,
+    "aca_vcpu_s": 0.000024,
+    "aca_gib_s": 0.000003,
+    "aca_free_vcpu_s": 180000,
+    "aca_free_gib_s": 360000,
+    "aca_per_million_requests": 0.40,
+    "aca_free_requests": 2000000
   },
   "budget_usd_month": {
-    "total": 15,
+    "total": 25,
     "hard_cap_function": 70
   },
   "function": {
@@ -26,6 +32,16 @@
     },
     "forbidden_app_settings": ["APPLICATIONINSIGHTS_CONNECTION_STRING", "APPINSIGHTS_INSTRUMENTATIONKEY"]
   },
+  "container_app": {
+    "_comment": "C11. Worst case = max_replicas running 24/7 for 30 days at the active list price: (replicas*cpu*2592000 - free vCPU-s) * aca_vcpu_s + (replicas*memory_gib*2592000 - free GiB-s) * aca_gib_s + request charge above the free grant. The free grants are per subscription, so other container apps and jobs spend from the same pool.",
+    "file": "azure/webapp/melbcup-web.json",
+    "min_replicas": 0,
+    "max_replicas": 1,
+    "max_cpu": 0.25,
+    "max_memory_gib": 0.5,
+    "workload_profile": "Consumption",
+    "assumed_requests_month": 100000
+  },
   "allowed_resource_types": [
     "Microsoft.OperationalInsights/workspaces",
     "Microsoft.Web/sites",
@@ -35,6 +51,7 @@
     "Microsoft.KeyVault/vaults",
     "Microsoft.App/managedEnvironments",
     "Microsoft.App/jobs",
+    "Microsoft.App/containerApps",
     "Microsoft.ManagedIdentity/userAssignedIdentities"
   ],
   "scan": {

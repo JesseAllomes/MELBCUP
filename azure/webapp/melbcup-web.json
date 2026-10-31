@@ -1,0 +1,88 @@
+{
+  "environmentId": "ENVIRONMENT_ID",
+  "workloadProfileName": "Consumption",
+  "configuration": {
+    "activeRevisionsMode": "Single",
+    "ingress": {
+      "external": true,
+      "targetPort": 8000,
+      "transport": "auto",
+      "allowInsecure": false,
+      "traffic": [{"latestRevision": true, "weight": 100}]
+    },
+    "registries": [
+      {
+        "server": "ghcr.io",
+        "username": "JesseAllomes",
+        "passwordSecretRef": "ghcr-token"
+      }
+    ],
+    "secrets": [
+      {
+        "name": "puntersedge-api-key",
+        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-puntersedge-api-key",
+        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
+      },
+      {
+        "name": "formfav-api-key",
+        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-formfav-api-key",
+        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
+      },
+      {
+        "name": "app-password",
+        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-app-password",
+        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
+      },
+      {
+        "name": "ghcr-token",
+        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/ghcr-publish-token",
+        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
+      }
+    ]
+  },
+  "template": {
+    "containers": [
+      {
+        "name": "melbcup-web",
+        "image": "IMAGE",
+        "resources": {"cpu": 0.25, "memory": "0.5Gi"},
+        "env": [
+          {"name": "PRICE_MODE", "value": "manual"},
+          {"name": "PUNTERSEDGE_API_KEY", "secretRef": "puntersedge-api-key"},
+          {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
+          {"name": "APP_PASSWORD", "secretRef": "app-password"}
+        ],
+        "probes": [
+          {
+            "type": "Startup",
+            "httpGet": {"path": "/healthz", "port": 8000},
+            "periodSeconds": 3,
+            "timeoutSeconds": 3,
+            "failureThreshold": 20
+          },
+          {
+            "type": "Liveness",
+            "httpGet": {"path": "/healthz", "port": 8000},
+            "periodSeconds": 30,
+            "timeoutSeconds": 5,
+            "failureThreshold": 3
+          },
+          {
+            "type": "Readiness",
+            "httpGet": {"path": "/healthz", "port": 8000},
+            "periodSeconds": 10,
+            "timeoutSeconds": 5,
+            "failureThreshold": 3
+          }
+        ]
+      }
+    ],
+    "scale": {
+      "minReplicas": 0,
+      "maxReplicas": 1,
+      "rules": [
+        {"name": "http", "http": {"metadata": {"concurrentRequests": "50"}}}
+      ]
+    }
+  }
+}

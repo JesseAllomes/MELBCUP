@@ -426,6 +426,141 @@ def test_c8_issue_title_that_would_trigger_the_webhook(tree, capsys):
     expect(tree, capsys, "C8")
 
 
+# ------------------------------------------------------------------ C11
+
+
+def webapp(tree) -> Path:
+    return tree / "azure/webapp/melbcup-web.json"
+
+
+def spec_edit(tree, change) -> None:
+    edit_json(webapp(tree), lambda d: change(d))
+
+
+def test_c11_spec_passes_and_is_priced(tree, capsys):
+    code, out = guard(tree, capsys, "--json")
+    assert code == 0, out
+    costs = json.loads(out)["costs_usd"]
+    # (0.25 * 2592000 - 180000) * 0.000024 + (0.5 * 2592000 - 360000) * 0.000003 = 11.232 + 2.808
+    assert costs["container_app_worst_case_month"] == 14.04
+    assert costs["total_worst_case"] == round(costs["function_window_worst_case"] + 14.04, 2)
+
+
+def test_c11_total_must_fit_the_budget(tree, capsys):
+    edit_json(tree / "azure/limits.json", lambda d: d["budget_usd_month"].update(total=20))
+    out = expect(tree, capsys, "C3")
+    assert "container app" in out
+
+
+def test_c11_missing_spec(tree, capsys):
+    webapp(tree).unlink()
+    expect(tree, capsys, "C11")
+
+
+@pytest.mark.parametrize("minimum", [1, None, "0"])
+def test_c11_min_replicas(tree, capsys, minimum):
+    def change(doc):
+        if minimum is None:
+            doc["template"]["scale"].pop("minReplicas")
+        else:
+            doc["template"]["scale"]["minReplicas"] = minimum
+
+    spec_edit(tree, change)
+    expect(tree, capsys, "C11")
+
+
+@pytest.mark.parametrize("maximum", [2, 10, None])
+def test_c11_max_replicas(tree, capsys, maximum):
+    def change(doc):
+        if maximum is None:
+            doc["template"]["scale"].pop("maxReplicas")  # the platform default is 10
+        else:
+            doc["template"]["scale"]["maxReplicas"] = maximum
+
+    spec_edit(tree, change)
+    expect(tree, capsys, "C11")
+
+
+@pytest.mark.parametrize(
+    "cpu,memory",
+    [(0.5, "0.5Gi"), (0.25, "1Gi"), (0.25, "1024Mi"), (0.25, "lots"), ("fast", "0.5Gi")],
+)
+def test_c11_container_size(tree, capsys, cpu, memory):
+    def change(doc):
+        doc["template"]["containers"][0]["resources"] = {"cpu": cpu, "memory": memory}
+
+    spec_edit(tree, change)
+    expect(tree, capsys, "C11")
+
+
+def test_c11_second_container_counts(tree, capsys):
+    def change(doc):
+        extra = json.loads(json.dumps(doc["template"]["containers"][0]))
+        extra["name"] = "sidecar"
+        doc["template"]["containers"].append(extra)
+
+    spec_edit(tree, change)
+    expect(tree, capsys, "C11")
+
+
+def test_c11_smaller_sizes_pass(tree, capsys):
+    def change(doc):
+        doc["template"]["containers"][0]["resources"] = {"cpu": 0.25, "memory": "512Mi"}
+
+    spec_edit(tree, change)
+    assert guard(tree, capsys)[0] == 0
+
+
+def test_c11_dedicated_workload_profile(tree, capsys):
+    spec_edit(tree, lambda d: d.update(workloadProfileName="D4"))
+    expect(tree, capsys, "C11")
+
+
+def test_c11_multiple_revisions(tree, capsys):
+    spec_edit(tree, lambda d: d["configuration"].update(activeRevisionsMode="Multiple"))
+    expect(tree, capsys, "C11")
+
+
+def test_c11_insecure_external_ingress(tree, capsys):
+    spec_edit(tree, lambda d: d["configuration"]["ingress"].update(allowInsecure=True))
+    expect(tree, capsys, "C11")
+
+
+def test_c11_insecure_internal_ingress_is_allowed(tree, capsys):
+    spec_edit(
+        tree,
+        lambda d: d["configuration"]["ingress"].update(external=False, allowInsecure=True),
+    )
+    assert guard(tree, capsys)[0] == 0
+
+
+def test_c11_live_export(tree, capsys):
+    live = tree / "containerapp.json"
+    ok = json.loads(webapp(tree).read_text())
+    ok["workloadProfileName"] = None  # a Consumption-only environment reports no profile
+    live.write_text(json.dumps({"name": "melbcup-web", "properties": ok}))
+    assert guard(tree, capsys, "--live", str(live))[0] == 0
+    ok["template"]["scale"]["minReplicas"] = 1
+    live.write_text(json.dumps({"properties": ok}))
+    expect(tree, capsys, "C11", "--live", str(live))
+    live.write_text("{}")  # nothing visible in the export: cannot be proven, so it fails
+    expect(tree, capsys, "C11", "--live", str(live))
+
+
+def test_c11_allows_the_container_apps_resource_type(tree, capsys):
+    live = tree / "inventory.json"
+    live.write_text(json.dumps([{"name": "melbcup-web", "type": "Microsoft.App/containerApps"}]))
+    assert guard(tree, capsys, "--live", str(live))[0] == 0
+
+
+def test_c11_memory_units():
+    assert cost_guard.parse_gib("0.5Gi") == 0.5
+    assert cost_guard.parse_gib("512Mi") == 0.5
+    assert cost_guard.parse_gib(1) == 1.0
+    assert cost_guard.parse_gib("x") is None
+    assert cost_guard.parse_gib(True) is None
+
+
 # ------------------------------------------------------------------ C10
 
 

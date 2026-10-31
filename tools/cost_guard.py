@@ -14,10 +14,12 @@ Rules (function checks only; the limits file is owner-approved, see C10):
   C7   static code: unbounded calls (ratchet), loops, sleeps, retries, secrets
   C8   workflows: timeouts, concurrency, dispatch loops, triggers, cron volume, issue-title loops
   C10  ratchet: no limit may be loosened against the base ref (unless LIMITS_APPROVED=1)
+  C11  web container app (azure/webapp/melbcup-web.json): scale to zero, one replica, 0.25 vCPU /
+       0.5 GiB, Consumption profile only, no plain-HTTP external ingress, single revision
 
 --live takes the exports written by the deploy workflow, told apart by file name:
   *functionapp* (az functionapp show), *appsettings* (names, maybe values), *inventory*
-  (az resource list).
+  (az resource list), *containerapp* (GET of the Microsoft.App/containerApps resource: C11).
 """
 
 from __future__ import annotations
@@ -156,6 +158,117 @@ def function_cost(limits: dict, host_timeout_s: int, memory_mb: int) -> dict[str
         "function_window_worst_case": round(window, 2),
         "function_full_scale_month": round(full_scale, 2),
     }
+
+
+# ---------------------------------------------------------------- C11
+
+MEMORY_UNITS = {"gi": 1.0, "g": 1000**3 / 1024**3, "mi": 1 / 1024, "m": 1000**2 / 1024**3}
+
+
+def parse_gib(value) -> float | None:
+    """Container memory ('0.5Gi', '512Mi', '1G') in GiB; None if unreadable. A bare number is Gi."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(gi|g|mi|m)?", str(value or "").strip(), re.I)
+    if not match:
+        return None
+    return float(match.group(1)) * MEMORY_UNITS[(match.group(2) or "gi").lower()]
+
+
+def parse_cpu(value) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def container_cost(limits: dict, cpu: float, memory_gib: float, replicas: int) -> float:
+    """Worst-case USD/month for the container app: `replicas` running 24/7 for 30 days at the
+    active list rate, less the monthly free grant, plus requests above the free grant:
+
+        (replicas * cpu * 2592000 - free_vcpu_s) * aca_vcpu_s
+      + (replicas * memory_gib * 2592000 - free_gib_s) * aca_gib_s
+      + max(0, assumed_requests - free_requests) / 1e6 * aca_per_million_requests
+    """
+    prices, app = limits["prices"], limits["container_app"]
+    vcpu_s = max(0.0, replicas * cpu * SECONDS_30D - prices["aca_free_vcpu_s"])
+    gib_s = max(0.0, replicas * memory_gib * SECONDS_30D - prices["aca_free_gib_s"])
+    requests = max(0.0, app["assumed_requests_month"] - prices["aca_free_requests"])
+    return (
+        vcpu_s * prices["aca_vcpu_s"]
+        + gib_s * prices["aca_gib_s"]
+        + requests / 1e6 * prices["aca_per_million_requests"]
+    )
+
+
+def check_container_app(rep: Report, limits: dict, doc, where: str) -> tuple[float, float, int]:
+    """C11 on the desired spec or a live export (ARM shape, with or without `properties`).
+
+    Returns (cpu, memory_gib, max_replicas) to price: the values found when they are within the
+    ceilings, otherwise the ceilings, so one bad field cannot hide the worst case.
+    """
+    cfg = limits["container_app"]
+    props = doc.get("properties", doc) if isinstance(doc, dict) else {}
+    template = props.get("template") or {}
+    scale = template.get("scale") or {}
+    config = props.get("configuration") or {}
+
+    low, high = scale.get("minReplicas"), scale.get("maxReplicas")
+    if isinstance(low, bool) or not isinstance(low, int) or low != cfg["min_replicas"]:
+        rep.fail("C11", where, f"minReplicas {low!r} must be {cfg['min_replicas']} (scale to zero)")
+    if isinstance(high, bool) or not isinstance(high, int) or not 1 <= high <= cfg["max_replicas"]:
+        rep.fail("C11", where, f"maxReplicas {high!r} must be set and <= {cfg['max_replicas']}")
+        high = cfg["max_replicas"]
+
+    if not template.get("containers"):
+        rep.fail("C11", where, "template.containers is empty or missing")
+    cpu = memory = 0.0
+    for item in [*(template.get("containers") or []), *(template.get("initContainers") or [])]:
+        res = item.get("resources") or {}
+        one_cpu, one_mem = parse_cpu(res.get("cpu")), parse_gib(res.get("memory"))
+        if one_cpu is None or one_mem is None:
+            rep.fail(
+                "C11",
+                where,
+                f"container {item.get('name')!r} needs numeric cpu and memory "
+                f"(found {res.get('cpu')!r}, {res.get('memory')!r})",
+            )
+            one_cpu, one_mem = cfg["max_cpu"], cfg["max_memory_gib"]
+        cpu, memory = cpu + one_cpu, memory + one_mem
+    if cpu > cfg["max_cpu"]:
+        rep.fail("C11", where, f"cpu {cpu:g} (all containers) must be <= {cfg['max_cpu']:g}")
+    if memory > cfg["max_memory_gib"] + 1e-9:
+        rep.fail(
+            "C11",
+            where,
+            f"memory {memory:g}Gi (all containers) must be <= {cfg['max_memory_gib']:g}Gi",
+        )
+
+    profile = props.get("workloadProfileName")
+    if profile not in (None, "") and str(profile).lower() != cfg["workload_profile"].lower():
+        rep.fail(
+            "C11", where, f"workloadProfileName {profile!r} must be {cfg['workload_profile']!r}"
+        )
+    mode = config.get("activeRevisionsMode")
+    if mode is not None and str(mode).lower() != "single":
+        rep.fail("C11", where, f"activeRevisionsMode {mode!r} must be Single (replicas add up)")
+    ingress = config.get("ingress")
+    if (
+        isinstance(ingress, dict)
+        and ingress.get("external") is not False
+        and ingress.get("allowInsecure") is True
+    ):
+        rep.fail("C11", where, "external ingress must not set allowInsecure true (plain HTTP)")
+    cpu = min(cpu, cfg["max_cpu"]) if cpu else cfg["max_cpu"]
+    memory = min(memory, cfg["max_memory_gib"]) if memory else cfg["max_memory_gib"]
+    return cpu, memory, high
+
+
+# ---------------------------------------------------------------- C3, C4 checks
 
 
 def check_scale(rep: Report, limits: dict, scale: dict, where: str) -> None:
@@ -689,7 +802,9 @@ def check_live(rep: Report, limits: dict, files: list[str], now: dt.datetime) ->
         path = Path(name)
         doc = load_json(path)
         lowered = path.name.lower()
-        if "appsettings" in lowered or "settings" in lowered:
+        if "containerapp" in lowered:
+            check_container_app(rep, limits, doc, name)
+        elif "appsettings" in lowered or "settings" in lowered:
             entries = doc if isinstance(doc, list) else doc.get("value", [])
             names = [e["name"] if isinstance(e, dict) else str(e) for e in entries]
             for forbidden in limits["function"]["forbidden_app_settings"]:
@@ -736,13 +851,33 @@ def run(args) -> Report:
         else limits["function"]["max_instance_memory_mb"]
     )
     rep.costs = function_cost(limits, timeout_s, memory)
+
+    spec_path = root / limits["container_app"]["file"]
+    spec_shown = limits["container_app"]["file"]
+    if spec_path.is_file():
+        cpu, memory_gib, replicas = check_container_app(
+            rep, limits, load_json(spec_path), spec_shown
+        )
+    else:
+        rep.fail("C11", spec_shown, "container app spec is missing")
+        cfg = limits["container_app"]
+        cpu, memory_gib, replicas = cfg["max_cpu"], cfg["max_memory_gib"], cfg["max_replicas"]
+    rep.costs["container_app_worst_case_month"] = round(
+        container_cost(limits, cpu, memory_gib, replicas), 2
+    )
+
     budget = limits["budget_usd_month"]
-    if rep.costs["function_window_worst_case"] > budget["total"]:
+    total = round(
+        rep.costs["function_window_worst_case"] + rep.costs["container_app_worst_case_month"], 2
+    )
+    rep.costs["total_worst_case"] = total
+    if total > budget["total"]:
         rep.fail(
             "C3",
             "azure/limits.json",
-            f"worst-case window cost ${rep.costs['function_window_worst_case']} "
-            f"> budget ${budget['total']}",
+            f"worst-case total ${total} (function window "
+            f"${rep.costs['function_window_worst_case']} + container app "
+            f"${rep.costs['container_app_worst_case_month']}) > budget ${budget['total']}",
         )
     if rep.costs["function_full_scale_month"] > budget["hard_cap_function"]:
         rep.fail(
@@ -776,7 +911,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", default=str(ROOT))
     parser.add_argument("--limits")
     parser.add_argument(
-        "--live", action="append", help="live export (functionapp, appsettings or inventory JSON)"
+        "--live",
+        action="append",
+        help="live export (functionapp, appsettings, inventory or containerapp JSON)",
     )
     parser.add_argument("--now", help="ISO timestamp used instead of the clock")
     parser.add_argument(
