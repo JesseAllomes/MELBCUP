@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=46 -->
+<!-- drainclamp-build: state; schema=1; generation=47 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -104,4 +104,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T08:56:32+00:00 c77cd273 az3: melbcup-web live on Container Apps (https://melbcup-web.mangoflower-343da0ef.australiaeast.azurecontainerapps.io, 0-1 replicas, password gate); keys copied Render->Key Vault unprinted; Render kept as backup through Cup day; Lotto site live on SWA ambitious-plant-0e97ae900.6.azurestaticapps.net
 - 2026-10-31T10:31:04+00:00 0abbb6d8 custom domain asynym.dev (Cloudflare, DNS only): cup.asynym.dev -> melbcup-web (managed cert), comps.asynym.dev -> swa-lotto; customDomains kept in azure/webapp/melbcup-web.json so deploys keep the binding
 - 2026-10-31T13:43:17+00:00 820e26c6 web: PuntersEdge removed, racing.com prices (Sportsbet/Ladbrokes/PointsBet/bet365), history unencrypted, no notes, no login (PUBLIC_ACCESS=1); UI redesign (BET/HOLD/SKIP, race strip, budget top, phone table, 44px) in progress by Sonnet worker -> commit to session branch, then main after review; FormFav valid till 29 Nov; review .agent/reviews/ui-review-product-ui.md
+- 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
 <!-- /DC:LOG -->
