@@ -7,6 +7,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lm_lib as L, lm_model as M, bets as B
 
 OUT = f"{L.LM}/out"; FLAG = f"{OUT}/TEST_RUN_DONE"
+BLOCK = os.environ.get("LM_BLOCK", "tune2")      # tune2 (first test, spent), final (opened on the owner's instruction), forward (2026-09-29 to 2026-10-29)
+BLOCKS = {"tune2": ("2026-01-01", "2026-04-30", ""), "final": ("2026-05-01", "2026-09-28", ""), "forward": ("2026-09-29", "2026-10-29", "_fwd")}
+L.TEST_START, L.TEST_END, SUFFIX = BLOCKS[BLOCK]
+FLAG = f"{OUT}/TEST_RUN_DONE" if BLOCK == "tune2" else f"{OUT}/TEST_RUN_DONE_{BLOCK}"
 DRY = os.environ.get("LM_DRY") == "1"          # code check on the last development quarter (already used for tuning); never on tune2
 if DRY:
     L.TEST_START, L.TEST_END = "2025-10-01", "2025-12-31"; FLAG = f"{OUT}/DRY_FLAG"
@@ -29,7 +33,7 @@ def frame(T):
     """test-block runners at T with every chance column: p_raw (consensus), p0 (alpha-corrected consensus), p_MS / p_ALL (frozen models)."""
     if T in data:
         return data[T]
-    d = M.load_T(T, L.TEST_START, L.TEST_END)
+    d = M.load_T(T, L.TEST_START, L.TEST_END, SUFFIX)
     rc = L.Races(d["race_id"], d["won"], d["logM"])
     d["p_raw"] = d["M"]
     for name in ("p_MS", "p_ALL"):
@@ -116,6 +120,6 @@ res["first_four"] = dict(rule=None, races_with_stored_dividend=int(sum(1 for rid
 O = frame(2)
 res["cups_in_test_block"] = int(O["race_name"].astype(str).str.fullmatch(r"(?i)(lexus )?melbourne cup").groupby(O["race_id"]).any().sum())
 res["test_block"] = dict(races_T2=int(O["race_id"].nunique()), days_T2=len(days(2)), staying_races_T2=int(O[O["distance_m"] >= 2000]["race_id"].nunique()))
-json.dump(res, open(f"{OUT}/test_result{'_dry' if DRY else ''}.json", "w"), indent=1, default=float)
+json.dump(res, open(f"{OUT}/test_result{'_dry' if DRY else ''}{'' if BLOCK == 'tune2' else '_' + BLOCK}.json", "w"), indent=1, default=float)
 print(json.dumps({k: v for k, v in res.items() if k not in ("model_gain",)}, indent=1, default=float)[:6000])
 print(json.dumps(res["model_gain"], indent=1, default=float)[:5000])

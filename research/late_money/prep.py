@@ -24,10 +24,20 @@ BASE = ["race_id", "meeting_id", "date", "mel_date", "block", "examined", "horse
 F12X = {"f12_fav": 0}
 
 
+FWD = os.environ.get("LM_PREP_FWD") == "1"     # forward window 2026-09-29..2026-10-29: the build puts it in the *_excluded tables
+
+
 def main():
-    rn = pd.read_pickle(f"{L.OUT}/runners.pkl.gz")[BASE + [c for c in FAM_COLS if c not in BASE]]
+    cols = BASE + [c for c in FAM_COLS if c not in BASE]
+    rn = pd.read_pickle(f"{L.OUT}/runners.pkl.gz")[cols]
     rc = pd.read_pickle(f"{L.OUT}/races.pkl.gz").set_index("race_id")
     rn = rn[rn["race_id"].isin(rc.index)].copy()                               # T-30 eligible sample (build's in_sample)
+    if FWD:
+        rx = pd.read_pickle(f"{L.OUT}/runners_excluded.pkl.gz")[cols]
+        rcx = pd.read_pickle(f"{L.OUT}/races_excluded.pkl.gz").set_index("race_id")
+        rx = rx[(rx["block"].astype(str) == "excluded")].copy()
+        rcx = rcx[rcx.index.isin(rx["race_id"].unique())]
+        rn = pd.concat([rn, rx], ignore_index=True); rc = pd.concat([rc, rcx])      # horse sequences need the earlier starts for first/second-up
     ex = pickle.load(open(f"{L.LM}/extras/extras.pkl", "rb"))
     sn = pd.DataFrame(ex["snaps"], columns=ex["snap_cols"])
     sn["entry_no"] = pd.to_numeric(sn["entry_no"])
@@ -54,7 +64,10 @@ def main():
     rn["n_winners"] = rn["race_id"].map(rc["n_winners"]); rn["places_paid"] = rn["race_id"].map(rc["places_paid"])
     rn["is_jumps"] = rn["race_id"].map(rc["is_jumps"]); rn["race_name"] = rn["race_id"].map(rc["race_name"])
     rn = rn.sort_values(["date", "race_id", "entry_no"]).reset_index(drop=True)
-    pickle.dump(rn, open(f"{L.LM}/prep/paths.pkl", "wb"), protocol=4)
+    if FWD:
+        rn = rn[rn["block"].astype(str) == "excluded"].reset_index(drop=True)
+    else:
+        pickle.dump(rn, open(f"{L.LM}/prep/paths.pkl", "wb"), protocol=4)
     race = rn["race_id"]
     for T in (10, 5, 2):
         d = rn.copy()
@@ -100,7 +113,7 @@ def main():
         d["f11_sb_lb"], d["f11_abs"] = d["spread"], d["spread_abs"]                          # F11 at this T
         d["T"] = T
         d = d.reset_index(drop=True)
-        pickle.dump(d, open(f"{L.LM}/prep/runners_T{T}.pkl", "wb"), protocol=4)
+        pickle.dump(d, open(f"{L.LM}/prep/runners_T{T}{'_fwd' if FWD else ''}.pkl", "wb"), protocol=4)
         # sanity: agree with the build's own M where it exists
         ref = {10: "M_t10", 2: "M_t2"}.get(T)
         msg = ""

@@ -96,9 +96,9 @@ def ll_by_race(d, eta):
     return rc.race_ll(eta), rc
 
 
-def load_T(T, start, end):
+def load_T(T, start, end, suffix=""):
     """per-T runner table for races dated start..end (inclusive), derived columns added."""
-    d = pd.read_pickle(f"{L.LM}/prep/runners_T{T}.pkl")
+    d = pd.read_pickle(f"{L.LM}/prep/runners_T{T}{suffix}.pkl")
     d = d[(d["date"] >= start) & (d["date"] <= end)].copy()
     for c in ("f12_fav", "f3_any", "f4_bad", "f17_newdist", "f17_newtrack"):
         d[c] = d[c].astype("float64")
