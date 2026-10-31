@@ -1,6 +1,6 @@
 {# Verdict chip and verdict row, shared by every page. A call is a views.Call: bet (with the
    stake when there is one), hold or skip. #}
-{% macro chip(c) %}<span class="chip {{ c.kind }}">{{ c.kind | upper }}{% if c.stake %} ${{ c.stake }}{% endif %}</span>{% endmacro %}
+{% macro chip(c) %}{% if c.kind == 'bet' %}<span class="chip bet">BET <b>${{ c.stake }}</b></span>{% else %}<span class="chip {{ c.kind }}">{{ c.kind | upper }}</span>{% endif %}{% endmacro %}
 
 {# One line of the card: verdict chip, what it is, who, the price large on the right.
    graded: Graded objects for the line (ticks and crosses once the race has run). #}
@@ -16,14 +16,14 @@
 {% endmacro %}
 
 {# A multi: the legs, Sportsbet's price, and a verdict from the same rule as every other bet.
-   With a budget set, a value multi whose stake rounds to nothing is a hold, never a bare BET. #}
-{% macro multi_row(m, budget=none) %}
+   A value multi whose stake rounds to nothing is a hold (Call.bet does that), never a bare BET. #}
+{% macro multi_row(m) %}
 {% set who %}{% for leg in m.legs %}R{{ leg.race }} {{ leg.number }} {{ leg.name }}{{ ' + ' if not loop.last }}{% endfor %}{% endset %}
-{{ vrow(Call('bet', m.stake) if m.value and (m.stake or not budget) else Call('hold') if m.value else call_for(false, none, m.price, m.prob), (m.legs | length) ~ ' legs', none, who, m.price, 'Sportsbet', 'lands ' ~ (m.prob | pct(1))) }}
+{{ vrow(Call.bet(m.stake) if m.value else call_for(false, none, m.price, m.prob), (m.legs | length) ~ ' legs', none, who, m.price, 'Sportsbet', 'lands ' ~ (m.prob | pct(1))) }}
 {% endmacro %}
 
-{# A recommended quaddie: always a bet, with the outlay when there is a budget. #}
+{# A recommended quaddie: a bet with its outlay (a hold when the outlay is nothing). #}
 {% macro quaddie_row(e, more=false) %}
-{{ vrow(Call('bet', e.outlay), 'Early quaddie' if e.kind == 'early_quaddie' else 'Quaddie', none, e.leg_labels | join(' · '), none, none,
+{{ vrow(Call.bet(e.outlay), 'Early quaddie' if e.kind == 'early_quaddie' else 'Quaddie', none, e.leg_labels | join(' · '), none, none,
         e.combos ~ ' combos · lands ' ~ (e.prob | pct(1)) ~ (' · ' ~ e.flexi_pct ~ '% flexi' if e.outlay and e.flexi_pct else '') ~ (' · needs $' ~ ('%.0f' % e.fair_dividend) ~ ' per $1 to break even' if more else '')) }}
 {% endmacro %}

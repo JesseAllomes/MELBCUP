@@ -278,9 +278,9 @@ def test_budget_sizes_bets(client):
     assert "/race/1?budget=500" in html
 
 
-def test_bad_budget_is_ignored(client):
+def test_bad_budget_falls_back_to_the_default(client):
     html = client.get("/?budget=lots", auth=AUTH).text
-    assert 'value=""' in html
+    assert 'value="200"' in html
 
 
 def test_race_page(client):

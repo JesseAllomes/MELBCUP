@@ -1,6 +1,6 @@
 {# The bets for one race: every value bet and recommended exotic as a BET line with its stake,
    or one HOLD or SKIP line when there is none. Needs: rp (RacePicks); optional: marks, singles_on and exotics_on (both default yes) #}
-{% from "_chip.html" import vrow %}
+{% from "_chip.html" import chip, vrow %}
 {% set marks = marks or {} %}
 {% set singles_on = singles_on is not defined or singles_on %}
 {% set exotics_on = exotics_on is not defined or exotics_on %}
@@ -8,7 +8,7 @@
 <ul class="vlist">
   {% if singles_on and not (rp.best.win or rp.best.place or rp.best.each_way) %}
   {% set c = race_call(rp) %}
-  <li class="vrow {{ c.kind }}"><span class="vhead"><span class="chip {{ c.kind }}">{{ c.kind | upper }}</span></span>
+  <li class="vrow {{ c.kind }}"><span class="vhead">{{ chip(c) }}</span>
     <span class="vwho"><strong>{{ 'No win or place bet: prices are too short' if c.kind == 'skip' else 'No win or place bet yet' }}</strong></span></li>
   {% endif %}
   {% for kind, label in [('win', 'Win'), ('place', 'Place'), ('each_way', 'Each way')] if singles_on and rp.best[kind] %}
@@ -22,6 +22,6 @@
   {% endfor %}
   {% for kind, label, e in exotics if exotics_on %}
   {% set sub = e.combos ~ ' combos · lands ' ~ (e.prob | pct(1)) ~ (' · ' ~ e.flexi_pct ~ '% flexi' if e.outlay and e.flexi_pct else '') %}
-  {{ vrow(Call('bet', e.outlay), label, none, e.leg_labels | join(' / '), none, none, sub, [marks.get(kind)]) }}
+  {{ vrow(Call.bet(e.outlay), label, none, e.leg_labels | join(' / '), none, none, sub, [marks.get(kind)]) }}
   {% endfor %}
 </ul>

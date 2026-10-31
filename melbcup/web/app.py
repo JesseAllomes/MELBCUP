@@ -19,7 +19,7 @@ from melbcup.archive import Archive
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
-from melbcup.web.views import HERE, NotFound, Views
+from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
 
@@ -82,8 +82,18 @@ def create_app(
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):
         try:
-            return views.page("/" + path, request.query_params)
+            html = views.page("/" + path, request.query_params, request.cookies)
         except NotFound as exc:
             raise HTTPException(404, str(exc)) from exc
+        response = HTMLResponse(html)
+        if "budget" in request.query_params:  # the budget form was submitted: remember it
+            chosen = parse_budget(request.query_params["budget"])
+            if chosen:
+                response.set_cookie(
+                    BUDGET_COOKIE, f"{chosen:g}", max_age=365 * 86400, samesite="lax", httponly=True
+                )
+            else:
+                response.delete_cookie(BUDGET_COOKIE)
+        return response
 
     return app

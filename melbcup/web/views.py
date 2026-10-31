@@ -40,6 +40,8 @@ BOOKMAKERS = {
     "SP": "SP",
 }
 MAX_BUDGET = 100_000
+DEFAULT_BUDGET = 200.0  # used when neither ?budget= nor the budget cookie says otherwise
+BUDGET_COOKIE = "budget"
 CARNIVAL = (  # Flemington, Melbourne Cup Carnival 2026: one tap, no lookup
     ("Derby Day", date(2026, 10, 31)),
     ("Cup Day", date(2026, 11, 3)),
@@ -129,17 +131,31 @@ def statline(s) -> str:
 
 @dataclass(frozen=True)
 class Call:
-    """One verdict for the page: bet (with the stake when there is one), hold, or skip."""
+    """One verdict for the page: bet (with its stake), hold, or skip.
+
+    A bet is never shown without a dollar amount: a bet Call with no stake, or a stake of zero,
+    becomes a hold. Build bets with ``Call.bet(stake)``.
+    """
 
     kind: str  # "bet" | "hold" | "skip"
     stake: int | None = None
 
+    def __post_init__(self) -> None:
+        if self.kind == "bet" and not (self.stake and self.stake > 0):
+            object.__setattr__(self, "kind", "hold")
+        if self.kind != "bet":
+            object.__setattr__(self, "stake", None)
+
+    @classmethod
+    def bet(cls, stake: int | None) -> Call:
+        return cls("bet", stake)
+
 
 def call(value: bool, stake: int | None, price: float | None, chance: float | None) -> Call:
-    """The existing value rule says bet; otherwise a price the verdict calls "Short: skip" is a
-    skip and anything else is a hold. No new thresholds."""
+    """The existing value rule says bet, and the stake makes it a bet; otherwise a price the
+    verdict calls "Short: skip" is a skip and anything else is a hold. No new thresholds."""
     if value:
-        return Call("bet", stake)
+        return Call.bet(stake)
     verdict = price_verdict(price, chance)
     return Call("skip" if verdict and verdict.startswith(PRICE_VERDICTS[-1][1]) else "hold")
 
@@ -158,7 +174,7 @@ def runner_call(rp, number: int) -> Call:
         stake = next(
             (rp.best[s.kind].stake for s in value if rp.best.get(s.kind) is s and s.stake), None
         )
-        return Call("bet", stake)
+        return Call.bet(stake)
     a = next((a for a in rp.model.ranked() if a.number == number), None)
     prices = rp.model.race.prices.get(number)
     price = prices and (
@@ -168,12 +184,22 @@ def runner_call(rp, number: int) -> Call:
 
 
 def race_call(rp) -> Call:
-    """One verdict for a race: bet when a win, place or each-way line is a value bet, otherwise
-    the verdict on its most likely winner. Exotics carry their own verdicts on their own lines."""
-    if any(rp.best.get(k) for k in VALUE_KINDS):
-        return Call("bet")
+    """One verdict for a race: bet when a win, place or each-way line is a value bet, carrying
+    the dollars of those lines together; otherwise the verdict on its most likely winner.
+    Exotics carry their own verdicts on their own lines."""
+    lines = {id(s): s for k in VALUE_KINDS if (s := rp.best.get(k)) is not None}
+    if lines:  # one runner can be the best win and the best each way: count each line once
+        return Call.bet(sum(s.stake or 0 for s in lines.values()))
     top = rp.best.get("top_win")
     return runner_call(rp, top.number) if top else Call("hold")
+
+
+def multis_call(picks) -> Call:
+    """The summary verdict for quaddies and multis: the dollars on the recommended quaddies and
+    the value multis that have stakes, or a hold when there are none."""
+    total = sum(e.outlay or 0 for e in picks.quaddies if e.recommended)
+    total += sum(m.stake or 0 for m in picks.multis if m.value)
+    return Call.bet(total)
 
 
 def open_races(picks) -> set[int]:
@@ -213,6 +239,7 @@ def make_env() -> Environment:
         runner_call=runner_call,
         single_call=single_call,
         race_call=race_call,
+        multis_call=multis_call,
         betting_open=betting_open,
         open_races=open_races,
     )
@@ -229,6 +256,18 @@ def parse_budget(text: str | None) -> float | None:
     return value if 0 < value <= MAX_BUDGET else None
 
 
+def pick_budget(
+    query: Mapping[str, str], cookies: Mapping[str, str] | None = None
+) -> tuple[float, bool]:
+    """The day budget and whether the owner chose it: ?budget=, else the budget cookie, else
+    $200. A ?budget= that is blank or not a number puts the budget back to the default."""
+    if "budget" in query:
+        chosen = parse_budget(query["budget"])
+        return (chosen or DEFAULT_BUDGET), chosen is not None
+    remembered = parse_budget((cookies or {}).get(BUDGET_COOKIE))
+    return (remembered or DEFAULT_BUDGET), remembered is not None
+
+
 class NotFound(LookupError):
     pass
 
@@ -240,9 +279,11 @@ class Views:
         self.browser = browser  # no threads: loads run to completion before the page renders
         self.env = make_env()
 
-    def _context(self, path: str, query: Mapping[str, str]) -> dict:
+    def _context(
+        self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
+    ) -> dict:
         snap = self.board.snapshot()
-        budget = parse_budget(query.get("budget"))
+        budget, chosen = pick_budget(query, cookies)
         picks = snap.picks(budget) if snap.models else None
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
@@ -254,19 +295,21 @@ class Views:
             "snap": snap,
             "card": snap.card,
             "budget": budget,
-            "budget_q": f"?budget={budget:g}" if budget else "",
+            "budget_q": f"?budget={budget:g}" if chosen else "",
             "picks": picks,
             "grade": grade,
             "marks": marks,
             "today": melbourne_today(),
-            "here": path + (f"?budget={budget:g}" if budget else ""),
+            "here": path + (f"?budget={budget:g}" if chosen else ""),
             "can_fetch": self.board.can_fetch,
             "now": datetime.now(UTC),
         }
 
-    def page(self, path: str, query: Mapping[str, str]) -> str:
-        """HTML for a page path; raises NotFound."""
-        ctx = self._context(path, query)
+    def page(
+        self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
+    ) -> str:
+        """HTML for a page path; raises NotFound. ``cookies`` carries the remembered budget."""
+        ctx = self._context(path, query, cookies)
         if path == "/":
             return self.env.get_template("day.html").render(ctx)
         if path == "/history":
