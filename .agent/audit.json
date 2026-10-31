@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "root": "/home/user/melbcup",
-  "head": "bd29b26383590437213215a517481f7c9f1d40e1",
+  "root": "/home/user/MELBCUP",
+  "head": "deb3553f91e08abe4289db39a1a71800d2d6f937",
   "dirty_fingerprint": "b9a8816e585d5eaae36410a797c929afa619999265d5b3e4b5cebab270c98a51",
   "dirty_files": 0,
   "verify_config_fingerprint": "f152b9348168a4752ef01864f769292d64de27917bf071c42e23562a39737de3",
@@ -10,10 +10,10 @@
   "config_files": [
     "pyproject.toml"
   ],
-  "generated": "2026-10-30T11:18:48+00:00",
+  "generated": "2026-10-31T05:02:47+00:00",
   "scan": {
-    "files": 86,
-    "lines": 16912,
+    "files": 85,
+    "lines": 16604,
     "depth2": [
       {
         "path": "docs/py",
@@ -71,11 +71,6 @@
         "lines": 423
       },
       {
-        "path": "lotto/work",
-        "files": 1,
-        "lines": 308
-      },
-      {
         "path": "docs",
         "files": 2,
         "lines": 297
@@ -92,9 +87,9 @@
     "python(pyproject: 4 direct dep(s))"
   ],
   "languages": [
-    "python(inferred: 82/85 indexed file(s))",
-    "javascript(inferred: 3/85 indexed file(s))"
+    "python(inferred: 81/84 indexed file(s))",
+    "javascript(inferred: 3/84 indexed file(s))"
   ],
   "dead_code_candidates": [],
-  "gate3_required": true
+  "gate3_required": false
 }

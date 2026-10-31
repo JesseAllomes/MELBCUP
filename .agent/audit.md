@@ -1,11 +1,11 @@
 <!-- drainclamp-build: audit; schema=1 -->
 # Audit
 
-Root: `/home/user/melbcup`  
-Generated: 2026-10-30T11:18:48+00:00  
-HEAD: bd29b26383590437213215a517481f7c9f1d40e1
+Root: `/home/user/MELBCUP`  
+Generated: 2026-10-31T05:02:47+00:00  
+HEAD: deb3553f91e08abe4289db39a1a71800d2d6f937
 
-86 source file(s), 16912 line(s). COVERAGE: partial — indexed extensions only.
+85 source file(s), 16604 line(s). COVERAGE: partial — indexed extensions only.
 
 ## Stack
 
@@ -13,8 +13,8 @@ HEAD: bd29b26383590437213215a517481f7c9f1d40e1
 
 ## Languages (inferred from extensions, not declared)
 
-- python(inferred: 82/85 indexed file(s))
-- javascript(inferred: 3/85 indexed file(s))
+- python(inferred: 81/84 indexed file(s))
+- javascript(inferred: 3/84 indexed file(s))
 
 ## Totals (rolled up to depth 2)
 
@@ -31,7 +31,6 @@ HEAD: bd29b26383590437213215a517481f7c9f1d40e1
 | melbcup/model | 3 | 444 |
 | research | 2 | 428 |
 | melbcup/web | 4 | 423 |
-| lotto/work | 1 | 308 |
 | docs | 2 | 297 |
 | research/archive | 1 | 10 |
 

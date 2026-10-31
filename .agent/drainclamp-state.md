@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=29 -->
+<!-- drainclamp-build: state; schema=1; generation=32 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -47,6 +47,10 @@ Model weights -> fitted by melbcup/backtest.py on 1,131 races 29 Sep-29 Oct 2026
 VALUE rule -> edge between required_edge(price) and +40%, win price <= $21 (held-out ROI at SP +9.8% over 1,075 bets; not proven) (repo decision, backtest)
 Jockey/trainer factors kept: held-out accuracy identical with or without them (repo decision, backtest)
 FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backtest collection; client stops calling refused features per load; Pro re-subscription is the user's call (user pending)
+- Azure migration? -> already moved by Codex to the owner's personal Azure; this work verifies it and turns it on (source: user, 2026-10-31)
+- Azure auth? -> Azure CLI device-code login by the owner, CLI config in session scratch only; no credentials, tokens or secret values in the repo, chat or logs; secret and setting names only (source: user + repo decision)
+- Cutover? -> per service: verify, dry run, owner approves, then turn the Azure schedule on and disable the matching GitHub Actions workflow in the same step so nothing runs twice (source: repo decision)
+- MELBCUP timing? -> owner had no preference; Render, live-collector.yml and GCS archive keep running through Cup day (Tue 3 Nov) until the Azure copies are verified (source: repo decision)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
@@ -59,6 +63,9 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
 | m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m6 |
+| az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | pending |  |
+| az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | pending | az1 |
+| az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | pending | az2 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -82,4 +89,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-29T07:29:05+00:00 29605fdd m6: Render blueprint, .python-version, README with phone setup
 - 2026-10-29T08:53:14+00:00 46cc835e m7: real-data run, next-to-go prices, manual credit controls, 1,131-race backtest and fitted weights deployed
 - 2026-10-29T09:59:53+00:00 f1d66719 History page with per-pick tally, racebook redesign, field-not-yet guard, saved history sealed
+- 2026-10-31T05:03:14+00:00 6b648089 az: Azure migration project opened; az1-az3 added (verify, dry run, cutover)
 <!-- /DC:LOG -->
