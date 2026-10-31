@@ -1,34 +1,34 @@
 {
   "schema": 1,
   "root": "/home/user/MELBCUP",
-  "head": "deb3553f91e08abe4289db39a1a71800d2d6f937",
-  "dirty_fingerprint": "b9a8816e585d5eaae36410a797c929afa619999265d5b3e4b5cebab270c98a51",
-  "dirty_files": 0,
+  "head": "4763ec430c56360dd788febef3541f6a49476f6b",
+  "dirty_fingerprint": "78274b6d63ae305675222fff4e1fbb9eedd0276f9a81132e2bac9a3df78dfcfd",
+  "dirty_files": 4,
   "verify_config_fingerprint": "f152b9348168a4752ef01864f769292d64de27917bf071c42e23562a39737de3",
   "verify_block_fingerprint": "63cfff3b422150e9cd61595930a797bed9a72d25eec06a552241c8dfd795e135",
   "verify_entries": 4,
   "config_files": [
     "pyproject.toml"
   ],
-  "generated": "2026-10-31T05:02:47+00:00",
+  "generated": "2026-10-31T13:57:05+00:00",
   "scan": {
-    "files": 85,
-    "lines": 16604,
+    "files": 90,
+    "lines": 18901,
     "depth2": [
       {
-        "path": "docs/py",
-        "files": 23,
-        "lines": 4507
-      },
-      {
         "path": "tests",
-        "files": 14,
-        "lines": 2863
+        "files": 17,
+        "lines": 4304
       },
       {
-        "path": "melbcup",
+        "path": "docs/py",
+        "files": 22,
+        "lines": 4096
+      },
+      {
+        "path": "tools",
         "files": 8,
-        "lines": 1952
+        "lines": 1870
       },
       {
         "path": "research/dataset",
@@ -36,24 +36,34 @@
         "lines": 1849
       },
       {
-        "path": "melbcup/sources",
-        "files": 5,
-        "lines": 1503
+        "path": "melbcup",
+        "files": 8,
+        "lines": 1775
       },
       {
-        "path": "tools",
-        "files": 6,
-        "lines": 853
+        "path": "melbcup/sources",
+        "files": 4,
+        "lines": 1209
       },
       {
         "path": "melbcup/bets",
         "files": 6,
-        "lines": 821
+        "lines": 819
       },
       {
         "path": "research/analysis",
         "files": 7,
         "lines": 654
+      },
+      {
+        "path": "azure/function",
+        "files": 2,
+        "lines": 580
+      },
+      {
+        "path": "melbcup/web",
+        "files": 4,
+        "lines": 569
       },
       {
         "path": "melbcup/model",
@@ -66,14 +76,9 @@
         "lines": 428
       },
       {
-        "path": "melbcup/web",
-        "files": 4,
-        "lines": 423
-      },
-      {
         "path": "docs",
         "files": 2,
-        "lines": 297
+        "lines": 294
       },
       {
         "path": "research/archive",
@@ -87,8 +92,8 @@
     "python(pyproject: 4 direct dep(s))"
   ],
   "languages": [
-    "python(inferred: 81/84 indexed file(s))",
-    "javascript(inferred: 3/84 indexed file(s))"
+    "python(inferred: 86/89 indexed file(s))",
+    "javascript(inferred: 3/89 indexed file(s))"
   ],
   "dead_code_candidates": [],
   "gate3_required": false

@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=49 -->
+<!-- drainclamp-build: state; schema=1; generation=50 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -57,6 +57,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Site actions? -> no GitHub issues; on-site buttons via SWA API + owner-only login (source: user, 2026-10-31)
 - Look? -> Silks: own identity, not a bookie look; per-race silk colour bands, chunky blocks, bold sans; no TAB/bookie green (source: user, 2026-10-31)
 - BET without $? -> never: every BET carries a $ stake; budget defaults to $200, remembered on the phone; a bet that sizes to $0 is HOLD (source: user, 2026-10-31)
+- Push to main? -> only after the owner approves each push; main deploys live (source: user, 2026-10-31)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
