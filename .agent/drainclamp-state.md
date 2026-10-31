@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=57 -->
+<!-- drainclamp-build: state; schema=1; generation=58 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -94,7 +94,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-29T07:12:39+00:00 58b49675 m1: package scaffold, env settings, pytest+ruff harness
 - 2026-10-29T07:17:41+00:00 a1e05e60 m2: PuntersEdge + FormFav clients, card assembly with graceful degradation, 30 tests
 - 2026-10-29T07:19:34+00:00 10d9afa9 m3: 18-factor form model, market/feed blend, discounted Harville place probs, 43 tests
 - 2026-10-29T07:22:20+00:00 40485c37 m4: singles EV, trifecta/first four/quaddie structures, Sportsbet multis, Kelly staking, 57 tests
@@ -114,4 +113,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T13:43:17+00:00 820e26c6 web: PuntersEdge removed, racing.com prices (Sportsbet/Ladbrokes/PointsBet/bet365), history unencrypted, no notes, no login (PUBLIC_ACCESS=1); UI redesign (BET/HOLD/SKIP, race strip, budget top, phone table, 44px) in progress by Sonnet worker -> commit to session branch, then main after review; FormFav valid till 29 Nov; review .agent/reviews/ui-review-product-ui.md
 - 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
 - 2026-10-31T14:09:39+00:00 37f45210 auto-load + history-in-image live 0bb13b64 (history 1,160 races shows); ui3 round 1 (artifact 5u6y2fJPZfqJYNteqWWb4A): owner 'yuk', 4 Ticket closest; too loud, too chunky, too busy, cheap/AI. Wants: day's races at top -> tap opens full field; picks shown beside horses/exotics; front-page 'Multi picks for the day' = 5 best-chance multis with $. Round 2 = Ticket variants with that IA
+- 2026-10-31T15:44:31+00:00 3ac4223c m8 rerun done (research/RERUN.md): late money and all 20 families add nothing beyond the T-2 price on tune2 (Jan-Apr 2026, used once; final block sealed); frozen win rule 3 bets +27% no interval; quinella/exacta/trifecta lose; price^1.14 correction is the only gain, still below Sportsbet margin. Verdict: nothing to switch on; app unchanged pending owner
 <!-- /DC:LOG -->
