@@ -43,6 +43,7 @@
     "assumed_requests_month": 100000
   },
   "allowed_resource_types": [
+    "Microsoft.App/managedEnvironments/managedCertificates",
     "Microsoft.OperationalInsights/workspaces",
     "Microsoft.Web/sites",
     "Microsoft.Web/serverFarms",
