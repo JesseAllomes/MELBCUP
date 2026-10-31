@@ -27,6 +27,7 @@ class Settings:
     race_date: date
     venue: str
     auto_refresh: bool = False
+    public: bool = False  # PUBLIC_ACCESS=1: no password prompt (owner choice, Azure app)
 
     @property
     def has_form_source(self) -> bool:
@@ -60,4 +61,5 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         race_date=race_date,
         venue=_clean(env.get("VENUE")) or CUP_VENUE,
         auto_refresh=(_clean(env.get("PRICE_MODE")) or "manual").lower() == "auto",
+        public=_clean(env.get("PUBLIC_ACCESS")) == "1",
     )

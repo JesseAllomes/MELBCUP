@@ -217,6 +217,12 @@ def test_no_password_configured_refuses():
     assert r.status_code == 503 and "APP_PASSWORD" in r.text
 
 
+def test_public_access_needs_no_password():
+    app = create_app(load_settings({"PUBLIC_ACCESS": "1"}), start_background=False)
+    with TestClient(app) as c:
+        assert c.get("/").status_code == 200
+
+
 def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html

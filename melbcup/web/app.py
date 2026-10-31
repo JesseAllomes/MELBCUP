@@ -60,6 +60,8 @@ def create_app(
     def require_login(
         creds: Annotated[HTTPBasicCredentials | None, Depends(BASIC_AUTH)],
     ) -> None:
+        if settings.public:
+            return
         if not settings.app_password:
             raise HTTPException(503, "APP_PASSWORD is not set. Add it in the host's settings.")
         ok = creds is not None and secrets.compare_digest(

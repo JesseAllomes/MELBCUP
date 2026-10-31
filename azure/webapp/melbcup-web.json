@@ -55,6 +55,7 @@
         "resources": {"cpu": 0.25, "memory": "0.5Gi"},
         "env": [
           {"name": "PRICE_MODE", "value": "manual"},
+          {"name": "PUBLIC_ACCESS", "value": "1"},
           {"name": "PUNTERSEDGE_API_KEY", "secretRef": "puntersedge-api-key"},
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
           {"name": "APP_PASSWORD", "secretRef": "app-password"}
