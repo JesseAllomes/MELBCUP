@@ -1,0 +1,14 @@
+{
+  "_comment": "Resource types expected in rg-personal-automation-aue (az resource list, 2026-10-31 inventory). Names are informational and left out where not known; tools/cost_guard.py checks the types against azure/limits.json.",
+  "resources": [
+    {"name": "func-personal-v5ethud2i3cfq", "type": "Microsoft.Web/sites"},
+    {"type": "Microsoft.Web/serverFarms"},
+    {"name": "stpersonalv5ethud2i3cfq", "type": "Microsoft.Storage/storageAccounts"},
+    {"name": "kv-personal-v5ethud2i3cf", "type": "Microsoft.KeyVault/vaults"},
+    {"name": "cae-personal-v5ethud2i3cfq", "type": "Microsoft.App/managedEnvironments"},
+    {"type": "Microsoft.App/jobs"},
+    {"type": "Microsoft.ManagedIdentity/userAssignedIdentities"},
+    {"name": "swa-melbcup", "type": "Microsoft.Web/staticSites"},
+    {"name": "swa-lotto", "type": "Microsoft.Web/staticSites"}
+  ]
+}

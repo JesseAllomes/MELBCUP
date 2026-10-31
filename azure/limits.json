@@ -1,0 +1,55 @@
+{
+  "_comment": "Owner-approved ceilings for the MELBCUP Azure function. Raising any number or adding a list item needs the owner (tools/cost_guard.py rule C10).",
+  "prices": {
+    "flex_gb_s": 0.000026,
+    "flex_per_million_exec": 0.40,
+    "flex_free_gb_s": 100000,
+    "flex_free_exec": 250000
+  },
+  "budget_usd_month": {
+    "total": 15,
+    "hard_cap_function": 70
+  },
+  "function": {
+    "max_instances": 1,
+    "max_instance_memory_mb": 512,
+    "always_ready": 0,
+    "max_function_timeout_s": 60,
+    "max_collect_window_days": 10,
+    "max_http_concurrent": 10,
+    "max_http_outstanding": 20,
+    "assumed_http_requests_month": 1000,
+    "allowed_functions": {
+      "collect": {"timer_max_per_day": 1440},
+      "publish": {"timer_max_per_day": 24},
+      "reenter": {"route": "github/reenter", "anonymous": true}
+    },
+    "forbidden_app_settings": ["APPLICATIONINSIGHTS_CONNECTION_STRING", "APPINSIGHTS_INSTRUMENTATIONKEY"]
+  },
+  "allowed_resource_types": [
+    "Microsoft.OperationalInsights/workspaces",
+    "Microsoft.Web/sites",
+    "Microsoft.Web/serverFarms",
+    "Microsoft.Web/staticSites",
+    "Microsoft.Storage/storageAccounts",
+    "Microsoft.KeyVault/vaults",
+    "Microsoft.App/managedEnvironments",
+    "Microsoft.App/jobs",
+    "Microsoft.ManagedIdentity/userAssignedIdentities"
+  ],
+  "scan": {
+    "code": ["azure/**/*.py", "tools/live_collector.py", "tools/cost_guard.py"],
+    "text": ["azure/**/*", "tools/live_collector.py", ".github/workflows/*"],
+    "secret_allowlist": {"da2-": ["tools/live_collector.py"]}
+  },
+  "workflows": {
+    "max_job_timeout_min": 360,
+    "max_cron_fires_per_day": 300,
+    "self_dispatch_workflows": [],
+    "workflow_run_allowed": {}
+  },
+  "ratchet": {
+    "unbounded_subprocess": 1,
+    "unbounded_while": 0
+  }
+}

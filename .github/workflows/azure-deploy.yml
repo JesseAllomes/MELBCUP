@@ -1,0 +1,100 @@
+# Deploys the MELBCUP Azure Function (azure/function + tools/live_collector.py) to Flex Consumption.
+# guard   -> cost_guard, the function tests, ruff on the new files.
+# deploy  -> builds one package (the repo's collector is copied in, so Azure and GitHub run the same file),
+#            checks the live app against azure/limits.json before and after, then publishes.
+# This workflow never touches COLLECTOR_DISABLED: the owner flips that switch by hand.
+name: azure-deploy
+on:
+  push:
+    branches: [main]
+    paths:
+      - "azure/**"
+      - "tools/live_collector.py"
+      - "tools/cost_guard.py"
+      - "tools/cost_guard_inventory.py"
+      - ".github/workflows/azure-*.yml"
+  workflow_dispatch:
+    inputs:
+      limits_approved:
+        description: "Owner only: accept a loosened azure/limits.json (sets LIMITS_APPROVED=1)"
+        type: boolean
+        default: false
+concurrency:
+  group: azure-deploy
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  FUNCTION_APP: func-personal-v5ethud2i3cfq
+  RESOURCE_GROUP: rg-personal-automation-aue
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test tools
+        run: pip install pytest==9.2.0 ruff==0.17.3 httpx==0.28.1
+      - name: Cost guard
+        env:
+          LIMITS_APPROVED: ${{ inputs.limits_approved && '1' || '' }}
+        run: python3 tools/cost_guard.py --base-ref HEAD~1
+      - name: Tests
+        run: python3 -m pytest tests/test_azure_function.py tests/test_cost_guard.py
+      - name: Ruff
+        run: ruff check azure/function tools/cost_guard.py tests/test_azure_function.py tests/test_cost_guard.py
+
+  deploy:
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: azure/login@v2
+        with:
+          client-id: 7ab2c182-e73b-4027-b30b-9cb9ddc841f7
+          tenant-id: f1575bc8-e389-49bf-8ab0-31155227f4c3
+          subscription-id: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
+      - name: Live drift check before deploying
+        run: |
+          mkdir -p live
+          az functionapp show --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" -o json > live/functionapp.json
+          az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" --query "[].{name:name}" -o json > live/appsettings.json
+          az resource list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,type:type}" -o json > live/inventory.json
+          az monitor log-analytics workspace list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,workspaceCapping:workspaceCapping}" -o json > live/workspaces.json
+          python3 tools/cost_guard_inventory.py live/inventory.json live/workspaces.json
+          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
+      - name: Build package
+        run: |
+          rm -rf build/pkg
+          mkdir -p build/pkg/tools
+          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/host.json azure/function/requirements.txt build/pkg/
+          cp tools/live_collector.py build/pkg/tools/live_collector.py
+          touch build/pkg/tools/__init__.py
+          pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages
+      - uses: Azure/functions-action@v1
+        with:
+          app-name: func-personal-v5ethud2i3cfq
+          package: build/pkg
+          sku: flexconsumption
+          scm-do-build-during-deployment: false
+          enable-oryx-build: false
+      - name: Live drift check after deploying
+        run: |
+          az functionapp show --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" -o json > live/functionapp.json
+          az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" --query "[].{name:name}" -o json > live/appsettings.json
+          az resource list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,type:type}" -o json > live/inventory.json
+          az monitor log-analytics workspace list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,workspaceCapping:workspaceCapping}" -o json > live/workspaces.json
+          python3 tools/cost_guard_inventory.py live/inventory.json live/workspaces.json
+          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/functionapp.json --live live/appsettings.json --live live/inventory.json

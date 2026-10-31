@@ -1,0 +1,27 @@
+{
+  "_comment": "Declared Flex Consumption settings for func-personal-v5ethud2i3cfq. tools/cost_guard.py checks this file; the deploy workflow checks the live app against the same limits. COLLECTOR_DISABLED is the owner's switch and is deliberately not recorded here.",
+  "sku": "FC1",
+  "properties": {
+    "functionAppConfig": {
+      "scaleAndConcurrency": {
+        "maximumInstanceCount": 1,
+        "instanceMemoryMB": 512,
+        "alwaysReady": []
+      }
+    }
+  },
+  "appSettings": {
+    "names": [
+      "COLLECTOR_START_UTC",
+      "COLLECTOR_STOP_UTC",
+      "GITHUB_REPOSITORY",
+      "GITHUB_TOKEN",
+      "GITHUB_WEBHOOK_SECRET",
+      "LOTTO_REENTER_JOB_RESOURCE_ID"
+    ],
+    "values": {
+      "COLLECTOR_START_UTC": "2026-10-30T13:00:00Z",
+      "COLLECTOR_STOP_UTC": "2026-11-07T13:00:00Z"
+    }
+  }
+}

@@ -51,6 +51,8 @@ WATCH_BEFORE = 75 * 60  # watch a race from 75 min before its scheduled start ..
 WATCH_AFTER = 30 * 60   # ... until 30 min after it, or until it is resulted / abandoned
 DONE = ("result", "abandon", "final", "paying", "closed")
 ROTATE_S = 15 * 60
+REQUEST_TIMEOUT_S = 30  # per HTTP request; the Azure function lowers it (azure/function/collector_runtime.py)
+DEADLINE = None         # epoch seconds after which gql() fails fast; set only by the Azure function
 
 MEETINGS = ("query($s:String!,$b:Int!,$f:Int!,$u:String!){GetRaceMeetingsByStateNew(states:$s,daysBack:$b,"
             "daysForward:$f,userDate:$u){id venue date state isTrial isJumpOut}}")
@@ -143,8 +145,14 @@ def gql(query, variables):
     body = json.dumps({"query": query, "variables": variables}).encode()
     req = urllib.request.Request(URL, body, {"x-api-key": KEY, "content-type": "application/json"})
     sent = now()
+    timeout = REQUEST_TIMEOUT_S
+    if DEADLINE is not None:
+        left = DEADLINE - time.time()
+        if left <= 0.5:
+            return None, "cycle deadline reached", None, sent, now()
+        timeout = min(timeout, left)
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw, status = resp.read(), resp.status
     except urllib.error.HTTPError as exc:
         return None, f"HTTP {exc.code}", exc.code, sent, now()
@@ -169,6 +177,48 @@ class Collector:
         self.requests = 0
         self.prev_watched = set()
         self.last = {}        # request key -> (data sha256, obs_utc of the record holding the data)
+
+    def snapshot(self):
+        """JSON-safe state for resuming short serverless invocations (additive; the GitHub runner never calls it).
+
+        `last` (the same_as map) is deliberately not saved: every invocation writes self-contained files, so a marker
+        never points into an earlier file (tools/live_validate.py and live_gaps.py resolve markers per run).
+        Races are kept only for meetings still listed, so the state cannot grow past today and tomorrow."""
+        return {
+            "meets": self.meets,
+            "races": [{"meet": meet, "number": number, "row": row}
+                      for (meet, number), row in self.races.items() if meet in self.meets],
+            "cycle": self.cycle,
+            "requests": self.requests,
+            "prev_watched": [list(key) for key in sorted(self.prev_watched)],
+        }
+
+    @classmethod
+    def restore(cls, log, run, state):
+        """Rebuild a collector from snapshot(); absent or malformed state is a cold start."""
+        collector = cls(log, run)
+        if not isinstance(state, dict):
+            return collector
+        try:
+            collector.cycle = max(0, int(state.get("cycle") or 0))
+            collector.requests = max(0, int(state.get("requests") or 0))
+        except (TypeError, ValueError):
+            collector.cycle = collector.requests = 0
+        meets = state.get("meets")
+        collector.meets = meets if isinstance(meets, dict) else {}
+        for item in state.get("races") or []:
+            try:
+                row = item["row"]
+                if isinstance(row, dict):
+                    collector.races[(str(item["meet"]), int(item["number"]))] = row
+            except (KeyError, TypeError, ValueError):
+                continue
+        for item in state.get("prev_watched") or []:
+            try:
+                collector.prev_watched.add((str(item[0]), int(item[1])))
+            except (IndexError, KeyError, TypeError, ValueError):
+                continue
+        return collector
 
     def fetch(self, kind, query, variables, **meta):
         data, err, status, sent, got = gql(query, variables)
