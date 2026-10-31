@@ -63,7 +63,13 @@ def views_split(a: Assessment) -> bool:
     return any(v and abs(math.log(v / a.market_win)) >= SPLIT for v in (a.model_win, a.feed_win))
 
 
-MIN_HIT = {"quinella": 0.30, "trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
+MIN_HIT = {
+    "quinella": 0.30,
+    "trifecta": 0.15,
+    "first_four": 0.06,
+    "quaddie": 0.12,
+    "early_quaddie": 0.12,
+}
 
 
 @dataclass

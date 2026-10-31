@@ -10,7 +10,6 @@ from melbcup.bets.exotics import UNORDERED, Exotic, exotic_combos
 from melbcup.bets.singles import Single
 from melbcup.domain import RaceResult
 
-
 DIVIDEND_CODES = {"quinella": "QN", "trifecta": "TF", "first_four": "FF"}
 
 

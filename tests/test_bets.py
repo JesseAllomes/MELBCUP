@@ -242,7 +242,8 @@ def test_build_picks_end_to_end_with_budget():
         for rp in day.races
         for s in {id(x): x for x in rp.best.values() if x is not None}.values()
     )
-    total += sum(e.outlay or 0 for rp in day.races for e in rp.quinellas + rp.trifectas + rp.first_fours)
+    exotics = [e for rp in day.races for e in rp.quinellas + rp.trifectas + rp.first_fours]
+    total += sum(e.outlay or 0 for e in exotics)
     total += sum(e.outlay or 0 for e in day.quaddies) + sum(m.stake or 0 for m in day.multis)
     assert total <= 200
 

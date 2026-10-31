@@ -4,12 +4,13 @@ returned at the price the app showed?"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from itertools import product
 
 from melbcup.bets import KINDS, LABELS, VALUE_KINDS, DayPicks, RacePicks
-from melbcup.bets.exotics import Exotic
+from melbcup.bets.exotics import UNORDERED, Exotic, exotic_combos
 from melbcup.bets.singles import Single
 from melbcup.domain import RaceResult
+
+DIVIDEND_CODES = {"quinella": "QN", "trifecta": "TF", "first_four": "FF"}
 
 
 @dataclass
@@ -69,7 +70,7 @@ class DayGrade:
 
     @property
     def exotic_lines(self) -> list[Graded]:
-        return [g for r in self.races for g in r.lines if g.kind in ("trifecta", "first_four")]
+        return [g for r in self.races for g in r.lines if g.kind in DIVIDEND_CODES]
 
 
 def _single(s: Single, result: RaceResult, places_paid: int, kind: str | None = None) -> Graded:
@@ -95,12 +96,13 @@ def _single(s: Single, result: RaceResult, places_paid: int, kind: str | None = 
 
 def _exotic(e: Exotic, result: RaceResult, kind: str, depth: int) -> Graded:
     actual = tuple(result.placegetters(depth))
-    combos = {c for c in product(*e.legs) if len(set(c)) == len(c)}
-    hit = len(actual) == depth and actual in combos
-    dividend = result.exotics.get("TF" if kind == "trifecta" else "FF")
+    if kind in UNORDERED:  # either order lands
+        actual = tuple(sorted(actual))
+    hit = len(actual) == depth and actual in exotic_combos(kind, e.legs)
+    dividend = result.exotics.get(DIVIDEND_CODES[kind])
     if not hit:
         ret = 0.0
-    elif dividend and dividend[0] == actual:
+    elif dividend and (tuple(sorted(dividend[0])) if kind in UNORDERED else dividend[0]) == actual:
         ret = dividend[1] / e.combos  # $1 spread across every combination (flexi)
     else:
         ret = None
@@ -130,7 +132,12 @@ def grade_race(rp: RacePicks) -> RaceGrade | None:
         s = rp.best.get(kind)
         if s is not None:
             g.lines.append(_single(s, result, race.places_paid, kind))
-    for group, kind, depth in ((rp.trifectas, "trifecta", 3), (rp.first_fours, "first_four", 4)):
+    exotics = (
+        (rp.quinellas, "quinella", 2),
+        (rp.trifectas, "trifecta", 3),
+        (rp.first_fours, "first_four", 4),
+    )
+    for group, kind, depth in exotics:
         rec = next((e for e in group if e.recommended), None)
         if rec is not None:
             g.lines.append(_exotic(rec, result, kind, depth))

@@ -77,7 +77,13 @@ def _structure(
     else:
         labels = [", ".join(map(str, leg)) for leg in legs]
     return Exotic(
-        kind, title, legs, labels, len(combos), sum(combo_prob(win, kind, c) for c in combos), [race]
+        kind,
+        title,
+        legs,
+        labels,
+        len(combos),
+        sum(combo_prob(win, kind, c) for c in combos),
+        [race],
     )
 
 
