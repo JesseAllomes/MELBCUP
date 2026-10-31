@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=43 -->
+<!-- drainclamp-build: state; schema=1; generation=45 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -53,6 +53,8 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - MELBCUP timing? -> owner had no preference; Render, live-collector.yml and GCS archive keep running through Cup day (Tue 3 Nov) until the Azure copies are verified (source: repo decision)
 - Azure collector before Cup day? -> no: review found 3 blockers and the GitHub collector already works; Azure collector off through Cup week, fixed and committed to git after (source: repo decision, 2026-10-31)
 - Times shown to the owner? -> Melbourne time (AEDT/AEST) only, never UTC (source: user, 2026-10-31)
+- Where does data live? -> Azure Blob in the existing storage account (pennies a month); git keeps code only; OneDrive (owner's 1 TB) only for backups/archives because unattended jobs would need a rotating Microsoft login token (source: user "move everything possible, cheapest" + repo decision, 2026-10-31)
+- Site actions? -> no GitHub issues; on-site buttons via SWA API + owner-only login (source: user, 2026-10-31)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
@@ -65,9 +67,10 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
 | m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m6 |
-| az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | active |  |
-| az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | pending | az1 |
-| az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | pending | az2 |
+| az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | done |  |
+| az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | done | az1 |
+| az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | done | az2 |
+| az4 | After Cup collection (7 Nov): collector publishes to Blob only (no live branch); validators read blob; Google Cloud archive replaced by Blob cool tier or OneDrive; archive-to-gcs.yml, GCP key, Render and GitHub Pages retired | azure/function/;tools/live_validate.py;.github/workflows/ | pending | az3 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
