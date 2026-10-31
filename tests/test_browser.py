@@ -37,7 +37,7 @@ def test_full_flow_and_reopening_fetches_nothing():
         "ff", requester=requester_for(router), progress=seen.append, clock=lambda: CUP_MORNING
     )
     assert sources.WORKERS == 1
-    assert "No card loaded yet" in browser.render("/")
+    assert "No card loaded yet" not in browser.render("/")
     assert "#keys" not in browser.render("/")  # the keys live on the hidden settings page
 
     nxt = browser.act("/actions/load?next=/")
@@ -60,7 +60,7 @@ def test_full_flow_and_reopening_fetches_nothing():
 def test_damaged_or_old_saved_state_starts_clean():
     router = Router()
     browser.init("ff", "not base64!", requester=requester_for(router), clock=lambda: CUP_MORNING)
-    assert "No card loaded yet" in browser.render("/")
+    assert "No card loaded yet" not in browser.render("/")
 
 
 def test_opening_the_page_spends_nothing():
@@ -118,7 +118,7 @@ def test_friends_need_no_keys_racingcom_supplies_everything():
     router = Router()
     browser.init("", requester=requester_for(router), clock=lambda: CUP_MORNING)
     html = browser.render("/")
-    assert "Live data from racing.com" in html and "credits" not in html.lower()
+    assert "Live data from racing.com" not in html and "credits" not in html.lower()
     assert "PuntersEdge" not in html
     browser.act("/actions/load?next=/")
     html = browser.render("/")
@@ -163,7 +163,7 @@ def test_saved_meetings_and_history_open_with_no_key_or_password(tmp_path):
         archive_reader=saved_meeting(tmp_path, day),
     )
     page = browser.render("/meetings?date=2026-10-24")
-    assert "venue=Flemington" in page and "saved with results" in page
+    assert "venue=Flemington" in page and "saved with results" not in page
     browser.act("/actions/meeting?date=2026-10-24&venue=Flemington")
     browser.act("/actions/load?next=/")
     assert "Lexus Melbourne Cup" in browser.render("/")

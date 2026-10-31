@@ -21,8 +21,9 @@
   <main id="main" class="wrap" data-refresh="{% block refresh %}60{% endblock %}">
     {% if can_fetch %}
     <div class="status">
-      <p class="source">Live data from racing.com: Sportsbet prices, field and scratchings. Refreshes are limited to one a minute.
-        <span class="when">{% if snap.saved %}saved meeting, nothing to fetch{% else %}{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% else %}no prices yet{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %} · loading card…{% endif %}{% endif %}</span></p>
+      {% if not snap.saved and (snap.priced_at or snap.results_at or snap.loading) %}
+      <p class="source"><span class="when">{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %}{{ ' · ' if snap.priced_at }}results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %}{{ ' · ' if snap.priced_at or snap.results_at }}loading card…{% endif %}</span></p>
+      {% endif %}
       {% if not snap.saved %}
       <div class="buttons">
         {% if card and snap.can_price %}
@@ -36,18 +37,14 @@
         {% endif %}
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}"><button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'on' if snap.auto else 'off' }}</button></form>
       </div>
-      {% if snap.auto %}<p class="note">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race, and results after each race.</p>{% endif %}
       {% endif %}
     </div>
     {% endif %}
-    {% for e in snap.errors %}<p class="alert">{{ e }}</p>{% endfor %}
-    {% if card %}{% for w in card.warnings %}<p class="warn">{{ w }}</p>{% endfor %}{% endif %}
     {% block content %}{% endblock %}
   </main>
   <footer class="wrap">
     <p>Estimates from form and market data. They improve the odds of a good decision; they do not
       guarantee a result. Bet only what you can afford to lose.</p>
-    {% if browser %}<p>Runs on this phone; loaded meetings stay on it.</p>{% endif %}
     <p>Gambling Help Online <a href="tel:1800858858">1800 858 858</a> · <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
   </footer>
 </body>

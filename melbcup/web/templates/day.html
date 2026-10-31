@@ -1,24 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-{% if not can_fetch %}
-  <section class="block">
-    <h1>No data source</h1>
-    <p>The app could not reach racing.com. Check the connection and reload the page.</p>
-  </section>
-{% elif not picks %}
+{% if not picks %}
   <section class="block empty">
-    {% if snap.field_due %}
-      <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
-      <p>Racing Australia publishes the field about two days before the meeting, so it should be out on
-        {{ snap.field_due | longdate }}. Auto loads it then; nothing is spent until it exists.</p>
-      <p><a href="/history">See how the model has gone on past meetings</a></p>
-    {% elif snap.loading %}
-      <p>Loading the card. With full FormFav data this takes a minute or two.</p>
-    {% else %}
-      <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
-      <p>No card loaded yet. {% if snap.auto %}Auto will load it shortly{% else %}Tap <strong>Load card</strong>{% endif %}
-        to fetch the field, form and prices.</p>
-    {% endif %}
+    <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
+    {% if snap.loading %}<p>Loading the card…</p>{% endif %}
+    <p><a href="/history">History</a></p>
   </section>
 {% else %}
   {% if grade %}
@@ -35,7 +21,7 @@
     <header>
       <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}"><span class="cloth big">{{ race.number }}</span><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span></a>
       <p class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners{% if race.condition %} · {{ race.condition }}{% endif %}{% if race.weather %}, {{ race.weather | lower }}{% endif %}</p>
-      {% if race.condition_was %}<p class="going-change">Track now {{ race.condition }}, was {{ race.condition_was }} when the card loaded: chances use each horse's record on the new going.</p>{% endif %}
+      {% if race.condition_was %}<p class="going-change">Track now {{ race.condition }}, was {{ race.condition_was }}.</p>{% endif %}
     </header>
     {% if rg %}{% include "_placings.html" %}{% endif %}
     {% with marks = marks.get(race.number) %}{% include "_picks.html" %}{% endwith %}
@@ -45,7 +31,7 @@
 
   {% if picks.quaddies or picks.multis %}
   <section class="block">
-    <h2>Quaddies</h2>
+    {% if picks.quaddies | selectattr('recommended') | list %}<h2>Quaddies</h2>{% endif %}
     <dl class="picks">
     {% for e in picks.quaddies if e.recommended %}
       <div class="pick"><dt>{{ 'Early' if e.kind == 'early_quaddie' else 'Main' }}</dt>
@@ -54,8 +40,8 @@
     {% endfor %}
     </dl>
     {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
-    <h2>Multis at Sportsbet</h2>
     {% if picks.multis %}
+    <h2>Multis at Sportsbet</h2>
     <dl class="picks">
     {% for m in picks.multis %}
       <div class="pick"><dt>{{ m.legs | length }} legs</dt>
@@ -63,7 +49,7 @@
           <span class="fig">{{ m.price | money }} · lands {{ m.prob | pct(1) }}{% if m.value %} · <em>value</em>{% endif %}{% if m.stake %} · bet ${{ m.stake }}{% endif %}</span></dd></div>
     {% endfor %}
     </dl>
-    {% else %}<p class="small">None: no two races have a runner with at least a 15% chance and a Sportsbet price.</p>{% endif %}
+    {% endif %}
   </section>
   {% endif %}
 

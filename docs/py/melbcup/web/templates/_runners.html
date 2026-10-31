@@ -14,14 +14,9 @@
           {% if r.last_start_note %}<div class="note">Last start: {{ r.last_start_note | truncate(110) }}</div>{% endif %}</td>
         <td class="num">{% if p and p.sportsbet_win %}{{ p.sportsbet_win | money }}<div class="small">Sportsbet</div>{% elif p and p.best_win %}{{ p.best_win.price | money }}<div class="small">{{ p.best_win.bookmaker | book }}</div>{% else %}–{% endif %}</td>
         <td class="num">{{ a.win | pct }}<div class="small">place {{ a.place | pct }}</div></td>
-        <td class="num">{{ a.model_win | pct }}{% if views_split(a) %} <span class="split" title="The form model or FormFav and the odds disagree strongly">⚠</span>{% endif %}</td>
+        <td class="num">{{ a.model_win | pct }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
-  <p class="small">Chance is the bookmakers' margin-free chance (before any prices, the form model's, which
-    is experimental). Form is the form model alone, for comparison only: it was fitted on one month and has
-    not passed a clean test, so it does not change the chances. ⚠ marks a horse the form model or FormFav
-    rates at over 4.5 times, or under a quarter of, its chance in the odds. Last start is the stewards'
-    comment from the horse's previous run (racing.com).</p>
 </details>

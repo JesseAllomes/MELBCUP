@@ -13,7 +13,6 @@
     <p class="meta">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m
       · {{ race.race_class or '' }} · {{ race.condition or card.condition or '' }}{% if race.weather %}, {{ race.weather | lower }}{% endif %}{% if race.condition_was %} (was {{ race.condition_was }}){% endif %}
       {% if race.prize_total %} · ${{ '{:,}'.format(race.prize_total) }}{% endif %} · pays {{ race.places_paid }} places</p>
-    <p class="small">Chances from {{ rp.model.sources | join(' and ') or 'nothing yet' }}{% if race.prices_at %}; prices at {{ race.prices_at | local_time }}{% endif %}{% if race.priced_from_sp %}; judged at starting prices{% endif %}.</p>
   </header>
   {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
   {% if rg %}<h2>Result</h2>{% include "_placings.html" %}<h2>Our picks before the race</h2>{% endif %}
@@ -67,7 +66,7 @@
           <dl class="facts stewards">
             {% for n in noted[:4] %}<dt>{{ n.run_date | shortdate }} {{ n.venue }}{% if n.finish %} · {{ n.finish }}{{ {1:'st',2:'nd',3:'rd'}.get(n.finish, 'th') }}{% endif %}</dt><dd>{{ n.stewards }}</dd>{% endfor %}
           </dl>
-          {% elif r.run_notes %}<p class="small">No stewards' comments on its last {{ r.run_notes | length }} runs.</p>{% endif %}
+          {% endif %}
           {% if r.runs %}
           <table class="runs">
             <thead><tr><th>Date</th><th>Track</th><th>m</th><th>Going</th><th>Pos</th><th>Mgn</th><th>SP</th></tr></thead>
@@ -86,22 +85,22 @@
     </tbody>
   </table>
   </div>
-  <p class="small">Win is the bookmakers' margin-free chance (form model, experimental, before prices); Fair is the price that chance is worth; Edge is the expected
-    return at the best price on offer. A price counts as value at +5% or better (more for longer prices).</p>
 </section>
 
 <section class="block">
+  {% if rp.trifectas %}
   <h2>Trifecta</h2>
   <div class="tablewrap"><table class="exo">
     <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
     <tbody>{% for e in rp.trifectas %}{% include "_exotic.html" %}{% endfor %}</tbody>
   </table></div>
+  {% endif %}
+  {% if rp.first_fours %}
   <h2>First Four</h2>
   <div class="tablewrap"><table class="exo">
     <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
     <tbody>{% for e in rp.first_fours %}{% include "_exotic.html" %}{% endfor %}</tbody>
   </table></div>
-  <p class="small">Fair div is what a $1 unit must pay to break even. If the TAB's approximate dividend is
-    higher, the structure is value.</p>
+  {% endif %}
 </section>
 {% endblock %}

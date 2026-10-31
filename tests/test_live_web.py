@@ -205,7 +205,7 @@ def client(board_and_router):
 
 def test_buttons_and_data_source_on_page(client):
     html = client.get("/?budget=50", auth=AUTH).text
-    assert "Live data from racing.com" in html and "Sportsbet prices" in html
+    assert "Live data from racing.com" not in html and "Sportsbet prices" not in html
     assert "credits" not in html.lower() and "PuntersEdge" not in html
     assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
     assert "next=/%3Fbudget%3D50" in html
@@ -231,7 +231,7 @@ def test_empty_manual_board_offers_load_button():
     app = create_app(load_settings(ENV), board_with(router, clock), start_background=False)
     with TestClient(app) as c:
         html = c.get("/", auth=AUTH).text
-    assert "No card loaded yet" in html and "Load card" in html
+    assert "No card loaded yet" not in html and "Load card" in html
     assert router.hits == {}
 
 
@@ -267,7 +267,7 @@ def test_day_page_shows_every_race_and_sections(client):
     assert (
         "Trifecta" in html and "First four" in html
     )  # each ways appear only when a price beats its chance
-    assert "Quaddies" in html and "Multis at Sportsbet" in html
+    assert "None: no two races" not in html  # empty sections are hidden, not explained
     assert "1800 858 858" in html
     assert "Bet $" not in html
 
@@ -297,7 +297,7 @@ def test_runs_on_racingcom_without_any_keys():
     app = create_app(load_settings({"APP_PASSWORD": "p"}), start_background=False)
     with TestClient(app) as c:
         html = c.get("/", auth=("", "p")).text
-    assert "Live data from racing.com" in html and "credits" not in html.lower()
+    assert "Live data from racing.com" not in html and "credits" not in html.lower()
 
 
 def test_filters():
@@ -341,7 +341,7 @@ def test_meetings_page_and_switch(client):
     )
     assert r.status_code == 303 and r.headers["location"] == "/"
     home = client.get("/", auth=AUTH).text
-    assert "Sat 31 Oct" in home and "No card loaded yet" in home
+    assert "Sat 31 Oct" in home and "No card loaded yet" not in home
     r = client.post("/actions/find?date=2026-11-03", auth=AUTH, follow_redirects=False)
     assert r.headers["location"] == "/meetings?date=2026-11-03"
     listed = client.get("/meetings?date=2026-11-03", auth=AUTH).text
@@ -431,3 +431,43 @@ def test_racingcom_down_for_results_is_reported_not_swallowed():
     assert board.fetch_results_now()
     assert any("racing.com" in e for e in board.snapshot().errors)
     assert all(r.result is None for r in board.snapshot().card.races)
+
+
+NOTES = (
+    "No FormFav key",
+    "unavailable (",
+    "Paused automatic",
+    "No prices yet",
+    "No data source",
+    "form only",
+    "Bet about 10 minutes",
+    "Check your bookmaker",
+    "Runs on this phone",
+    "Switching is free",
+    "Fields come out",
+    "Racing Australia publishes",
+)
+
+
+def test_pages_carry_no_source_notes_or_warnings(client, board_and_router):
+    board, _ = board_and_router
+    board._errors = ["FormFav quota exhausted", "racing.com refused the request"]
+    board._card.warnings.append("Jockey stats unavailable (quota)")
+    pages = ["/", "/race/1", "/meetings", "/history", "/meetings?date=2026-11-10"]
+    for path in pages:
+        html = client.get(path, auth=AUTH).text
+        assert 'class="warn"' not in html and 'class="alert"' not in html, path
+        assert "quota" not in html.lower() and "refused" not in html.lower(), path
+        assert not any(note in html for note in NOTES), path
+        assert "1800 858 858" in html, path  # the responsible-gambling footer stays
+
+
+def test_source_problems_are_logged_not_shown(caplog):
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    board.rc.src._http._transport = httpx.MockTransport(lambda r: httpx.Response(429, json={}))
+    clock.t = START + timedelta(minutes=10, seconds=10)
+    with caplog.at_level("WARNING", logger="melbcup.live"):
+        board.tick()
+    assert any("Paused automatic racing.com calls" in r.message for r in caplog.records)

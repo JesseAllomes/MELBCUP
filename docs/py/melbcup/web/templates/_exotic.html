@@ -1,8 +1,7 @@
 {# One exotic structure as a table row. Needs: e (Exotic) #}
 <tr class="{{ 'rec' if e.recommended }}">
   <td>{{ e.title }}{% if e.recommended %} <em>pick</em>{% endif %}
-    <div class="legs">{{ e.leg_labels | join(' / ') }}</div>
-    {% if e.note %}<div class="small">{{ e.note }}</div>{% endif %}</td>
+    <div class="legs">{{ e.leg_labels | join(' / ') }}</div></td>
   <td class="num">{{ e.combos }}</td>
   <td class="num">{{ e.prob | pct(1) }}</td>
   <td class="num">{{ e.fair_dividend | money }}</td>

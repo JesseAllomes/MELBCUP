@@ -12,6 +12,7 @@ the same calls one after another.
 
 from __future__ import annotations
 
+import logging
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -32,6 +33,7 @@ from melbcup.sources.http import SourceError
 from melbcup.sources.racingcom import RUNS_KEPT, MarketSnapshot, RacingComClient
 
 WORKERS = 8
+log = logging.getLogger("melbcup.sources")
 
 
 class SerialExecutor:
@@ -59,6 +61,7 @@ def _try[T](card: Card, what: str, fn: Callable[[], T]) -> T | None:
         return fn()
     except SourceError as exc:
         msg = f"{what} unavailable ({exc.kind})"
+        log.warning("%s: %s", msg, exc)
         with _warn_lock:
             if msg not in card.warnings:
                 card.warnings.append(msg)
@@ -77,9 +80,9 @@ def load_card(
     with _pool() as pool:
         enrich_from_racingcom(card, rc, pool)
         if ff is None:
-            card.warnings.append(
-                "No FormFav key: its ratings, speed maps and jockey and trainer records are missing"
-            )
+            msg = "No FormFav key: its ratings, speed maps, jockey and trainer records are missing"
+            log.info(msg)
+            card.warnings.append(msg)
         else:
             enrich_from_formfav(card, ff, pool)
     return card

@@ -154,10 +154,13 @@ class LiveBoard:
         try:
             fn()
         except SourceError as exc:
+            log.warning("source error (%s): %s", exc.kind, exc)
             errors.append(str(exc))
             if exc.kind in ("quota", "rate_limit", "auth"):
                 self._paused_until = now + QUOTA_BACKOFF
-                errors.append(f"Paused automatic racing.com calls for 15 minutes ({exc.kind}).")
+                msg = f"Paused automatic racing.com calls for 15 minutes ({exc.kind})."
+                log.warning(msg)
+                errors.append(msg)
             elif exc.kind in ("unavailable", "bad_response"):
                 self._paused_until = now + OUTAGE_BACKOFF
         with self._lock:
@@ -364,6 +367,7 @@ class LiveBoard:
             try:
                 found = self.rc.meetings(race_date, self._melbourne_day(self.clock()))
             except SourceError as exc:
+                log.warning("meetings lookup failed (%s): %s", exc.kind, exc)
                 with self._lock:
                     self._errors = [str(exc)]
                 return []

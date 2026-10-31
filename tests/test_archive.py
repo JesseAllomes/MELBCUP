@@ -154,7 +154,7 @@ def test_meetings_page_lists_saved_meetings_without_fetching(tmp_path, monkeypat
     router = Router()
     b = board(tmp_path, day, datetime(2026, 10, 29, 12, 0, tzinfo=MELBOURNE), router)
     html = v.Views(b.settings, b, browser=True).page("/meetings", {"date": day.isoformat()})
-    assert "saved with results: they open free" in html and "venue=Flemington" in html
+    assert "saved with results" not in html and "venue=Flemington" in html
     assert router.hits == {}
 
 

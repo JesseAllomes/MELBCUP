@@ -14,7 +14,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from melbcup import history
-from melbcup.bets import LABELS, confidence, price_verdict, views_split
+from melbcup.bets import LABELS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -148,7 +148,6 @@ def make_env() -> Environment:
     )
     env.globals["LABELS"] = LABELS
     env.globals["shown"] = history.shown
-    env.globals["views_split"] = views_split
     return env
 
 
@@ -220,7 +219,6 @@ class Views:
             saved = archive.venues(pick) if archive and pick < ctx["today"] else []
             ctx.update(
                 pick=pick,
-                saved=bool(saved),
                 found=saved or ctx["snap"].meetings.get(pick),
                 carnival=CARNIVAL,
                 here=f"/meetings?date={pick.isoformat()}",

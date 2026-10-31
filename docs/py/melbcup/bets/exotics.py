@@ -35,7 +35,6 @@ class Exotic:
     combos: int
     prob: float
     races: list[int]
-    note: str = ""
     outlay: int | None = None
     flexi_pct: float | None = None
     recommended: bool = False
@@ -169,7 +168,6 @@ def quaddie(models: list[RaceModel], kind: str, title: str, max_combos: int) -> 
         math.prod(len(n) for n in numbers),
         prob,
         [m.race.number for m in models],
-        note="Check your bookmaker's quaddie legs match these races.",
     )
 
 

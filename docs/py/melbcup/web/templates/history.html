@@ -4,25 +4,9 @@
 {% block content %}
 <section class="block">
   <h1>History</h1>
-  {% if not record %}
-    <p>No graded races yet. Races are added here as their results come in.</p>
-  {% else %}
+  {% if record %}
   <p class="small">{{ '{:,}'.format(record | length) }} races, {{ groups | length }} meetings,
     {{ record[-1].date | isoday }} to {{ record[0].date | isoday }}.</p>
-  <details class="explain"><summary>How the picks and figures work</summary>
-    <p class="small"><strong>Most likely</strong> is the runner with the highest chance of winning, and the one
-      with the highest chance of placing, whatever their price. <strong>Value</strong> picks are made only when
-      a price beats the runner's chance by enough, so many races have none. Each way counts as landed
-      when the runner placed.</p>
-    <p class="small"><strong>Confidence</strong> comes from the most likely winner's chance: High at 40% or
-      more, Medium at 30% to 40%, Low under 30%. On races the model was not fitted on, High picks won
-      about half the time, Medium about a third and Low about a quarter.</p>
-    <p class="small">Per $1 is profit or loss per dollar staked at the prices shown. Saved races use
-      starting prices, with place prices estimated from them (the place market's measured 40% margin
-      included); exotic dividends were not saved. Those races were also used to fit the model, which
-      flatters them a little: races from Derby Day on are the clean test.</p>
-  </details>
-
   {% if h2h.races %}
   <h2>Our pick against the favourite</h2>
   <table class="tally h2h">
@@ -34,9 +18,6 @@
       {% if h2h.disagreed %}<tr><td>Our pick is not the favourite</td><td class="num">{{ '{:,}'.format(h2h.disagreed) }}</td><td class="num">{{ (h2h.favourite_won_disagreed / h2h.disagreed) | pct(1) }}</td><td class="num">{{ (h2h.pick_won_disagreed / h2h.disagreed) | pct(1) }}</td></tr>{% endif %}
     </tbody>
   </table>
-  <p class="small">The test the model has to pass: where our most likely winner is not the favourite, it has to win
-    more often than the favourite does. Saved races used the starting price, so they flatter the favourite
-    slightly; races from Derby Day on use the prices the app saw before the jump.</p>
   {% endif %}
 
   <table class="tally">

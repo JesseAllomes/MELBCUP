@@ -80,9 +80,8 @@ button:hover { border-color: var(--muted); }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button.on { border-color: var(--accent); color: var(--accent); }
 button[disabled] { opacity: 0.5; cursor: default; }
-.alert, .warn { border-radius: 6px; padding: 8px 12px; margin: 8px 0; font-size: 13px; overflow-wrap: anywhere; }
+.alert { border-radius: 6px; padding: 8px 12px; margin: 8px 0; font-size: 13px; overflow-wrap: anywhere; }
 .alert { background: var(--alert); }
-.warn { background: var(--warn); }
 .summary { font-size: 14px; color: var(--muted); padding-block: 10px; margin: 0; border-bottom: 1px solid var(--rule); }
 
 /* saddlecloth numbers */
@@ -145,7 +144,6 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .runners summary { padding-block: 4px; }
 .runners table { margin-top: 4px; }
 .runners td:first-child { overflow-wrap: anywhere; }
-.runners .split { color: var(--accent); }
 .runners .note { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .facts.stewards dd { color: var(--ink); }
 
@@ -162,8 +160,6 @@ th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; p
 td { padding: 6px; vertical-align: top; border-bottom: 1px solid var(--rule); }
 td.num, th:not(:first-child) { text-align: right; white-space: nowrap; }
 .tally { margin-top: 10px; }
-.explain { margin-top: 4px; }
-.explain p { margin-top: 6px; }
 .tally td:first-child { font-weight: 600; }
 .tally tr.sub-row td { color: var(--muted); font-size: 12px; border-bottom-style: dashed; padding-top: 2px; }
 .tally tr.sub-row td:first-child { font-weight: 400; padding-left: 14px; }
