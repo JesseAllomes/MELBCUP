@@ -24,7 +24,7 @@
     {% if can_fetch and not snap.saved %}
     {% if snap.auto %}
     <div class="status">
-      <p class="source"><span class="when">Live{% if snap.priced_at %} · prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading or not card %} · loading card…{% endif %}</span></p>
+      <p class="source"><span class="when">Live{% if snap.priced_at %} · prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading or (not card and not snap.field_due) %} · loading card…{% endif %}</span></p>
     </div>
     {% else %}
     <div class="status">

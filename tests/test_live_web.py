@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import httpx
@@ -6,14 +7,13 @@ from conftest import RACE_DATE, VENUE, Router, rc_market
 from fastapi.testclient import TestClient
 
 from melbcup.config import MELBOURNE, load_settings
-from melbcup.domain import Race
-from melbcup.live import LiveBoard, price_check_times
+from melbcup.live import LiveBoard
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.app import create_app
 from melbcup.web.views import edge, local_time, money, pct
 
-ENV = {"FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026"}
+ENV = {"FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026", "PRICE_MODE": "manual"}
 AUTO = {**ENV, "PRICE_MODE": "auto"}
 START = datetime(2026, 11, 3, 11, 30, tzinfo=MELBOURNE)  # R1 jumps 11:45, the Cup 3:00
 
@@ -37,37 +37,96 @@ def board_with(router: Router, clock: Clock, env=ENV) -> LiveBoard:
     )
 
 
-def test_price_checks_are_fixed_points_shared_across_races():
-    def race(n, h, m):
-        return Race(VENUE, RACE_DATE, n, start_time=datetime(2026, 11, 3, h, m, tzinfo=MELBOURNE))
-
-    one = price_check_times([race(7, 15, 0)])
-    assert [t.strftime("%H:%M") for t in one] == ["14:00", "14:30", "14:45", "14:55", "14:58"]
-    # Races 30 minutes apart: R8's 60-minute check is R7's 30-minute check.
-    two = price_check_times([race(7, 15, 0), race(8, 15, 30)])
-    assert len(two) == 9
-    assert price_check_times([Race(VENUE, RACE_DATE, 1)]) == []
+def test_auto_is_the_default_and_manual_is_explicit():
+    assert load_settings({}).auto_refresh is True
+    assert load_settings({"PRICE_MODE": "auto"}).auto_refresh is True
+    assert load_settings({"PRICE_MODE": "manual"}).auto_refresh is False
+    assert load_settings({"PRICE_MODE": " Manual "}).auto_refresh is False
 
 
-def test_auto_follows_the_checkpoints():
+def test_auto_loads_the_card_on_the_first_tick_with_no_button():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, {"APP_PASSWORD": "cup2026"})  # no PRICE_MODE: auto
+    assert board.auto and board.snapshot().card is None
+    board.tick()
+    assert board.snapshot().card is not None
+    assert router.hits["rc/card_races"] == 1 and router.hits["rc/races"] == 1
+
+
+def test_prices_are_due_sixty_seconds_after_the_last_check_and_not_before():
     router, clock = Router(), Clock(START)  # 11:30; R1 11:45, Cup 3:00pm
     board = board_with(router, clock, AUTO)
     board.tick()
     assert router.hits["rc/races"] == 1  # first price check on opening
-    for minutes, expected in (
-        (5, 1),
-        (10, 2),
-        (12, 2),
-        (13, 3),
-        (30, 3),
-        (149, 3),
-        (150, 4),
-        (151, 4),
+    for seconds, expected in (
+        (1, 1),
+        (30, 1),
+        (59, 1),
+        (61, 2),  # a minute after the check at 0 s
+        (90, 2),
+        (120, 2),
+        (122, 3),  # and a minute after that one
     ):
-        clock.t = START + timedelta(minutes=minutes, seconds=10)
+        clock.t = START + timedelta(seconds=seconds)
         board.tick()
-        assert router.hits["rc/races"] == expected, minutes
+        assert router.hits["rc/races"] == expected, seconds
     assert router.hits["rc/card_races"] == 1  # the card is loaded once
+    assert board._prices_due(START + timedelta(seconds=122 + 59)) is False
+    assert board._prices_due(START + timedelta(seconds=122 + 60)) is True
+
+
+def test_pricing_stops_once_every_race_has_jumped():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    clock.t = datetime(2026, 11, 3, 14, 59, tzinfo=MELBOURNE)  # the Cup (R2) is a minute away
+    board.tick()
+    assert router.hits["rc/races"] == 2
+    clock.t = datetime(2026, 11, 3, 15, 1, tzinfo=MELBOURNE)  # both races have jumped
+    board.tick()
+    assert router.hits["rc/races"] == 2  # nothing left to price
+    assert router.hits["rc/results"] >= 2  # results are being collected instead
+
+
+def test_results_start_three_minutes_after_the_jump_then_every_two_minutes_until_final():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    clock.t = datetime(2026, 11, 3, 11, 47, 59, tzinfo=MELBOURNE)  # R1 jumped 2 min 59 s ago
+    assert board._results_due(clock.t) is False
+    board.tick()
+    assert "rc/results" not in router.hits
+    clock.t = datetime(2026, 11, 3, 11, 48, 1, tzinfo=MELBOURNE)  # 3 minutes after the jump
+    assert board._results_due(clock.t) is True
+    board.tick()
+    assert router.hits["rc/results"] == 2  # one call per race: the whole card at once
+    # Placings still interim: re-checked every two minutes, not before.
+    race = board._card.race(1)
+    race.result = replace(race.result, status="interim")
+    clock.t += timedelta(seconds=119)
+    assert board._results_due(clock.t) is False
+    clock.t += timedelta(seconds=2)
+    assert board._results_due(clock.t) is True
+    board.tick()
+    assert router.hits["rc/results"] == 4
+    # Race 1 came back final, race 2 has not run: nothing more is due until it jumps.
+    clock.t = datetime(2026, 11, 3, 14, 30, tzinfo=MELBOURNE)
+    assert board._results_due(clock.t) is False
+    clock.t = datetime(2026, 11, 3, 15, 3, 1, tzinfo=MELBOURNE)
+    assert board._results_due(clock.t) is True
+
+
+def test_a_race_that_never_turns_final_is_given_up_on():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    clock.t = datetime(2026, 11, 3, 18, 0, tzinfo=MELBOURNE)
+    board.tick()
+    for race in board._card.races:
+        race.result = replace(race.result, status="interim")
+    board._results_at = datetime(2026, 11, 3, 17, 5, tzinfo=MELBOURNE)  # 2 h after the Cup
+    clock.t = datetime(2026, 11, 3, 18, 0, tzinfo=MELBOURNE)
+    assert board._results_due(clock.t) is False
 
 
 def test_reloading_the_card_keeps_prices_and_scratchings():
@@ -209,6 +268,30 @@ def test_buttons_and_data_source_on_page(client):
     assert "credits" not in html.lower() and "PuntersEdge" not in html
     assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
     assert "next=/%3Fbudget%3D50" in html
+
+
+def test_auto_page_has_no_load_or_refresh_buttons_just_a_status_line(monkeypatch):
+    from melbcup.web import views
+
+    monkeypatch.setattr(views, "melbourne_today", lambda: RACE_DATE)  # results are in play too
+    router, clock = Router(), Clock(START)  # 11:30am Melbourne
+    board = board_with(router, clock, AUTO)
+    app = create_app(load_settings(AUTO), board, start_background=False)
+    with TestClient(app) as c:
+        assert "Live" in c.get("/", auth=AUTH).text  # before the first tick: no buttons either
+        board.tick()
+        html = c.get("/", auth=AUTH).text
+    for label in ("Load card", "Reload card", "Refresh prices", "Get results", "Auto on", "Auto off"):
+        assert label not in html, label
+    assert "/actions/" not in html.replace("/actions/meeting", "")
+    assert "Live · prices 11:30am" in html  # Melbourne time
+    assert 'data-refresh="30"' in html
+
+
+def test_manual_page_keeps_its_buttons_and_the_default_refresh_is_thirty_seconds(client):
+    html = client.get("/", auth=AUTH).text
+    assert "Reload card" in html and "Live · prices" not in html
+    assert 'data-refresh="30"' in html
 
 
 def test_refresh_button_spends_one_call_and_returns(board_and_router):
