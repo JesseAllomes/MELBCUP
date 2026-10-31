@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import httpx
 import pytest
-from conftest import RACE_DATE, VENUE, Router, rc_market
+from conftest import RACE_DATE, Router, rc_market
 from fastapi.testclient import TestClient
 
 from melbcup.config import MELBOURNE, load_settings
@@ -110,6 +110,7 @@ def test_results_start_three_minutes_after_the_jump_then_every_two_minutes_until
     board.tick()
     assert router.hits["rc/results"] == 4
     # Race 1 came back final, race 2 has not run: nothing more is due until it jumps.
+    board._card.race(2).result = None
     clock.t = datetime(2026, 11, 3, 14, 30, tzinfo=MELBOURNE)
     assert board._results_due(clock.t) is False
     clock.t = datetime(2026, 11, 3, 15, 3, 1, tzinfo=MELBOURNE)
@@ -281,7 +282,8 @@ def test_auto_page_has_no_load_or_refresh_buttons_just_a_status_line(monkeypatch
         assert "Live" in c.get("/", auth=AUTH).text  # before the first tick: no buttons either
         board.tick()
         html = c.get("/", auth=AUTH).text
-    for label in ("Load card", "Reload card", "Refresh prices", "Get results", "Auto on", "Auto off"):
+    buttons = ("Load card", "Reload card", "Refresh prices", "Get results", "Auto on", "Auto off")
+    for label in buttons:
         assert label not in html, label
     assert "/actions/" not in html.replace("/actions/meeting", "")
     assert "Live · prices 11:30am" in html  # Melbourne time

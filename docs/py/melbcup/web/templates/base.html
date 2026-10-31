@@ -19,9 +19,14 @@
       </nav>
     </div>
   </header>
-  <main id="main" class="wrap" data-refresh="{% block refresh %}60{% endblock %}">
+  <main id="main" class="wrap" data-refresh="{% block refresh %}30{% endblock %}">
     {% block top %}{% endblock %}
     {% if can_fetch and not snap.saved %}
+    {% if snap.auto %}
+    <div class="status">
+      <p class="source"><span class="when">Live{% if snap.priced_at %} · prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading or (not card and not snap.field_due) %} · loading card…{% endif %}</span></p>
+    </div>
+    {% else %}
     <div class="status">
       {% if snap.priced_at or snap.results_at or snap.loading %}
       <p class="source"><span class="when">{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %}{{ ' · ' if snap.priced_at }}results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %}{{ ' · ' if snap.priced_at or snap.results_at }}loading card…{% endif %}</span></p>
@@ -39,6 +44,7 @@
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}"><button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'on' if snap.auto else 'off' }}</button></form>
       </div>
     </div>
+    {% endif %}
     {% endif %}
     {% block content %}{% endblock %}
   </main>

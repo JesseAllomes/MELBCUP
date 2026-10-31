@@ -5,11 +5,12 @@ results. A manual price or results refresh is refused within MIN_REFRESH_GAP (60
 one, so a public page cannot be used to hammer racing.com; racing.com replies are cached for
 the same time.
 
-Auto mode (the phone's default) does the same on a fixed plan:
-    the card       once, when the meeting is opened (scratchings arrive with the prices)
-    prices         60, 30, 15, 5 and 2 minutes before each race; checks that fall in the
-                   same minute are shared, and only meetings whose field is out are priced
-    results        ten minutes after each race, plus one late sweep for interim placings
+Auto mode (the default; PRICE_MODE=manual turns it off) keeps the page live on its own:
+    the card       once, on the first tick (scratchings arrive with the prices)
+    prices         the whole card every 60 s while the prices window is open and any race is
+                   still to run; only meetings whose field is out are priced
+    results        three minutes after each jump, then every two minutes until every placing
+                   is final
 
 Prices are racing.com's fixed odds from Sportsbet, Ladbrokes, PointsBet and bet365; the
 Sportsbet price drives the Sportsbet-only multis and the price verdicts. FormFav is optional
@@ -44,24 +45,10 @@ QUOTA_BACKOFF = timedelta(minutes=15)
 OUTAGE_BACKOFF = timedelta(minutes=1)  # Auto retries a failing racing.com call no faster than this
 MIN_REFRESH_GAP = timedelta(seconds=60)  # a manual price or results refresh, however often tapped
 FIELD_PUBLISHED = timedelta(days=3)  # Racing Australia publishes acceptances about two days out
-RESULTS_AFTER = timedelta(minutes=10)  # results usually settle within ten minutes of the jump
-RESULTS_EVERY = timedelta(minutes=10)
-FINAL_AFTER = timedelta(minutes=40)  # placings turn "final" after thirty stable minutes
-
-
-PRICE_CHECKS = (60, 30, 15, 5, 2)  # minutes before each jump
-
-
-def price_check_times(races: list[Race]) -> list[datetime]:
-    """When Auto checks prices: at each race's checkpoints. One call prices the whole card,
-    so checkpoints from different races that fall in the same minute share a call."""
-    times = {
-        (race.start_time - timedelta(minutes=m)).replace(second=0, microsecond=0)
-        for race in races
-        if race.start_time is not None
-        for m in PRICE_CHECKS
-    }
-    return sorted(times)
+RESULTS_AFTER = timedelta(minutes=3)  # first results check, after each jump
+RESULTS_EVERY = timedelta(minutes=2)  # then again until every placing is final
+RESULTS_GIVE_UP = timedelta(hours=2)  # stop re-checking a race that never turns final
+PRICES_EVERY = timedelta(seconds=60)  # Auto prices the whole card this often
 
 
 @dataclass
@@ -317,27 +304,29 @@ class LiveBoard:
             return list(self._history)
 
     def _results_due(self, now: datetime) -> bool:
-        """A race jumped ten minutes ago and has no result yet; or every race is in but some
-        only as interim placings, and the last race jumped over forty minutes ago (one final
-        sweep). One call returns every race's result."""
+        """A race jumped three minutes ago and has no result yet, or some placings are still
+        interim: check again, at most every two minutes, until every placing is final. One
+        call returns every race's result."""
         if self._card is None or self.race_date > self._melbourne_day(now):
             return False
-        if self._results_at is not None and now - self._results_at < RESULTS_EVERY:
+        last = max((t for t in (self._results_at, self._results_try) if t), default=None)
+        if last is not None and now - last < RESULTS_EVERY:
             return False
         past_day = self.race_date < self._melbourne_day(now)
 
-        def jumped(race: Race, after: timedelta) -> bool:
-            return past_day or (race.start_time is not None and now - race.start_time >= after)
+        def wanted(race: Race) -> bool:
+            if race.result is not None and race.result.status == "final":
+                return False
+            start = race.start_time
+            if start is None:
+                return past_day and self._results_at is None
+            if now - start < RESULTS_AFTER:
+                return False
+            # a race that never settles (abandoned, say) is dropped once a check made two hours
+            # after its jump has come back without a final placing
+            return self._results_at is None or self._results_at - start < RESULTS_GIVE_UP
 
-        races = self._card.races
-        if any(r.result is None and jumped(r, RESULTS_AFTER) for r in races):
-            return True
-        interim = [r for r in races if r.result is not None and r.result.status != "final"]
-        last_sweep_done = self._results_at is not None and all(
-            r.start_time is not None and self._results_at - r.start_time >= FINAL_AFTER
-            for r in races
-        )
-        return bool(interim) and all(jumped(r, FINAL_AFTER) for r in races) and not last_sweep_done
+        return any(wanted(r) for r in self._card.races)
 
     def set_auto(self, on: bool) -> None:
         self.auto = on
@@ -395,8 +384,10 @@ class LiveBoard:
                         return  # too early: nothing to fetch yet, and no error to show
                     self._load_form(now)
                 if self._prices_window(now) and self._prices_due(now):
+                    self._price_try = now  # a failed attempt counts too
                     self._load_prices(now)
                 if self._results_due(now):
+                    self._results_try = now
                     self._load_results(now)
 
             self._guarded(now, run)
@@ -404,11 +395,17 @@ class LiveBoard:
             self._work.release()
 
     def _prices_due(self, now: datetime) -> bool:
-        """The first check always runs (it also corrects start times); after that, whenever a
-        checkpoint has passed since the last check."""
-        if self._priced_at is None:
+        """The first check always runs (it also corrects start times); after that, once a
+        minute while any race has yet to jump (a jumped race is waiting on its result)."""
+        last = max((t for t in (self._priced_at, self._price_try) if t), default=None)
+        if last is None:
             return True
-        return any(self._priced_at < t <= now for t in price_check_times(self._card.races))
+        if now - last < PRICES_EVERY:
+            return False
+        return any(
+            r.result is None and (r.start_time is None or r.start_time > now)
+            for r in self._card.races
+        )
 
     @property
     def can_fetch(self) -> bool:
