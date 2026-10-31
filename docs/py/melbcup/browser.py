@@ -6,7 +6,7 @@ button. There are no threads in the browser and API calls are synchronous XMLHtt
 which fetches the load's ~100 requests six at a time and caches them; the load then reads them
 from the cache. The loaded
 card, prices and results are handed back by ``save`` for the page to keep on the phone, so
-reopening the page never re-spends credits.
+reopening the page never re-fetches.
 """
 
 from __future__ import annotations
@@ -28,9 +28,6 @@ from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.views import NotFound, Views
 
 STATE_VERSION = 1
-# The saved meetings' password. The owner chose a simple one and the app supplies it, so nobody
-# types anything: the sealing only keeps the files from being plain text on the public site.
-HISTORY_PASSWORD = "1234"
 _views: Views | None = None
 # (urls, headers, label) -> awaitable list of [status, text]: the page's parallel fetch.
 FetchMany = Callable[[list[str], dict[str, str], str], Awaitable[Any]]
@@ -105,7 +102,7 @@ def _restore(board: LiveBoard, blob: str) -> None:
     if not isinstance(state, dict) or state.get("version") != STATE_VERSION:
         return
     board.race_date, board.venue = state["race_date"], state["venue"]
-    # Auto is not remembered: opening the page never spends credits by itself.
+    # Auto is not remembered: opening the page never fetches by itself.
     board._card = state["card"]
     board._form_at, board._priced_at = state["form_at"], state["priced_at"]
     board._results_at, board._meetings = state["results_at"], state["meetings"]
@@ -116,7 +113,6 @@ def _restore(board: LiveBoard, blob: str) -> None:
 
 
 def init(
-    pe_key: str,
     ff_key: str,
     saved: str | None = None,
     progress: Callable[[str], None] | None = None,
@@ -124,7 +120,6 @@ def init(
     archive_reader: Callable[[str], str | None] | None = None,
     clock: Callable[[], datetime] | None = None,
     fetch_many: FetchMany | None = None,
-    history_password: str | None = None,
 ) -> None:
     global _views, _fetch_many
     _fetch_many = fetch_many
@@ -132,43 +127,35 @@ def init(
     http.DEFAULT_REQUESTER = requester or xhr_requester(progress)
     settings = load_settings(
         {
-            "PUNTERSEDGE_API_KEY": pe_key or "",
             "FORMFAV_API_KEY": ff_key or "",
             "APP_PASSWORD": "browser",
-            "PRICE_MODE": "manual",  # Auto spends credits: off each time the page opens
+            "PRICE_MODE": "manual",  # Auto is off each time the page opens
         }
     )
     reader = archive_reader or (xhr_text if requester is None else None)
-    secret = history_password or HISTORY_PASSWORD
-    archive = Archive(reader, pe_key, secret) if reader else None
+    archive = Archive(reader) if reader else None
     board = LiveBoard(
         settings, archive=archive, rc=RacingComClient(), **({"clock": clock} if clock else {})
     )
     if saved:
         _restore(board, saved)
-    board.check_credits()  # free: shows the balance before anything is spent
     _views = Views(settings, board, browser=True)
 
 
 async def warm(manual: bool = False) -> int:
     """Before a card load, fetch its requests side by side and cache the replies, so the load
     itself runs from the cache instead of making ~100 calls one after another. Spends nothing
-    the load would not (the acceptances are cached for it too). A request that fails here is
+    the load would not (the card is cached for it too). A request that fails here is
     simply made again by the load, which reports it as usual. Returns the replies cached."""
     board = _views.board if _views else None
     if _fetch_many is None or board is None or not board.load_due(board.clock(), manual=manual):
         return 0
     try:
-        if board.pe is not None:
-            card = board.pe.acceptances(board.race_date, board.venue)
-        else:
-            card = board.rc.card(board.race_date, board.venue)
+        card = board.rc.card(board.race_date, board.venue)
     except http.SourceError:
         return 0  # the load asks again and shows the reason
     cached = 0
     clients = (
-        # PuntersEdge's recent form costs 3 credits a race: only when racing.com is missing.
-        (board.pe if board.rc is None else None, "recent form"),
         (board.ff, "form and stats"),
         (board.rc, "recent runs and stewards' notes"),
     )
@@ -206,8 +193,6 @@ def act(url: str) -> str:
         target = _views.action(path.removeprefix("/actions/"), query)
     except NotFound:
         return "/"
-    if path.removeprefix("/actions/") in ("prices", "results", "load", "find"):
-        _views.board.check_credits()  # the browser cannot read credit headers; this is free
     return target
 
 

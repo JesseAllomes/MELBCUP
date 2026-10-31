@@ -1,5 +1,5 @@
 // Runs the MELBCUP Python package in Pyodide, off the page's main thread. Synchronous
-// XMLHttpRequest is allowed here, which is how the Python code calls PuntersEdge and FormFav.
+// XMLHttpRequest is allowed here, which is how the Python code calls racing.com and FormFav.
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js");
 
 let app = null;
@@ -45,15 +45,14 @@ async function boot(msg) {
   }));
   py.runPython("import sys; sys.path.insert(0, '/home/pyodide')");
   const browser = py.pyimport("melbcup.browser");
-  postMessage({ type: "progress", text: "Checking your PuntersEdge balance…" });
+  postMessage({ type: "progress", text: "Starting…" });
   let calls = 0;
   const progress = (what) => {
     calls += 1;
     postMessage({ type: "progress", text: "Fetching " + what + " (" + calls + ")" });
   };
-  browser.init.callKwargs(msg.pe, msg.ff, msg.saved || null, progress, {
+  browser.init.callKwargs(msg.ff, msg.saved || null, progress, {
     fetch_many: fetchMany,
-    history_password: msg.hp || null,
   });
   return { browser, build: manifest.build };
 }

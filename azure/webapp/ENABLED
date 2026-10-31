@@ -1,2 +1,2 @@
-Keys are in Key Vault (melbcup-puntersedge-api-key, melbcup-formfav-api-key, melbcup-app-password).
+Keys are in Key Vault (melbcup-formfav-api-key, melbcup-app-password).
 Delete this file to stop azure-deploy.yml creating or updating the melbcup-web Container App.

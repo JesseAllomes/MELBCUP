@@ -1,6 +1,6 @@
 # MELBCUP web app (FastAPI) for Azure Container Apps. Render (render.yaml) stays as the backup host.
 # Build: docker build -t melbcup-web .   Run: docker run -p 8000:8000 -e APP_PASSWORD=x melbcup-web
-# Secrets (PUNTERSEDGE_API_KEY, FORMFAV_API_KEY, APP_PASSWORD) are injected at run time, never baked in.
+# Secrets (FORMFAV_API_KEY, APP_PASSWORD) are injected at run time, never baked in.
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

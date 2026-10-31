@@ -1,14 +1,11 @@
-"""Seal already-downloaded meetings into docs/data so the app opens them without credits.
+"""Write already-downloaded meetings into docs/data so the app opens them without fetching.
 
 Input: pickles of ``(Race, {number: (sp, position)})`` from the backtest collection (pre-race
 acceptances + FormFav form, with official SPs and placings). Each race's own result is taken
 back out of the jockey and trainer figures (they were fetched afterwards), the result is
-attached, and meetings are sealed with a key derived from PUNTERSEDGE_API_KEY.
+attached, and meetings are written unencrypted: saved meetings and history open with no password.
 
-    PUNTERSEDGE_API_KEY=... [HISTORY_PASSWORD=...] \
-        python tools/build_archive.py <dir-with-calib_YYYY-MM-DD.pkl>
-
-The PuntersEdge key or the History password (for friends using their own keys) opens it.
+    python tools/build_archive.py <dir-with-calib_YYYY-MM-DD.pkl>
 """
 
 from __future__ import annotations
@@ -53,20 +50,18 @@ def cards_from(folder: str) -> list[Card]:
 
 
 def main() -> None:
-    secret = os.environ.get("PUNTERSEDGE_API_KEY")
-    if not secret or len(sys.argv) != 2:
+    if len(sys.argv) != 2:
         sys.exit(__doc__)
-    secrets = [secret] + [p for p in [os.environ.get("HISTORY_PASSWORD")] if p]
     cards = cards_from(sys.argv[1])
     out = ROOT / "docs" / "data"
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
     record = merge(*(entries(build_picks([assess(r) for r in c.races])) for c in cards))
-    archive.write(str(out), cards, secrets, history=record)
+    archive.write(str(out), cards, history=record)
     races = sum(len(c.races) for c in cards)
     size = sum(f.stat().st_size for f in out.rglob("*") if f.is_file())
     print(
-        f"sealed {len(cards)} meetings, {races} races, {len(record)} history entries, "
+        f"saved {len(cards)} meetings, {races} races, {len(record)} history entries, "
         f"{size / 1e6:.1f} MB into docs/data"
     )
 

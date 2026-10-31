@@ -1,15 +1,19 @@
-"""Keeps the card, models and picks fresh, spending PuntersEdge credits sparingly.
+"""Keeps the card, models and picks fresh from racing.com (free), without hammering it.
 
-Manual mode spends nothing on its own: the page's buttons load the card (2 credits; recent form
-comes free from racing.com, with PuntersEdge's 3 per race only as the fallback), refresh prices
-and fetch results (2 credits each, for the whole card).
+Manual mode does nothing on its own: the page's buttons load the card, refresh prices and fetch
+results. A manual price or results refresh is refused within MIN_REFRESH_GAP (60 s) of the last
+one, so a public page cannot be used to hammer racing.com; racing.com replies are cached for
+the same time.
 
-Auto mode (the phone's default) does the same on a fixed, frugal plan:
+Auto mode (the phone's default) does the same on a fixed plan:
     the card       once, when the meeting is opened (scratchings arrive with the prices)
     prices         60, 30, 15, 5 and 2 minutes before each race; checks that fall in the
-                   same minute are shared, and only today's and tomorrow's meetings are priced
+                   same minute are shared, and only meetings whose field is out are priced
     results        ten minutes after each race, plus one late sweep for interim placings
-For a ten-race day that is about 130-150 credits.
+
+Prices are racing.com's fixed odds from Sportsbet, Ladbrokes, PointsBet and bet365; the
+Sportsbet price drives the Sportsbet-only multis and the price verdicts. FormFav is optional
+enrichment.
 """
 
 from __future__ import annotations
@@ -29,7 +33,6 @@ from melbcup.model.probability import RaceModel, assess
 from melbcup.sources import apply_market, apply_result, load_card
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
-from melbcup.sources.puntersedge import PuntersEdgeClient
 from melbcup.sources.racingcom import RacingComClient
 
 if TYPE_CHECKING:
@@ -38,7 +41,8 @@ if TYPE_CHECKING:
 log = logging.getLogger("melbcup.live")
 
 QUOTA_BACKOFF = timedelta(minutes=15)
-MIN_MANUAL_GAP = timedelta(seconds=15)  # a double tap must not spend twice
+OUTAGE_BACKOFF = timedelta(minutes=1)  # Auto retries a failing racing.com call no faster than this
+MIN_REFRESH_GAP = timedelta(seconds=60)  # a manual price or results refresh, however often tapped
 FIELD_PUBLISHED = timedelta(days=3)  # Racing Australia publishes acceptances about two days out
 RESULTS_AFTER = timedelta(minutes=10)  # results usually settle within ten minutes of the jump
 RESULTS_EVERY = timedelta(minutes=10)
@@ -66,8 +70,6 @@ class Snapshot:
     models: list[RaceModel]
     updated_at: datetime | None
     errors: list[str] = field(default_factory=list)
-    credits_remaining: int | None = None
-    credits_limit: int | None = None
     auto: bool = False
     loading: bool = False
     priced_at: datetime | None = None
@@ -78,7 +80,6 @@ class Snapshot:
     results_at: datetime | None = None
     can_price: bool = False  # the meeting may have a market (see LiveBoard._prices_window)
     saved: bool = False  # a finished meeting opened from the saved copy
-    auto_credits_left: int | None = None
     field_due: date | None = None
 
     def picks(self, budget: float | None) -> DayPicks:
@@ -89,19 +90,13 @@ class LiveBoard:
     def __init__(
         self,
         settings: Settings,
-        pe: PuntersEdgeClient | None = None,
         ff: FormFavClient | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         archive: Archive | None = None,
         rc: RacingComClient | None = None,
     ):
         self.settings = settings
-        self.rc = rc  # racing.com stewards' comments; the app's entry points supply it
-        self.pe = pe or (
-            PuntersEdgeClient(settings.puntersedge_api_key)
-            if settings.puntersedge_api_key
-            else None
-        )
+        self.rc = rc  # racing.com: field, prices, results; the app's entry points supply it
         self.ff = ff or (
             FormFavClient(settings.formfav_api_key) if settings.formfav_api_key else None
         )
@@ -122,6 +117,8 @@ class LiveBoard:
         self._models: dict[int, RaceModel] = {}
         self._form_at: datetime | None = None
         self._priced_at: datetime | None = None
+        self._price_try: datetime | None = None  # last manual attempt, failed or not
+        self._results_try: datetime | None = None
         self._paused_until: datetime | None = None
         self._errors: list[str] = []
         self._updated_at: datetime | None = None
@@ -135,8 +132,6 @@ class LiveBoard:
                 models=[self._models[n] for n in sorted(self._models)],
                 updated_at=self._updated_at,
                 errors=list(self._errors),
-                credits_remaining=self.pe.credits_remaining if self.pe else None,
-                credits_limit=self.pe.credits_limit if self.pe else None,
                 auto=self.auto,
                 loading=self._loading,
                 priced_at=self._priced_at,
@@ -147,14 +142,14 @@ class LiveBoard:
                 results_at=self._results_at,
                 can_price=self._prices_window(self.clock()),
                 saved=self._archived(self.clock()),
-                auto_credits_left=self.auto_credits_left(self.clock()),
                 field_due=self.field_due(self.clock()),
             )
 
     # -- actions ------------------------------------------------------------------------------
 
     def _guarded(self, now: datetime, fn: Callable[[], None]) -> None:
-        """Run one load/refresh, recording errors and pausing after quota or auth trouble."""
+        """Run one load/refresh, recording errors and pausing Auto after a failure: for 15
+        minutes after quota, rate-limit or auth trouble, for a minute after an outage."""
         errors: list[str] = []
         try:
             fn()
@@ -162,7 +157,9 @@ class LiveBoard:
             errors.append(str(exc))
             if exc.kind in ("quota", "rate_limit", "auth"):
                 self._paused_until = now + QUOTA_BACKOFF
-                errors.append(f"Paused automatic PuntersEdge calls for 15 minutes ({exc.kind}).")
+                errors.append(f"Paused automatic racing.com calls for 15 minutes ({exc.kind}).")
+            elif exc.kind in ("unavailable", "bad_response"):
+                self._paused_until = now + OUTAGE_BACKOFF
         with self._lock:
             self._errors = errors
 
@@ -179,13 +176,14 @@ class LiveBoard:
         )
 
     def _prices_window(self, now: datetime) -> bool:
-        """Today's and tomorrow's meetings; with racing.com (free) any meeting whose field is
-        out, since its bookmakers frame big meetings two or three days ahead. Picks lean on
-        the odds: before them the form model alone wins far less often."""
-        today = self._melbourne_day(now)
-        if self.rc is not None:
-            return today <= self.race_date and self.field_due(now) is None
-        return self.race_date in (today, today + timedelta(days=1))
+        """Any meeting whose field is out, today or later: bookmakers frame big meetings two or
+        three days ahead, and racing.com is free. Picks lean on the odds: before them the
+        form model alone wins far less often."""
+        return (
+            self.rc is not None
+            and self._melbourne_day(now) <= self.race_date
+            and self.field_due(now) is None
+        )
 
     def field_due(self, now: datetime) -> date | None:
         """The day the field should appear, while it is too early to ask for it."""
@@ -206,15 +204,15 @@ class LiveBoard:
     def _load_form(self, now: datetime) -> None:
         if (due := self.field_due(now)) is not None:
             raise SourceError(
-                "PuntersEdge",
+                "racing.com",
                 "not_yet",
                 f"The field for {self.venue} is published about two days before the meeting. "
                 f"It should be out on {due:%A} {due.day} {due:%B}.",
             )
-        if self._archived(now):  # saved earlier: no credits
+        if self._archived(now):  # saved earlier: nothing to fetch
             card = self.archive.load(self.race_date, self.venue)
         else:
-            card = load_card(self.pe, self.ff, self.race_date, self.venue, self.rc)
+            card = load_card(self.rc, self.ff, self.race_date, self.venue)
         with self._lock:
             self._carry_prices(card)
             self._card = card
@@ -222,21 +220,9 @@ class LiveBoard:
             self._models = {r.number: assess(r) for r in card.races}
             self._updated_at = now
 
-    def _fetch_prices(self) -> dict:
-        """racing.com's four bookmakers first (free); PuntersEdge's fifteen (2 credits) when
-        racing.com fails or misses a race still to be run."""
-        if self.rc is not None:
-            to_run = [r.number for r in self._card.races if r.result is None]
-            try:
-                found = self.rc.card_prices(self.race_date, self.venue, to_run)
-            except SourceError:
-                found = {}
-            if (to_run and set(to_run) <= set(found)) or self.pe is None:
-                return found
-        return self.pe.card_prices(self.race_date, self.venue)
-
     def _load_prices(self, now: datetime) -> None:
-        snaps = self._fetch_prices()
+        to_run = [r.number for r in self._card.races if r.result is None]
+        snaps = self.rc.card_prices(self.race_date, self.venue, to_run)
         with self._lock:
             for race in self._card.races:
                 if race.number in snaps:
@@ -272,15 +258,17 @@ class LiveBoard:
         return True
 
     def refresh_prices_now(self) -> bool:
-        """One whole-card price check (free from racing.com, else 2 credits). Ignored within
-        15 s of the last one."""
+        """One whole-card price check from racing.com. Ignored within MIN_REFRESH_GAP (60 s) of
+        the last one."""
         if not self.can_fetch or self._card is None:
             return False
         now = self.clock()
-        if self._priced_at is not None and now - self._priced_at < MIN_MANUAL_GAP:
+        last = max((t for t in (self._priced_at, self._price_try) if t), default=None)
+        if last is not None and now - last < MIN_REFRESH_GAP:
             return False
         if not self._work.acquire(blocking=False):
             return False
+        self._price_try = now  # a failed attempt counts too
         try:
             self._guarded(now, lambda: self._load_prices(now))
         finally:
@@ -288,15 +276,17 @@ class LiveBoard:
         return True
 
     def fetch_results_now(self) -> bool:
-        """Settled results for the meeting (free from racing.com, else 2 credits). Ignored
-        within 15 s of the last fetch."""
+        """Settled results for the meeting from racing.com. Ignored within MIN_REFRESH_GAP (60 s)
+        of the last fetch."""
         if not self.can_fetch or self._card is None:
             return False
         now = self.clock()
-        if self._results_at is not None and now - self._results_at < MIN_MANUAL_GAP:
+        last = max((t for t in (self._results_at, self._results_try) if t), default=None)
+        if last is not None and now - last < MIN_REFRESH_GAP:
             return False
         if not self._work.acquire(blocking=False):
             return False
+        self._results_try = now
         try:
 
             def run() -> None:
@@ -307,21 +297,8 @@ class LiveBoard:
             self._work.release()
         return True
 
-    def _fetch_results(self) -> dict:
-        """racing.com first (free); PuntersEdge (2 credits) if it fails or has nothing."""
-        if self.rc is not None:
-            try:
-                found = self.rc.results(
-                    self.race_date, self.venue, [r.number for r in self._card.races]
-                )
-            except SourceError:
-                found = {}
-            if found or self.pe is None:
-                return found
-        return self.pe.results(self.race_date, self.venue)
-
     def _load_results(self, now: datetime) -> None:
-        results = self._fetch_results()
+        results = self.rc.results(self.race_date, self.venue, [r.number for r in self._card.races])
         with self._lock:
             for race in self._card.races:
                 if race.number in results:
@@ -373,21 +350,19 @@ class LiveBoard:
             self.race_date, self.venue = race_date, venue
             self._card, self._models = None, {}
             self._form_at = self._priced_at = self._updated_at = self._results_at = None
+            self._price_try = self._results_try = None
             self._errors = []
         return True
 
     def find_meetings(self, race_date: date) -> list[str]:
-        """The day's meetings (free from racing.com, else 2 credits; then cached for the day)."""
+        """The day's meetings from racing.com (then cached for the day)."""
         if self.archive is not None and self.archive.venues(race_date):
-            return self.archive.venues(race_date)  # saved earlier: no credits
+            return self.archive.venues(race_date)  # saved earlier: nothing to fetch
         if not self.can_fetch:
             return []
         if race_date not in self._meetings:
             try:
-                if self.rc is not None:
-                    found = self.rc.meetings(race_date, self._melbourne_day(self.clock()))
-                else:
-                    found = self.pe.meetings(race_date)
+                found = self.rc.meetings(race_date, self._melbourne_day(self.clock()))
             except SourceError as exc:
                 with self._lock:
                     self._errors = [str(exc)]
@@ -396,20 +371,11 @@ class LiveBoard:
                 self._meetings[race_date] = found
         return self._meetings[race_date]
 
-    def check_credits(self) -> None:
-        """Read the balance once (free) so the page can show it before anything is spent."""
-        if self.pe is None:
-            return
-        try:
-            self.pe.read_credits()
-        except SourceError as exc:
-            log.warning("could not read PuntersEdge credits: %s", exc)
-
     # -- automatic mode -----------------------------------------------------------------------
 
     def tick(self) -> None:
-        """Auto mode: load the card if there is none, keep race-day form fresh, price today's
-        and tomorrow's meetings on schedule, and collect results as races are run."""
+        """Auto mode: load the card if there is none, keep race-day form fresh, price the meeting
+        on schedule, and collect results as races are run."""
         if not self.can_fetch or not self.auto:
             return
         now = self.clock()
@@ -442,45 +408,8 @@ class LiveBoard:
 
     @property
     def can_fetch(self) -> bool:
-        """A source to load cards from: racing.com (free, no key) or PuntersEdge."""
-        return self.pe is not None or self.rc is not None
-
-    def card_cost(self, races: int) -> int:
-        """PuntersEdge credits to load a card: none without a key (racing.com supplies it),
-        else the field, plus recent form unless racing.com supplies that."""
-        if self.pe is None:
-            return 0
-        return 2 if self.rc is not None else 2 + 3 * races
-
-    @property
-    def prices_cost(self) -> int:
-        """Credits per price check: racing.com's are free, PuntersEdge's cost 2."""
-        return 0 if self.rc is not None or self.pe is None else 2
-
-    @property
-    def results_cost(self) -> int:
-        """Credits per results check: racing.com's are free, PuntersEdge's cost 2."""
-        return 0 if self.rc is not None or self.pe is None else 2
-
-    def auto_credits_left(self, now: datetime) -> int | None:
-        """PuntersEdge credits Auto still plans to spend on this meeting: a price check per
-        checkpoint still to come and a results check per race still to be resulted (both free
-        from racing.com, 2 from PuntersEdge), and the card if it is not loaded."""
-        if self.pe is None or self._archived(now):
-            return 0  # racing.com alone costs nothing
-        if self.field_due(now) is not None:
-            return None  # nothing can be fetched until the field is published
-        if self._card is None:
-            return self.card_cost(10) + self.prices_cost  # a typical card, then a first check
-        checks = (
-            [t for t in price_check_times(self._card.races) if t > now]
-            if self._prices_window(now)
-            else []
-        )
-        unresulted = [r for r in self._card.races if r.result is None]
-        if self.race_date > self._melbourne_day(now) + timedelta(days=1):
-            unresulted = []  # nothing is fetched for it today
-        return self.prices_cost * len(checks) + self.results_cost * len(unresulted)
+        """racing.com (free, no key) is the one live source."""
+        return self.rc is not None
 
     def _carry_prices(self, card: Card) -> None:
         """A form reload must not wipe the prices or results already fetched."""
@@ -505,7 +434,6 @@ class LiveBoard:
             return
 
         def loop() -> None:
-            self.check_credits()
             while not self._stop.is_set():
                 try:
                     self.tick()

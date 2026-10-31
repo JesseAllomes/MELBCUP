@@ -30,11 +30,11 @@ def restore_globals():
     sources.WORKERS, http.DEFAULT_REQUESTER = workers, default
 
 
-def test_full_flow_and_saved_state_costs_nothing_on_reopen():
+def test_full_flow_and_reopening_fetches_nothing():
     router = Router()
     seen = []
     browser.init(
-        "pe", "ff", requester=requester_for(router), progress=seen.append, clock=lambda: CUP_MORNING
+        "ff", requester=requester_for(router), progress=seen.append, clock=lambda: CUP_MORNING
     )
     assert sources.WORKERS == 1
     assert "No card loaded yet" in browser.render("/")
@@ -44,39 +44,36 @@ def test_full_flow_and_saved_state_costs_nothing_on_reopen():
     assert nxt == "/"
     html = browser.render(nxt)
     assert "Lexus Melbourne Cup" in html and "Most likely" in html
-    assert router.hits["/v1/racing/acceptances"] == 1
+    assert router.hits["rc/card_races"] == 1
+    assert router.hits["rc/prices"] == 2  # one price call per race, no other price source
     assert "Grand Tempo" in browser.render("/race/2?budget=100")
     assert "Choose a meeting" in browser.render("/meetings")
     assert "Lexus Melbourne Cup" in browser.render("/race/99")  # unknown pages fall back home
 
     saved = browser.save()
     before = dict(router.hits)
-    browser.init("pe", "ff", saved, requester=requester_for(router), clock=lambda: CUP_MORNING)
+    browser.init("ff", saved, requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert "Lexus Melbourne Cup" in browser.render("/")
-    after = dict(router.hits)
-    assert after.pop("/v1/keys/info") == before.pop("/v1/keys/info") + 1  # the free balance read
-    assert after == before  # nothing else: no credits spent on reopening
+    assert dict(router.hits) == before  # nothing fetched on reopening
 
 
 def test_damaged_or_old_saved_state_starts_clean():
     router = Router()
-    browser.init(
-        "pe", "ff", "not base64!", requester=requester_for(router), clock=lambda: CUP_MORNING
-    )
+    browser.init("ff", "not base64!", requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert "No card loaded yet" in browser.render("/")
 
 
 def test_opening_the_page_spends_nothing():
     router = Router()
-    browser.init("pe", "ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
+    browser.init("ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert "Auto off" in browser.render("/")
     assert browser.tick() is False  # Auto off: the heartbeat fetches nothing
-    assert set(router.hits) <= {"/v1/keys/info"}  # only the free balance read
+    assert router.hits == {}
 
 
 def test_actions_route_like_the_server():
     router = Router()
-    browser.init("pe", "ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
+    browser.init("ff", requester=requester_for(router), clock=lambda: CUP_MORNING)
     assert browser.act("/actions/meeting?date=2026-10-31&venue=Flemington") == "/"
     assert "Sat 31 Oct" in browser.render("/")
     assert browser.act("/actions/nonsense") == "/"
@@ -96,7 +93,6 @@ def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
         return [[r.status, r.text] for r in replies]
 
     browser.init(
-        "pe",
         "ff",
         requester=requester_for(router),
         clock=lambda: CUP_MORNING,
@@ -110,8 +106,7 @@ def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
     before = dict(router.hits)
     assert browser.tick()  # the load
     after = dict(router.hits)
-    assert after["/v1/racing/acceptances"] == before["/v1/racing/acceptances"] == 1
-    assert "/v1/racing/form" not in after  # racing.com supplies runs: no 3-credit form calls
+    assert after["rc/card_races"] == before["rc/card_races"] == 1
     assert after.get("/v1/form") == before.get("/v1/form")
     stats = [k for k in after if k.startswith("/v1/stats/")]
     assert stats and all(after[k] == before.get(k) for k in stats)  # people came from the cache
@@ -121,18 +116,19 @@ def test_warm_fetches_the_load_side_by_side_and_the_load_reads_the_cache():
 
 def test_friends_need_no_keys_racingcom_supplies_everything():
     router = Router()
-    browser.init("", "", requester=requester_for(router), clock=lambda: CUP_MORNING)
+    browser.init("", requester=requester_for(router), clock=lambda: CUP_MORNING)
     html = browser.render("/")
-    assert "Live data from racing.com" in html and "PuntersEdge credits" not in html
+    assert "Live data from racing.com" in html and "credits" not in html.lower()
+    assert "PuntersEdge" not in html
     browser.act("/actions/load?next=/")
     html = browser.render("/")
-    assert "Most likely" in html and "Race 2" in html  # racing.com's own race names
+    assert "Most likely" in html and "Lexus Melbourne Cup" in html  # racing.com's own race names
     browser.act("/actions/prices?next=/")
-    assert not any(k.startswith("/v1/") for k in router.hits)  # no PuntersEdge or FormFav calls
+    assert not any(k.startswith("/v1/") for k in router.hits)  # no FormFav calls
     card = browser._views.board.snapshot().card
     r1 = card.race(1).runner(1)
     assert r1.career.starts == 10 and r1.going_records and r1.last_start_note
-    assert card.race(1).prices[1].sportsbet_win == 3.0
+    assert card.race(1).prices[1].sportsbet_win == 2.9  # racing.com's Sportsbet price
 
 
 def test_warm_works_with_no_keys():
@@ -145,9 +141,32 @@ def test_warm_works_with_no_keys():
         return [[r.status, r.text] for r in replies]
 
     browser.init(
-        "", "", requester=requester_for(router), clock=lambda: CUP_MORNING, fetch_many=fetch_many
+        "", requester=requester_for(router), clock=lambda: CUP_MORNING, fetch_many=fetch_many
     )
     assert asyncio.run(browser.warm(True)) > 5  # each runner's racing.com runs, side by side
     browser.act("/actions/load?next=/")
     assert "Most likely" in browser.render("/")
     assert not any(k.startswith("/v1/") for k in router.hits)
+
+
+def test_saved_meetings_and_history_open_with_no_key_or_password(tmp_path):
+    from datetime import date
+
+    from test_archive import saved_meeting
+
+    day = date(2026, 10, 24)
+    router = Router()
+    browser.init(
+        "",
+        requester=requester_for(router),
+        clock=lambda: CUP_MORNING,
+        archive_reader=saved_meeting(tmp_path, day),
+    )
+    page = browser.render("/meetings?date=2026-10-24")
+    assert "venue=Flemington" in page and "saved with results" in page
+    browser.act("/actions/meeting?date=2026-10-24&venue=Flemington")
+    browser.act("/actions/load?next=/")
+    assert "Lexus Melbourne Cup" in browser.render("/")
+    html = browser.render("/history")
+    assert "locked" not in html and "password" not in html.lower()
+    assert router.hits == {}  # nothing fetched: the saved copy is read directly

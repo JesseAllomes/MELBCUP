@@ -1,27 +1,26 @@
-from datetime import date, datetime
+import importlib.util
+import json
+from datetime import UTC, date, datetime
+from pathlib import Path
 
 import httpx
 import pytest
-from conftest import RACE_DATE, VENUE, Router, load_fixture
+from conftest import RACE_DATE, VENUE, Router, load_fixture, rc_market, rc_payload
 
-from melbcup.config import MELBOURNE
 from melbcup.domain import going_band, going_rating, parse_distance, parse_margin
 from melbcup.sources import apply_market, load_card
 from melbcup.sources.formfav import FormFavClient, parse_track_bias, track_slug
 from melbcup.sources.http import JsonSource, SourceError
-from melbcup.sources.puntersedge import (
-    PuntersEdgeClient,
-    parse_acceptances,
-    parse_form,
-    parse_next_to_go,
-)
+from melbcup.sources.racingcom import BOOKS, PRICE_FIELDS, RacingComClient, parse_market
+
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def clients(router: Router, *, with_ff: bool = True):
     t = httpx.MockTransport(router)
-    pe = PuntersEdgeClient("pe-key", transport=t)
+    rc = RacingComClient(transport=t)
     ff = FormFavClient("ff-key", transport=t) if with_ff else None
-    return pe, ff
+    return rc, ff
 
 
 # --- small parsers -------------------------------------------------------------------------
@@ -44,94 +43,139 @@ def test_going_helpers():
     assert track_slug("Moonee Valley") == "moonee-valley"
 
 
-# --- vendor example payloads (shape checks) ------------------------------------------------
+# --- racing.com prices: recorded market records --------------------------------------------
 
 
-def test_vendor_acceptances_example_parses_owner_and_local_start():
-    card = parse_acceptances(load_fixture("pe_acceptances"), "grafton", date(2026, 9, 29))
-    race = card.races[0]
-    assert race.number == 4 and race.distance_m == 1106
-    runner = race.runner(2)
-    assert runner.name == "Geegee Jet By"
-    assert runner.owner.startswith("D J Dick")
-    assert runner.gear_changes and runner.hcp_rating == 66
-    assert race.start_time == datetime(2026, 9, 29, 14, 45, tzinfo=MELBOURNE)
-    assert card.condition == "Soft 5"
+def test_price_query_asks_for_what_the_live_collector_records():
+    """The app reads the same GetBettingData fields tools/live_collector.py records, and the
+    fixtures are trimmed copies of what it recorded."""
+    spec = importlib.util.spec_from_file_location(
+        "live_collector", ROOT / "tools/live_collector.py"
+    )
+    collector = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(collector)
+    assert {alias: code for alias, (code, _) in BOOKS.items()} == collector.BOOKS
+    assert PRICE_FIELDS == collector.PRICE
+    recorded = collector.market_query(False)
+    for alias, code in collector.BOOKS.items():
+        assert f'{alias}: oddsByProvider(providerCode:"{code}")' in recorded
+    entry = load_fixture("rc_market")["race1"]["data"]["GetBettingData"]["formRaceEntries"][0]
+    assert set(collector.BOOKS) <= set(entry) and set(entry["sb"][0]) == set(PRICE_FIELDS.split())
 
 
-def test_vendor_acceptances_missing_venue_warns():
-    card = parse_acceptances(load_fixture("pe_acceptances"), "Flemington", RACE_DATE)
-    assert card.races == []
-    assert "No acceptances" in card.warnings[0]
+def test_recorded_market_gives_sportsbet_and_the_best_of_four_books():
+    snap = parse_market({}, rc_market(1))
+    assert set(snap.prices) == set(range(1, 9)) and not snap.scratched
+    one = snap.prices[1]
+    assert (one.sportsbet_win, one.sportsbet_place) == (2.9, 1.3)
+    assert (
+        one.best_win.price == 2.9 and one.best_win.bookmaker == "sportsbet"
+    )  # a tie keeps Sportsbet
+    assert (
+        snap.prices[4].best_win.price == 7.5 and snap.prices[4].best_win.bookmaker == "ladbrokes_au"
+    )
+    assert (
+        snap.prices[6].best_win.price == 51.0 and snap.prices[6].best_win.bookmaker == "pointsbetau"
+    )
+    assert snap.prices[1].best_place.price >= 1.3
+    assert all(p.sportsbet_win for p in snap.prices.values())
+    assert snap.start_time == datetime(2026, 11, 3, 0, 45, tzinfo=UTC)
+    # the newest of the books' own update stamps (epoch seconds)
+    entries = rc_market(1)["GetBettingData"]["formRaceEntries"]
+    stamps = [
+        o[t] for e in entries for b in BOOKS for o in e[b] for t in ("updated", "placeUpdated")
+    ]
+    assert snap.observed_at == datetime.fromtimestamp(max(stamps), UTC)
+    assert snap.places_paid == 3  # eight starters
 
 
-def test_vendor_form_example():
-    form = parse_form(load_fixture("pe_form"))
-    runs, record = form[1]
-    assert runs[0].venue == "Coffs Harbour" and runs[0].position == 3
-    assert runs[0].margin_l == 1.8
-    assert (record.starts, record.wins, record.top3) == (1, 0, 1)
-
-
-def test_vendor_next_to_go_example():
-    data = load_fixture("pe_next_to_go")
-    snaps = parse_next_to_go(data, "northam", date(2026, 10, 29))
-    assert set(snaps) == {4, 5}
-    snap = snaps[4]
-    assert snap.places_paid == 3
-    priced = [p for p in snap.prices.values() if p.best_win]
-    assert priced and all(p.best_win.price > 1 for p in priced)
-    assert all(p.sportsbet_win for p in priced)
+def test_unlisted_scratched_and_reserve_runners_are_left_out_of_the_market():
+    snap = parse_market({"trackCondition": "Soft 6"}, {"GetBettingData": rc_market_mixed()})
+    assert snap.scratched == {4}  # no quote from any book, and scratched
+    assert set(snap.prices) == {1, 2, 3, 5}  # runner 11 is an emergency: a reserve, not a starter
+    assert snap.condition == "Soft 6"
     assert sum(p.consensus_prob for p in snap.prices.values()) == pytest.approx(1.0)
-    assert not set(snap.prices) & snap.scratched
-    # another venue, or another day at this venue, yields nothing
-    assert parse_next_to_go(data, "Flemington", date(2026, 10, 29)) == {}
-    assert parse_next_to_go(data, "Northam", date(2026, 10, 30)) == {}
+    assert all(p.books == 4 for p in snap.prices.values())
 
 
-def test_stale_quotes_are_ignored():
-    race = {
-        "race_number": 1,
-        "runners": [
-            {
-                "number": 1,
-                "bookmakers": [
-                    {"key": "tab", "win_price": 2.0, "place_price": 1.2},
-                    {"key": "sportsbet", "win_price": 9.0, "stale": True},
-                ],
-            }
-        ],
-    }
-    from melbcup.sources.puntersedge import parse_race_prices
+def rc_market_mixed() -> dict:
+    return load_fixture("rc_market")["mixed"]["data"]["GetBettingData"]
 
-    p = parse_race_prices(race).prices[1]
-    assert p.best_win.price == 2.0 and p.sportsbet_win is None
+
+def test_a_book_with_no_price_for_a_runner_has_no_quote_from_it():
+    data = rc_market(1)
+    for e in data["GetBettingData"]["formRaceEntries"]:
+        if e["raceEntryNumber"] == 2:
+            e["sb"] = []  # Sportsbet lists no price for runner 2
+        if e["raceEntryNumber"] == 3:
+            e["sb"][0]["oddsWin"] = None
+    snap = parse_market({}, data)
+    assert snap.prices[2].sportsbet_win is None and snap.prices[2].best_win.price == 2.9
+    assert snap.prices[3].sportsbet_win is None and snap.prices[3].best_win.price == 31.0
+
+
+def test_a_race_with_no_prices_is_left_out_and_settled_races_are_skipped():
+    def serve(status: str, *, with_prices: bool = True) -> RacingComClient:
+        def handler(request):
+            query = request.url.params["query"]
+            body = rc_payload(query, json.loads(request.url.params["variables"]))
+            if "oddsByProvider" in query:
+                race = body["data"]["GetBettingData"]
+                race["raceStatus"] = status
+                for e in race["formRaceEntries"]:
+                    for alias in BOOKS:
+                        e[alias] = e[alias] if with_prices else []
+            return httpx.Response(200, json=body)
+
+        return RacingComClient(transport=httpx.MockTransport(handler))
+
+    assert set(serve("Open").card_prices(RACE_DATE, VENUE, [1, 2])) == {1, 2}
+    assert set(serve("FinalFields").card_prices(RACE_DATE, VENUE, [1, 2])) == {1, 2}  # pre-race
+    assert serve("Paying").card_prices(RACE_DATE, VENUE, [1, 2]) == {}
+    assert serve("Interim").card_prices(RACE_DATE, VENUE, [1, 2]) == {}
+    assert serve("Abandoned").card_prices(RACE_DATE, VENUE, [1, 2]) == {}
+    assert serve("Open", with_prices=False).card_prices(RACE_DATE, VENUE, [1, 2]) == {}
+
+
+def test_racingcom_failure_surfaces_as_a_source_error():
+    down = RacingComClient(transport=httpx.MockTransport(lambda r: httpx.Response(503, json={})))
+    with pytest.raises(SourceError) as exc:
+        down.card_prices(RACE_DATE, VENUE, [1])
+    assert exc.value.kind == "unavailable"
+    errors = RacingComClient(
+        transport=httpx.MockTransport(
+            lambda r: httpx.Response(200, json={"errors": [{"message": "boom"}], "data": None})
+        )
+    )
+    with pytest.raises(SourceError, match="boom"):
+        errors.card_prices(RACE_DATE, VENUE, [1])
 
 
 # --- synthetic full card ------------------------------------------------------------------
 
 
 def test_markets_consensus_is_margin_free_and_sums_to_one(router):
-    pe, _ = clients(router)
-    snap = pe.card_prices(RACE_DATE, VENUE)[1]
+    rc, _ = clients(router)
+    snap = rc.card_prices(RACE_DATE, VENUE, [1, 2])[2]  # the Cup: Grand Tempo at $2.30
     total = sum(p.consensus_prob for p in snap.prices.values())
     assert total == pytest.approx(1.0)
     fav = snap.prices[1]
-    assert fav.sportsbet_win == 3.2
-    assert fav.best_win.price == 3.2 and fav.best_win.bookmaker == "sportsbet"
-    assert snap.prices[2].best_win.bookmaker == "tab"
-    assert fav.books == 2
+    assert fav.sportsbet_win == 2.3 and fav.best_win.bookmaker == "sportsbet"
+    assert fav.books == 4
     # Margin removed per book, then the median: the favourite stays the favourite and its
-    # probability sits between the two books' own margin-free figures.
+    # probability sits among the four books' own margin-free figures.
     assert max(snap.prices.values(), key=lambda p: p.consensus_prob) is fav
-    sb = 1 / 3.2 / sum(1 / p for p in (3.2, 3.6, 15.0, 6.0, 31.0, 9.0))
-    tab = 1 / 3.0 / sum(1 / p for p in (3.0, 3.8, 13.0, 6.5, 26.0, 10.0))
-    assert min(sb, tab) <= fav.consensus_prob <= max(sb, tab) + 0.01
+    entries = rc_market(2)["GetBettingData"]["formRaceEntries"]
+    own = []
+    for alias in BOOKS:
+        win = {e["raceEntryNumber"]: float(e[alias][0]["oddsWin"][1:]) for e in entries}
+        own.append((1 / win[1]) / sum(1 / p for p in win.values()))
+    assert min(own) - 0.01 <= fav.consensus_prob <= max(own) + 0.01
 
 
 def test_load_card_merges_both_feeds(router):
-    pe, ff = clients(router)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = clients(router)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     assert [r.number for r in card.races] == [1, 2]
     assert card.warnings == []
     cup = card.race(2)
@@ -154,8 +198,8 @@ def test_load_card_merges_both_feeds(router):
 
 def test_load_card_degrades_without_formfav_pro():
     router = Router(ff_tier="free")
-    pe, ff = clients(router)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = clients(router)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     r = card.race(1).runner(1)
     assert r.career.starts == 20  # /v1/form is on the free tier
     assert r.feed_win_prob is None and r.jockey_stats is None
@@ -164,19 +208,19 @@ def test_load_card_degrades_without_formfav_pro():
 
 
 def test_load_card_without_formfav_key(router):
-    pe, _ = clients(router, with_ff=False)
-    card = load_card(pe, None, RACE_DATE, VENUE)
+    rc, _ = clients(router, with_ff=False)
+    card = load_card(rc, None, RACE_DATE, VENUE)
     r = card.race(1).runner(2)
-    assert r.runs and r.career.starts == 4  # from PuntersEdge form summary
+    assert r.runs and r.career.starts == 10  # racing.com's records on each going
     assert any("No FormFav key" in w for w in card.warnings)
 
 
 def test_apply_market_marks_late_scratchings():
     router = Router(scratched={1: (3,)})
-    pe, ff = clients(router)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = clients(router)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     race = card.race(1)
-    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[1])
+    apply_market(race, rc.card_prices(RACE_DATE, VENUE, [1, 2])[1])
     assert race.runner(3).scratched
     assert 3 not in race.prices
     assert race.prices_at is not None
@@ -254,18 +298,18 @@ def test_json_source_network_failure_is_unavailable():
 
 
 def test_price_feed_corrects_start_time(router):
-    pe, ff = clients(router)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = clients(router)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     race = card.race(1)
     race.start_time = race.start_time.replace(hour=8)  # as if read in the wrong time zone
-    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[1])
+    apply_market(race, rc.card_prices(RACE_DATE, VENUE, [1, 2])[1])
     assert race.start_time == datetime.fromisoformat("2026-11-03T00:45:00+00:00")
 
 
 def test_formfav_stops_asking_after_a_refusal():
     router = Router(ff_tier="free")
-    pe, ff = clients(router)
-    load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = clients(router)
+    load_card(rc, ff, RACE_DATE, VENUE)
     pro_calls = sum(
         v for k, v in router.hits.items() if k.startswith("/v1/stats/") or k == "/v1/predictions"
     )
@@ -292,12 +336,10 @@ def test_formfav_over_quota_blocks_the_whole_key():
 
 
 def test_rain_on_the_day_switches_each_runners_going_record():
-    from datetime import date
-
     from melbcup.domain import Race, Runner, StatLine
     from melbcup.model.probability import assess
     from melbcup.sources import update_going
-    from melbcup.sources.puntersedge import MarketSnapshot
+    from melbcup.sources.racingcom import MarketSnapshot
 
     wet, dry = StatLine(6, 3, 5), StatLine(6, 0, 1)
     race = Race("Flemington", date(2026, 11, 3), 1, condition="Good 4")
@@ -333,40 +375,53 @@ def test_person_stats_keep_the_record_on_each_going():
 
 
 def test_card_load_adds_racingcom_stewards_comments_from_before_race_day():
-    from melbcup.sources.racingcom import RacingComClient
-
     router = Router()
-    pe, ff = clients(router)
-    rc = RacingComClient(transport=httpx.MockTransport(router))
-    card = load_card(pe, ff, RACE_DATE, VENUE, rc)
+    rc, ff = clients(router)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     r1 = card.race(1).runner(1)
     assert r1.last_start_note == "Slow to begin. Held up in the straight."
     assert [n.run_date.isoformat() for n in r1.run_notes] == ["2026-10-17", "2026-09-26"]
     assert r1.run_notes[0].finish == 5 and r1.run_notes[0].settled == 4
     assert card.race(1).runner(2).last_start_note is None  # ran, no comment
     assert not any("racing.com" in w for w in card.warnings)
-    run = r1.runs[0]  # the model's recent form now comes from racing.com
+    run = r1.runs[0]  # the model's recent form comes from racing.com
     assert (run.position, run.margin_l, run.sp, run.weight_kg) == (5, 1.5, 6.5, 57.0)
     assert (run.field_size, run.race_class, run.jockey) == (12, "BM78", "J.Kah")
-    assert "/v1/racing/form" not in router.hits  # no PuntersEdge form credits spent
 
 
-def test_racingcom_outage_only_adds_a_warning():
-    from melbcup.sources.racingcom import RacingComClient
-
+def test_racingcom_runs_outage_only_adds_a_warning():
     router = Router()
-    pe, ff = clients(router)
-    down = httpx.MockTransport(lambda request: httpx.Response(503, json={}))
-    card = load_card(pe, ff, RACE_DATE, VENUE, RacingComClient(transport=down))
-    assert card.race(1).runner(1).run_notes is None
+
+    def runs_down(request):
+        if "GetRaceEntryItemByHorsePaged" in request.url.params["query"]:
+            return httpx.Response(503, json={})
+        return router(request)
+
+    t = httpx.MockTransport(runs_down)
+    card = load_card(RacingComClient(transport=t), None, RACE_DATE, VENUE)
+    assert card.race(1).runner(1).run_notes is None and not card.race(1).runner(1).runs
     assert any("racing.com" in w for w in card.warnings)
-    assert router.hits["/v1/racing/form"] == len(card.races)  # PuntersEdge fills in
-    assert card.race(1).runner(1).runs
+    assert card.race(2).name == "Lexus Melbourne Cup"  # the field itself still loaded
+
+
+def test_card_load_fails_loudly_when_racingcom_is_down():
+    down = httpx.MockTransport(lambda request: httpx.Response(503, json={}))
+    with pytest.raises(SourceError):
+        load_card(RacingComClient(transport=down), None, RACE_DATE, VENUE)
+
+
+def test_card_carries_names_distances_gear_and_owners_from_racingcom(router):
+    rc, _ = clients(router)
+    card = load_card(rc, None, RACE_DATE, VENUE)
+    cup = card.race(2)
+    assert cup.name == "Lexus Melbourne Cup" and cup.distance_m == 3200
+    assert cup.start_time == datetime(2026, 11, 3, 4, 0, tzinfo=UTC)
+    assert cup.runner(1).owner.endswith("Racing Syndicate")
+    assert card.race(1).runner(3).gear_changes == "Blinkers FIRST TIME"
+    assert card.race(1).runner(3).hcp_rating == 72
 
 
 def test_racingcom_results_parse_finish_prices_and_dividends():
-    from melbcup.sources.racingcom import RacingComClient
-
     router = Router()
     rc = RacingComClient(transport=httpx.MockTransport(router))
     results = rc.results(RACE_DATE, VENUE, [1, 2])
@@ -374,3 +429,4 @@ def test_racingcom_results_parse_finish_prices_and_dividends():
     assert r1.status == "final" and r1.finish[1] == 1 and r1.names[1] == "Swift Comet"
     assert r1.sp[1] == 3.0 and r1.place_dividend[2] == 2.0
     assert r1.exotics["TF"] == ((1, 2, 3), 60.0) and r1.exotics["FF"] == ((1, 2, 3, 4), 400.0)
+    assert r1.placegetters(3) == [1, 2, 3]

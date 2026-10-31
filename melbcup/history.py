@@ -1,6 +1,6 @@
 """The model's record: one plain entry per resulted race, and a tally per bet type.
 
-Entries are small dicts so they can be saved on the phone, sealed into the archive, and read
+Entries are small dicts so they can be saved on the phone, stored in the archive, and read
 by a template without the model's objects. The picks are what the app showed before the race:
 the runners most likely to win and to place, whatever their price, and the value bets, which
 exist only when a price beat the runner's chance by enough.

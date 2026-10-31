@@ -1,8 +1,9 @@
-"""Assemble one race card from both feeds.
+"""Assemble one race card from racing.com and FormFav.
 
-PuntersEdge is required: it supplies the field (acceptances, owners, scratchings) and the prices.
-FormFav is enrichment: every FormFav call may fail (tier, quota, outage) and the card is still
-built, with a warning naming what is missing.
+racing.com is the base: it supplies the field (runners, scratchings, barriers, weights, riders),
+recent runs with the stewards' comments, and the bookmakers' prices (Sportsbet among them).
+FormFav is optional enrichment: every FormFav call may fail (tier, quota, outage) and the card
+is still built, with a warning naming what is missing.
 
 Calls run on a small thread pool: a full card is about 120 requests, which one at a time took
 close to three minutes. The browser build has no threads and sets ``WORKERS = 1``, which runs
@@ -28,8 +29,7 @@ from melbcup.domain import (
 )
 from melbcup.sources.formfav import FormFavClient, FormFavRunner
 from melbcup.sources.http import SourceError
-from melbcup.sources.puntersedge import MarketSnapshot, PuntersEdgeClient
-from melbcup.sources.racingcom import RUNS_KEPT, RacingComClient
+from melbcup.sources.racingcom import RUNS_KEPT, MarketSnapshot, RacingComClient
 
 WORKERS = 8
 
@@ -66,34 +66,16 @@ def _try[T](card: Card, what: str, fn: Callable[[], T]) -> T | None:
 
 
 def load_card(
-    pe: PuntersEdgeClient | None,
+    rc: RacingComClient,
     ff: FormFavClient | None,
     race_date: date,
     venue: str,
-    rc: RacingComClient | None = None,
 ) -> Card:
-    """The field from PuntersEdge (Racing Australia's acceptances) when there is a key, else
-    from racing.com; then recent runs from racing.com and FormFav's form when there is a key."""
-    card = pe.acceptances(race_date, venue) if pe is not None else rc.card(race_date, venue)
+    """The field from racing.com, with each runner's recent runs and stewards' comments, then
+    FormFav's form when there is a key."""
+    card = rc.card(race_date, venue)
     with _pool() as pool:
-        if rc is not None:
-            enrich_from_racingcom(card, rc, pool)
-        # PuntersEdge's recent form (3 credits a race) only for races with a runner racing.com
-        # did not find (a first starter it found has no runs, which is not missing).
-        missing = [r for r in card.races if any(x.run_notes is None for x in r.starters)]
-        if pe is None:
-            missing = []
-        forms = pool.map(
-            lambda r: _try(
-                card, "Recent form (PuntersEdge)", lambda: pe.field_form(race_date, venue, r.number)
-            ),
-            missing,
-        )
-        for race, form in zip(missing, forms, strict=True):
-            for runner in race.runners:
-                if form and runner.number in form:
-                    runner.runs, record = form[runner.number]
-                    runner.career = runner.career or record
+        enrich_from_racingcom(card, rc, pool)
         if ff is None:
             card.warnings.append(
                 "No FormFav key: its ratings, speed maps and jockey and trainer records are missing"
@@ -208,8 +190,8 @@ def apply_market(race: Race, snap: MarketSnapshot) -> None:
     race.prices = snap.prices
     race.places_paid = snap.places_paid
     race.prices_at = snap.observed_at or race.prices_at
-    # The feed's UTC start beats the acceptance card's local clock time, which is the track's
-    # own time zone (a WA meeting would otherwise be three hours out).
+    # The market's UTC start beats the card's start time, so a meeting in another time zone
+    # (a WA meeting) cannot be hours out.
     race.start_time = snap.start_time or race.start_time
     for runner in race.runners:
         if runner.number in snap.scratched:

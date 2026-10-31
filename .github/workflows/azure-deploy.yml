@@ -165,7 +165,7 @@ jobs:
           # a first deploy waits for the owner to commit azure/webapp/ENABLED.
           exists=$(az resource list --resource-group "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --name "$WEBAPP" --query "length(@)" -o tsv)
           if [ "$exists" = "0" ] && [ ! -f azure/webapp/ENABLED ]; then
-            echo "::notice::Container App $WEBAPP does not exist yet and azure/webapp/ENABLED is absent: image pushed, PUT skipped. Put the keys in Key Vault (melbcup-puntersedge-api-key, melbcup-formfav-api-key, melbcup-app-password, ghcr-publish-token), then commit azure/webapp/ENABLED."
+            echo "::notice::Container App $WEBAPP does not exist yet and azure/webapp/ENABLED is absent: image pushed, PUT skipped. Put the keys in Key Vault (melbcup-formfav-api-key, melbcup-app-password, ghcr-publish-token), then commit azure/webapp/ENABLED."
             echo "deploy=false" >> "$GITHUB_OUTPUT"
           else
             echo "deploy=true" >> "$GITHUB_OUTPUT"

@@ -1,12 +1,15 @@
-"""Synthetic but schema-true payloads for a two-race Flemington card.
+"""Synthetic but schema-true payloads for a two-race Flemington card (eight runners each).
 
-Field names follow the vendors' OpenAPI specs (.agent/api/). Vendor example payloads live in
-tests/fixtures/ and are used for shape checks; these builders give complete, internally
-consistent fields that the examples (truncated to two runners) cannot.
+racing.com carries the card, the prices and the results. The prices are real: tests/fixtures/
+rc_market.json holds trimmed ``GetBettingData`` replies recorded by tools/live_collector.py
+(Sportsbet, Ladbrokes, PointsBet and bet365 fixed odds per runner), served for the two races
+here with only the start time moved to Cup day. The rest are synthetic builders that give
+complete, internally consistent fields for the two races.
 """
 
 from __future__ import annotations
 
+import copy
 import json
 from datetime import date
 from pathlib import Path
@@ -27,6 +30,8 @@ FIELDS = {
         (4, "Lantern Bay", 6, "M Zahra", "G Waterhouse & A Bott", 56.5, "33x324", 76),
         (5, "Ocean Verse", 2, "B Melham", "C Maher", 55.0, "0x9087", 64),
         (6, "Harbour Lights", 11, "C Williams", "P Snowden", 54.0, "x41", 70),
+        (7, "Copper Reef", 3, "C Williams", "C Waller", 53.5, "4x5566", 68),
+        (8, "Silver Quay", 10, "B Melham", "P Snowden", 53.0, "x7890", 62),
     ],
     2: [
         (1, "Grand Tempo", 3, "J McDonald", "C Waller", 57.0, "1121x1", 100),
@@ -34,176 +39,27 @@ FIELDS = {
         (3, "Paper Moon", 5, "D Lane", "P Snowden", 55.0, "6x5412", 90),
         (4, "Night Patrol", 1, "M Zahra", "G Waterhouse & A Bott", 54.0, "7x8890", 84),
         (5, "Last Orders", 7, "B Melham", "C Maher", 53.0, "2x3243", 92),
+        (6, "Winter Gale", 2, "M Zahra", "C Waller", 52.5, "3x4455", 88),
+        (7, "Iron Lantern", 4, "C Williams", "C Maher", 52.0, "8x7654", 86),
+        (8, "Harbour Master", 6, "D Lane", "G Waterhouse & A Bott", 51.5, "5x6677", 82),
     ],
 }
 DISTANCE = {1: 1200, 2: 3200}
-# Two books per race, decimal win prices per runner number.
-WIN_PRICES = {
-    1: {
-        "sportsbet": {1: 3.2, 2: 3.6, 3: 15.0, 4: 6.0, 5: 31.0, 6: 9.0},
-        "tab": {1: 3.0, 2: 3.8, 3: 13.0, 4: 6.5, 5: 26.0, 6: 10.0},
-    },
-    2: {
-        "sportsbet": {1: 2.6, 2: 4.2, 3: 8.0, 4: 21.0, 5: 6.0},
-        "tab": {1: 2.5, 2: 4.6, 3: 7.5, 4: 19.0, 5: 6.5},
-    },
-}
+START_UTC = {1: "2026-11-03T00:45:00.000Z", 2: "2026-11-03T04:00:00.000Z"}
+# Race names for the card (racing.com sends them upper-case sometimes; these are plain).
+NAMES = {1: "Furphy Sprint", 2: "Lexus Melbourne Cup"}
+CLASSES = {1: "BenchMark 90", 2: "Group 1"}
 
 
-def acceptances_payload() -> dict:
-    races = []
-    for n, field in FIELDS.items():
-        races.append(
-            {
-                "race_number": n,
-                "race_id": f"race-{n}",
-                "race_name": "Lexus Melbourne Cup" if n == 2 else "Furphy Sprint",
-                "start_time_local": "3:00PM" if n == 2 else "11:45AM",
-                "distance_m": DISTANCE[n],
-                "race_class": "Group 1" if n == 2 else "BenchMark 90",
-                "prize_total": 10_000_000 if n == 2 else 200_000,
-                "runners": [
-                    {
-                        "number": num,
-                        "barrier": bar,
-                        "runner_name": name,
-                        "jockey": jockey,
-                        "trainer": trainer,
-                        "weight_kg": wt,
-                        "last10": last10,
-                        "hcp_rating": hcp,
-                        "emergency": False,
-                        "scratched": False,
-                        "age": 5,
-                        "sex": "gelding",
-                        "owner": f"{trainer} Racing Syndicate",
-                        "gear_changes": "Blinkers FIRST TIME" if num == 3 else None,
-                        "last_start_date": "2026-10-17",
-                    }
-                    for num, name, bar, jockey, trainer, wt, last10, hcp in field
-                ],
-            }
-        )
-    return {
-        "date": RACE_DATE.isoformat(),
-        "meetings": [
-            {
-                "venue": VENUE,
-                "track": {"rail": "True", "track_condition": "Good 4"},
-                "races": races,
-            }
-        ],
-    }
-
-
-def pe_form_payload(race: int) -> dict:
-    runners = []
-    for num, name, bar, jockey, _trainer, wt, last10, _ in FIELDS[race]:
-        digits = [c for c in last10 if c.isdigit()][-4:]
-        runs = []
-        for i, d in enumerate(reversed(digits)):
-            pos = 10 if d == "0" else int(d)
-            runs.append(
-                {
-                    "date": f"2026-10-{17 - 7 * i:02d}",
-                    "venue": "Caulfield",
-                    "distance_m": DISTANCE[race] - 200,
-                    "track_condition": "Good (4)",
-                    "position": pos,
-                    "status": "ran",
-                    "margin": "0.5L" if pos == 1 else f"{pos * 0.8:.1f}L",
-                    "sp": 4.0 + pos,
-                    "field_size": 14,
-                    "weight_kg": wt,
-                    "jockey": jockey,
-                    "race_class": "Group 2",
-                }
-            )
-        wins = sum(1 for d in digits if d == "1")
-        top3 = sum(1 for d in digits if d in "123")
-        runners.append(
-            {
-                "number": num,
-                "name": name,
-                "barrier": bar,
-                "scratched": False,
-                "stats": {"starts": len(digits), "wins": wins, "places": top3},
-                "runs": runs,
-            }
-        )
-    return {"race_number": race, "runners": runners}
-
-
-def ntg_race(race: int, scratched: tuple[int, ...] = ()) -> dict:
-    """One race as /v1/racing/next-to-go returns it: every book's win and place per runner."""
-    books = WIN_PRICES[race]
-    runners = []
-    for num, name, *_ in FIELDS[race]:
-        if num in scratched:
-            continue
-        runners.append(
-            {
-                "number": num,
-                "name": name,
-                "bookmakers": [
-                    {
-                        "key": key,
-                        "win_price": prices[num],
-                        "place_price": round(1 + (prices[num] - 1) / 4, 2),
-                        "last_update": "2026-11-03T03:50:00Z",
-                        "stale": False,
-                    }
-                    for key, prices in books.items()
-                ],
-            }
-        )
-    start = "2026-11-03T04:00:00Z" if race == 2 else "2026-11-03T00:45:00Z"
-    return {
-        "race_id": f"race-{race}",
-        "venue": VENUE,
-        "race_number": race,
-        "start_time": start,
-        "places_paid": 3,
-        "scratchings": [{"number": n} for n in scratched],
-        "runners": runners,
-    }
-
-
-def results_payload() -> list[dict]:
-    """Every race finishes in saddlecloth order (1 wins, 2 second...), SP = Sportsbet price."""
-    out = []
-    for race, field in FIELDS.items():
-        sp = WIN_PRICES[race]["sportsbet"]
-        nums = [f[0] for f in field]
-        out.append(
-            {
-                "venue": VENUE,
-                "race_number": race,
-                "start_time": ntg_race(race)["start_time"],
-                "status": "final",
-                "runners": [
-                    {"number": n, "name": name, "position": i + 1, "status": "ran", "sp": sp[n]}
-                    for i, (n, name, *_) in enumerate(field)
-                ],
-                "dividends": {
-                    "straight": [
-                        {
-                            "number": n,
-                            "position": i + 1,
-                            "market": "PLC",
-                            "product": "FIXED",
-                            "amount": round(1 + (sp[n] - 1) / 4, 2),
-                        }
-                        for i, n in enumerate(nums[:3])
-                    ],
-                    "exotics": [
-                        {"code": "TF", "selection": ",".join(map(str, nums[:3])), "amount": 60.0},
-                        {"code": "FF", "selection": ",".join(map(str, nums[:4])), "amount": 400.0},
-                    ],
-                },
-            }
-        )
-    return out
+def rc_market(race: int, scratched: tuple[int, ...] = ()) -> dict:
+    """One race's ``GetBettingData`` reply: the recorded racing.com market, start time moved
+    to Cup day, and any runners in ``scratched`` marked as scratched."""
+    data = copy.deepcopy(load_fixture("rc_market")[f"race{race}"]["data"])
+    betting = data["GetBettingData"]
+    betting["time"] = betting["officialTime"] = START_UTC[race]
+    for e in betting["formRaceEntries"]:
+        e["scratched"] = e["scratched"] or e["raceEntryNumber"] in scratched
+    return data
 
 
 def ff_form_payload(race: int) -> dict:
@@ -281,11 +137,26 @@ def ff_bias_payload() -> dict:
     }
 
 
-def rc_payload(query: str, variables: dict) -> dict:
-    """racing.com's form service: one meeting, every runner a horse code, and past runs with a
-    stewards' comment for each race's runner 1 (plus one run after race day, to be ignored)."""
+def rc_payload(
+    query: str, variables: dict, scratched: dict[int, tuple[int, ...]] | None = None
+) -> dict:
+    """racing.com's data service: the meeting list, one meeting with its races and fields,
+    prices (the recorded market), results, and past runs with a stewards' comment for each
+    race's runner 1 (plus one run after race day, to be ignored)."""
     if "GetMeetingByVenueDateTrial" in query:
         return {"data": {"GetMeetingByVenueDateTrial": [{"id": "M1"}]}}
+    if "GetRaceMeetingsByStateNew" in query:
+        rows = [
+            {
+                "id": "M1",
+                "venue": VENUE,
+                "date": f"{RACE_DATE.isoformat()}T00:00:00",
+                "state": "VIC",
+                "isTrial": False,
+                "isJumpOut": False,
+            }
+        ]
+        return {"data": {"GetRaceMeetingsByStateNew": rows if variables["states"] == "VIC" else []}}
     if "getRacesForMeet" in query:
         return {
             "data": {
@@ -293,11 +164,11 @@ def rc_payload(query: str, variables: dict) -> dict:
                     {
                         "raceNumber": n,
                         "raceStatus": "FinalFields",
-                        "time": None,
+                        "time": START_UTC[n],
                         "trackCondition": "Good 4",
-                        "name": f"Race {n}",
-                        "distance": "1600m",
-                        "class": "BM78",
+                        "name": NAMES[n],
+                        "distance": f"{DISTANCE[n]}m",
+                        "class": CLASSES[n],
                         "meet": {
                             "trackCondition": "Good 4",
                             "weather": "Fine",
@@ -310,23 +181,7 @@ def rc_payload(query: str, variables: dict) -> dict:
         }
     if "GetBettingData" in query and "getRaceForm" not in query:  # prices before the race
         race = variables["raceNumber"]
-        entries = [
-            {
-                "raceEntryNumber": n,
-                "scratched": False,
-                "odds": [
-                    {
-                        "providerCode": code,
-                        "oddsWin": f"${2.0 + n + bump:.2f}",
-                        "oddsPlace": f"${1.2 + 0.4 * n:.2f}",
-                        "updated": 1793240136,
-                    }
-                    for code, bump in (("SB2", 0.0), ("LB2", 0.2), ("PB3", 0.1), ("BT", 0.3))
-                ],
-            }
-            for n, *_ in FIELDS.get(race, [])
-        ]
-        return {"data": {"GetBettingData": {"formRaceEntries": entries}}}
+        return {"data": rc_market(race, (scratched or {}).get(race, ()))}
     if "GetBettingData" in query:  # results: runners finish in saddlecloth order
         race = variables["raceNumber"]
         entries = [
@@ -364,13 +219,14 @@ def rc_payload(query: str, variables: dict) -> dict:
                 "scratched": False,
                 "emergency": False,
                 "handicapRating": rating,
+                "gearChanges": "Blinkers FIRST TIME" if n == 3 else None,
                 "lastRaceDate": "2026-10-17",
                 "trackStats": "3:1-0-1",
                 "distanceStats": "5:2-1-0",
                 "horse": {
                     "age": "5",
                     "sex": "Gelding",
-                    "owners": "A Owner",
+                    "owners": f"{trainer} Racing Syndicate",
                     "sireHorseName": "Sire",
                     "damHorseName": "Dam",
                     "lastFive": '["1","x","2","3","1"]',
@@ -417,8 +273,26 @@ def rc_payload(query: str, variables: dict) -> dict:
     return {"errors": [{"message": "unknown query"}], "data": None}
 
 
+RC_CALLS = (  # (text in the GraphQL query, label in Router.hits)
+    ("GetMeetingByVenueDateTrial", "rc/meeting"),
+    ("GetRaceMeetingsByStateNew", "rc/meetings"),
+    ("GetRaceEntryItemByHorsePaged", "rc/runs"),
+    ("exotics", "rc/results"),
+    ("oddsByProvider", "rc/prices"),
+    ("trainerName", "rc/card_field"),
+    ("horseCode", "rc/field"),
+    ("distance", "rc/card_races"),
+    ("getRacesForMeet", "rc/races"),  # race list for a price check
+)
+
+
+def rc_label(query: str) -> str:
+    return next((label for text, label in RC_CALLS if text in query), "rc/other")
+
+
 class Router:
-    """httpx transport that answers from the builders above and counts calls per path."""
+    """httpx transport that answers from the builders above. ``hits`` counts calls: FormFav by
+    path, racing.com by what was asked (``rc/prices``, ``rc/results``, ``rc/card_field`` ...)."""
 
     def __init__(
         self, *, ff_tier: str = "pro", scratched: dict[int, tuple[int, ...]] | None = None
@@ -430,27 +304,9 @@ class Router:
     def __call__(self, request: httpx.Request) -> httpx.Response:
         path = request.url.path
         q = request.url.params
-        self.hits[path] = self.hits.get(path, 0) + 1
         host = request.url.host
-        if host == "api.puntersedge.online":
-            spent = sum(v for k, v in self.hits.items() if k != "/v1/keys/info")
-            credits = {"x-credits-remaining": str(3000 - 2 * spent), "x-credits-limit": "3000"}
-            if path == "/v1/keys/info":
-                return httpx.Response(200, json={"credits_remaining": 2999, "credits_limit": 3000})
-            if path == "/v1/racing/acceptances":
-                return httpx.Response(200, json=acceptances_payload(), headers=credits)
-            if path == "/v1/racing/next-to-go":
-                return httpx.Response(
-                    200,
-                    json=[ntg_race(n, self.scratched.get(n, ())) for n in FIELDS],
-                    headers=credits,
-                )
-            if path == "/v1/racing/results":
-                return httpx.Response(200, json=results_payload(), headers=credits)
-            if path == "/v1/racing/form":
-                return httpx.Response(
-                    200, json=pe_form_payload(int(q["race_number"])), headers=credits
-                )
+        label = rc_label(q.get("query", "")) if host == "graphql.rmdprod.racing.com" else path
+        self.hits[label] = self.hits.get(label, 0) + 1
         if host == "api.formfav.com":
             if path == "/v1/form":
                 return httpx.Response(200, json=ff_form_payload(int(q["race"])))
@@ -467,7 +323,8 @@ class Router:
             if path.startswith("/v1/stats/track-bias/"):
                 return httpx.Response(200, json=ff_bias_payload())
         if host == "graphql.rmdprod.racing.com":
-            return httpx.Response(200, json=rc_payload(q["query"], json.loads(q["variables"])))
+            body = rc_payload(q["query"], json.loads(q["variables"]), self.scratched)
+            return httpx.Response(200, json=body)
         return httpx.Response(404, json={"detail": f"no route {host}{path}"})
 
 

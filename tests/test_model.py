@@ -16,7 +16,7 @@ from melbcup.model.probability import (
 )
 from melbcup.sources import apply_market, load_card
 from melbcup.sources.formfav import FormFavClient
-from melbcup.sources.puntersedge import PuntersEdgeClient
+from melbcup.sources.racingcom import RacingComClient
 
 
 def run(pos, field=12, margin=None):
@@ -123,10 +123,10 @@ def test_top_k_whole_field_is_certain():
 
 def test_priced_chances_are_the_margin_free_market_alone():
     t = httpx.MockTransport(Router())
-    pe, ff = PuntersEdgeClient("k", transport=t), FormFavClient("k", transport=t)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = RacingComClient(transport=t), FormFavClient("k", transport=t)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     race = card.race(2)
-    apply_market(race, pe.card_prices(RACE_DATE, VENUE)[2])
+    apply_market(race, rc.card_prices(RACE_DATE, VENUE, [1, 2])[2])
     m = assess(race)
     assert m.sources == ["market"]  # the form model does not move priced chances
     market = {n: p.consensus_prob for n, p in race.prices.items() if n in m.runners}

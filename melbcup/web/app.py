@@ -41,10 +41,7 @@ def create_app(
             f = saved / path
             return f.read_text() if f.is_file() else None
 
-        key = settings.puntersedge_api_key
-        board = LiveBoard(
-            settings, archive=Archive(read, key) if key else None, rc=RacingComClient()
-        )
+        board = LiveBoard(settings, archive=Archive(read), rc=RacingComClient())
     views = Views(settings, board)
 
     @asynccontextmanager

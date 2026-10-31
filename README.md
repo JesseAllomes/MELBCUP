@@ -23,21 +23,18 @@ Then the exotics. In detail:
 | **Quaddie** | The Early Quaddie and the Main Quaddie, picked to land as often as possible within a combination budget |
 | **Multi** | 2-leg and 3-leg win multis at Sportsbet, valued as one bet |
 
-You control the PuntersEdge credits. The top of every page shows the credits left, and nothing is
-spent until you tap:
+Everything comes from racing.com, which is free and needs no key. Nothing is fetched until you
+tap:
 
-| Button | Credits | What it does |
-|---|---|---|
-| **Load card** / **Reload card** | 2 | Field and scratchings (PuntersEdge); recent runs and stewards' comments (racing.com, free) |
-| **Refresh prices** | free | Sportsbet, Ladbrokes, PointsBet and bet365 prices from racing.com, then new picks |
-| **Auto** | about 2 a day | Hands-off: prices 60, 30, 15, 5 and 2 minutes before each race; results after each race |
+| Button | What it does |
+|---|---|
+| **Load card** / **Reload card** | Field and scratchings, recent runs and stewards' comments (racing.com) |
+| **Refresh prices** | Sportsbet fixed-odds win and place prices (plus Ladbrokes, PointsBet and bet365) from racing.com, then new picks. At most once a minute |
+| **Auto** | Hands-off: prices 60, 30, 15, 5 and 2 minutes before each race; results after each race |
 
-Anything racing.com cannot answer falls back to PuntersEdge at its usual price: 3 credits a race
-for recent runs, 2 for a price check (15 bookmakers), 2 for results.
+The page itself re-reads the app every minute; that only redraws what the app already holds.
 
-The page itself re-reads the app every minute; that costs nothing.
-
-**Results and how the model went:** once races have run, tap **Get results** (2 credits). Each race
+**Results and how the model went:** once races have run, tap **Get results**. Each race
 then shows the placings with starting prices, where our top pick finished, and a tick or cross
 with the return per $1 for the Win, Place, Each-way, Trifecta and First Four picks. Exotics are
 paid at the official dividend, spread flexi across the structure. The top of the day page keeps
@@ -50,10 +47,10 @@ top, a tally per pick type gives picks, landed, missed, the rate and the return 
 the 1,160 saved races and adds each new meeting as its results come in.
 
 **Any meeting, any day:** tap the meeting name at the top (**change**). The Cup Carnival days at
-Flemington are one tap each. For any other day, pick the date and tap **Find meetings** (2 credits)
+Flemington are one tap each. For any other day, pick the date and tap **Find meetings**
 to list every Australian meeting with a published field, then tap one. Switching costs nothing;
-**Load card** then fetches it. Bookmakers price a meeting from the evening before, so prices
-exist only for today's and tomorrow's meetings. Form and picks work for any day with a field.
+**Load card** then fetches it. Bookmakers price a meeting a day or two before, so prices
+appear once they are framed. Form and picks work for any day with a field.
 
 After Render wakes the app from sleep, it starts on `RACE_DATE`/`VENUE` (Cup day at Flemington
 unless set), so choose the meeting again if you were on another.
@@ -126,35 +123,32 @@ guarantee results. Gambling Help Online: **1800 858 858**.
 
 | Source | Plan | Used for |
 |---|---|---|
-| [racing.com](https://www.racing.com/) | Free, no key needed | Each runner's recent runs with stewards' comments, prices from Sportsbet, Ladbrokes, PointsBet and bet365, and results with tote dividends. National coverage |
-| [PuntersEdge](https://puntersedge.online/) | Free key (3,000 credits/month) | The field, owners, gear changes and scratchings; the fallback for anything racing.com misses (15 bookmakers' prices) |
+| [racing.com](https://www.racing.com/) | Free, no key needed | The field and scratchings, each runner's recent runs with stewards' comments, fixed-odds win and place prices from Sportsbet (used for the verdicts and the multis), Ladbrokes, PointsBet and bet365, and results with tote dividends. National coverage |
 | [FormFav](https://formfav.com/) | Pro | Long-form career splits, speed maps, class ratings, predictions, jockey and trainer records (with their record on each going), and track bias |
 
-PuntersEdge is required. FormFav is optional, but without Pro the app loses jockey and trainer
-records, predictions and track bias, and says so at the top of the page.
+FormFav is optional, but without Pro the app loses jockey and trainer records, predictions and
+track bias, and says so at the top of the page.
 
 racing.com is read through the public data service its own form pages use, with the key those
-pages send; the app reads it from your phone for personal use. If racing.com changes it, the
-app falls back to PuntersEdge and says so. racing.com publishes no First Four dividend, so a First
+pages send; the app reads it from your phone for personal use. If racing.com is down or changes
+it, the page says so and keeps the last good board. racing.com publishes no First Four dividend, so a First
 Four graded from its results is ticked or crossed with its return unknown.
 
-A race day in Auto now costs about 2 PuntersEdge credits (the card) instead of about 140. Owner
-names are shown but not scored: tested on the saved month, owner records added nothing.
+Owner names are shown when racing.com has them but are not scored: tested on the saved month,
+owner records added nothing.
 
 ## Share it with friends
 
-Send them the link (https://jesseallomes.github.io/MELBCUP/). On first open the app asks for keys:
+Send them the link (https://jesseallomes.github.io/MELBCUP/). On first open the app asks for one optional key:
 
-- **PuntersEdge key:** each friend gets their own free key at puntersedge.online, so nobody spends
-  your credits.
-- **FormFav key:** optional.
-- **History password:** give them the one you set when building the saved races; it opens the
-  1,160 saved races and their graded picks. Your own PuntersEdge key still opens them for you.
+- **FormFav key:** optional. racing.com needs no key, so nobody spends anyone else's quota.
+
+The 1,160 saved races and their graded picks open for everyone with no password.
 
 ## Put it on your phone (GitHub Pages, free)
 
 MELBCUP runs entirely in your phone's browser: GitHub only serves the page, and your phone calls
-PuntersEdge and FormFav itself. Nothing sleeps, and nothing runs anywhere else.
+racing.com and FormFav itself. Nothing sleeps, and nothing runs anywhere else.
 
 One-time setup on GitHub:
 
@@ -165,28 +159,24 @@ One-time setup on GitHub:
 3. After a minute or two, open `https://<your-github-name>.github.io/melbcup/` on your phone and
    add it to the home screen.
 
-On the phone, **Auto is off each time you open the page**, so opening it never spends credits.
+On the phone, **Auto is off each time you open the page**, so opening it never fetches by itself.
 Tap **Auto off** to switch it on for that visit: it loads the card once, checks prices 60, 30,
 15, 5 and 2 minutes before each race, and fetches results about ten minutes after each race,
 grading the picks. It runs only while the page is open. One price check covers the whole card,
-so checks that fall in the same minute are shared. It prices only today's and tomorrow's
-meetings, because bookmakers have no market further out. Derby Day's nine races cost about 139
-credits: the card 29, 45 price checks 90, results about 20. The page shows how many credits Auto
-still plans to spend on the meeting.
+so checks that fall in the same minute are shared. It prices any meeting whose field is out,
+once the bookmakers have framed it.
 
 A card load fetches its requests six at a time (about 100 for a full card with FormFav). Pages
 tapped while it runs open as soon as it finishes.
 
 **Saved meetings:** 154 meetings (about 1,160 races, 29 September to 29 October 2026) downloaded
-for the backtest are sealed in `docs/data` and open with no API calls, results included. They
-are encrypted with a key derived from the PuntersEdge key, so the public site does not republish
-the providers' data; only the phone holding that key can read them. Rebuild with
-`PUNTERSEDGE_API_KEY=... python tools/build_archive.py <folder of collected races>`.
+for the backtest are stored in `docs/data` and open directly, with no password and no API calls,
+results included. Rebuild with
+`python tools/build_archive.py <folder of collected races>`.
 
-On first open, the app asks for your PuntersEdge and FormFav keys. They are saved on that phone
-only. The first start downloads the Python runtime (about 10 MB, from jsDelivr), and later
+On first open, the app asks for an optional FormFav key. It is saved on that phone only. The first start downloads the Python runtime (about 10 MB, from jsDelivr), and later
 starts are quick. The loaded card, prices and results are kept on the phone too, so reopening the
-page spends no credits.
+page fetches nothing.
 
 A card load runs one request at a time in the browser, so it takes 1 to 2 minutes with full
 FormFav data; a progress bar shows each request.
@@ -197,7 +187,7 @@ tests fail if `docs/` is out of date.
 ### Or run it as a server
 
 `render.yaml` deploys the same app as a password-protected server on Render: New → Blueprint, set
-`PUNTERSEDGE_API_KEY`, `FORMFAV_API_KEY` and `APP_PASSWORD`. On Render's free plan the server
+`FORMFAV_API_KEY` (optional) and `APP_PASSWORD`. On Render's free plan the server
 sleeps after 15 minutes idle.
 
 ## Run it locally
@@ -205,7 +195,7 @@ sleeps after 15 minutes idle.
 ```bash
 python3 -m venv ~/.venvs/melbcup && . ~/.venvs/melbcup/bin/activate
 pip install -e ".[dev]"
-export PUNTERSEDGE_API_KEY=... FORMFAV_API_KEY=... APP_PASSWORD=...
+export FORMFAV_API_KEY=... APP_PASSWORD=...   # FORMFAV_API_KEY is optional
 uvicorn melbcup.web.app:create_app --factory --reload
 pytest && ruff check .
 ```
@@ -215,7 +205,7 @@ pytest && ruff check .
 ```
 melbcup/config.py         settings from environment variables
 melbcup/domain.py         normalised race, runner and price types
-melbcup/sources/          PuntersEdge and FormFav clients; card assembly
+melbcup/sources/          racing.com and FormFav clients; card assembly
 melbcup/model/            factors, form model, blend, place probabilities
 melbcup/bets/             win/place/each-way, exotics, quaddies, multis, staking
 melbcup/live.py           background refresh on a race-by-race schedule

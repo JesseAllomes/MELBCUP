@@ -1,8 +1,6 @@
-from datetime import date
-
 import httpx
 import pytest
-from conftest import RACE_DATE, VENUE, Router, load_fixture
+from conftest import RACE_DATE, VENUE, Router
 
 from melbcup.bets import build_picks
 from melbcup.bets.exotics import Exotic
@@ -12,7 +10,7 @@ from melbcup.domain import RaceResult
 from melbcup.model.probability import assess
 from melbcup.sources import apply_market, apply_result, load_card
 from melbcup.sources.formfav import FormFavClient
-from melbcup.sources.puntersedge import PuntersEdgeClient, parse_results
+from melbcup.sources.racingcom import RacingComClient
 
 
 def result(finish: dict[int, int], **kw) -> RaceResult:
@@ -30,15 +28,6 @@ def single(kind: str, number: int, price: float | None, place_price: float | Non
     return Single(
         kind, 1, number, f"H{number}", 0.3, price, place_price, "tab", None, 0.1, 3.0, True, []
     )
-
-
-def test_vendor_results_example():
-    res = parse_results(load_fixture("pe_results"), "kalgoorlie", date(2026, 9, 6))
-    r = res[8]
-    assert r.status == "final" and r.finish[8] == 1 and r.sp[8] == 4.6
-    assert r.place_dividend[15] == 17.0
-    assert r.exotics["TF"] == ((8, 15, 1), 4868.5)
-    assert r.placegetters(3) == [8, 15, 1]
 
 
 def test_single_grading():
@@ -65,10 +54,10 @@ def test_exotic_grading_is_flexi():
 def test_grade_a_priced_card_end_to_end():
     router = Router()
     t = httpx.MockTransport(router)
-    pe, ff = PuntersEdgeClient("k", transport=t), FormFavClient("k", transport=t)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
-    snaps = pe.card_prices(RACE_DATE, VENUE)
-    results = pe.results(RACE_DATE, VENUE)
+    rc, ff = RacingComClient(transport=t), FormFavClient("k", transport=t)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
+    snaps = rc.card_prices(RACE_DATE, VENUE, [1, 2])
+    results = rc.results(RACE_DATE, VENUE, [1, 2])
     for race in card.races:
         apply_market(race, snaps[race.number])
         apply_result(race, results[race.number])
@@ -89,10 +78,10 @@ def test_grade_a_priced_card_end_to_end():
 def test_unpriced_race_is_judged_at_starting_prices():
     router = Router()
     t = httpx.MockTransport(router)
-    pe, ff = PuntersEdgeClient("k", transport=t), FormFavClient("k", transport=t)
-    card = load_card(pe, ff, RACE_DATE, VENUE)
+    rc, ff = RacingComClient(transport=t), FormFavClient("k", transport=t)
+    card = load_card(rc, ff, RACE_DATE, VENUE)
     race = card.race(1)
-    apply_result(race, pe.results(RACE_DATE, VENUE)[1])
+    apply_result(race, rc.results(RACE_DATE, VENUE, [1, 2])[1])
     assert race.priced_from_sp and race.prices[1].best_win.bookmaker == "SP"
     assert sum(p.consensus_prob for p in race.prices.values()) == pytest.approx(1.0)
     assert "market" in assess(race).sources

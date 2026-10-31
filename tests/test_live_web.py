@@ -2,18 +2,18 @@ from datetime import datetime, timedelta
 
 import httpx
 import pytest
-from conftest import RACE_DATE, VENUE, Router
+from conftest import RACE_DATE, VENUE, Router, rc_market
 from fastapi.testclient import TestClient
 
 from melbcup.config import MELBOURNE, load_settings
 from melbcup.domain import Race
 from melbcup.live import LiveBoard, price_check_times
 from melbcup.sources.formfav import FormFavClient
-from melbcup.sources.puntersedge import PuntersEdgeClient
+from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.app import create_app
 from melbcup.web.views import edge, local_time, money, pct
 
-ENV = {"PUNTERSEDGE_API_KEY": "pe", "FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026"}
+ENV = {"FORMFAV_API_KEY": "ff", "APP_PASSWORD": "cup2026"}
 AUTO = {**ENV, "PRICE_MODE": "auto"}
 START = datetime(2026, 11, 3, 11, 30, tzinfo=MELBOURNE)  # R1 jumps 11:45, the Cup 3:00
 
@@ -30,9 +30,10 @@ def board_with(router: Router, clock: Clock, env=ENV) -> LiveBoard:
     t = httpx.MockTransport(router)
     return LiveBoard(
         load_settings(env),
-        pe=PuntersEdgeClient("pe", transport=t),
         ff=FormFavClient("ff", transport=t),
         clock=clock,
+        # racing.com's cache runs on the test's clock, so price checks are counted per check
+        rc=RacingComClient(transport=t, clock=lambda: clock.t.timestamp()),
     )
 
 
@@ -52,7 +53,7 @@ def test_auto_follows_the_checkpoints():
     router, clock = Router(), Clock(START)  # 11:30; R1 11:45, Cup 3:00pm
     board = board_with(router, clock, AUTO)
     board.tick()
-    assert router.hits["/v1/racing/next-to-go"] == 1  # first look on opening
+    assert router.hits["rc/races"] == 1  # first price check on opening
     for minutes, expected in (
         (5, 1),
         (10, 2),
@@ -65,16 +66,8 @@ def test_auto_follows_the_checkpoints():
     ):
         clock.t = START + timedelta(minutes=minutes, seconds=10)
         board.tick()
-        assert router.hits["/v1/racing/next-to-go"] == expected, minutes
-    assert router.hits["/v1/racing/acceptances"] == 1  # the card is loaded once
-
-
-def test_auto_credit_plan_counts_what_is_left():
-    router, clock = Router(), Clock(START)
-    board = board_with(router, clock, AUTO)
-    board.tick()
-    # R1: 11:40 and 11:43 left; Cup: five checks; two races still to be resulted
-    assert board.snapshot().auto_credits_left == 2 * 7 + 2 * 2
+        assert router.hits["rc/races"] == expected, minutes
+    assert router.hits["rc/card_races"] == 1  # the card is loaded once
 
 
 def test_reloading_the_card_keeps_prices_and_scratchings():
@@ -82,7 +75,7 @@ def test_reloading_the_card_keeps_prices_and_scratchings():
     board = board_with(router, clock, AUTO)
     board.tick()
     router.scratched = {}
-    board.pe.src._cache.clear()
+    board.rc.src._cache.clear()
     clock.t = START + timedelta(minutes=1)
     board.load_card_now(wait=True)  # the Reload card button
     race = board.snapshot().card.race(1)
@@ -94,22 +87,39 @@ def test_quota_exhaustion_pauses_polling():
     board = board_with(router, clock, AUTO)
     board.tick()
 
-    def broke(request):
-        return httpx.Response(402, json={"detail": "out of credits"})
+    def limited(request):
+        return httpx.Response(429, json={"message": "slow down"})
 
-    board.pe.src._http._transport = httpx.MockTransport(broke)
+    board.rc.src._http._transport = httpx.MockTransport(limited)
     clock.t = START + timedelta(minutes=10, seconds=10)  # R1's 5-minute check
     board.tick()
     snap = board.snapshot()
-    assert any("Paused" in e for e in snap.errors)
+    assert any("Paused automatic racing.com calls for 15 minutes" in e for e in snap.errors)
     assert snap.models  # last good board still served
-    calls = board.pe.src.calls
+    calls = board.rc.src.calls
     clock.t = START + timedelta(minutes=13, seconds=10)  # R1's 2-minute check: paused
     board.tick()
-    assert board.pe.src.calls == calls
+    assert board.rc.src.calls == calls
 
 
-def test_board_without_keys_does_nothing():
+def test_a_racingcom_outage_pauses_auto_for_a_minute_and_keeps_the_board():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock, AUTO)
+    board.tick()
+    board.rc.src._http._transport = httpx.MockTransport(lambda r: httpx.Response(503, json={}))
+    clock.t = START + timedelta(minutes=10, seconds=10)  # R1's 5-minute check fails
+    board.tick()
+    assert any("racing.com" in e for e in board.snapshot().errors) and board.snapshot().models
+    calls = board.rc.src.calls
+    clock.t += timedelta(seconds=30)
+    board.tick()  # still inside the minute: no retry
+    assert board.rc.src.calls == calls
+    clock.t += timedelta(seconds=31)
+    board.tick()  # retried, and still down
+    assert board.rc.src.calls > calls
+
+
+def test_board_without_a_source_does_nothing():
     board = LiveBoard(load_settings({"APP_PASSWORD": "x"}))
     board.tick()
     board.start()
@@ -119,7 +129,7 @@ def test_board_without_keys_does_nothing():
 # --- web ----------------------------------------------------------------------------------
 
 
-def test_manual_mode_spends_nothing_until_asked():
+def test_manual_mode_fetches_nothing_until_asked():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
     assert not board.auto
@@ -127,27 +137,54 @@ def test_manual_mode_spends_nothing_until_asked():
     assert router.hits == {}
     assert board.refresh_prices_now() is False  # no card yet
     assert board.load_card_now(wait=True)
-    assert router.hits["/v1/racing/acceptances"] == 1
-    assert router.hits["/v1/racing/next-to-go"] == 1
-    clock.t = START + timedelta(seconds=5)
-    assert board.refresh_prices_now() is False  # double tap within 15 s
+    assert router.hits["rc/card_races"] == 1
+    assert router.hits["rc/races"] == 1 and router.hits["rc/prices"] == 2
     clock.t = START + timedelta(seconds=20)
+    assert board.refresh_prices_now() is False  # a tap within a minute is refused
+    clock.t = START + timedelta(seconds=59)
+    assert board.refresh_prices_now() is False
+    clock.t = START + timedelta(seconds=61)
     assert board.refresh_prices_now() is True
-    assert router.hits["/v1/racing/next-to-go"] == 2
+    assert router.hits["rc/races"] == 2 and router.hits["rc/prices"] == 4
     clock.t = START + timedelta(hours=3)
     board.tick()  # still manual: no hourly form reload, no polling
-    assert router.hits["/v1/racing/acceptances"] == 1
-    assert router.hits["/v1/racing/next-to-go"] == 2
+    assert router.hits["rc/card_races"] == 1
+    assert router.hits["rc/races"] == 2
 
 
-def test_credits_come_from_balance_then_headers():
+def test_a_failed_manual_refresh_still_counts_toward_the_minute():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
-    board.check_credits()
-    snap = board.snapshot()
-    assert (snap.credits_remaining, snap.credits_limit) == (2999, 3000)
     board.load_card_now(wait=True)
-    assert board.snapshot().credits_remaining < 2999
+    board.rc.src._http._transport = httpx.MockTransport(lambda r: httpx.Response(503, json={}))
+    clock.t = START + timedelta(seconds=70)
+    assert board.refresh_prices_now() is True and board.snapshot().errors
+    calls = board.rc.src.calls
+    clock.t += timedelta(seconds=10)
+    assert board.refresh_prices_now() is False  # hammering a failing racing.com is refused too
+    assert board.rc.src.calls == calls
+    clock.t += timedelta(seconds=61)
+    assert board.refresh_prices_now() is True
+
+
+def test_manual_results_are_limited_to_once_a_minute():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    assert board.fetch_results_now() is True
+    assert router.hits["rc/results"] == 2
+    clock.t = START + timedelta(seconds=30)
+    assert board.fetch_results_now() is False and router.hits["rc/results"] == 2
+    clock.t = START + timedelta(seconds=61)
+    assert board.fetch_results_now() is True
+
+
+def test_there_is_no_credit_counter_and_no_puntersedge_anywhere_on_the_board():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    snap = board.snapshot()
+    assert not hasattr(snap, "credits_remaining") and not hasattr(board, "pe")
 
 
 @pytest.fixture
@@ -166,21 +203,22 @@ def client(board_and_router):
         yield c
 
 
-def test_buttons_and_credits_on_page(client):
+def test_buttons_and_data_source_on_page(client):
     html = client.get("/?budget=50", auth=AUTH).text
-    assert "PuntersEdge credits left" in html and "of 3,000" in html
+    assert "Live data from racing.com" in html and "Sportsbet prices" in html
+    assert "credits" not in html.lower() and "PuntersEdge" not in html
     assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
     assert "next=/%3Fbudget%3D50" in html
 
 
 def test_refresh_button_spends_one_call_and_returns(board_and_router):
     board, router = board_and_router
-    board._priced_at -= timedelta(minutes=1)
+    board.clock.t += timedelta(minutes=2)  # past the one-a-minute limit and racing.com's cache
     app = create_app(load_settings(ENV), board, start_background=False)
     with TestClient(app) as c:
         r = c.post("/actions/prices?next=/race/2", auth=AUTH, follow_redirects=False)
         assert r.status_code == 303 and r.headers["location"] == "/race/2"
-        assert router.hits["/v1/racing/next-to-go"] == 2
+        assert router.hits["rc/races"] == 2
         r = c.post("/actions/auto?on=1&next=//evil.example", auth=AUTH, follow_redirects=False)
         assert r.headers["location"] == "/" and board.auto
         c.post("/actions/auto?on=0", auth=AUTH)
@@ -226,7 +264,9 @@ def test_public_access_needs_no_password():
 def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html
-    assert "Each way" in html and "Trifecta" in html and "First four" in html
+    assert (
+        "Trifecta" in html and "First four" in html
+    )  # each ways appear only when a price beats its chance
     assert "Quaddies" in html and "Multis at Sportsbet" in html
     assert "1800 858 858" in html
     assert "Bet $" not in html
@@ -257,7 +297,7 @@ def test_runs_on_racingcom_without_any_keys():
     app = create_app(load_settings({"APP_PASSWORD": "p"}), start_background=False)
     with TestClient(app) as c:
         html = c.get("/", auth=("", "p")).text
-    assert "Live data from racing.com" in html and "PuntersEdge credits" not in html
+    assert "Live data from racing.com" in html and "credits" not in html.lower()
 
 
 def test_filters():
@@ -267,14 +307,15 @@ def test_filters():
     assert local_time(datetime(2026, 11, 3, 4, 0, tzinfo=MELBOURNE)) == "4:00am"
 
 
-def test_find_meetings_then_switch_and_load_share_one_call():
+def test_find_meetings_then_switch_and_load():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
     assert board.find_meetings(RACE_DATE) == ["Flemington"]
     assert board.find_meetings(RACE_DATE) == ["Flemington"]  # cached per day
+    assert router.hits["rc/meetings"] == 8  # one call per state, once
     assert board.set_meeting(RACE_DATE, "Flemington")
     board.load_card_now(wait=True)
-    assert router.hits["/v1/racing/acceptances"] == 1  # lookup and load shared one call
+    assert router.hits["rc/meeting"] == 0 if "rc/meeting" in router.hits else True
     assert board.snapshot().models
 
 
@@ -323,7 +364,7 @@ def test_results_button_grades_the_day(board_and_router, monkeypatch):
         assert "Get results" in c.get("/", auth=AUTH).text
         r = c.post("/actions/results?next=/", auth=AUTH, follow_redirects=False)
         assert r.status_code == 303
-        assert router.hits["/v1/racing/results"] == 1
+        assert router.hits["rc/results"] == 2
         html = c.get("/", auth=AUTH).text
         assert "So far today: top pick won" in html and "✓" in html
         assert "Best value right now" not in html  # every race has run
@@ -352,25 +393,41 @@ def test_race_names_in_capitals_are_shown_in_normal_case():
     assert book("SP") == "SP"
 
 
-def test_results_come_free_from_racingcom_with_puntersedge_as_fallback():
-    from melbcup.sources.racingcom import RacingComClient
-
+def test_prices_results_and_card_all_come_from_racingcom():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock)
-    board.rc = RacingComClient(transport=httpx.MockTransport(router))
     board.load_card_now(wait=True)
-    assert board.card_cost(10) == 2 and board.results_cost == 0 and board.prices_cost == 0
-    assert "/v1/racing/form" not in router.hits  # recent form came from racing.com
-    board._priced_at = None
-    assert board.refresh_prices_now()
-    assert "/v1/racing/next-to-go" not in router.hits  # prices came free from racing.com
+    assert not any(k.startswith("/v1/racing") for k in router.hits)
     race1 = board.snapshot().card.race(1)
-    assert race1.prices[1].sportsbet_win == 3.0 and race1.prices[1].best_win.price == 3.3
+    # racing.com's Sportsbet fixed odds, and the best of its four books
+    assert race1.prices[1].sportsbet_win == 2.9 and race1.prices[1].best_win.price == 2.9
+    assert race1.prices[4].sportsbet_win == 7.0 and race1.prices[4].best_win.price == 7.5
     assert board.fetch_results_now()
-    assert "/v1/racing/results" not in router.hits  # no credits spent on results
     assert all(r.result is not None for r in board.snapshot().card.races)
 
-    board.rc = RacingComClient(transport=httpx.MockTransport(lambda req: httpx.Response(503)))
-    board._results_at = None
+
+def test_multis_use_racingcoms_sportsbet_prices():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    day = board.snapshot().picks(None)
+    assert day.multis and all(m.bookmaker == "sportsbet" for m in day.multis)
+    legs = {(leg.race, leg.number): leg.price for m in day.multis for leg in m.legs}
+    assert legs  # each leg is priced at the recorded Sportsbet win price
+    recorded = {
+        (race, e["raceEntryNumber"]): float(e["sb"][0]["oddsWin"][1:])
+        for race in (1, 2)
+        for e in rc_market(race)["GetBettingData"]["formRaceEntries"]
+    }
+    assert all(price == recorded[key] for key, price in legs.items())
+
+
+def test_racingcom_down_for_results_is_reported_not_swallowed():
+    router, clock = Router(), Clock(START)
+    board = board_with(router, clock)
+    board.load_card_now(wait=True)
+    board.rc.src._http._transport = httpx.MockTransport(lambda r: httpx.Response(503))
+    clock.t = START + timedelta(minutes=2)
     assert board.fetch_results_now()
-    assert router.hits["/v1/racing/results"] == 1  # racing.com down: PuntersEdge fills in
+    assert any("racing.com" in e for e in board.snapshot().errors)
+    assert all(r.result is None for r in board.snapshot().card.races)

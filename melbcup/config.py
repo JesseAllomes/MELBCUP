@@ -1,6 +1,7 @@
 """Runtime settings, read from environment variables only.
 
-API keys and the app password never live in the repository.
+API keys and the app password never live in the repository. racing.com needs no key. The
+retired PUNTERSEDGE_API_KEY, if still set on a host, is ignored.
 """
 
 from __future__ import annotations
@@ -22,20 +23,11 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class Settings:
     formfav_api_key: str | None
-    puntersedge_api_key: str | None
     app_password: str | None
     race_date: date
     venue: str
     auto_refresh: bool = False
     public: bool = False  # PUBLIC_ACCESS=1: no password prompt (owner choice, Azure app)
-
-    @property
-    def has_form_source(self) -> bool:
-        return bool(self.formfav_api_key or self.puntersedge_api_key)
-
-    @property
-    def has_price_source(self) -> bool:
-        return bool(self.puntersedge_api_key)
 
 
 def _clean(value: str | None) -> str | None:
@@ -56,7 +48,6 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
 
     return Settings(
         formfav_api_key=_clean(env.get("FORMFAV_API_KEY")),
-        puntersedge_api_key=_clean(env.get("PUNTERSEDGE_API_KEY")),
         app_password=_clean(env.get("APP_PASSWORD")),
         race_date=race_date,
         venue=_clean(env.get("VENUE")) or CUP_VENUE,

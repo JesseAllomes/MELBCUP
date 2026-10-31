@@ -26,11 +26,6 @@
     ],
     "secrets": [
       {
-        "name": "puntersedge-api-key",
-        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-puntersedge-api-key",
-        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
-      },
-      {
         "name": "formfav-api-key",
         "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-formfav-api-key",
         "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
@@ -56,7 +51,6 @@
         "env": [
           {"name": "PRICE_MODE", "value": "manual"},
           {"name": "PUBLIC_ACCESS", "value": "1"},
-          {"name": "PUNTERSEDGE_API_KEY", "secretRef": "puntersedge-api-key"},
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
           {"name": "APP_PASSWORD", "secretRef": "app-password"}
         ],

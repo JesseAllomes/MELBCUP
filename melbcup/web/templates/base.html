@@ -21,22 +21,22 @@
   <main id="main" class="wrap" data-refresh="{% block refresh %}60{% endblock %}">
     {% if can_fetch %}
     <div class="status">
-      <p class="credits">{% if has_pe %}<strong>{{ '{:,}'.format(snap.credits_remaining) if snap.credits_remaining is not none else '?' }}</strong>{% if snap.credits_limit %} of {{ '{:,}'.format(snap.credits_limit) }}{% endif %} PuntersEdge credits left{% else %}Live data from racing.com{% endif %}
+      <p class="source">Live data from racing.com: Sportsbet prices, field and scratchings. Refreshes are limited to one a minute.
         <span class="when">{% if snap.saved %}saved meeting, nothing to fetch{% else %}{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% else %}no prices yet{% endif %}{% if snap.results_at %} · results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %} · loading card…{% endif %}{% endif %}</span></p>
       {% if not snap.saved %}
       <div class="buttons">
         {% if card and snap.can_price %}
-        <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices <span>{{ snap_prices_cost or "free" }}</span></button></form>
+        <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices</button></form>
         {% endif %}
         {% if card and snap.race_date <= today %}
-        <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results <span>{{ snap_results_cost or "free" }}</span></button></form>
+        <form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results</button></form>
         {% endif %}
         {% if not snap.field_due %}
-        <form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }} <span>{{ ('~' ~ load_cost) if load_cost else 'free' }}</span></button></form>
+        <form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }}</button></form>
         {% endif %}
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}"><button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'on' if snap.auto else 'off' }}</button></form>
       </div>
-      {% if snap.auto %}<p class="note">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race, and results after each race{% if snap.auto_credits_left %}: about {{ snap.auto_credits_left }} more credits for this meeting{% endif %}.</p>{% endif %}
+      {% if snap.auto %}<p class="note">Auto checks prices 60, 30, 15, 5 and 2 minutes before each race, and results after each race.</p>{% endif %}
       {% endif %}
     </div>
     {% endif %}

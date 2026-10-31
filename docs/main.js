@@ -135,7 +135,6 @@
 
   function showKeys() {
     const keys = readKeys();
-    $("pe-key").value = keys.pe || "";
     $("ff-key").value = keys.ff || "";
     $("keys").hidden = false;
     $("app").hidden = true;
@@ -144,8 +143,7 @@
 
   $("keys-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const pe = $("pe-key").value.trim();
-    store.set(KEYS, JSON.stringify({ pe, ff: $("ff-key").value.trim() }));
+    store.set(KEYS, JSON.stringify({ ff: $("ff-key").value.trim() }));
     location.replace(location.pathname);  // back to the app, not the settings page
   });
 
@@ -174,7 +172,7 @@
     };
     worker.onerror = (e) => showError(e.message || "the app could not start");
     try {
-      await send("init", { pe: keys.pe || "", ff: keys.ff || "", hp: keys.hp || "", saved: store.get(STATE) });
+      await send("init", { ff: keys.ff || "", saved: store.get(STATE) });
     } catch (err) {
       // A saved card from an older build can stop start-up: drop it once and retry.
       if (store.get(STATE)) { store.set(STATE, null); location.reload(); return; }
