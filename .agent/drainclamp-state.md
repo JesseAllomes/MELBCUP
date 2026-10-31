@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=50 -->
+<!-- drainclamp-build: state; schema=1; generation=52 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -58,6 +58,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Look? -> Silks: own identity, not a bookie look; per-race silk colour bands, chunky blocks, bold sans; no TAB/bookie green (source: user, 2026-10-31)
 - BET without $? -> never: every BET carries a $ stake; budget defaults to $200, remembered on the phone; a bet that sizes to $0 is HOLD (source: user, 2026-10-31)
 - Push to main? -> only after the owner approves each push; main deploys live (source: user, 2026-10-31)
+- UI changes? -> owner's product-ui skill (/home/user/jesseallomes/product-ui): 3-4 prototypes per round, wait, iterate; no production UI until owner says BUILD; then write .grok/product-ui/{theme,design,layout}.md (source: user, 2026-10-31)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
@@ -74,7 +75,8 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | done | az1 |
 | az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | done | az2 |
 | az4 | After Cup collection (7 Nov): collector publishes to Blob only (no live branch); validators read blob; Google Cloud archive replaced by Blob cool tier or OneDrive; archive-to-gcs.yml, GCP key, Render and GitHub Pages retired | azure/function/;tools/live_validate.py;.github/workflows/ | pending | az3 |
-| ui2 | Silks look + every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips show summed $) | melbcup/web/;tests/test_verdicts.py;docs/ | active |  |
+| ui2 | every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips summed $); logic only, no restyle | melbcup/web/;tests/test_verdicts.py;docs/ | active |  |
+| ui3 | Silks look via product-ui loop: round 1 prototypes -> owner picks/iterates -> BUILD -> product lock -> implement | scratchpad/proto;.grok/product-ui/;melbcup/web/ | active | ui2 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
