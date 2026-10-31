@@ -15,10 +15,11 @@
 </li>
 {% endmacro %}
 
-{# A multi: the legs, Sportsbet's price, and a verdict from the same rule as every other bet. #}
-{% macro multi_row(m) %}
+{# A multi: the legs, Sportsbet's price, and a verdict from the same rule as every other bet.
+   With a budget set, a value multi whose stake rounds to nothing is a hold, never a bare BET. #}
+{% macro multi_row(m, budget=none) %}
 {% set who %}{% for leg in m.legs %}R{{ leg.race }} {{ leg.number }} {{ leg.name }}{{ ' + ' if not loop.last }}{% endfor %}{% endset %}
-{{ vrow(Call('bet', m.stake) if m.value else call_for(false, none, m.price, m.prob), (m.legs | length) ~ ' legs', none, who, m.price, 'Sportsbet', 'lands ' ~ (m.prob | pct(1))) }}
+{{ vrow(Call('bet', m.stake) if m.value and (m.stake or not budget) else Call('hold') if m.value else call_for(false, none, m.price, m.prob), (m.legs | length) ~ ' legs', none, who, m.price, 'Sportsbet', 'lands ' ~ (m.prob | pct(1))) }}
 {% endmacro %}
 
 {# A recommended quaddie: always a bet, with the outlay when there is a budget. #}

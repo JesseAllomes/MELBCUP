@@ -24,7 +24,7 @@
   {% for rp in picks.races %}
     {% if betting_open(rp.model.race) %}{% if ns.next is none %}{% set ns.next = rp.model.race %}{% endif %}{% if race_call(rp).kind == 'bet' %}{% set ns.slips = ns.slips + 1 %}{% endif %}{% endif %}
   {% endfor %}
-  {% set multi_bets = (picks.quaddies | selectattr('recommended') | list) + (picks.multis | selectattr('value') | list) %}
+  {% set open_n = open_races(picks) %}
 
   {% if ns.next is not none %}
   <section class="betnow" aria-labelledby="betnow">
@@ -37,22 +37,24 @@
         <span class="slip-title"><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span>
           <span class="slip-when"><b>{{ race.start_time | local_time }}</b> {{ race.start_time | until }}</span></span>
       </a>
-      {% with marks = marks.get(race.number) %}{% include "_bets.html" %}{% endwith %}
+      {% with marks = marks.get(race.number), exotics_on = false %}{% include "_bets.html" %}{% endwith %}
     </article>
     {% endfor %}
     {% if ns.slips == 0 %}
     <article class="slip hold-card">
       <ul class="vlist"><li class="vrow hold"><span class="vhead"><span class="chip hold">HOLD</span></span>
-        <span class="vwho"><strong>No bets right now</strong></span>
+        <span class="vwho"><strong>No win or place bets right now</strong></span>
         <span class="vsub">Next: Race {{ ns.next.number }}, {{ ns.next.start_time | local_time }} {{ ns.next.start_time | until }}</span></li></ul>
     </article>
     {% endif %}
-    {% if multi_bets %}
+    {% set open_multis = [] %}
+    {% for m in picks.multis if m.value %}{% if (m.legs | map(attribute='race') | reject('in', open_n) | list | length) == 0 %}{% set _ = open_multis.append(m) %}{% endif %}{% endfor %}
+    {% if picks.quaddies | selectattr('recommended') | list or open_multis %}
     <article class="slip" id="multi-bets">
       <div class="slip-head static"><span class="rname">Quaddies and multis</span></div>
       <ul class="vlist">
         {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e) }}{% endfor %}
-        {% for m in picks.multis if m.value %}{{ multi_row(m) }}{% endfor %}
+        {% for m in open_multis %}{{ multi_row(m, budget) }}{% endfor %}
       </ul>
     </article>
     {% endif %}
@@ -82,7 +84,7 @@
     <div class="racebody">
       <p class="meta">{% if race.condition %}{{ race.condition }}{% endif %}{% if race.weather %}, {{ race.weather | lower }}{% endif %}{% if race.condition_was %} (track was {{ race.condition_was }}){% endif %}</p>
       {% if rg %}{% include "_placings.html" %}{% endif %}
-      {% with marks = marks.get(race.number), show_bets = not slip %}{% include "_picks.html" %}{% endwith %}
+      {% with marks = marks.get(race.number), show_singles = not slip %}{% include "_picks.html" %}{% endwith %}
       {% include "_runners.html" %}
       <a class="textlink more" href="/race/{{ race.number }}{{ budget_q }}">Full field and form</a>
     </div>
@@ -92,11 +94,11 @@
   {% if picks.quaddies or picks.multis %}
   <details class="race" id="multis">
     <summary><span class="stitle"><span class="rname">Quaddies and multis</span></span>
-      {% if multi_bets %}{{ chip(Call('bet')) }}{% endif %}</summary>
+      {% if open_n and ((picks.quaddies | selectattr('recommended') | list) or (picks.multis | selectattr('value') | list)) %}{{ chip(Call('bet')) }}{% endif %}</summary>
     <div class="racebody">
       <ul class="vlist">
         {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e, true) }}{% endfor %}
-        {% for m in picks.multis %}{{ multi_row(m) }}{% endfor %}
+        {% for m in picks.multis %}{{ multi_row(m, budget) }}{% endfor %}
       </ul>
       {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
     </div>

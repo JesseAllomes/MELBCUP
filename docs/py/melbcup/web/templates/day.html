@@ -1,64 +1,108 @@
 {% extends "base.html" %}
+{% from "_chip.html" import chip, multi_row, quaddie_row %}
+{% block top %}
+{% if picks %}
+{% include "_racestrip.html" %}
+<form class="budget" method="get" action="/">
+  <label for="budget">Day budget</label>
+  <div class="row">
+    <input id="budget" name="budget" inputmode="decimal" placeholder="$ e.g. 200" value="{{ '%g' % budget if budget else '' }}">
+    <button type="submit" class="primary">Size bets</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}
 {% block content %}
 {% if not picks %}
   <section class="block empty">
     <h1>{{ snap.venue }}, {{ snap.race_date | day }}</h1>
     {% if snap.loading %}<p>Loading the card…</p>{% endif %}
-    <p><a href="/history">History</a></p>
+    <p><a class="textlink" href="/history">History</a></p>
   </section>
 {% else %}
-  {% if grade %}
-  {% set tp = grade.tally(grade.value_lines) %}
-  <p class="summary">{{ 'On the day' if snap.saved else 'So far today' }}: top pick won {{ grade.top_pick_wins }} of {{ grade.graded }}
-    and placed in {{ grade.top_pick_places }}. Value bets {{ '%+.2f' % tp[2] if tp[0] else 'none' }}{% if tp[0] %} on ${{ tp[0] }}{% endif %}.
-    <a href="/history">History</a></p>
-  {% endif %}
-
+  {% set ns = namespace(next=none, slips=0) %}
   {% for rp in picks.races %}
-  {% set race = rp.model.race %}
-  {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
-  <article class="race" id="r{{ race.number }}">
-    <header>
-      <a class="racehead" href="/race/{{ race.number }}{{ budget_q }}"><span class="cloth big">{{ race.number }}</span><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span></a>
-      <p class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners{% if race.condition %} · {{ race.condition }}{% endif %}{% if race.weather %}, {{ race.weather | lower }}{% endif %}</p>
-      {% if race.condition_was %}<p class="going-change">Track now {{ race.condition }}, was {{ race.condition_was }}.</p>{% endif %}
-    </header>
-    {% if rg %}{% include "_placings.html" %}{% endif %}
-    {% with marks = marks.get(race.number) %}{% include "_picks.html" %}{% endwith %}
-    {% include "_runners.html" %}
-  </article>
+    {% if betting_open(rp.model.race) %}{% if ns.next is none %}{% set ns.next = rp.model.race %}{% endif %}{% if race_call(rp).kind == 'bet' %}{% set ns.slips = ns.slips + 1 %}{% endif %}{% endif %}
   {% endfor %}
+  {% set open_n = open_races(picks) %}
 
-  {% if picks.quaddies or picks.multis %}
-  <section class="block">
-    {% if picks.quaddies | selectattr('recommended') | list %}<h2>Quaddies</h2>{% endif %}
-    <dl class="picks">
-    {% for e in picks.quaddies if e.recommended %}
-      <div class="pick"><dt>{{ 'Early' if e.kind == 'early_quaddie' else 'Main' }}</dt>
-        <dd><span class="who">{{ e.leg_labels | join(' · ') }}</span>
-          <span class="fig">{{ e.combos }} combos · lands {{ e.prob | pct(1) }} · needs ${{ '%.0f' % e.fair_dividend }} per $1 to break even{% if e.outlay %} · bet ${{ e.outlay }} ({{ e.flexi_pct }}%){% endif %}</span></dd></div>
+  {% if ns.next is not none %}
+  <section class="betnow" aria-labelledby="betnow">
+    <h2 id="betnow" class="sect">Bet now</h2>
+    {% for rp in picks.races if betting_open(rp.model.race) and race_call(rp).kind == 'bet' %}
+    {% set race = rp.model.race %}
+    <article class="slip" id="bet{{ race.number }}">
+      <a class="slip-head" href="/race/{{ race.number }}{{ budget_q }}">
+        <span class="cloth big">{{ race.number }}</span>
+        <span class="slip-title"><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span>
+          <span class="slip-when"><b>{{ race.start_time | local_time }}</b> {{ race.start_time | until }}</span></span>
+      </a>
+      {% with marks = marks.get(race.number), exotics_on = false %}{% include "_bets.html" %}{% endwith %}
+    </article>
     {% endfor %}
-    </dl>
-    {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
-    {% if picks.multis %}
-    <h2>Multis at Sportsbet</h2>
-    <dl class="picks">
-    {% for m in picks.multis %}
-      <div class="pick"><dt>{{ m.legs | length }} legs</dt>
-        <dd><span class="who">{% for leg in m.legs %}R{{ leg.race }} {{ leg.number }} {{ leg.name }}{{ ' + ' if not loop.last }}{% endfor %}</span>
-          <span class="fig">{{ m.price | money }} · lands {{ m.prob | pct(1) }}{% if m.value %} · <em>value</em>{% endif %}{% if m.stake %} · bet ${{ m.stake }}{% endif %}</span></dd></div>
-    {% endfor %}
-    </dl>
+    {% if ns.slips == 0 %}
+    <article class="slip hold-card">
+      <ul class="vlist"><li class="vrow hold"><span class="vhead"><span class="chip hold">HOLD</span></span>
+        <span class="vwho"><strong>No win or place bets right now</strong></span>
+        <span class="vsub">Next: Race {{ ns.next.number }}, {{ ns.next.start_time | local_time }} {{ ns.next.start_time | until }}</span></li></ul>
+    </article>
+    {% endif %}
+    {% set open_multis = [] %}
+    {% for m in picks.multis if m.value %}{% if (m.legs | map(attribute='race') | reject('in', open_n) | list | length) == 0 %}{% set _ = open_multis.append(m) %}{% endif %}{% endfor %}
+    {% if picks.quaddies | selectattr('recommended') | list or open_multis %}
+    <article class="slip" id="multi-bets">
+      <div class="slip-head static"><span class="rname">Quaddies and multis</span></div>
+      <ul class="vlist">
+        {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e) }}{% endfor %}
+        {% for m in open_multis %}{{ multi_row(m, budget) }}{% endfor %}
+      </ul>
+    </article>
     {% endif %}
   </section>
   {% endif %}
 
-  <form class="budget" method="get" action="/">
-    <label for="budget">Bet sizes from a day budget (optional)</label>
-    <div class="row">
-      <input id="budget" name="budget" inputmode="decimal" placeholder="e.g. 200" value="{{ '%g' % budget if budget else '' }}">
-      <button type="submit">Size bets</button>
+  {% if grade %}
+  {% set tp = grade.tally(grade.value_lines) %}
+  <p class="summary">{{ 'On the day' if snap.saved else 'So far today' }}: top pick won {{ grade.top_pick_wins }} of {{ grade.graded }}
+    and placed in {{ grade.top_pick_places }}. Value bets {{ '%+.2f' % tp[2] if tp[0] else 'none' }}{% if tp[0] %} on ${{ tp[0] }}{% endif %}.
+    <a class="textlink" href="/history">History</a></p>
+  {% endif %}
+
+  <h2 class="sect">All races</h2>
+  {% for rp in picks.races %}
+  {% set race = rp.model.race %}
+  {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+  {% set slip = betting_open(race) and race_call(rp).kind == 'bet' %}
+  <details class="race" id="r{{ race.number }}">
+    <summary>
+      <span class="cloth big">{{ race.number }}</span>
+      <span class="stitle"><span class="rname">{{ race.name | racename or 'Race ' ~ race.number }}</span>
+        <span class="meta">{{ race.start_time | local_time }}{% if not rg %} {{ race.start_time | until }}{% endif %} · {{ race.distance_m or '?' }}m · {{ race.starters | length }} runners</span></span>
+      {% if rg %}{% set w = rg.placings | first %}<span class="done">{% if w %}<span class="cloth">{{ w[1] }}</span> won{% else %}Run{% endif %}</span>
+      {% elif betting_open(race) %}{{ chip(race_call(rp)) }}{% endif %}
+    </summary>
+    <div class="racebody">
+      <p class="meta">{% if race.condition %}{{ race.condition }}{% endif %}{% if race.weather %}, {{ race.weather | lower }}{% endif %}{% if race.condition_was %} (track was {{ race.condition_was }}){% endif %}</p>
+      {% if rg %}{% include "_placings.html" %}{% endif %}
+      {% with marks = marks.get(race.number), show_singles = not slip %}{% include "_picks.html" %}{% endwith %}
+      {% include "_runners.html" %}
+      <a class="textlink more" href="/race/{{ race.number }}{{ budget_q }}">Full field and form</a>
     </div>
-  </form>
+  </details>
+  {% endfor %}
+
+  {% if picks.quaddies or picks.multis %}
+  <details class="race" id="multis">
+    <summary><span class="stitle"><span class="rname">Quaddies and multis</span></span>
+      {% if open_n and ((picks.quaddies | selectattr('recommended') | list) or (picks.multis | selectattr('value') | list)) %}{{ chip(Call('bet')) }}{% endif %}</summary>
+    <div class="racebody">
+      <ul class="vlist">
+        {% for e in picks.quaddies if e.recommended %}{{ quaddie_row(e, true) }}{% endfor %}
+        {% for m in picks.multis %}{{ multi_row(m, budget) }}{% endfor %}
+      </ul>
+      {% if grade and grade.quaddies %}<dl class="picks">{% for g in grade.quaddies %}{% include "_graded.html" %}{% endfor %}</dl>{% endif %}
+    </div>
+  </details>
+  {% endif %}
 {% endif %}
 {% endblock %}

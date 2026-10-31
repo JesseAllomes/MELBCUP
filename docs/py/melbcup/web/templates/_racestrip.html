@@ -1,0 +1,14 @@
+{# The race numbers, one tap each. Day page: jumps down the page. Race page: opens the race.
+   Needs: picks; optional: race (the race being viewed). #}
+{% set ns = namespace(next=none) %}
+{% for r in picks.races %}{% if ns.next is none and betting_open(r.model.race) %}{% set ns.next = r.model.race.number %}{% endif %}{% endfor %}
+<nav class="racenav" aria-label="Races">
+  {% for r in picks.races %}
+    {% set n = r.model.race.number %}
+    {% set open = betting_open(r.model.race) %}
+    {% set bet = open and race_call(r).kind == 'bet' %}
+    {% set href = ('/race/' ~ n ~ budget_q) if race is defined else ('#bet' ~ n if bet else '#r' ~ n) %}
+    <a href="{{ href }}" class="{{ 'on' if (race is defined and n == race.number) or (race is not defined and n == ns.next) }}{{ ' next' if race is defined and n == ns.next }}{{ ' bet' if bet }}{{ ' done' if not open }}"
+       aria-label="Race {{ n }}{{ ', bet' if bet }}{{ ', run' if not open }}"{% if n == ns.next %} aria-current="true"{% endif %}>{{ n }}</a>
+  {% endfor %}
+</nav>

@@ -64,7 +64,7 @@
         {% if tp and not same %}{% call row('Place', tp) %}places {{ tp.chance | pct }}{% if tp.price %} · {{ tp.price | money }}{% if tp.estimated %} est.{% endif %}{% endif %}{% endcall %}{% endif %}
       </dl>
       {% endif %}
-      <h3 class="line">Value</h3>
+      <h3 class="line">Best price for chance</h3>
       {% if shown(e, 'win') or shown(e, 'place') or shown(e, 'each_way') %}
       <dl>
         {% for cat, label in [('win', 'Win'), ('place', 'Place'), ('each_way', 'Each way')] if shown(e, cat) %}

@@ -1,10 +1,10 @@
 {# The model's read of one race, under the bets: the runners most likely to win and to place
    whatever their price, each with its own verdict, then the next to place.
-   Needs: rp (RacePicks); optional: marks (kind -> Graded), show_bets (default yes) #}
+   Needs: rp (RacePicks); optional: marks (kind -> Graded), show_bets and show_singles (default yes) #}
 {% from "_chip.html" import vrow %}
 {% set marks = marks or {} %}
 {% set race = rp.model.race %}
-{% if show_bets is not defined or show_bets %}<div class="slip plain">{% include "_bets.html" %}</div>{% endif %}
+{% if show_bets is not defined or show_bets %}<div class="slip plain">{% with singles_on = show_singles is not defined or show_singles %}{% include "_bets.html" %}{% endwith %}</div>{% endif %}
 {% set tw, tp = rp.best.top_win, rp.best.top_place %}
 {% set same = tw and tp and tw.number == tp.number %}
 {% set priced = 'market' in rp.model.sources %}
@@ -29,7 +29,8 @@
     {% set fin = race.result.finish if race.result else {} %}
     {% for a in next[:2] %}
     {% set ok = 0 < fin.get(a.number, 99) <= race.places_paid %}
-    {{ vrow(runner_call(rp, a.number), 'Next to place', a.number, race.runner(a.number).name, none, none,
+    {% set np = race.prices.get(a.number) %}
+    {{ vrow(runner_call(rp, a.number), 'Next to place', a.number, race.runner(a.number).name, (np.sportsbet_win or (np.best_win.price if np.best_win else none)) if np else none, 'Sportsbet' if np and np.sportsbet_win else (np.best_win.bookmaker | book if np and np.best_win else none),
             'places ' ~ (a.place | pct) ~ (' · ' ~ ('✓' if ok else '✗') if fin else '')) }}
     {% endfor %}
   </ul>

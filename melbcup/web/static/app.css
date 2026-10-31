@@ -34,7 +34,7 @@
   --sp-6: 32px;
   --tap: 44px;
   --mast: 56px;
-  --strip: 56px;
+  --strip: 62px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -122,6 +122,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .alert { border-radius: 6px; padding: var(--sp-2) var(--sp-3); margin: var(--sp-2) 0; font-size: var(--fs-s); overflow-wrap: anywhere; background: var(--alert); }
 .summary { font-size: var(--fs-s); color: var(--muted); padding-block: var(--sp-3); margin: var(--sp-4) 0 0; border-top: 1px solid var(--rule); }
 a.textlink { display: inline-flex; align-items: center; min-height: var(--tap); }
+.summary a.textlink { display: flex; }
 
 /* saddlecloth numbers */
 .cloth {
@@ -220,7 +221,7 @@ input {
 .hold-card .vrow { background: transparent; }
 
 /* races */
-.race { border-top: 1px solid var(--rule); }
+.race { border-top: 1px solid var(--rule); scroll-margin-top: calc(var(--mast) + var(--strip) + var(--sp-2)); }
 .race:first-of-type { border-top: 0; }
 .race.solo { border-top: 0; padding-block: var(--sp-4) var(--sp-2); }
 .race header { margin-bottom: var(--sp-2); }
@@ -254,6 +255,7 @@ input {
 .picks .conf::before { content: "· "; }
 .picks .conf.high { color: var(--bet); }
 .picks .vrow { padding-inline: var(--sp-1); }
+.picks .vrow:not(.bet) { padding-block: var(--sp-3); }
 .picks .none { color: var(--muted); font-size: var(--fs-s); margin: 3px 0 0; }
 /* history and graded lines keep the older compact rows */
 .pick {

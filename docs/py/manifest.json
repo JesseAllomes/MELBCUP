@@ -1,5 +1,5 @@
 {
- "build": "7f11f1df4762",
+ "build": "4372bee84e7a",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -22,10 +22,13 @@
   "melbcup/sources/http.py",
   "melbcup/sources/racingcom.py",
   "melbcup/web/__init__.py",
+  "melbcup/web/templates/_bets.html",
+  "melbcup/web/templates/_chip.html",
   "melbcup/web/templates/_exotic.html",
   "melbcup/web/templates/_graded.html",
   "melbcup/web/templates/_picks.html",
   "melbcup/web/templates/_placings.html",
+  "melbcup/web/templates/_racestrip.html",
   "melbcup/web/templates/_runners.html",
   "melbcup/web/templates/base.html",
   "melbcup/web/templates/day.html",

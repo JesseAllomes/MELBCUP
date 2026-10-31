@@ -1,0 +1,29 @@
+{# Verdict chip and verdict row, shared by every page. A call is a views.Call: bet (with the
+   stake when there is one), hold or skip. #}
+{% macro chip(c) %}<span class="chip {{ c.kind }}">{{ c.kind | upper }}{% if c.stake %} ${{ c.stake }}{% endif %}</span>{% endmacro %}
+
+{# One line of the card: verdict chip, what it is, who, the price large on the right.
+   graded: Graded objects for the line (ticks and crosses once the race has run). #}
+{% macro vrow(c, kind, number, name, price, plabel, sub=none, graded=none) %}
+{% set graded = (graded or []) | select | list %}
+<li class="vrow {{ c.kind }}{{ '' if price else ' noprice' }}{% if graded %}{{ ' hit' if graded | selectattr('hit') | list else ' miss' }}{% endif %}">
+  <span class="vhead">{{ chip(c) }}<span class="vkind">{{ kind }}</span>
+    {% for g in graded %}<b class="mark {{ 'ok' if g.hit else 'no' }}" title="{{ g.label }}: {{ 'landed' if g.hit else 'missed' }}">{{ '✓' if g.hit else '✗' }}</b>{% endfor %}</span>
+  {% if price %}<span class="vprice"><b>{{ price | money }}</b><small>{{ plabel }}</small></span>{% endif %}
+  <span class="vwho">{% if number %}<span class="cloth">{{ number }}</span> <strong>{{ name }}</strong>{% else %}<strong>{{ name }}</strong>{% endif %}</span>
+  {% if sub %}<span class="vsub">{{ sub }}</span>{% endif %}
+</li>
+{% endmacro %}
+
+{# A multi: the legs, Sportsbet's price, and a verdict from the same rule as every other bet.
+   With a budget set, a value multi whose stake rounds to nothing is a hold, never a bare BET. #}
+{% macro multi_row(m, budget=none) %}
+{% set who %}{% for leg in m.legs %}R{{ leg.race }} {{ leg.number }} {{ leg.name }}{{ ' + ' if not loop.last }}{% endfor %}{% endset %}
+{{ vrow(Call('bet', m.stake) if m.value and (m.stake or not budget) else Call('hold') if m.value else call_for(false, none, m.price, m.prob), (m.legs | length) ~ ' legs', none, who, m.price, 'Sportsbet', 'lands ' ~ (m.prob | pct(1))) }}
+{% endmacro %}
+
+{# A recommended quaddie: always a bet, with the outlay when there is a budget. #}
+{% macro quaddie_row(e, more=false) %}
+{{ vrow(Call('bet', e.outlay), 'Early quaddie' if e.kind == 'early_quaddie' else 'Quaddie', none, e.leg_labels | join(' · '), none, none,
+        e.combos ~ ' combos · lands ' ~ (e.prob | pct(1)) ~ (' · ' ~ e.flexi_pct ~ '% flexi' if e.outlay and e.flexi_pct else '') ~ (' · needs $' ~ ('%.0f' % e.fair_dividend) ~ ' per $1 to break even' if more else '')) }}
+{% endmacro %}

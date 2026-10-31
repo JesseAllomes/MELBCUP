@@ -31,7 +31,8 @@
         <td class="runner">
           <span class="cloth">{{ a.number }}</span> <strong>{{ r.name }}</strong> <span class="small">({{ r.barrier or '?' }})</span>
           {% if fin %}<span class="finish{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}
-          <div class="rv">{{ chip(runner_call(rp, a.number)) }}<span class="small">{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %}</span></div>
+          <div class="rv">{{ chip(runner_call(rp, a.number)) }}</div>
+          <div class="small">{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %}</div>
         </td>
         <td class="num">{{ a.win | pct(1) }}</td>
         <td class="num">{{ a.place | pct }}</td>

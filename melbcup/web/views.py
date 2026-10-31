@@ -155,23 +155,30 @@ def runner_call(rp, number: int) -> Call:
     mine = [s for s in rp.singles if s.number == number]
     value = [s for s in mine if s.value]
     if value:
-        stake = next((rp.best[s.kind].stake for s in value if rp.best.get(s.kind) is s and s.stake), None)
+        stake = next(
+            (rp.best[s.kind].stake for s in value if rp.best.get(s.kind) is s and s.stake), None
+        )
         return Call("bet", stake)
     a = next((a for a in rp.model.ranked() if a.number == number), None)
     prices = rp.model.race.prices.get(number)
-    price = prices and (prices.sportsbet_win or (prices.best_win.price if prices.best_win else None))
+    price = prices and (
+        prices.sportsbet_win or (prices.best_win.price if prices.best_win else None)
+    )
     return call(False, None, price, a.win if a else None)
 
 
 def race_call(rp) -> Call:
-    """One verdict for a race: bet when any single or recommended exotic is a bet, otherwise the
-    verdict on its most likely winner."""
+    """One verdict for a race: bet when a win, place or each-way line is a value bet, otherwise
+    the verdict on its most likely winner. Exotics carry their own verdicts on their own lines."""
     if any(rp.best.get(k) for k in VALUE_KINDS):
-        return Call("bet")
-    if any(e.recommended for e in (*rp.trifectas, *rp.first_fours)):
         return Call("bet")
     top = rp.best.get("top_win")
     return runner_call(rp, top.number) if top else Call("hold")
+
+
+def open_races(picks) -> set[int]:
+    """Numbers of the races still to run."""
+    return {rp.model.race.number for rp in picks.races if betting_open(rp.model.race)}
 
 
 def betting_open(race) -> bool:
@@ -207,6 +214,7 @@ def make_env() -> Environment:
         single_call=single_call,
         race_call=race_call,
         betting_open=betting_open,
+        open_races=open_races,
     )
     env.globals["shown"] = history.shown
     return env

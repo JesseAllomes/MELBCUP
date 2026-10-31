@@ -1,63 +1,37 @@
-{# The model's picks for one race, in two lines: the runners most likely to win and to place
-   whatever their price, then the prices that beat a runner's chance. Needs: rp (RacePicks);
-   optional: marks (kind -> Graded) #}
+{# The model's read of one race, under the bets: the runners most likely to win and to place
+   whatever their price, each with its own verdict, then the next to place.
+   Needs: rp (RacePicks); optional: marks (kind -> Graded), show_bets and show_singles (default yes) #}
+{% from "_chip.html" import vrow %}
 {% set marks = marks or {} %}
-{% macro row(label, s, graded, who=none) %}
-{% set graded = graded | select | list %}
-<div class="pick{% if graded %}{{ ' hit' if graded | selectattr('hit') | list else ' miss' }}{% endif %}">
-  <dt>{{ label }}</dt>
-  <dd><span class="who">{% if s %}<span class="cloth">{{ s.number }}</span> {{ s.name }}{% else %}{{ who }}{% endif %}</span><span class="fig">{{ caller() }}</span></dd>
-  {% if graded %}<span class="mark">{% for g in graded %}<b class="{{ 'ok' if g.hit else 'no' }}" title="{{ g.label }}: {{ 'landed' if g.hit else 'missed' }}">{{ '✓' if g.hit else '✗' }}</b>{% endfor %}</span>{% endif %}
-</div>
-{% endmacro %}
+{% set race = rp.model.race %}
+{% if show_bets is not defined or show_bets %}<div class="slip plain">{% with singles_on = show_singles is not defined or show_singles %}{% include "_bets.html" %}{% endwith %}</div>{% endif %}
 {% set tw, tp = rp.best.top_win, rp.best.top_place %}
 {% set same = tw and tp and tw.number == tp.number %}
+{% set priced = 'market' in rp.model.sources %}
 <div class="picks">
-  {% set priced = 'market' in rp.model.sources %}
   <h3 class="line">Most likely{% if tw %} <span class="conf {{ tw.prob | confidence(priced) | lower }}">{{ tw.prob | confidence(priced) }} confidence</span>{% endif %}</h3>
-  <dl>
+  <ul class="vlist">
     {% if tw %}
-    {% call row('Win & place' if same else 'Win', tw, [marks.get('top_win'), marks.get('top_place') if same]) %}wins {{ tw.prob | pct }}{% if same %} · places {{ tp.prob | pct }}{% endif %}{% if tw.price %} · {{ tw.price | money }} {{ tw.bookmaker | book }}{% if same and tp.price %} / {{ tp.price | money }}{% endif %}{% endif %}{% endcall %}
+    {% set wv = tw.sportsbet | verdict(tw.prob) %}
+    {% set sub = 'wins ' ~ (tw.prob | pct)
+        ~ (' · places ' ~ (tp.prob | pct) if same else '')
+        ~ (' · place ' ~ ((tp.sportsbet or tp.price) | money) if same and (tp.sportsbet or tp.price) else '')
+        ~ (' · ' ~ wv if wv else '') %}
+    {{ vrow(runner_call(rp, tw.number), 'Win & place' if same else 'Win', tw.number, tw.name, tw.sportsbet or tw.price, 'Sportsbet' if tw.sportsbet else (tw.bookmaker | book), sub,
+            [marks.get('top_win'), marks.get('top_place') if same]) }}
     {% endif %}
     {% if tp and not same %}
-    {% call row('Place', tp, [marks.get('top_place')]) %}places {{ tp.prob | pct }}{% if tp.price %} · {{ tp.price | money }} {{ tp.bookmaker | book }}{% endif %}{% endcall %}
-    {% endif %}
-    {% set race = rp.model.race %}
-    {% set sbw = race.prices.get(tw.number) if tw else none %}
-    {% set sbp = race.prices.get(tp.number) if tp else none %}
-    {% if (sbw and sbw.sportsbet_win) or (sbp and sbp.sportsbet_place) %}
-    <div class="pick sportsbet">
-      <dt>Sportsbet</dt>
-      <dd>{% if sbw and sbw.sportsbet_win %}<span class="who"><span class="cloth">{{ tw.number }}</span> win {{ sbw.sportsbet_win | money }}</span> <span class="fig">{{ sbw.sportsbet_win | verdict(tw.prob) }}</span>{% endif %}
-        {% if sbp and sbp.sportsbet_place %}<br><span class="who"><span class="cloth">{{ tp.number }}</span> place {{ sbp.sportsbet_place | money }}</span> <span class="fig">{{ sbp.sportsbet_place | verdict(tp.prob) }}</span>{% endif %}
-</dd>
-    </div>
+    {% set pv = tp.sportsbet | verdict(tp.prob) %}
+    {{ vrow(runner_call(rp, tp.number), 'Place', tp.number, tp.name, tp.sportsbet or tp.price, 'Sportsbet' if tp.sportsbet else (tp.bookmaker | book),
+            'places ' ~ (tp.prob | pct) ~ (' · ' ~ pv if pv else ''), [marks.get('top_place')]) }}
     {% endif %}
     {% set next = rp.model.ranked() | rejectattr('number', 'in', [tw.number if tw, tp.number if tp]) | sort(attribute='place', reverse=true) | list %}
-    {% if next %}
     {% set fin = race.result.finish if race.result else {} %}
-    <div class="pick next">
-      <dt>Next to place</dt>
-      <dd>{% for a in next[:2] %}<span class="who"><span class="cloth">{{ a.number }}</span> {{ race.runner(a.number).name }} <span class="fig">{{ a.place | pct }}</span>{% if fin %} <b class="{{ 'ok' if 0 < fin.get(a.number, 99) <= race.places_paid else 'no' }}">{{ '✓' if 0 < fin.get(a.number, 99) <= race.places_paid else '✗' }}</b>{% endif %}</span>{% endfor %}</dd>
-    </div>
-    {% endif %}
-  </dl>
-  {% if rp.best.win or rp.best.place or rp.best.each_way %}
-  <h3 class="line">Best price for chance</h3>
-  <dl>
-    {% for kind, label in [('win', 'Win'), ('place', 'Place'), ('each_way', 'Each way')] if rp.best[kind] %}
-    {% set s = rp.best[kind] %}
-    {% call row(label, s, [marks.get(kind)]) %}{{ 'wins' if kind == 'win' else 'places' }} {{ s.prob | pct }} · {{ s.price | money }} {{ s.bookmaker | book }}{% if kind == 'each_way' %} / {{ s.place_price | money }}{% endif %}{% if s.estimated and kind != 'win' %} est.{% endif %} · <em>{{ s.ev | edge }}</em>{% if s.stake %} · bet ${{ s.stake }}{% endif %}{% endcall %}
+    {% for a in next[:2] %}
+    {% set ok = 0 < fin.get(a.number, 99) <= race.places_paid %}
+    {% set np = race.prices.get(a.number) %}
+    {{ vrow(runner_call(rp, a.number), 'Next to place', a.number, race.runner(a.number).name, (np.sportsbet_win or (np.best_win.price if np.best_win else none)) if np else none, 'Sportsbet' if np and np.sportsbet_win else (np.best_win.bookmaker | book if np and np.best_win else none),
+            'places ' ~ (a.place | pct) ~ (' · ' ~ ('✓' if ok else '✗') if fin else '')) }}
     {% endfor %}
-  </dl>
-  {% endif %}
-  {% set exotics = [('trifecta', 'Trifecta', rp.trifectas | selectattr('recommended') | first), ('first_four', 'First four', rp.first_fours | selectattr('recommended') | first)] | selectattr('2') | list %}
-  {% if exotics %}
-  <h3 class="line">Exotics</h3>
-  <dl>
-    {% for kind, label, e in exotics %}
-    {% call row(label, none, [marks.get(kind)], e.leg_labels | join(' / ')) %}{{ e.combos }} combos · lands {{ e.prob | pct(1) }}{% if e.outlay %} · bet ${{ e.outlay }} ({{ e.flexi_pct }}%){% endif %}{% endcall %}
-    {% endfor %}
-  </dl>
-  {% endif %}
+  </ul>
 </div>
