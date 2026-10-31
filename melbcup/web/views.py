@@ -8,13 +8,14 @@ where to go next.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from melbcup import history
-from melbcup.bets import LABELS, confidence, price_verdict
+from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
@@ -126,6 +127,58 @@ def statline(s) -> str:
     return "–" if s is None else f"{s.starts}: {s.wins}-{s.top3 - s.wins}"
 
 
+@dataclass(frozen=True)
+class Call:
+    """One verdict for the page: bet (with the stake when there is one), hold, or skip."""
+
+    kind: str  # "bet" | "hold" | "skip"
+    stake: int | None = None
+
+
+def call(value: bool, stake: int | None, price: float | None, chance: float | None) -> Call:
+    """The existing value rule says bet; otherwise a price the verdict calls "Short: skip" is a
+    skip and anything else is a hold. No new thresholds."""
+    if value:
+        return Call("bet", stake)
+    verdict = price_verdict(price, chance)
+    return Call("skip" if verdict and verdict.startswith(PRICE_VERDICTS[-1][1]) else "hold")
+
+
+def single_call(s) -> Call:
+    """Verdict for one Single (a win, place or each-way line)."""
+    return call(s.value, s.stake, s.sportsbet or s.price, s.prob)
+
+
+def runner_call(rp, number: int) -> Call:
+    """One verdict for a runner: bet when any of its singles is value (with the stake the day's
+    picks put on it), otherwise hold or skip on its win price."""
+    mine = [s for s in rp.singles if s.number == number]
+    value = [s for s in mine if s.value]
+    if value:
+        stake = next((rp.best[s.kind].stake for s in value if rp.best.get(s.kind) is s and s.stake), None)
+        return Call("bet", stake)
+    a = next((a for a in rp.model.ranked() if a.number == number), None)
+    prices = rp.model.race.prices.get(number)
+    price = prices and (prices.sportsbet_win or (prices.best_win.price if prices.best_win else None))
+    return call(False, None, price, a.win if a else None)
+
+
+def race_call(rp) -> Call:
+    """One verdict for a race: bet when any single or recommended exotic is a bet, otherwise the
+    verdict on its most likely winner."""
+    if any(rp.best.get(k) for k in VALUE_KINDS):
+        return Call("bet")
+    if any(e.recommended for e in (*rp.trifectas, *rp.first_fours)):
+        return Call("bet")
+    top = rp.best.get("top_win")
+    return runner_call(rp, top.number) if top else Call("hold")
+
+
+def betting_open(race) -> bool:
+    """A race that has not run: no result yet and not started more than a few minutes ago."""
+    return race.result is None and (race.start_time is None or until(race.start_time) != "run")
+
+
 def make_env() -> Environment:
     env = Environment(
         loader=FileSystemLoader(str(HERE / "templates")), autoescape=select_autoescape(["html"])
@@ -146,7 +199,15 @@ def make_env() -> Environment:
         confidence=confidence,
         verdict=price_verdict,
     )
-    env.globals["LABELS"] = LABELS
+    env.globals.update(
+        LABELS=LABELS,
+        Call=Call,
+        call_for=call,
+        runner_call=runner_call,
+        single_call=single_call,
+        race_call=race_call,
+        betting_open=betting_open,
+    )
     env.globals["shown"] = history.shown
     return env
 

@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#14181a">
+  <meta name="theme-color" content="#f6f6f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1214" media="(prefers-color-scheme: dark)">
   <title>{% block title %}MELBCUP{% endblock %}</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/app.js" defer></script>
@@ -19,12 +20,12 @@
     </div>
   </header>
   <main id="main" class="wrap" data-refresh="{% block refresh %}60{% endblock %}">
-    {% if can_fetch %}
+    {% block top %}{% endblock %}
+    {% if can_fetch and not snap.saved %}
     <div class="status">
-      {% if not snap.saved and (snap.priced_at or snap.results_at or snap.loading) %}
+      {% if snap.priced_at or snap.results_at or snap.loading %}
       <p class="source"><span class="when">{% if snap.priced_at %}prices {{ snap.priced_at | local_time }}{% endif %}{% if snap.results_at %}{{ ' · ' if snap.priced_at }}results {{ snap.results_at | local_time }}{% endif %}{% if snap.loading %}{{ ' · ' if snap.priced_at or snap.results_at }}loading card…{% endif %}</span></p>
       {% endif %}
-      {% if not snap.saved %}
       <div class="buttons">
         {% if card and snap.can_price %}
         <form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices</button></form>
@@ -37,7 +38,6 @@
         {% endif %}
         <form method="post" action="/actions/auto?on={{ '0' if snap.auto else '1' }}&next={{ here | urlencode }}"><button type="submit" class="{{ 'on' if snap.auto }}">Auto {{ 'on' if snap.auto else 'off' }}</button></form>
       </div>
-      {% endif %}
     </div>
     {% endif %}
     {% block content %}{% endblock %}
@@ -45,7 +45,7 @@
   <footer class="wrap">
     <p>Estimates from form and market data. They improve the odds of a good decision; they do not
       guarantee a result. Bet only what you can afford to lose.</p>
-    <p>Gambling Help Online <a href="tel:1800858858">1800 858 858</a> · <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
+    <p class="help"><span>Gambling Help Online</span> <a href="tel:1800858858">1800 858 858</a> <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
   </footer>
 </body>
 </html>
