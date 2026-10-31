@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=52 -->
+<!-- drainclamp-build: state; schema=1; generation=54 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -75,8 +75,9 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | done | az1 |
 | az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | done | az2 |
 | az4 | After Cup collection (7 Nov): collector publishes to Blob only (no live branch); validators read blob; Google Cloud archive replaced by Blob cool tier or OneDrive; archive-to-gcs.yml, GCP key, Render and GitHub Pages retired | azure/function/;tools/live_validate.py;.github/workflows/ | pending | az3 |
-| ui2 | every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips summed $); logic only, no restyle | melbcup/web/;tests/test_verdicts.py;docs/ | active |  |
+| ui2 | every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips summed $); logic only, no restyle | melbcup/web/;tests/test_verdicts.py;docs/ | done |  |
 | ui3 | Silks look via product-ui loop: round 1 prototypes -> owner picks/iterates -> BUILD -> product lock -> implement | scratchpad/proto;.grok/product-ui/;melbcup/web/ | active | ui2 |
+| ui4 | 'Multi picks for the day': 5 best-chance cross-race multis (Sportsbet win, 2-3 legs) with \$ stake, price, chance; engine + view, layout per ui3 lock | melbcup/bets/multis.py;melbcup/web/;tests/ | pending | ui3 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -91,7 +92,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-29T07:10:59+00:00 8c17ed1b Gate 0-2: audit, charter-free grill, state externalised for MELBCUP
 - 2026-10-29T07:12:39+00:00 58b49675 m1: package scaffold, env settings, pytest+ruff harness
 - 2026-10-29T07:17:41+00:00 a1e05e60 m2: PuntersEdge + FormFav clients, card assembly with graceful degradation, 30 tests
 - 2026-10-29T07:19:34+00:00 10d9afa9 m3: 18-factor form model, market/feed blend, discounted Harville place probs, 43 tests
@@ -111,4 +111,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T10:31:04+00:00 0abbb6d8 custom domain asynym.dev (Cloudflare, DNS only): cup.asynym.dev -> melbcup-web (managed cert), comps.asynym.dev -> swa-lotto; customDomains kept in azure/webapp/melbcup-web.json so deploys keep the binding
 - 2026-10-31T13:43:17+00:00 820e26c6 web: PuntersEdge removed, racing.com prices (Sportsbet/Ladbrokes/PointsBet/bet365), history unencrypted, no notes, no login (PUBLIC_ACCESS=1); UI redesign (BET/HOLD/SKIP, race strip, budget top, phone table, 44px) in progress by Sonnet worker -> commit to session branch, then main after review; FormFav valid till 29 Nov; review .agent/reviews/ui-review-product-ui.md
 - 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
+- 2026-10-31T14:09:39+00:00 37f45210 auto-load + history-in-image live 0bb13b64 (history 1,160 races shows); ui3 round 1 (artifact 5u6y2fJPZfqJYNteqWWb4A): owner 'yuk', 4 Ticket closest; too loud, too chunky, too busy, cheap/AI. Wants: day's races at top -> tap opens full field; picks shown beside horses/exotics; front-page 'Multi picks for the day' = 5 best-chance multis with $. Round 2 = Ticket variants with that IA
 <!-- /DC:LOG -->
