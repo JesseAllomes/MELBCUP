@@ -3,8 +3,16 @@ import math
 import pytest
 from conftest import RACE_DATE, VENUE
 
-from melbcup.bets import build_picks
-from melbcup.bets.exotics import first_fours, quaddie, quaddies, recommend, seq_prob, trifectas
+from melbcup.bets import MIN_HIT, build_picks
+from melbcup.bets.exotics import (
+    first_fours,
+    quaddie,
+    quaddies,
+    quinellas,
+    recommend,
+    seq_prob,
+    trifectas,
+)
 from melbcup.bets.multis import multis
 from melbcup.bets.singles import best, singles
 from melbcup.bets.staking import (
@@ -103,6 +111,44 @@ def test_trifecta_structures():
     assert standout.fair_dividend == pytest.approx(standout.combos / standout.prob)
 
 
+def test_quinella_probability_is_both_orders():
+    m = make_model(1, FIELD)
+    win = m.win_probs()
+    qn = quinellas(m)
+    assert [q.kind for q in qn] == ["quinella"] * len(qn)
+    straight = qn[0]
+    assert straight.combos == 1 and straight.legs == [[1], [2]]
+    assert straight.prob == pytest.approx(seq_prob(win, (1, 2)) + seq_prob(win, (2, 1)))
+    assert straight.fair_dividend == pytest.approx(1 / straight.prob)
+    standout = next(q for q in qn if q.title == "Standout top pick")
+    assert standout.combos == 3
+    assert standout.prob == pytest.approx(
+        sum(seq_prob(win, (1, n)) + seq_prob(win, (n, 1)) for n in (2, 3, 4))
+    )
+
+
+def test_quinella_boxes_count_unordered_combos():
+    qn = quinellas(make_model(1, FIELD))
+    box3 = next(q for q in qn if q.title == "Box of top 3")
+    box4 = next(q for q in qn if q.title == "Box of top 4")
+    assert box3.combos == 3 and box4.combos == 6
+    assert box3.leg_labels == ["Box 1, 2, 3"]
+    assert box4.prob > box3.prob > qn[0].prob
+
+
+def test_quinella_is_recommended_and_staked_like_trifecta():
+    prices = [3.5, 3.0, 6.0, 10.0, 13.0, 15.0]
+    models = [make_model(n, FIELD, prices, [1.4, 1.5, 2.0, 2.5, 3.0, 3.5]) for n in range(1, 4)]
+    day = build_picks(models, budget=200)
+    r1 = day.races[0]
+    assert sum(e.recommended for e in r1.quinellas) == 1
+    rec = next(e for e in r1.quinellas if e.recommended)
+    assert rec.prob >= MIN_HIT["quinella"] or rec.prob == max(e.prob for e in r1.quinellas)
+    assert rec.outlay == 2 and rec.flexi_pct == pytest.approx(100 * 2 / rec.combos, abs=0.1)
+    unsized = build_picks(models)
+    assert all(e.outlay is None for rp in unsized.races for e in rp.quinellas)
+
+
 def test_first_four_structures_and_recommendation():
     ff = first_fours(make_model(1, FIELD))
     assert ff[0].combos == 24
@@ -114,6 +160,7 @@ def test_first_four_structures_and_recommendation():
 def test_small_fields_skip_exotics():
     assert trifectas(make_model(1, [0.6, 0.4])) == []
     assert first_fours(make_model(1, [0.5, 0.3, 0.2])) == []
+    assert quinellas(make_model(1, [1.0])) == []
 
 
 def test_quaddie_greedy_respects_budget_and_prefers_open_legs():
@@ -195,7 +242,7 @@ def test_build_picks_end_to_end_with_budget():
         for rp in day.races
         for s in {id(x): x for x in rp.best.values() if x is not None}.values()
     )
-    total += sum(e.outlay or 0 for rp in day.races for e in rp.trifectas + rp.first_fours)
+    total += sum(e.outlay or 0 for rp in day.races for e in rp.quinellas + rp.trifectas + rp.first_fours)
     total += sum(e.outlay or 0 for e in day.quaddies) + sum(m.stake or 0 for m in day.multis)
     assert total <= 200
 
@@ -288,11 +335,13 @@ def test_history_tally_reports_profit_per_dollar():
         {"picks": {"top_win": {"hit": True, "returned": 3.0}}},
         {"picks": {"top_win": {"hit": False, "returned": 0.0}}},
         {"picks": {"trifecta": {"hit": True, "returned": None}}},
+        {"picks": {"quinella": {"hit": True, "returned": None}}},
     ]
     t = {x.label: x for x in tally(record)}
     assert t["Most likely win"].profit == pytest.approx(0.5)
     assert t["Most likely win"].rate == 0.5
     assert t["Trifecta"].profit is None  # dividend unknown
+    assert t["Quinella"].picks == 1 and t["Quinella"].correct == 1 and t["Quinella"].profit is None
 
 
 def test_history_value_rows_count_only_value_picks():

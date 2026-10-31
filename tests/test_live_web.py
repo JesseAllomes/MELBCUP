@@ -350,7 +350,7 @@ def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html
     assert (
-        "Trifecta" in html and "First four" in html
+        "Quinella" in html and "Trifecta" in html and "First four" in html
     )  # each ways appear only when a price beats its chance
     assert "None: no two races" not in html  # empty sections are hidden, not explained
     assert "1800 858 858" in html
@@ -374,6 +374,8 @@ def test_race_page(client):
     html = r.text
     assert "Grand Tempo" in html and "Racing Syndicate" in html  # owner shown
     assert "First Four" in html and "Fair div" in html
+    assert 'class="sect">Quinella<' in html
+    assert html.index('class="sect">Quinella<') < html.index('class="sect">Trifecta<')
     assert "Sportsbet" in html or "SB" in html
     assert client.get("/race/9", auth=AUTH).status_code == 404
 

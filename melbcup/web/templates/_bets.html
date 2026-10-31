@@ -4,7 +4,7 @@
 {% set marks = marks or {} %}
 {% set singles_on = singles_on is not defined or singles_on %}
 {% set exotics_on = exotics_on is not defined or exotics_on %}
-{% set exotics = [('trifecta', 'Trifecta', rp.trifectas | selectattr('recommended') | first), ('first_four', 'First four', rp.first_fours | selectattr('recommended') | first)] | selectattr('2') | list %}
+{% set exotics = [('quinella', 'Quinella', rp.quinellas | selectattr('recommended') | first), ('trifecta', 'Trifecta', rp.trifectas | selectattr('recommended') | first), ('first_four', 'First four', rp.first_fours | selectattr('recommended') | first)] | selectattr('2') | list %}
 <ul class="vlist">
   {% if singles_on and not (rp.best.win or rp.best.place or rp.best.each_way) %}
   {% set c = race_call(rp) %}

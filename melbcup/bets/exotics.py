@@ -1,4 +1,4 @@
-"""Trifecta, First Four and Quaddies.
+"""Quinella, Trifecta, First Four and Quaddies.
 
 Tote dividends are not known before the race, so these report each structure's chance of
 landing and its *fair* dividend (what a $1 unit must pay to break even). Compare that with the
@@ -28,7 +28,7 @@ def seq_prob(win: dict[int, float], combo: tuple[int, ...]) -> float:
 
 @dataclass
 class Exotic:
-    kind: str  # trifecta | first_four | quaddie | early_quaddie
+    kind: str  # quinella | trifecta | first_four | quaddie | early_quaddie
     title: str
     legs: list[list[int]]  # per finishing position, or per race for quaddies
     leg_labels: list[str]
@@ -45,21 +45,56 @@ class Exotic:
         return self.combos / self.prob if self.prob > 0 else math.inf
 
 
+UNORDERED = ("quinella",)  # kinds where the placegetters may finish in either order
+
+
 def _ordered_combos(legs: list[list[int]]) -> list[tuple[int, ...]]:
     return [c for c in product(*legs) if len(set(c)) == len(c)]
+
+
+def exotic_combos(kind: str, legs: list[list[int]]) -> set[tuple[int, ...]]:
+    """Every combination a structure covers. Unordered kinds hold each set of runners once, as
+    a sorted tuple, so a box of 3 is 3 quinellas and a box of 4 is 6."""
+    combos = _ordered_combos(legs)
+    if kind in UNORDERED:
+        return {tuple(sorted(c)) for c in combos}
+    return set(combos)
+
+
+def combo_prob(win: dict[int, float], kind: str, combo: tuple[int, ...]) -> float:
+    """Chance this combination lands: for unordered kinds, every finishing order of it."""
+    if kind in UNORDERED:
+        return sum(seq_prob(win, c) for c in permutations(combo))
+    return seq_prob(win, combo)
 
 
 def _structure(
     kind: str, title: str, win: dict[int, float], legs: list[list[int]], race: int
 ) -> Exotic:
-    combos = _ordered_combos(legs)
+    combos = sorted(exotic_combos(kind, legs))
     if all(leg == legs[0] for leg in legs):
         labels = ["Box " + ", ".join(map(str, sorted(legs[0])))]
     else:
         labels = [", ".join(map(str, leg)) for leg in legs]
     return Exotic(
-        kind, title, legs, labels, len(combos), sum(seq_prob(win, c) for c in combos), [race]
+        kind, title, legs, labels, len(combos), sum(combo_prob(win, kind, c) for c in combos), [race]
     )
+
+
+def quinellas(model: RaceModel) -> list[Exotic]:
+    win = model.win_probs()
+    top = [a.number for a in model.ranked()]
+    race = model.race.number
+    if len(top) < 2:
+        return []
+    out = [_structure("quinella", "Top 2 (either order)", win, [[top[0]], [top[1]]], race)]
+    if len(top) >= 3:
+        out.append(_structure("quinella", "Box of top 3", win, [top[:3]] * 2, race))
+    if len(top) >= 4:
+        out.append(_structure("quinella", "Box of top 4", win, [top[:4]] * 2, race))
+    if len(top) >= 5:
+        out.append(_structure("quinella", "Standout top pick", win, [[top[0]], top[1:4]], race))
+    return out
 
 
 def trifectas(model: RaceModel) -> list[Exotic]:

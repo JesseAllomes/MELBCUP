@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from melbcup.bets.exotics import Exotic, first_fours, quaddies, recommend, trifectas
+from melbcup.bets.exotics import Exotic, first_fours, quaddies, quinellas, recommend, trifectas
 from melbcup.bets.multis import Multi, multis
 from melbcup.bets.singles import Single, best, singles
 from melbcup.bets.staking import each_way_stake, exotic_stake, scale_to_budget, stake
@@ -19,6 +19,7 @@ LABELS = {
     "win": "Value win",
     "place": "Value place",
     "each_way": "Value each way",
+    "quinella": "Quinella",
     "trifecta": "Trifecta",
     "first_four": "First four",
 }
@@ -62,7 +63,7 @@ def views_split(a: Assessment) -> bool:
     return any(v and abs(math.log(v / a.market_win)) >= SPLIT for v in (a.model_win, a.feed_win))
 
 
-MIN_HIT = {"trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
+MIN_HIT = {"quinella": 0.30, "trifecta": 0.15, "first_four": 0.06, "quaddie": 0.12, "early_quaddie": 0.12}
 
 
 @dataclass
@@ -70,6 +71,7 @@ class RacePicks:
     model: RaceModel
     best: dict[str, Single | None]
     singles: list[Single]
+    quinellas: list[Exotic]
     trifectas: list[Exotic]
     first_fours: list[Exotic]
 
@@ -103,13 +105,14 @@ def build_picks(models: list[RaceModel], budget: float | None = None) -> DayPick
             model=m,
             best={k: best(sl, k) for k in KINDS},
             singles=sl,
+            quinellas=quinellas(m),
             trifectas=trifectas(m),
             first_fours=first_fours(m),
         )
         for s in rp.best.values():
             if s is not None:
                 s.stake = _single_stake(s, budget)
-        for group in (rp.trifectas, rp.first_fours):
+        for group in (rp.quinellas, rp.trifectas, rp.first_fours):
             if chosen := recommend(group, MIN_HIT[group[0].kind] if group else 0):
                 _size_exotic(chosen, budget)
         races.append(rp)
@@ -130,7 +133,7 @@ def _staked(day: DayPicks) -> list[tuple[object, str]]:
     out: list[tuple[object, str]] = []
     for rp in day.races:
         out += [(s, "stake") for s in rp.best.values() if s is not None and s.stake]
-        out += [(e, "outlay") for e in rp.trifectas + rp.first_fours if e.outlay]
+        out += [(e, "outlay") for e in rp.quinellas + rp.trifectas + rp.first_fours if e.outlay]
     out += [(e, "outlay") for e in day.quaddies if e.outlay]
     out += [(m, "stake") for m in day.multis if m.stake]
     # one runner can be best win and best each-way: count each object once

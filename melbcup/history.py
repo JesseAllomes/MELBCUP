@@ -40,11 +40,12 @@ def entries(day: DayPicks) -> list[dict]:
                     estimated=s.estimated,
                 )
             else:
-                rec = next(
-                    e
-                    for e in (rp.trifectas if key == "trifecta" else rp.first_fours)
-                    if e.recommended
-                )
+                groups = {
+                    "quinella": rp.quinellas,
+                    "trifecta": rp.trifectas,
+                    "first_four": rp.first_fours,
+                }
+                rec = next(e for e in groups[key] if e.recommended)
                 pick.update(
                     legs=" / ".join(rec.leg_labels), combos=rec.combos, chance=round(rec.prob, 3)
                 )

@@ -51,6 +51,17 @@ def test_exotic_grading_is_flexi():
     assert _exotic(miss, res, "trifecta", 3).returned == 0.0
 
 
+def test_quinella_grades_either_order():
+    box = Exotic("quinella", "Box", [[2, 5, 7]] * 2, ["Box 2, 5, 7"], 3, 0.3, [1])
+    for finish in ({5: 1, 2: 2, 9: 3}, {2: 1, 5: 2, 9: 3}):
+        res = result(finish, exotics={"QN": ((5, 2), 45.0)})
+        g = _exotic(box, res, "quinella", 2)
+        assert g.hit and g.returned == pytest.approx(45.0 / 3)
+    assert _exotic(box, result({5: 1, 2: 2}), "quinella", 2).returned is None  # no dividend
+    assert not _exotic(box, result({5: 1, 9: 2, 2: 3}), "quinella", 2).hit
+    assert _exotic(box, result({5: 1, 9: 2, 2: 3}), "quinella", 2).returned == 0.0
+
+
 def test_grade_a_priced_card_end_to_end():
     router = Router()
     t = httpx.MockTransport(router)
@@ -70,7 +81,7 @@ def test_grade_a_priced_card_end_to_end():
     assert grade.top_pick_wins >= 1
     assert all(not race.priced_from_sp for race in card.races)  # pre-race prices kept
     kinds = {g.kind for g in cup.lines}
-    assert {"top_win", "top_place", "trifecta", "first_four"} <= kinds
+    assert {"top_win", "top_place", "quinella", "trifecta", "first_four"} <= kinds
     assert all(g.value for g in cup.lines if g.kind in ("win", "place", "each_way"))
     assert next(g for g in cup.lines if g.kind == "top_win").label == "Most likely win"
 

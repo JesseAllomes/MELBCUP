@@ -75,10 +75,10 @@
       {% else %}
       <p class="none">None</p>
       {% endif %}
-      {% if e.picks.trifecta or e.picks.first_four %}
+      {% if e.picks.quinella or e.picks.trifecta or e.picks.first_four %}
       <h3 class="line">Exotics</h3>
       <dl>
-        {% for cat, label in [('trifecta', 'Trifecta'), ('first_four', 'First four')] if e.picks[cat] %}
+        {% for cat, label in [('quinella', 'Quinella'), ('trifecta', 'Trifecta'), ('first_four', 'First four')] if e.picks[cat] %}
         {% call row(label, e.picks[cat]) %}{{ e.picks[cat].combos }} combos{% endcall %}
         {% endfor %}
       </dl>

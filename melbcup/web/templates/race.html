@@ -86,6 +86,13 @@
 </section>
 
 <section class="block">
+  {% if rp.quinellas %}
+  <h2 class="sect">Quinella</h2>
+  <div class="tablewrap"><table class="exo">
+    <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
+    <tbody>{% for e in rp.quinellas %}{% include "_exotic.html" %}{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
   {% if rp.trifectas %}
   <h2 class="sect">Trifecta</h2>
   <div class="tablewrap"><table class="exo">
