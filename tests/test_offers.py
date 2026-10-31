@@ -350,8 +350,7 @@ def test_money_back_stake_is_reduced_by_the_cap():
 def test_a_zero_stake_is_a_hold_never_a_bet_without_dollars():
     m = model_of([0.4, 0.3, 0.2, 0.1])
     r = check_offer(m, 3, OddsBoost(1.5 / m.runners[3].win), budget=10)  # real edge, $10 budget
-    assert r.min_ev > MIN_EV_BUFFER and r.stake == 0 and r.verdict == "hold"
-    assert "rounds to $0" in r.reason
+    assert r.min_ev > MIN_EV_BUFFER and r.stake == 1 and r.verdict == "bet"  # lifted to $1
     for p in (0.2, 0.5):
         r = check_offer(m, 3, OddsBoost(9.0), budget=200 * p)
         assert (r.verdict == "bet") == (r.stake > 0)
@@ -560,3 +559,12 @@ def test_leg_chances_floor_at_zero(monkeypatch):
     monkeypatch.setattr(probability, "EXACT_LIMIT", 1)
     pos = position_probs({1: 0.5, 2: 0.3, 3: 0.2})
     assert leg_chances(OddsBoost(3.0), pos, 1, se_multiple=1000.0) == {"win": 0.0}
+
+
+def test_small_positive_stake_is_lifted_to_one_dollar(cup):
+    """Owner: a +EV offer whose quarter-Kelly stake rounds to $0 on a small budget bets $1."""
+    i = next(i for i, x in enumerate(CUP, 1) if x == 21)
+    r = check_offer(cup, i, PlaceOnly(21.0, 0.25, 4), budget=200)
+    assert r.min_ev >= MIN_EV_BUFFER and r.verdict == "bet" and r.stake == 1
+    neg = check_offer(cup, i, EachWay(21.0, 0.25, 3), budget=200)
+    assert neg.verdict == "hold" and neg.stake == 0

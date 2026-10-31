@@ -374,11 +374,15 @@ def growth_stake(offer: Offer, chances: dict[str, float], budget: float) -> floa
 
 def size_stake(offer: Offer, chances: dict[str, float], budget: float) -> int:
     """Quarter Kelly on the log-growth stake, capped at 5% of the budget, rounded down to whole
-    dollars (to whole multiples of the offer's step). 0 means hold."""
+    dollars (to whole multiples of the offer's step). 0 means hold. Owner (2026-10-31): a
+    positive stake that rounds below one step is lifted to one step ($1), so a small budget still
+    gets the bet; the verdict still needs the worst-case EV to clear MIN_EV_BUFFER."""
     if not (budget > 0 and math.isfinite(budget)):
         return 0
     raw = min(KELLY_FRACTION * growth_stake(offer, chances, budget), MAX_SHARE_PER_BET * budget)
-    return int(raw // offer.step) * offer.step
+    if raw <= 0:
+        return 0
+    return max(offer.step, int(raw // offer.step) * offer.step)
 
 
 # --- scenarios --------------------------------------------------------------------------------

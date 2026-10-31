@@ -27,7 +27,7 @@ with no standard errors. They bracket both fits except the app's 4th (0.55), whi
 BET only if the runner has a Sportsbet price and a consensus, all scenarios exist, **min EV >= +2% of outlay** (`MIN_EV_BUFFER`,
 the model-error buffer) and the stake is at least $1 ($2 each-way). Otherwise HOLD with a stake of 0 and a one-line reason.
 Stake: maximise E[log growth] over the joint outcomes (win / placed-not-win / refund / lose) with the worst scenario's chances
-(golden-section search; growth is concave), x 0.25 (`staking.KELLY_FRACTION`), capped at 5% of budget, rounded DOWN to whole dollars.
+(golden-section search; growth is concave), x 0.25 (`staking.KELLY_FRACTION`), capped at 5% of budget, rounded DOWN to whole dollars; a positive stake under $1 is lifted to $1 (owner, 2026-10-31).
 Budget: `?budget=`, else the budget cookie, else $200. A capped refund is re-priced at the stake actually placed (`ev_stake`).
 At $200 a long shot sizes under $1 and holds: the stake rule, not the edge. A $5,000 budget makes the same offer a BET.
 
