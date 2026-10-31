@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=62 -->
+<!-- drainclamp-build: state; schema=1; generation=63 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -96,7 +96,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-29T07:22:20+00:00 40485c37 m4: singles EV, trifecta/first four/quaddie structures, Sportsbet multis, Kelly staking, 57 tests
 - 2026-10-29T07:28:04+00:00 b0ac4008 m5: live board with adaptive price polling, password-protected phone web app, 75 tests
 - 2026-10-29T07:29:05+00:00 29605fdd m6: Render blueprint, .python-version, README with phone setup
 - 2026-10-29T08:53:14+00:00 46cc835e m7: real-data run, next-to-go prices, manual credit controls, 1,131-race backtest and fitted weights deployed
@@ -116,4 +115,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T15:44:31+00:00 3ac4223c m8 rerun done (research/RERUN.md): late money and all 20 families add nothing beyond the T-2 price on tune2 (Jan-Apr 2026, used once; final block sealed); frozen win rule 3 bets +27% no interval; quinella/exacta/trifecta lose; price^1.14 correction is the only gain, still below Sportsbet margin. Verdict: nothing to switch on; app unchanged pending owner
 - 2026-10-31T22:08:28+00:00 1bb079bf m8 final block opened once (owner 'Run the test'): win rule 8 bets 2 wins +17.5% CI -100..+240 not proven; agreed rule 4 bets +50%; trifecta off (-24%, CI -41..-5); quinella/exacta ~breakeven; price^1.14 +0.0047 nats CI +0.0020..+0.0073; final + examined month now spent
 - 2026-10-31T22:21:42+00:00 943d57e3 venues (research/VENUES.md, 28,721 races): T-2 favourite ROI SB -12.6, LB -11.3, best SB/LB -10.9, tote -10.9, Betfair SP -2.9 (5% comm); Betfair beats SB +9.6 pts (CI +9.3..+9.9) proven; take over all runners SB -29.8, tote -24.6, Betfair -6.4; no rule provably profitable anywhere
+- 2026-10-31T23:56:42+00:00 7596800e m9 live 5a6e50d7 (owner approved): quinella info-only, offers check + /api/offer, $1 floor. Live check 1 Nov 10:55am prices: Cup is race 7 (3:00pm); each-way 1/4 x4 HOLD on all 24 (worst EV -0.1% to -24.5%); race 8 Amanda Elliott 7 BETs $2
 <!-- /DC:LOG -->
