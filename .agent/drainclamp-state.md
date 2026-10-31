@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=42 -->
+<!-- drainclamp-build: state; schema=1; generation=43 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -99,4 +99,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-10-31T07:47:00+00:00 e2372d2a az2: Function in git + guarded deploy live; collector ON 07:43Z in parallel with GitHub collector; GitHub collector parked after first Azure hour validates
 - 2026-10-31T08:30:33+00:00 b20a3e38 az3: Azure collector validated (first hour: 329 records, 21 cycles, 0 gaps, 0 dups, same mix as GitHub); live-collector.yml manual-only; archive-to-gcs.yml and Render unchanged
 - 2026-10-31T08:56:32+00:00 c77cd273 az3: melbcup-web live on Container Apps (https://melbcup-web.mangoflower-343da0ef.australiaeast.azurecontainerapps.io, 0-1 replicas, password gate); keys copied Render->Key Vault unprinted; Render kept as backup through Cup day; Lotto site live on SWA ambitious-plant-0e97ae900.6.azurestaticapps.net
+- 2026-10-31T10:31:04+00:00 0abbb6d8 custom domain asynym.dev (Cloudflare, DNS only): cup.asynym.dev -> melbcup-web (managed cert), comps.asynym.dev -> swa-lotto; customDomains kept in azure/webapp/melbcup-web.json so deploys keep the binding
 <!-- /DC:LOG -->
