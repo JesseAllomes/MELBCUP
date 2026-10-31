@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=39 -->
+<!-- drainclamp-build: state; schema=1; generation=40 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -52,6 +52,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Cutover? -> per service: verify, dry run, owner approves, then turn the Azure schedule on and disable the matching GitHub Actions workflow in the same step so nothing runs twice (source: repo decision)
 - MELBCUP timing? -> owner had no preference; Render, live-collector.yml and GCS archive keep running through Cup day (Tue 3 Nov) until the Azure copies are verified (source: repo decision)
 - Azure collector before Cup day? -> no: review found 3 blockers and the GitHub collector already works; Azure collector off through Cup week, fixed and committed to git after (source: repo decision, 2026-10-31)
+- Times shown to the owner? -> Melbourne time (AEDT/AEST) only, never UTC (source: user, 2026-10-31)
 <!-- /DC:DECISIONS -->
 
 <!-- DC:ROADMAP -->
