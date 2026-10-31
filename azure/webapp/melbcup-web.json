@@ -49,7 +49,7 @@
         "image": "IMAGE",
         "resources": {"cpu": 0.25, "memory": "0.5Gi"},
         "env": [
-          {"name": "PRICE_MODE", "value": "manual"},
+          {"name": "PRICE_MODE", "value": "auto"},
           {"name": "PUBLIC_ACCESS", "value": "1"},
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
           {"name": "APP_PASSWORD", "secretRef": "app-password"}

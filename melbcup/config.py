@@ -26,7 +26,7 @@ class Settings:
     app_password: str | None
     race_date: date
     venue: str
-    auto_refresh: bool = False
+    auto_refresh: bool = True  # PRICE_MODE=manual turns the live loop off
     public: bool = False  # PUBLIC_ACCESS=1: no password prompt (owner choice, Azure app)
 
 
@@ -51,6 +51,6 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         app_password=_clean(env.get("APP_PASSWORD")),
         race_date=race_date,
         venue=_clean(env.get("VENUE")) or CUP_VENUE,
-        auto_refresh=(_clean(env.get("PRICE_MODE")) or "manual").lower() == "auto",
+        auto_refresh=(_clean(env.get("PRICE_MODE")) or "auto").lower() != "manual",
         public=_clean(env.get("PUBLIC_ACCESS")) == "1",
     )
