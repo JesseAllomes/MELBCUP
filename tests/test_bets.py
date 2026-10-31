@@ -136,17 +136,15 @@ def test_quinella_boxes_count_unordered_combos():
     assert box4.prob > box3.prob > qn[0].prob
 
 
-def test_quinella_is_recommended_and_staked_like_trifecta():
+def test_quinella_is_information_only():
+    """Owner: show quinella odds, never a BET (no quinella pays over fair on average)."""
     prices = [3.5, 3.0, 6.0, 10.0, 13.0, 15.0]
     models = [make_model(n, FIELD, prices, [1.4, 1.5, 2.0, 2.5, 3.0, 3.5]) for n in range(1, 4)]
     day = build_picks(models, budget=200)
-    r1 = day.races[0]
-    assert sum(e.recommended for e in r1.quinellas) == 1
-    rec = next(e for e in r1.quinellas if e.recommended)
-    assert rec.prob >= MIN_HIT["quinella"] or rec.prob == max(e.prob for e in r1.quinellas)
-    assert rec.outlay == 2 and rec.flexi_pct == pytest.approx(100 * 2 / rec.combos, abs=0.1)
-    unsized = build_picks(models)
-    assert all(e.outlay is None for rp in unsized.races for e in rp.quinellas)
+    for rp in day.races:
+        assert rp.quinellas
+        assert not any(e.recommended for e in rp.quinellas)
+        assert all(e.outlay is None for e in rp.quinellas)
 
 
 def test_first_four_structures_and_recommendation():

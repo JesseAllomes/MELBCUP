@@ -350,7 +350,7 @@ def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html
     assert (
-        "Quinella" in html and "Trifecta" in html and "First four" in html
+        "Trifecta" in html and "First four" in html
     )  # each ways appear only when a price beats its chance
     assert "None: no two races" not in html  # empty sections are hidden, not explained
     assert "1800 858 858" in html

@@ -63,8 +63,9 @@ def views_split(a: Assessment) -> bool:
     return any(v and abs(math.log(v / a.market_win)) >= SPLIT for v in (a.model_win, a.feed_win))
 
 
+# Quinella is shown for information only and never recommended or staked (owner, 2026-10-31:
+# research/v2/CUP_TRENDS_2.md, no quinella pays over fair on average).
 MIN_HIT = {
-    "quinella": 0.30,
     "trifecta": 0.15,
     "first_four": 0.06,
     "quaddie": 0.12,
@@ -118,7 +119,7 @@ def build_picks(models: list[RaceModel], budget: float | None = None) -> DayPick
         for s in rp.best.values():
             if s is not None:
                 s.stake = _single_stake(s, budget)
-        for group in (rp.quinellas, rp.trifectas, rp.first_fours):
+        for group in (rp.trifectas, rp.first_fours):
             if chosen := recommend(group, MIN_HIT[group[0].kind] if group else 0):
                 _size_exotic(chosen, budget)
         races.append(rp)

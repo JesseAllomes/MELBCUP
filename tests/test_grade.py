@@ -81,7 +81,7 @@ def test_grade_a_priced_card_end_to_end():
     assert grade.top_pick_wins >= 1
     assert all(not race.priced_from_sp for race in card.races)  # pre-race prices kept
     kinds = {g.kind for g in cup.lines}
-    assert {"top_win", "top_place", "quinella", "trifecta", "first_four"} <= kinds
+    assert {"top_win", "top_place", "trifecta", "first_four"} <= kinds and "quinella" not in kinds
     assert all(g.value for g in cup.lines if g.kind in ("win", "place", "each_way"))
     assert next(g for g in cup.lines if g.kind == "top_win").label == "Most likely win"
 
