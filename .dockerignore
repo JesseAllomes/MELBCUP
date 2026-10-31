@@ -13,7 +13,6 @@
 build
 dist
 live
-docs/data
 research
 tests
 azure
