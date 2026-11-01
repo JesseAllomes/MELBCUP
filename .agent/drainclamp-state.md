@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=83 -->
+<!-- drainclamp-build: state; schema=1; generation=85 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -78,7 +78,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | done | az2 |
 | az4 | After Cup collection (7 Nov): collector publishes to Blob only (no live branch); validators read blob; Google Cloud archive replaced by Blob cool tier or OneDrive; archive-to-gcs.yml, GCP key, Render and GitHub Pages retired | azure/function/;tools/live_validate.py;.github/workflows/ | pending | az3 |
 | ui2 | every BET has a $ (default budget $200, remembered; zero stake -> HOLD; race/summary chips summed $); logic only, no restyle | melbcup/web/;tests/test_verdicts.py;docs/ | done |  |
-| ui3 | Race card BUILD (owner BUILD 2026-11-01): product lock in .grok/product-ui; wallet bars + placed ticks (cookie), Sportsbet/Betfair day amounts, allocation by chance with routing, SB/BF price pills, Good/Short price pills, per-race exotics incl quinella/trifecta stakes, last-minute check (T-30 vs last check, graded), day page without quaddie block | melbcup/web/;melbcup/bets/allocate.py;melbcup/live.py;tests/ | active | ui2 |
+| ui3 | Race card BUILD (owner BUILD 2026-11-01): product lock in .grok/product-ui; wallet bars + placed ticks (cookie), Sportsbet/Betfair day amounts, allocation by chance with routing, SB/BF price pills, Good/Short price pills, per-race exotics incl quinella/trifecta stakes, last-minute check (T-30 vs last check, graded), day page without quaddie block | melbcup/web/;melbcup/bets/allocate.py;melbcup/live.py;tests/ | done | ui2 |
 | ui4 | 'Multi picks for the day': 5 best-chance cross-race multis (Sportsbet win, 2-3 legs) with \$ stake, price, chance; engine + view, layout per ui3 lock | melbcup/bets/multis.py;melbcup/web/;tests/ | pending | ui3 |
 | m8 | Full rerun (owner: ALL stats and odds): every factor family + price moves + cross-book spread, fitted jointly with the T consensus, no leakage; every bet type (win, place, each-way, quinella, exacta, trifecta, first four, multis) tuned on dev blocks, rule frozen, tested once on an unseen block at takeable prices; per-type verdict | research/late_money/;research/RERUN.md | done |  |
 | m9 | Offers check (owner: as robust as mathematically possible): EV of bookmaker offers (each-way extra places, money back as bonus if 2nd/3rd, odds boost) from finishing-position chances; BET only when EV is positive under every plausible chance model; robust fractional-Kelly stake; JSON endpoint now, page after ui3 lock | melbcup/bets/offers.py;melbcup/web/app.py;tests/test_offers.py | done | m8 |
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T22:08:28+00:00 1bb079bf m8 final block opened once (owner 'Run the test'): win rule 8 bets 2 wins +17.5% CI -100..+240 not proven; agreed rule 4 bets +50%; trifecta off (-24%, CI -41..-5); quinella/exacta ~breakeven; price^1.14 +0.0047 nats CI +0.0020..+0.0073; final + examined month now spent
 - 2026-10-31T22:21:42+00:00 943d57e3 venues (research/VENUES.md, 28,721 races): T-2 favourite ROI SB -12.6, LB -11.3, best SB/LB -10.9, tote -10.9, Betfair SP -2.9 (5% comm); Betfair beats SB +9.6 pts (CI +9.3..+9.9) proven; take over all runners SB -29.8, tote -24.6, Betfair -6.4; no rule provably profitable anywhere
 - 2026-10-31T23:56:42+00:00 7596800e m9 live 5a6e50d7 (owner approved): quinella info-only, offers check + /api/offer, $1 floor. Live check 1 Nov 10:55am prices: Cup is race 7 (3:00pm); each-way 1/4 x4 HOLD on all 24 (worst EV -0.1% to -24.5%); race 8 Amanda Elliott 7 BETs $2
 - 2026-10-31T23:57:11+00:00 f34a851b owner: finish, token budget spent. ui3 design round 2 stopped (pending); trifecta question unanswered, left as is; open: ui3, ui4 multi picks, m7, az4 (after 7 Nov)
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T08:43:56+00:00 0819df81 owner: Deploy. ui3 race card build (51ab72cc..39919ca2, 438 tests) pushed to main with owner approval; verifying live
 - 2026-11-01T09:29:32+00:00 859d4892 live check: race card live, Betfair pills on every line; only $163/$200 used (Betfair-better stakes under $5). Owner: yes, raise them to $5 on Betfair while Betfair money lasts. route() lifts; test added; suite passes; awaiting push approval
 - 2026-11-01T09:37:37+00:00 6ce3d0f0 c83b388f live (owner approved): day $194/$200 in bets; Cup win/place/EW all on Betfair ($5/$5/$10), returns after commission. ui3 done pending owner feedback
+- 2026-11-01T09:48:29+00:00 38a65a70 owner: all good ($6 leftover kept as spare). ui3 done. Open: ui4 multi picks, m7, bf2 (betting backend dormant, no live key), az4 after 7 Nov
 <!-- /DC:LOG -->
