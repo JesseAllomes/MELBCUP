@@ -68,7 +68,7 @@ class FakeBetfair:
                 "error": "INVALID_USERNAME_OR_PASSWORD" if self.login_status != "SUCCESS" else None,
             }
         method = body["method"].split("/")[-1]
-        self.calls.append((method, headers["X-Application"]))
+        self.calls.append((method, headers.get("X-Application")))
         if method == "getDeveloperAppKeys":
             return 200, {"result": self.apps}
         if method == "createDeveloperAppKeys":
@@ -105,6 +105,7 @@ def test_creates_and_uses_the_delayed_key_then_reads_prices():
         "getDeveloperAppKeys",
     ]
     assert all(key == "DELAYKEY" for m, key in fake.calls if m.startswith("list"))
+    assert all(key is None for m, key in fake.calls if m.endswith("DeveloperAppKeys"))
     assert "pw" not in repr(client) and "me" not in repr(client)
 
 

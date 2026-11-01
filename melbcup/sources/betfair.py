@@ -122,10 +122,13 @@ class BetfairClient:
     def _rpc(self, url: str, method: str, params: dict) -> Any:
         headers = {
             "X-Authentication": self._token or "",
-            "X-Application": self._app_key or APP_NAME,
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
+        if self._app_key is not None:
+            # Fetching or creating the account's own keys works with the session alone; a made-up
+            # app key there is refused (INVALID_APP_KEY, seen live 2026-11-01).
+            headers["X-Application"] = self._app_key
         body = {"jsonrpc": "2.0", "method": method, "params": params, "id": 1}
         try:
             status, data = self._post(url, headers, body, True)
