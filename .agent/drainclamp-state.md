@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=74 -->
+<!-- drainclamp-build: state; schema=1; generation=75 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T07:47:00+00:00 e2372d2a az2: Function in git + guarded deploy live; collector ON 07:43Z in parallel with GitHub collector; GitHub collector parked after first Azure hour validates
 - 2026-10-31T08:30:33+00:00 b20a3e38 az3: Azure collector validated (first hour: 329 records, 21 cycles, 0 gaps, 0 dups, same mix as GitHub); live-collector.yml manual-only; archive-to-gcs.yml and Render unchanged
 - 2026-10-31T08:56:32+00:00 c77cd273 az3: melbcup-web live on Container Apps (https://melbcup-web.mangoflower-343da0ef.australiaeast.azurecontainerapps.io, 0-1 replicas, password gate); keys copied Render->Key Vault unprinted; Render kept as backup through Cup day; Lotto site live on SWA ambitious-plant-0e97ae900.6.azurestaticapps.net
 - 2026-10-31T10:31:04+00:00 0abbb6d8 custom domain asynym.dev (Cloudflare, DNS only): cup.asynym.dev -> melbcup-web (managed cert), comps.asynym.dev -> swa-lotto; customDomains kept in azure/webapp/melbcup-web.json so deploys keep the binding
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T06:21:51+00:00 190fd86c owner: no Betfair live key (A$590 fee). Option 1: free delayed key for prices; auto stays practice and tells the owner what to bet in the last minute; owner places bets by hand. Owner approved push to main of trifecta odds-only, owner-accounts pricing, Betfair prices, practice auto per race. PIN in Key Vault (melbcup-bet-pin)
 - 2026-11-01T06:31:46+00:00 20f791e9 live: Betfair login OK, getDeveloperAppKeys refused placeholder app key (INVALID_APP_KEY); fix c2fd2bd1 (no X-Application on key calls) pushed to main with owner approval. Owner: confused by BET vs For fun; wants a $ from the day budget on every card; wants Sportsbet and Betfair prices as different coloured squares on each line (prototype)
 - 2026-11-01T06:39:46+00:00 c3e17e4e Betfair live OK after fix (Betfair prices on site). Owner: day budget shared across the whole day by chance each bet pays, value BETs keep model stake, exotics keep outlay, max 20% of budget per race; every race gets win/place/each-way picks with $. Built melbcup/bets/allocate.py + 5 tests (not wired to pages: UI awaits BUILD). Live Cup-day run: $200 used, Cup $18. Prototype v10: SB navy / BF amber price pills (owner asked for pills), Good/Short price pills, stakes
+- 2026-11-01T06:41:01+00:00 94aa7deb owner: practice auto/PIN pointless without live key; wants to see if last-minute rechecks would change/improve own bets. Plan: drop Auto card/PIN from UI (autobet backend stays dormant); Last-minute check card: save picks+stakes at T-30, again at last check before jump, show changes, after result show returns of both; running total on History. Prototype v11 has the card (3 example states). Build after BUILD
 <!-- /DC:LOG -->
