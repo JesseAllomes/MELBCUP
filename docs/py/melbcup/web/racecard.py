@@ -21,8 +21,10 @@ from melbcup.bets.allocate import (
     Placed,
     Routed,
     allocate_accounts,
+    day_multi_list,
     race_picks,
 )
+from melbcup.bets.multis import Multi, key_legs
 from melbcup.config import MELBOURNE
 from melbcup.domain import betfair_net
 
@@ -40,6 +42,7 @@ CODES = {
     "first_four": "f",
     "quaddie": "qd",
     "early_quaddie": "eq",
+    "multi": "m",
 }
 KIND_OF = {v: k for k, v in CODES.items()}
 ACCOUNTS = {"sb": "sportsbet", "bf": "betfair"}
@@ -53,6 +56,7 @@ LABELS = {
     "first_four": "First Four",
     "quaddie": "Quaddie",
     "early_quaddie": "Early quaddie",
+    "multi": "Multi",
 }
 CAVEATS = {
     "quinella": "On average quinellas pay less than that.",
@@ -108,7 +112,8 @@ def pick_amounts(
 
 def parse_placed(raw: str | None, race_date: date | None) -> list[Placed]:
     """The placed cookie: a URL-encoded JSON list of [date, race, kind, runner, account, stake].
-    Records for another date, damaged records and repeats of a slot are ignored."""
+    Records for another date, damaged records and repeats of a slot are ignored. A multi's slot
+    is its legs (the key); the other kinds' slot is their race and kind."""
     if not raw or race_date is None:
         return []
     try:
@@ -118,7 +123,7 @@ def parse_placed(raw: str | None, race_date: date | None) -> list[Placed]:
     if not isinstance(data, list):
         return []
     out: list[Placed] = []
-    seen: set[tuple[int, str]] = set()
+    seen: set[tuple[int, str, int]] = set()
     for rec in data[:200]:
         if not isinstance(rec, list) or len(rec) != 6:
             continue
@@ -128,11 +133,13 @@ def parse_placed(raw: str | None, race_date: date | None) -> list[Placed]:
             continue
         if not all(isinstance(x, int) and not isinstance(x, bool) for x in (race, key, stake)):
             continue
-        if not (0 < stake <= MAX_AMOUNT) or (race, kind) in seen:
+        slot = (race, kind, key if kind == "multi" else 0)
+        if not (0 < stake <= MAX_AMOUNT) or slot in seen or (kind == "multi" and not key_legs(key)):
             continue
         if kind in SPORTSBET_ONLY:
-            account, key = "sportsbet", 0
-        seen.add((race, kind))
+            account = "sportsbet"
+            key = key if kind == "multi" else 0
+        seen.add(slot)
         out.append(Placed(race, kind, key, account, stake))
     return out
 
@@ -231,6 +238,9 @@ class Line:
     title: str = ""
     record: str = ""  # JSON for the Placed buttons: [date, race, kind, runner, account, stake]
     sportsbet_only: bool = False
+    key: int = 0  # a multi's legs, packed (multis.multi_key): the placed record's key
+    multi_legs: list[tuple[int, int, str]] = field(default_factory=list)  # race, number, name
+    price: float | None = None  # a multi's Sportsbet price
 
     @property
     def label(self) -> str:
@@ -251,6 +261,8 @@ class Line:
 
 def _record(race_date: date, line: Line) -> str:
     key = line.number if line.kind in KINDS and line.number is not None else 0
+    if line.kind == "multi":
+        key = line.key
     return json.dumps(
         [race_date.isoformat(), line.race, CODES[line.kind], key, "", line.stake],
         separators=(",", ":"),
@@ -312,6 +324,32 @@ def _horse_words(line: Line, prices) -> None:
             w, pl = at(True), at(False)
             if w and pl:
                 line.bold = f"Wins: {dollars(half * (w + pl))}. Only places: {dollars(half * pl)}."
+
+
+def _multi_line(m: Multi, routed: Routed | None, race_date: date) -> Line:
+    """One day multi: its legs, the stake, and "Lands 1 in N. $S returns $R." at Sportsbet's
+    price. A multi nobody has put money on (no stake) shows no $ and no Placed button."""
+    stake = routed.pick.stake if routed else 0
+    line = Line(
+        m.race,
+        "multi",
+        stake,
+        "sportsbet" if stake else None,
+        bool(routed and routed.placed),
+        m.good_price,
+        chance=m.prob,
+        pills=[Pill("sb", price_text(m.price), True)],
+        sportsbet_only=True,
+        key=m.key,
+        multi_legs=[(leg.race, leg.number, leg.name) for leg in m.legs],
+        price=m.price,
+    )
+    line.title = f"{len(m.legs)}-leg multi"
+    line.say = f"Lands {one_in(m.prob)}."
+    if stake:
+        line.bold = f"${stake} returns {dollars(stake * m.price)}."
+    line.record = _record(race_date, line)
+    return line
 
 
 def _legs(kind: str, e) -> list[tuple[str, list[int], str]]:
@@ -437,13 +475,14 @@ def wallet(sb: float, bf: float, placed: list[Placed]) -> Wallet:
 class DayCard:
     races: list[RaceCard]
     open_count: int
+    multis: list[Line] = field(default_factory=list)  # "Multi picks for the day"
 
     def race(self, number: int) -> RaceCard | None:
         return next((r for r in self.races if r.race.number == number), None)
 
     @property
     def total(self) -> int:
-        return sum(r.total for r in self.races)
+        return sum(r.total for r in self.races) + sum(x.stake for x in self.multis)
 
 
 def build_day(
@@ -451,7 +490,8 @@ def build_day(
 ) -> DayCard:
     """Every race's lines with stakes from the two amounts and the owner's placed bets."""
     routed = allocate_accounts(picks, sb, bf, placed, races=open_races)
-    slot = {(r.pick.race, r.pick.kind): r for r in routed}
+    slot = {(r.pick.race, r.pick.kind): r for r in routed if r.pick.kind != "multi"}
+    by_multi = {r.pick.multi.key: r for r in routed if r.pick.multi is not None}
     quaddies = [q for q in picks.quaddies if q.recommended and q.races]
     races = []
     for rp in picks.races:
@@ -490,4 +530,13 @@ def build_day(
         ]
         mine = {x.number for x in board if x.number is not None}
         races.append(RaceCard(race, rp, is_open, board, exotics, legs, mine))
-    return DayCard(races, len(open_races))
+    # The day's likeliest multis (money or not), then any ticked as placed that have dropped out.
+    day_list = day_multi_list(picks, open_races)
+    lines = [_multi_line(m, by_multi.get(m.key), race_date) for m in day_list]
+    shown = {m.key for m in day_list}
+    lines += [
+        _multi_line(r.pick.multi, r, race_date)
+        for k, r in by_multi.items()
+        if r.placed and k not in shown and r.pick.multi is not None
+    ]
+    return DayCard(races, len(open_races), lines)

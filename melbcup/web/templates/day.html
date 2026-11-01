@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_card.html" import amounts %}
+{% from "_card.html" import amounts, multi_card %}
 {% block top %}{% if picks %}{% include "_racestrip.html" %}{% endif %}{% endblock %}
 {% block content %}
 {% if not picks %}
@@ -46,6 +46,15 @@
       {% endfor %}
     </ul>
   </section>
+  {% if day.multis %}
+  <section aria-labelledby="multis-h">
+    <h2 id="multis-h">Multi picks for the day</h2>
+    <p class="split">The {{ day.multis | length }} likeliest win multis across races still to run, placed with Sportsbet. Each leg is a win bet; a leg missing its race or a Sportsbet price is left out.</p>
+    <div class="bets multis">
+      {% for line in day.multis %}{{ multi_card(line) }}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
   <p class="help">Prices: Sportsbet and Betfair (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endif %}
 {% endblock %}

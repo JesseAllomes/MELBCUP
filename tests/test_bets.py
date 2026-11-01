@@ -447,3 +447,62 @@ def test_price_verdict_compares_a_quote_with_the_runners_chance():
     assert price_verdict(9.0, 1 / 10.62) == "A bit short (85% of fair)"
     assert price_verdict(9.5, 1 / 13.58) == "Short: skip (70% of fair)"
     assert price_verdict(None, 0.2) is None and price_verdict(3.0, None) is None
+
+
+def _multi_models():
+    return [
+        make_model(1, [0.5, 0.3, 0.2], [2.0, 3.4, 5.0]),
+        make_model(2, [0.45, 0.35, 0.2], [2.4, 3.0, 5.5]),
+        make_model(3, [0.4, 0.4, 0.2], [2.5, 2.6, 6.0]),
+        make_model(4, [0.5, 0.5], [2.0, 2.0], sportsbet=False),
+    ]
+
+
+def test_day_multis_are_the_five_likeliest_distinct_cross_race_win_multis():
+    from melbcup.bets.multis import MULTI_EDGE, day_multis
+
+    ms = day_multis(_multi_models())
+    assert len(ms) == 5
+    assert [m.prob for m in ms] == sorted((m.prob for m in ms), reverse=True)
+    assert len({m.key for m in ms}) == 5
+    for m in ms:
+        assert 2 <= len(m.legs) <= 3
+        races = [leg.race for leg in m.legs]
+        assert len(set(races)) == len(races) and 4 not in races  # no Sportsbet price in R4
+        assert m.prob == pytest.approx(math.prod(g.prob for g in m.legs))
+        assert m.price == pytest.approx(math.prod(g.price for g in m.legs))
+        assert m.good_price == (m.prob * m.price >= 1 + MULTI_EDGE)
+    best = ms[0]
+    assert [(g.race, g.number) for g in best.legs] == [(1, 1), (2, 1)]
+    assert len(day_multis(_multi_models(), 2)) == 2
+
+
+def test_day_multis_only_use_the_races_given_and_good_price_follows_the_edge():
+    from melbcup.bets.multis import MULTI_EDGE, day_multis
+
+    ms = day_multis(_multi_models()[1:3])  # races 2 and 3 only
+    assert ms and all({g.race for g in m.legs} == {2, 3} for m in ms)
+    assert day_multis(_multi_models()[:1]) == []  # one race cannot make a multi
+    # value rule: the same edge the value multis use
+    long_price = day_multis(
+        [make_model(1, [0.5, 0.5], [2.4, 2.4]), make_model(2, [0.5, 0.5], [2.4, 2.4])]
+    )
+    assert long_price[0].good_price and long_price[0].prob * long_price[0].price >= 1 + MULTI_EDGE
+    short = day_multis(
+        [make_model(1, [0.5, 0.5], [1.8, 1.8]), make_model(2, [0.5, 0.5], [1.8, 1.8])]
+    )
+    assert not short[0].good_price
+
+
+def test_multi_key_round_trips_and_rebuilds_the_multi():
+    from melbcup.bets.multis import build_multi, day_multis, key_legs
+
+    models = _multi_models()
+    for m in day_multis(models):
+        assert key_legs(m.key) == [(g.race, g.number) for g in m.legs]
+        rebuilt = build_multi(models, m.key)
+        assert rebuilt is not None and rebuilt.key == m.key
+        assert rebuilt.prob == pytest.approx(m.prob) and rebuilt.price == pytest.approx(m.price)
+    assert key_legs(0) == [] and key_legs(101) == [] and key_legs(1010101010101) == []
+    assert build_multi(models, 4010501) is None  # race 4 has no Sportsbet price
+    assert build_multi(models, 1010901) is None  # no runner 9

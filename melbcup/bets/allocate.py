@@ -13,6 +13,10 @@ Money goes out in this order, and the day never goes over the budget:
    (win: wins; place and each way: places), with no race taking more than RACE_CAP of the
    budget. Each way is rounded to an even number of dollars so it splits evenly.
 
+Multis (owner, 2026-11-01): the five likeliest cross-race Sportsbet win multis of the races still
+to run are picks of kind "multi", filed under their first leg's race and keyed by their legs.
+They share the money by chance like the rest (never as a value BET) and always go to Sportsbet.
+
 With two accounts (allocate_accounts), bets the owner ticked as placed keep their stake and
 account, and only the money left in each account is shared over the unplaced picks in the races
 still to run.
@@ -22,6 +26,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from melbcup.bets.multis import Multi, build_multi, day_multis
 from melbcup.bets.singles import MIN_WIN_PROB, Single
 
 RACE_CAP = 0.20
@@ -37,11 +42,14 @@ class Pick:
     good_price: bool  # the model's value rule says BET at this price
     stake: int = 0
     exotic: object | None = None  # the Exotic for a quinella or trifecta pick
+    multi: Multi | None = None  # the Multi for a "multi" pick
 
     @property
     def chance(self) -> float:
         """The chance this bet pays something: wins for a win bet, places for place and each
         way, lands for a quinella or trifecta."""
+        if self.multi is not None:
+            return self.multi.prob
         return self.exotic.prob if self.exotic is not None else self.single.prob
 
     @property
@@ -74,15 +82,17 @@ def race_picks(rp) -> dict[str, Single | None]:
 
 
 FIXED_EXOTICS = ("first_four", "early_quaddie", "quaddie")  # keep their recommended outlay
-# Tote bets: the owner places these with Sportsbet only (there is no tote on Betfair).
-SPORTSBET_ONLY = ("quinella", "trifecta") + FIXED_EXOTICS
+# Tote bets and multis: the owner places these with Sportsbet only (there is no tote on
+# Betfair, and a multi must sit with one bookie).
+SPORTSBET_ONLY = ("quinella", "trifecta", "multi") + FIXED_EXOTICS
 
 
 @dataclass(frozen=True)
 class Placed:
     """A bet the owner ticked as placed: it keeps this stake and account whatever the picks do
-    afterwards. ``key`` is the runner number for a horse pick and 0 for an exotic; a quaddie
-    is filed under its first race."""
+    afterwards. ``key`` is the runner number for a horse pick, 0 for an exotic and the legs'
+    ``multi_key`` for a multi; a quaddie is filed under its first race, a multi under its first
+    leg's."""
 
     race: int
     kind: str
@@ -99,6 +109,11 @@ def _open(day, races: set[int] | None) -> set[int]:
     if races is not None:
         return set(races)
     return {rp.model.race.number for rp in day.races if rp.model.race.result is None}
+
+
+def day_multi_list(day, races: set[int]) -> list[Multi]:
+    """The day's multis over the races still to run."""
+    return day_multis([rp.model for rp in day.races if rp.model.race.number in races])
 
 
 def _exotic_fixed(day, races: set[int], skip: set) -> list[Pick]:
@@ -136,10 +151,14 @@ def allocate(
     return _plan(day, budget, placed, races, cap_base)[0]
 
 
-def _plan(day, budget, placed, races, cap_base) -> tuple[list[Pick], list[Pick]]:
-    """(horse, quinella and trifecta picks with a stake; fixed First Fours and quaddies)."""
+def _plan(
+    day, budget, placed, races, cap_base, multis: list[Multi] | None = None
+) -> tuple[list[Pick], list[Pick]]:
+    """(horse, quinella, trifecta and multi picks with a stake; fixed First Fours and quaddies).
+    ``multis`` are the day's multis if already worked out."""
     races = _open(day, races)
-    skip = {(p.race, p.kind) for p in placed}
+    skip = {(p.race, p.kind) for p in placed if p.kind != "multi"}
+    placed_multis = {p.key for p in placed if p.kind == "multi"}
     cap = RACE_CAP * (budget if cap_base is None else cap_base)
     picks: list[Pick] = []
     for rp in day.races:
@@ -159,6 +178,10 @@ def _plan(day, budget, placed, races, cap_base) -> tuple[list[Pick], list[Pick]]
                 continue
             if likeliest := max(group, key=lambda e: e.prob, default=None):
                 picks.append(Pick(n, likeliest.kind, None, False, 0, likeliest))
+
+    for m in day_multi_list(day, races) if multis is None else multis:
+        if m.key not in placed_multis:
+            picks.append(Pick(m.race, "multi", None, False, 0, None, m))
 
     exotics = _exotic_fixed(day, races, skip)
     fixed_items = [p for p in picks if p.good_price] + exotics
@@ -272,14 +295,22 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
             out[id(p)] = Routed(p, "betfair", p.single.shown)
             left -= need
     return [
-        out.get(id(p)) or Routed(p, "sportsbet", p.single.sportsbet if p.single else None)
+        out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p))
         for p in picks
     ]
+
+
+def _sportsbet_price(pick: Pick) -> float | None:
+    if pick.multi is not None:
+        return pick.multi.price
+    return pick.single.sportsbet if pick.single else None
 
 
 def account_price(day, pick: Pick, account: str) -> float | None:
     """The pick's price at ``account`` as the owner sees it there (Betfair before commission):
     the win price for win and each way, the place price for place; None for exotics."""
+    if pick.multi is not None:
+        return pick.multi.price if account == "sportsbet" else None
     s = pick.single
     if s is None:
         return None
@@ -295,7 +326,9 @@ def account_price(day, pick: Pick, account: str) -> float | None:
 def placed_pick(day, p: Placed) -> Pick:
     """The pick a placed record stands for, at the placed stake."""
     rp = next((r for r in day.races if r.model.race.number == p.race), None)
-    single = exotic = None
+    single = exotic = multi = None
+    if p.kind == "multi":
+        multi = build_multi([r.model for r in day.races], p.key)
     if rp is not None:
         if p.kind in KINDS:
             single = next(
@@ -316,7 +349,7 @@ def placed_pick(day, p: Placed) -> Pick:
         rp is not None and single is not None and rp.best.get(p.kind) is single
         and bool(single.stake)
     )
-    return Pick(p.race, p.kind, single, good, p.stake, exotic)
+    return Pick(p.race, p.kind, single, good, p.stake, exotic, multi)
 
 
 def allocate_accounts(
@@ -343,8 +376,11 @@ def allocate_accounts(
         held.append(Routed(pick, p.account, account_price(day, pick, p.account), placed=True))
     budget = sb_left + bf_left
     routed: list[Routed] = []
+    multis = day_multi_list(day, _open(day, races))
     for _ in range(40):
-        picks, exotics = _plan(day, budget, placed, races, sportsbet_budget + betfair_budget)
+        picks, exotics = _plan(
+            day, budget, placed, races, sportsbet_budget + betfair_budget, multis
+        )
         routed = route(picks, bf_left) + [Routed(e, "sportsbet", None) for e in exotics]
         on_sb = sum(r.pick.stake for r in routed if r.account == "sportsbet")
         over = on_sb - sb_left

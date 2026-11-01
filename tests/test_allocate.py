@@ -181,3 +181,76 @@ def test_small_betfair_better_stakes_are_raised_to_the_minimum():
     on_bf = [r for r in routed if r.account == "betfair"]
     assert len(on_bf) == 2 and all(r.pick.stake == BETFAIR_MIN for r in on_bf)
     assert all(r.pick.stake < BETFAIR_MIN for r in routed if r.account == "sportsbet")
+
+
+MULTI_DAY = [
+    ([0.5, 0.3, 0.2], [2.0, 3.4, 5.0]),
+    ([0.45, 0.35, 0.2], [2.4, 3.0, 5.5]),
+    ([0.4, 0.4, 0.2], [2.5, 2.6, 6.0]),
+    ([0.38, 0.32, 0.3], [2.7, 3.1, 3.4]),
+    ([0.42, 0.33, 0.25], [2.4, 3.0, 4.0]),
+]
+
+
+def multi_day(budget=200):
+    from test_bets import make_model as mm
+
+    return build_picks([mm(i + 1, *f) for i, f in enumerate(MULTI_DAY)], budget)
+
+
+def _multis(routed):
+    return [r for r in routed if r.pick.kind == "multi"]
+
+
+def test_multis_share_the_money_by_chance_and_always_go_to_sportsbet():
+    d = multi_day()
+    d = _betfair_better(d)  # Betfair pays more on every horse, but a multi must stay at one bookie
+    routed = allocate_accounts(d, 150, 50)
+    ms = _multis(routed)
+    assert len(ms) == 5
+    assert all(r.account == "sportsbet" and r.pick.single is None for r in ms)
+    assert all(r.price == r.pick.multi.price and r.pick.stake > 0 for r in ms)
+    assert all(r.pick.race == r.pick.multi.legs[0].race and not r.pick.good_price for r in ms)
+    assert _spent(routed, "sportsbet") <= 150 and _spent(routed, "betfair") <= 50
+    assert sum(r.pick.stake for r in routed) <= 200
+    # likelier multis never get less
+    by_chance = sorted(ms, key=lambda r: r.pick.chance)
+    assert [r.pick.stake for r in by_chance] == sorted(r.pick.stake for r in by_chance)
+
+
+def test_a_placed_multi_keeps_its_stake_and_the_other_multis_stay():
+    d = multi_day()
+    first = _multis(allocate_accounts(d, 150, 50))
+    mine = first[0].pick.multi
+    # a Betfair record for a multi is treated as the Sportsbet bet it must be
+    routed = allocate_accounts(d, 150, 50, [Placed(mine.race, "multi", mine.key, "sportsbet", 7)])
+    held = [r for r in routed if r.placed]
+    assert len(held) == 1 and held[0].pick.kind == "multi" and held[0].pick.stake == 7
+    assert held[0].pick.multi.key == mine.key and held[0].account == "sportsbet"
+    assert held[0].price == mine.price
+    others = [r for r in _multis(routed) if not r.placed]
+    assert mine.key not in {r.pick.multi.key for r in others}
+    assert others and all(r.account == "sportsbet" for r in others)
+    assert _spent(routed, "sportsbet") <= 150
+
+
+def test_two_multis_starting_in_one_race_can_both_be_placed():
+    d = multi_day()
+    ms = [r.pick.multi for r in _multis(allocate_accounts(d, 150, 50))]
+    same = [m for m in ms if m.race == ms[0].race]
+    assert len(same) >= 2
+    placed = [Placed(m.race, "multi", m.key, "sportsbet", 3) for m in same[:2]]
+    routed = allocate_accounts(d, 150, 50, placed)
+    assert len([r for r in routed if r.placed]) == 2
+    assert _spent(routed, "sportsbet") <= 150
+
+
+def test_multis_obey_the_race_cap_and_stop_at_races_that_have_run():
+    d = multi_day()
+    placed = [Placed(1, "win", 1, "sportsbet", int(RACE_CAP * 200))]
+    routed = allocate_accounts(d, 150, 50, placed)
+    assert not [r for r in _multis(routed) if r.pick.race == 1]  # race 1 is at its cap
+    routed = allocate_accounts(d, 150, 50, races={3, 4, 5})
+    for r in _multis(routed):
+        assert {leg.race for leg in r.pick.multi.legs} <= {3, 4, 5}
+    assert "multi" in SPORTSBET_ONLY

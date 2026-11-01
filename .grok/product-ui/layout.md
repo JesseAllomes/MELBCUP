@@ -7,4 +7,4 @@
 6. The field: cloth, name, price pills (SB/BF), "Wins 1 in N · places 1 in N"; top 6 then "Show all N runners".
 7. Last-minute check card (bottom).
 8. Gambling Help Online line.
-Day page: wallet bars + race strip + list of races (time, this race's stake); no day-wide quaddie/multi block.
+Day page: wallet bars + race strip + list of races (time, this race's stake), then "Multi picks for the day" (owner, 2026-11-01): a card per multi, legs as rows, stake, SB price pill, Good/Short price, Placed on Sportsbet. No day-wide quaddie block.

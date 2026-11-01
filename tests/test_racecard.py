@@ -211,3 +211,43 @@ def test_chances_and_dollars_read_like_the_prototype():
     assert one_in(0.10) == "1 in 10" and one_in(0.125) == "1 in 8" and one_in(0.25) == "1 in 4"
     assert one_in(0.30) == "3 in 10" and one_in(0.28) == "3 in 10" and one_in(0.99) == "9 in 10"
     assert dollars(17) == "$17" and dollars(15.6) == "$15.60" and dollars(1285) == "$1,285"
+
+
+def test_placed_multis_are_kept_by_their_legs():
+    when = datetime(2026, 11, 3).date()
+    raw = quote(json.dumps([
+        ["2026-11-03", 1, "m", 1010201, "bf", 3],  # Betfair is not an option for a multi
+        ["2026-11-03", 1, "m", 1010301, "sb", 2],  # same first race, other legs: its own slot
+        ["2026-11-03", 1, "m", 1010201, "sb", 9],  # the same legs again
+        ["2026-11-03", 1, "m", 0, "sb", 4],  # not a multi key
+    ]))
+    placed = parse_placed(raw, when)
+    assert [(p.kind, p.account, p.key, p.stake) for p in placed] == [
+        ("multi", "sportsbet", 1010201, 3),
+        ("multi", "sportsbet", 1010301, 2),
+    ]
+
+
+def test_day_page_shows_multi_picks_and_a_ticked_multi_drops_the_wallet(views):
+    html = page(views, "/")
+    assert "Multi picks for the day" in html
+    assert html.index('id="races-h"') < html.index('id="multis-h"')
+    cards = re.findall(r'<article class="bet multi.*?</article>', html, re.S)
+    assert len(cards) == 5
+    assert all('class="cloth sm"' in c and "Lands " in c for c in cards)
+    assert all('class="pill sb best"' in c for c in cards)
+    assert all(("Good price" in c) != ("Short price" in c) for c in cards)
+    assert all('data-acct="sb"' in c and 'data-acct="bf"' not in c for c in cards)
+    recs = [
+        json.loads(r.replace("&#34;", '"'))
+        for r in re.findall(r'data-acct="sb" data-rec="([^"]+)"', html.split('id="multis-h"')[1])
+    ]
+    assert len(recs) == 5 and all(r[2] == "m" and r[3] > 0 and r[5] > 0 for r in recs)
+    ticked = [dict(zip("dkcnas", r, strict=True)) for r in recs[:2]]
+    for r in recs[:2]:
+        r[4] = "sb"
+    jar = {"placed": quote(json.dumps(recs[:2]))}
+    day = page(views, "/", cookies=jar)
+    spent = sum(t["s"] for t in ticked)
+    assert f"${150 - spent}</b> left of $150" in day
+    assert day.count("✓ Placed $") == 2

@@ -55,7 +55,7 @@
   </main>
   <script>
   // Placed ticks live in a cookie on this phone (no login, by design): tap to tick, tap again to
-  // untick, tap the other account to move it. Records for other days are dropped.
+  // untick, tap the other account to move it (a multi's slot is its legs, so several can share a race). Records for other days are dropped.
   (function () {
     function read() {
       var m = document.cookie.match(/(?:^|;\s*)placed=([^;]*)/);
@@ -70,7 +70,7 @@
         var rec = JSON.parse(b.getAttribute("data-rec")), acct = b.getAttribute("data-acct");
         var on = b.getAttribute("aria-pressed") === "true";
         var list = read().filter(function (r) {
-          return Array.isArray(r) && r[0] === rec[0] && !(r[1] === rec[1] && r[2] === rec[2]);
+          return Array.isArray(r) && r[0] === rec[0] && !(r[1] === rec[1] && r[2] === rec[2] && (rec[2] !== "m" || r[3] === rec[3]));
         });
         if (!on) { rec[4] = acct; list.push(rec); }
         write(list);

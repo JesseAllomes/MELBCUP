@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=88 -->
+<!-- drainclamp-build: state; schema=1; generation=89 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T23:57:11+00:00 f34a851b owner: finish, token budget spent. ui3 design round 2 stopped (pending); trifecta question unanswered, left as is; open: ui3, ui4 multi picks, m7, az4 (after 7 Nov)
 - 2026-11-01T04:14:26+00:00 ec15b83b owner: race card hard to follow -> one prototype (artifact RuFZKwqFknJwC5jKEQwZWc: bets first, plain First Four legs, field below, odds-only folded). Trifecta now odds only, never BET (owner 2026-11-01); tests pass; session branch only, main push awaits approval
 - 2026-11-01T05:21:26+00:00 ad427a89 owner bets only on Sportsbet: win/place/each-way now judged, ranked and staked at Sportsbet prices (was best price across bookies); no Sportsbet price = no bet. Race card prototype v4 ranks bets + best way per horse. Session branch only; main push awaits approval
 - 2026-11-01T05:59:07+00:00 bd4afe2f owner HAS a Betfair account (supersedes 'no Betfair account'); Key Vault: betfair-username, betfair-password (no app key). Built read-only Betfair prices: app logs in, fetches/creates the free delayed key, reads win+place back prices each price check; singles judged at better of Sportsbet and Betfair after 8% commission; page shows Betfair status. Unverified live: login from here is geo-blocked (403). Session branch only; main push awaits approval
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T09:48:29+00:00 38a65a70 owner: all good ($6 leftover kept as spare). ui3 done. Open: ui4 multi picks, m7, bf2 (betting backend dormant, no live key), az4 after 7 Nov
 - 2026-11-01T10:45:05+00:00 87d1aada m7 review (research/M7_REVIEW.md): 'tune weights' is dead (market model, holdouts spent); honest work = replay the card's fixed rules on the archive, apply the already-proven price^1.14 correction if it helps on blocks it was not fitted on, build a token-free forward test; variants reported, never chosen (overfitting)
 - 2026-11-01T10:45:06+00:00 265c5294 m7 done. Replay (research/m7/card_rules.py, 28,721 races): card win pick at alpha 1 loses -17/-21/-22/-21% (dev/tune2/final/fwd), worse than the favourite, because 'closest to fair' lands on 2-21 shots (A/E 0.75); at alpha 1.14 -13/-13/-13.5/-11 (4-10 pts better on every block, 3 of them unseen by the fit). Shipped MARKET_ALPHA 1.14 in probability.py (+offers scenarios, cup_signals), tools/forward_check.py (T-30 v last price from collector obs, graded from racing.com; 31 Oct sample 121 races saved). Rejected: floors, pick rule, stake weighting, value rule (fitted noise/untestable). Owner call: fixed-odds EW at 3 places is the worst pick everywhere (-18..-24%). Tests green; session branch only, main push awaits owner
+- 2026-11-01T10:51:46+00:00 3cb0b219 ui4: Multi picks for the day on the day page; day_multis (top 5 by chance) in multis.py, kind multi in allocate (Sportsbet only, keyed by legs), placed cookie code m; tests green, docs rebuilt
 <!-- /DC:LOG -->
