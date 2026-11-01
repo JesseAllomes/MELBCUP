@@ -86,4 +86,13 @@ def test_no_betfair_money_sends_everything_to_sportsbet():
     d = _betfair_better(day(SHORT))
     routed = allocate_accounts(d, 200, 0)
     assert all(r.account == "sportsbet" for r in routed)
-    assert all(r.price == r.pick.single.sportsbet for r in routed)
+    assert all(r.price == r.pick.single.sportsbet for r in routed if r.pick.single)
+
+
+def test_quinella_and_trifecta_get_a_stake_and_the_dividend_they_need():
+    picks = [p for p in allocate(day(SHORT), 200) if p.race == 1]
+    by = {p.kind: p for p in picks}
+    assert {"quinella", "trifecta"} <= set(by)
+    qn = by["quinella"]
+    assert qn.stake > 0 and not qn.good_price
+    assert qn.needs_dividend == qn.exotic.combos / qn.exotic.prob

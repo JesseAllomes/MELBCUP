@@ -28,15 +28,23 @@ KINDS = ("win", "place", "each_way")
 @dataclass
 class Pick:
     race: int
-    kind: str  # "win" | "place" | "each_way"
-    single: Single
+    kind: str  # "win" | "place" | "each_way" | "quinella" | "trifecta"
+    single: Single | None
     good_price: bool  # the model's value rule says BET at this price
     stake: int = 0
+    exotic: object | None = None  # the Exotic for a quinella or trifecta pick
 
     @property
     def chance(self) -> float:
-        """The chance this bet pays something: wins for a win bet, places otherwise."""
-        return self.single.prob
+        """The chance this bet pays something: wins for a win bet, places for place and each
+        way, lands for a quinella or trifecta."""
+        return self.exotic.prob if self.exotic is not None else self.single.prob
+
+    @property
+    def needs_dividend(self) -> float | None:
+        """Quinella and trifecta: the average dividend (per $1 unit) that makes the bet pay
+        its way. Worth a try only if the tote's estimate is above it."""
+        return self.exotic.fair_dividend if self.exotic is not None else None
 
 
 def _closest_to_fair(lines: list[Single]) -> Single | None:
@@ -90,6 +98,11 @@ def allocate(day, budget: float) -> list[Pick]:
             value = rp.best.get(kind)
             good = value is not None and value is s and bool(s.stake)
             picks.append(Pick(n, kind, s, good, int(s.stake) if good else 0))
+        # Quinella and trifecta (owner, 2026-11-01): never a value BET, but each gets a share of
+        # the day by its chance, as its likeliest structure, with the dividend it needs.
+        for group in (rp.quinellas, rp.trifectas):
+            if likeliest := max(group, key=lambda e: e.prob, default=None):
+                picks.append(Pick(n, likeliest.kind, None, False, 0, likeliest))
 
     left = budget - sum(fixed.values())
     shared = [p for p in picks if not p.good_price]
@@ -167,12 +180,16 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     at Sportsbet's price."""
     def gain(p: Pick) -> float:
         s = p.single
+        if s is None:
+            return 0.0
         return (s.price or 0) / s.sportsbet if s.sportsbet else float("inf")
 
     left = betfair_budget
     out: dict[int, Routed] = {}
     better_on_betfair = sorted(
-        (p for p in picks if p.single.bookmaker == "betfair"), key=gain, reverse=True
+        (p for p in picks if p.single is not None and p.single.bookmaker == "betfair"),
+        key=gain,
+        reverse=True,
     )
     for p in better_on_betfair:
         minimum = 2 * BETFAIR_MIN if p.kind == "each_way" else BETFAIR_MIN
@@ -180,7 +197,7 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
             out[id(p)] = Routed(p, "betfair", p.single.shown)
             left -= p.stake
     return [
-        out.get(id(p)) or Routed(p, "sportsbet", p.single.sportsbet)
+        out.get(id(p)) or Routed(p, "sportsbet", p.single.sportsbet if p.single else None)
         for p in picks
     ]
 
