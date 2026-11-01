@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=79 -->
+<!-- drainclamp-build: state; schema=1; generation=80 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T13:43:17+00:00 820e26c6 web: PuntersEdge removed, racing.com prices (Sportsbet/Ladbrokes/PointsBet/bet365), history unencrypted, no notes, no login (PUBLIC_ACCESS=1); UI redesign (BET/HOLD/SKIP, race strip, budget top, phone table, 44px) in progress by Sonnet worker -> commit to session branch, then main after review; FormFav valid till 29 Nov; review .agent/reviews/ui-review-product-ui.md
 - 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
 - 2026-10-31T14:09:39+00:00 37f45210 auto-load + history-in-image live 0bb13b64 (history 1,160 races shows); ui3 round 1 (artifact 5u6y2fJPZfqJYNteqWWb4A): owner 'yuk', 4 Ticket closest; too loud, too chunky, too busy, cheap/AI. Wants: day's races at top -> tap opens full field; picks shown beside horses/exotics; front-page 'Multi picks for the day' = 5 best-chance multis with $. Round 2 = Ticket variants with that IA
 - 2026-10-31T15:44:31+00:00 3ac4223c m8 rerun done (research/RERUN.md): late money and all 20 families add nothing beyond the T-2 price on tune2 (Jan-Apr 2026, used once; final block sealed); frozen win rule 3 bets +27% no interval; quinella/exacta/trifecta lose; price^1.14 correction is the only gain, still below Sportsbet margin. Verdict: nothing to switch on; app unchanged pending owner
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T06:42:13+00:00 ae50d0ec owner: separate day amounts for Sportsbet and Betfair (Betfair holds $50). allocate_accounts: share both together, route to the better-paying account; Betfair only if stake >= $5 (EW >= $10) and Betfair money left, biggest price gain first; exotics Sportsbet; reshare so neither account goes over. 2 tests. Prototype v12 has the two amounts
 - 2026-11-01T06:45:33+00:00 0658b905 owner: two sticky bars at the very top (Sportsbet, Betfair: limit, left); each bet has 'Placed on Sportsbet/Betfair' tick that confirms and takes the stake off that account; exotics Sportsbet only. Plan for build: ticks kept in a cookie on the owner's phone (no login), placed stakes lock, remaining money reshared over unplaced bets. Last-minute check moved to bottom. Prototype v14
 - 2026-11-01T06:51:21+00:00 53aa297d owner: quinella + trifecta back on each race card with a stake from the day budget (by chance, likeliest structure) and advice 'worth a try only if the tote estimate is over the fair dividend' (combos/prob); still never a value BET; Sportsbet only. Exotics per race (First Four on its race, quaddie on its first race, legs noted on later races); day page loses quaddie/multi block. allocate.py + test; prototype v17
+- 2026-11-01T08:21:03+00:00 94b53960 ui3 BUILD built on session branch ccr-63b3240a-qdwy3g (51ab72cc, 0d1c6a3f): wallet bars, SB $150/BF $50 cookies, placed ticks cookie, allocate_accounts(placed), SB/BF pills, Good/Short price, per-race exotics, day list, last-minute check (in memory) + History total; 438 tests pass; main push awaits owner
 <!-- /DC:LOG -->

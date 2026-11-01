@@ -1,0 +1,80 @@
+{
+  "chunks": {
+    "ui3": [
+      {
+        "done": true,
+        "done_at": "2026-11-01T08:07:17+00:00",
+        "est_min": 20,
+        "goal": "allocate_accounts takes placed records; tests",
+        "id": "c1",
+        "note": "allocate_accounts(placed, races); Placed, placed_pick, account_price; FF/quaddies routed as SB picks; 6 tests",
+        "targets": [
+          "melbcup/bets/allocate.py",
+          "tests/test_allocate.py"
+        ]
+      },
+      {
+        "done": true,
+        "done_at": "2026-11-01T08:17:43+00:00",
+        "est_min": 25,
+        "goal": "views/app: sb/bf/placed cookies, wallet, per-race board+exotics context",
+        "id": "c2",
+        "note": "done; see commit",
+        "targets": [
+          "melbcup/web/views.py",
+          "melbcup/web/app.py"
+        ]
+      },
+      {
+        "done": true,
+        "done_at": "2026-11-01T08:17:43+00:00",
+        "est_min": 25,
+        "goal": "templates: base tokens, wallet bars, race card, day list",
+        "id": "c3",
+        "note": "done; see commit",
+        "targets": [
+          "melbcup/web/templates"
+        ]
+      },
+      {
+        "done": true,
+        "done_at": "2026-11-01T08:17:43+00:00",
+        "est_min": 25,
+        "goal": "last-minute check in LiveBoard + card + history total; tests",
+        "id": "c4",
+        "note": "done; see commit",
+        "targets": [
+          "melbcup/live.py",
+          "tests/test_lastminute.py"
+        ]
+      },
+      {
+        "done": true,
+        "done_at": "2026-11-01T08:21:03+00:00",
+        "est_min": 25,
+        "goal": "update tests, build_pages, ruff, screenshots, commit+push",
+        "id": "c5",
+        "note": "438 tests pass; screenshots 400px light/dark; pushed 0d1c6a3f",
+        "targets": [
+          "tests",
+          "docs",
+          "tools/build_pages.py"
+        ]
+      }
+    ]
+  },
+  "errors": [],
+  "rev": 10,
+  "schema": 1,
+  "time": [
+    {
+      "end": "2026-11-01T08:21:03+00:00",
+      "id": "s1",
+      "note": "",
+      "source": "auto",
+      "start": "2026-11-01T08:07:17+00:00"
+    }
+  ],
+  "todos": [],
+  "tokens": null
+}
