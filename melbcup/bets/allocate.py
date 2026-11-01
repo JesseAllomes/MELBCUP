@@ -144,3 +144,60 @@ def _spend_rounding(shared: list[Pick], want: dict, pot: float, fixed: dict, cap
         p.stake += step
         in_race[p.race] += step
         spare -= step
+
+
+BETFAIR_MIN = 5.0  # Betfair Australia's smallest back bet
+
+
+@dataclass
+class Routed:
+    """A pick with its stake and the account to place it with."""
+
+    pick: Pick
+    account: str  # "sportsbet" | "betfair"
+    price: float | None  # as that account shows it (Betfair before commission)
+
+
+def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
+    """Send each pick to the account that pays more, within Betfair's money and minimum.
+
+    A pick goes to Betfair only when Betfair's price (after commission) is the better one, its
+    stake meets Betfair's $5 minimum (each way: $5 a half), and the Betfair money is not used
+    up. The biggest price gains get the Betfair money first. Everything else goes to Sportsbet
+    at Sportsbet's price."""
+    def gain(p: Pick) -> float:
+        s = p.single
+        return (s.price or 0) / s.sportsbet if s.sportsbet else float("inf")
+
+    left = betfair_budget
+    out: dict[int, Routed] = {}
+    better_on_betfair = sorted(
+        (p for p in picks if p.single.bookmaker == "betfair"), key=gain, reverse=True
+    )
+    for p in better_on_betfair:
+        minimum = 2 * BETFAIR_MIN if p.kind == "each_way" else BETFAIR_MIN
+        if p.stake >= minimum and p.stake <= left:
+            out[id(p)] = Routed(p, "betfair", p.single.shown)
+            left -= p.stake
+    return [
+        out.get(id(p)) or Routed(p, "sportsbet", p.single.sportsbet)
+        for p in picks
+    ]
+
+
+def allocate_accounts(day, sportsbet_budget: float, betfair_budget: float) -> list[Routed]:
+    """Share both accounts' money over the day, then route each bet to an account.
+
+    The day is shared from the two amounts together. Bets that cannot go to Betfair fall back
+    to Sportsbet; if that would take Sportsbet past its amount, the day is shared again with
+    less, so neither account ever goes over."""
+    budget = sportsbet_budget + betfair_budget
+    for _ in range(20):
+        routed = route(allocate(day, budget), betfair_budget)
+        on_sb = sum(r.pick.stake for r in routed if r.account == "sportsbet")
+        on_sb += sum(_fixed(day).values())  # exotics are tote bets: Sportsbet
+        over = on_sb - sportsbet_budget
+        if over <= 0.5 or budget <= 1:
+            return routed
+        budget = max(0.0, budget - over)
+    return routed

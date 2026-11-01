@@ -1,5 +1,5 @@
 {
- "build": "9707a748a035",
+ "build": "9175840ea5cc",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",

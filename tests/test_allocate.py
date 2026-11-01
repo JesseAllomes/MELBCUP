@@ -56,3 +56,34 @@ def test_good_price_keeps_the_model_stake_and_each_way_is_even():
 def test_place_pick_is_the_likeliest_placer():
     rp = day(SHORT, n=1).races[0]
     assert race_picks(rp)["place"].number == max(rp.model.ranked(), key=lambda a: a.place).number
+
+
+def _betfair_better(d, factor=1.3):
+    """Give every runner a Betfair price well above Sportsbet's and rebuild the picks."""
+    for rp in d.races:
+        for p in rp.model.race.prices.values():
+            p.betfair_win = p.sportsbet_win * factor if p.sportsbet_win else None
+            p.betfair_place = p.sportsbet_place * factor if p.sportsbet_place else None
+    return build_picks([rp.model for rp in d.races], d.budget)
+
+
+def test_betfair_gets_only_bets_of_five_dollars_or_more_within_its_money():
+    from melbcup.bets.allocate import allocate_accounts
+
+    d = _betfair_better(day(SHORT))
+    routed = allocate_accounts(d, 150, 50)
+    bf = [r for r in routed if r.account == "betfair"]
+    assert bf, "some bets should go to Betfair"
+    assert all(r.pick.stake >= (10 if r.pick.kind == "each_way" else 5) for r in bf)
+    assert sum(r.pick.stake for r in bf) <= 50
+    sb_total = total([r.pick for r in routed if r.account == "sportsbet"], d)
+    assert sb_total <= 150
+
+
+def test_no_betfair_money_sends_everything_to_sportsbet():
+    from melbcup.bets.allocate import allocate_accounts
+
+    d = _betfair_better(day(SHORT))
+    routed = allocate_accounts(d, 200, 0)
+    assert all(r.account == "sportsbet" for r in routed)
+    assert all(r.price == r.pick.single.sportsbet for r in routed)
