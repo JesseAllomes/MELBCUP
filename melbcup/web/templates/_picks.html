@@ -17,12 +17,12 @@
         ~ (' · places ' ~ (tp.prob | pct) if same else '')
         ~ (' · place ' ~ ((tp.sportsbet or tp.price) | money) if same and (tp.sportsbet or tp.price) else '')
         ~ (' · ' ~ wv if wv else '') %}
-    {{ vrow(runner_call(rp, tw.number), 'Win & place' if same else 'Win', tw.number, tw.name, tw.sportsbet or tw.price, 'Sportsbet' if tw.sportsbet else (tw.bookmaker | book), sub,
+    {{ vrow(runner_call(rp, tw.number), 'Win & place' if same else 'Win', tw.number, tw.name, tw.shown or tw.sportsbet or tw.price, (tw.bookmaker | book) if tw.shown else ('Sportsbet' if tw.sportsbet else (tw.bookmaker | book)), sub,
             [marks.get('top_win'), marks.get('top_place') if same]) }}
     {% endif %}
     {% if tp and not same %}
     {% set pv = tp.sportsbet | verdict(tp.prob) %}
-    {{ vrow(runner_call(rp, tp.number), 'Place', tp.number, tp.name, tp.sportsbet or tp.price, 'Sportsbet' if tp.sportsbet else (tp.bookmaker | book),
+    {{ vrow(runner_call(rp, tp.number), 'Place', tp.number, tp.name, tp.shown or tp.sportsbet or tp.price, (tp.bookmaker | book) if tp.shown else ('Sportsbet' if tp.sportsbet else (tp.bookmaker | book)),
             'places ' ~ (tp.prob | pct) ~ (' · ' ~ pv if pv else ''), [marks.get('top_place')]) }}
     {% endif %}
     {% set next = rp.model.ranked() | rejectattr('number', 'in', [tw.number if tw, tp.number if tp]) | sort(attribute='place', reverse=true) | list %}

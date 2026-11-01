@@ -7,7 +7,7 @@ retired PUNTERSEDGE_API_KEY, if still set on a host, is ignored.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from zoneinfo import ZoneInfo
 
@@ -28,6 +28,9 @@ class Settings:
     venue: str
     auto_refresh: bool = True  # PRICE_MODE=manual turns the live loop off
     public: bool = False  # PUBLIC_ACCESS=1: no password prompt (owner choice, Azure app)
+    betfair_username: str | None = field(default=None, repr=False)
+    betfair_password: str | None = field(default=None, repr=False)
+    betfair_app_key: str | None = field(default=None, repr=False)
 
 
 def _clean(value: str | None) -> str | None:
@@ -53,4 +56,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         venue=_clean(env.get("VENUE")) or CUP_VENUE,
         auto_refresh=(_clean(env.get("PRICE_MODE")) or "auto").lower() != "manual",
         public=_clean(env.get("PUBLIC_ACCESS")) == "1",
+        betfair_username=_clean(env.get("BETFAIR_USERNAME")),
+        betfair_password=_clean(env.get("BETFAIR_PASSWORD")),
+        betfair_app_key=_clean(env.get("BETFAIR_APP_KEY")),
     )

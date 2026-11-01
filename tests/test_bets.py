@@ -56,15 +56,27 @@ def make_model(
 FIELD = [0.35, 0.25, 0.15, 0.1, 0.08, 0.07]
 
 
-def test_singles_use_sportsbet_prices_only():
-    """Owner bets only with Sportsbet: a better price at another bookie is not a bet."""
+def test_singles_use_only_the_owners_accounts():
+    """Owner bets with Sportsbet and Betfair only: a better price at another bookie is not a bet."""
     m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.0, 2.5, 3.0, 3.5])
     m.race.prices[1].sportsbet_win = 2.5  # tab still offers 3.5 (value); Sportsbet 2.5 is not
     win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
-    assert win.price == 2.5 and win.bookmaker == "Sportsbet" and not win.value
+    assert win.price == 2.5 and win.bookmaker == "sportsbet" and not win.value
     m.race.prices[1].sportsbet_win = None
     win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
     assert win.price is None and not win.value
+
+
+def test_betfair_counts_after_commission():
+    m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.0, 2.5, 3.0, 3.5])
+    m.race.prices[1].sportsbet_win = 2.5
+    m.race.prices[1].betfair_win = 3.8  # pays 1 + 2.8 * 0.92 = 3.576 after commission
+    win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
+    assert win.bookmaker == "betfair" and win.shown == 3.8
+    assert win.price == pytest.approx(3.576) and win.value
+    m.race.prices[1].betfair_win = 2.6  # 2.472 after commission: Sportsbet's 2.5 is better
+    win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
+    assert win.bookmaker == "sportsbet" and win.price == 2.5 and win.shown == 2.5
 
 
 def test_singles_ev_and_value_flag():

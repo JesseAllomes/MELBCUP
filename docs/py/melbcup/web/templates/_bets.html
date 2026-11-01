@@ -18,7 +18,7 @@
       ~ (' · best ' ~ (s.price | money) ~ ' ' ~ (s.bookmaker | book) if s.sportsbet and s.price != s.sportsbet else '')
       ~ (' · est.' if s.estimated and kind == 'place' else '')
       ~ ' · edge ' ~ (s.ev | edge) %}
-  {{ vrow(single_call(s), label, s.number, s.name, s.sportsbet or s.price, 'Sportsbet' if s.sportsbet else (s.bookmaker | book), sub, [marks.get(kind)]) }}
+  {{ vrow(single_call(s), label, s.number, s.name, s.shown or s.sportsbet or s.price, (s.bookmaker | book) if s.shown else ('Sportsbet' if s.sportsbet else (s.bookmaker | book)), sub, [marks.get(kind)]) }}
   {% endfor %}
   {% for kind, label, e in exotics if exotics_on %}
   {% set sub = e.combos ~ ' combos · lands ' ~ (e.prob | pct(1)) ~ (' · ' ~ e.flexi_pct ~ '% flexi' if e.outlay and e.flexi_pct else '') %}

@@ -31,7 +31,8 @@ from melbcup.bets import DayPicks, build_picks
 from melbcup.config import MELBOURNE, Settings
 from melbcup.domain import Card, Race
 from melbcup.model.probability import RaceModel, assess
-from melbcup.sources import apply_market, apply_result, load_card
+from melbcup.sources import apply_exchange, apply_market, apply_result, load_card
+from melbcup.sources.betfair import BetfairClient
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
 from melbcup.sources.racingcom import RacingComClient
@@ -68,6 +69,7 @@ class Snapshot:
     can_price: bool = False  # the meeting may have a market (see LiveBoard._prices_window)
     saved: bool = False  # a finished meeting opened from the saved copy
     field_due: date | None = None
+    betfair: str | None = None  # None: no Betfair login set; else a short status line
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -81,6 +83,7 @@ class LiveBoard:
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         archive: Archive | None = None,
         rc: RacingComClient | None = None,
+        bf: BetfairClient | None = None,
     ):
         self.settings = settings
         self.rc = rc  # racing.com: field, prices, results; the app's entry points supply it
@@ -89,6 +92,14 @@ class LiveBoard:
         )
         self.clock = clock
         self.archive = archive
+        self.bf = bf if bf is not None else (
+            BetfairClient(
+                settings.betfair_username, settings.betfair_password, settings.betfair_app_key
+            )
+            if settings.betfair_username and settings.betfair_password
+            else None
+        )
+        self._bf_status: str | None = "waiting for the first price check" if self.bf else None
         self.auto = settings.auto_refresh
         self.race_date = settings.race_date
         self.venue = settings.venue
@@ -130,6 +141,7 @@ class LiveBoard:
                 can_price=self._prices_window(self.clock()),
                 saved=self._archived(self.clock()),
                 field_due=self.field_due(self.clock()),
+                betfair=self._bf_status,
             )
 
     # -- actions ------------------------------------------------------------------------------
@@ -213,13 +225,35 @@ class LiveBoard:
     def _load_prices(self, now: datetime) -> None:
         to_run = [r.number for r in self._card.races if r.result is None]
         snaps = self.rc.card_prices(self.race_date, self.venue, to_run)
+        exchange, status = self._betfair_prices(now)
         with self._lock:
             for race in self._card.races:
                 if race.number in snaps:
                     apply_market(race, snaps[race.number])
+                if race.number in to_run:
+                    apply_exchange(race, exchange.get(race.number))
+                if race.number in snaps or race.number in exchange:
                     self._models[race.number] = assess(race)
+            if status is not None:
+                self._bf_status = status
             self._priced_at = now
             self._updated_at = now
+
+    def _betfair_prices(self, now: datetime) -> tuple[dict, str | None]:
+        """Betfair's prices for the meeting and a status line. A Betfair failure never stops
+        the Sportsbet prices: it is reported on the page and tried again next check."""
+        if self.bf is None:
+            return {}, None
+        try:
+            found = self.bf.meeting(self.race_date, self.venue)
+        except SourceError as exc:
+            log.warning("Betfair: %s", exc)
+            return {}, f"not available: {exc}"
+        except Exception:  # noqa: BLE001 - an unexpected answer must not stop the price check
+            log.exception("Betfair prices failed")
+            return {}, "not available: unexpected answer from Betfair"
+        when = now.astimezone(MELBOURNE).strftime("%-I:%M%p").lower()
+        return found, f"prices {when}" if found else f"no {self.venue} markets yet ({when})"
 
     def load_card_now(self, *, wait: bool = False) -> bool:
         """Load the field and form (and then prices) in the background. False if already busy."""

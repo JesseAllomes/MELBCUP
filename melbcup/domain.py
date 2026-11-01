@@ -144,6 +144,14 @@ class Quote:
     bookmaker: str
 
 
+BETFAIR_COMMISSION = 0.08  # the higher of the two rates tested in research/VENUES.md
+
+
+def betfair_net(price: float | None, commission: float = BETFAIR_COMMISSION) -> float | None:
+    """What a Betfair back price pays per $1 once commission comes off the winnings."""
+    return None if price is None else 1.0 + (price - 1.0) * (1.0 - commission)
+
+
 @dataclass
 class RunnerPrices:
     number: int
@@ -151,6 +159,8 @@ class RunnerPrices:
     best_place: Quote | None = None
     sportsbet_win: float | None = None
     sportsbet_place: float | None = None
+    betfair_win: float | None = None  # best back price on the exchange, before commission
+    betfair_place: float | None = None
     consensus_prob: float | None = None
     books: int = 0
 

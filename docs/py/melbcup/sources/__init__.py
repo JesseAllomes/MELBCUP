@@ -204,6 +204,14 @@ def apply_market(race: Race, snap: MarketSnapshot) -> None:
         update_going(race, snap.condition)
 
 
+def apply_exchange(race: Race, prices) -> None:
+    """Put Betfair's back prices (a ``betfair.RacePrices`` or None) on the race's runners.
+    None clears old ones, so a stale exchange price is never judged as current."""
+    for number, rp in race.prices.items():
+        rp.betfair_win = prices.win.get(number) if prices else None
+        rp.betfair_place = prices.place.get(number) if prices else None
+
+
 def update_going(race: Race, condition: str) -> None:
     """The track condition on the day, from each price check. Rain that turns a Good track Soft
     swaps every runner's going record for its record on the new going, so its chance (and the

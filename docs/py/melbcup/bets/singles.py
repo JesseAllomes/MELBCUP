@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from melbcup.domain import Quote
+from melbcup.domain import betfair_net as net
 from melbcup.model.probability import RaceModel, top_k_probs
 
 VALUE_EDGE = 0.05  # demand a 5% edge before calling a price "value": the model is not perfect
@@ -70,16 +72,25 @@ class Single:
     stake: int | None = None
     win_price: float | None = None
     estimated: bool = False  # the place price is estimated from the starting price
+    shown: float | None = None  # the price the owner sees at ``bookmaker`` (Betfair: before commission)
 
 
 def _ev(prob: float, price: float | None) -> float | None:
     return None if price is None else prob * price - 1.0
 
 
-def _bookie(quote, price: float | None) -> str | None:
-    if quote is not None:
-        return quote.bookmaker
-    return "Sportsbet" if price is not None else None
+def _shown(quote: Quote | None, sportsbet: float | None, betfair: float | None) -> float | None:
+    if quote is None:
+        return None
+    return betfair if quote.bookmaker == "betfair" else sportsbet
+
+
+def _owner_quote(sportsbet: float | None, betfair: float | None) -> Quote | None:
+    """The better of the owner's two accounts. A Betfair price counts after commission."""
+    bf = net(betfair)
+    if bf is not None and (sportsbet is None or bf > sportsbet):
+        return Quote(bf, "betfair")
+    return Quote(sportsbet, "sportsbet") if sportsbet is not None else None
 
 
 def singles(model: RaceModel) -> list[Single]:
@@ -104,10 +115,18 @@ def singles(model: RaceModel) -> list[Single]:
         sb_win = prices.sportsbet_win if prices else None
         sb_place = prices.sportsbet_place if prices else None
         if not race.priced_from_sp:
-            # The owner bets only with Sportsbet (2026-11-01): judge, rank and stake every
-            # win, place and each-way line at Sportsbet's own prices, never another bookie's.
-            win_price, place_price, estimated = sb_win, sb_place, False
-            win_q = place_q = None
+            # The owner bets only where they hold accounts, Sportsbet and Betfair (2026-11-01):
+            # judge, rank and stake every win, place and each-way line at the better of
+            # Sportsbet's price and Betfair's price after commission, never another bookie's.
+            win_q = _owner_quote(sb_win, prices.betfair_win if prices else None)
+            place_q = _owner_quote(sb_place, prices.betfair_place if prices else None)
+            win_price = win_q.price if win_q else None
+            place_price = place_q.price if place_q else None
+            estimated = False
+            shown_win = _shown(win_q, sb_win, prices.betfair_win if prices else None)
+            shown_place = _shown(place_q, sb_place, prices.betfair_place if prices else None)
+        else:
+            shown_win = shown_place = None
 
         ev_win = _ev(a.win, win_price)
         ev_place = _ev(a.place, place_price)
@@ -120,7 +139,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.win,
                 win_price,
                 place_price,
-                _bookie(win_q, win_price),
+                win_q.bookmaker if win_q else None,
                 sb_win,
                 ev_win,
                 1 / a.win,
@@ -128,6 +147,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.reasons_for,
                 win_price=win_price,
                 estimated=estimated,
+                shown=shown_win,
             )
         )
         out.append(
@@ -139,7 +159,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.place,
                 place_price,
                 place_price,
-                _bookie(place_q, place_price),
+                place_q.bookmaker if place_q else None,
                 sb_place,
                 ev_place,
                 1 / a.place if a.place else float("inf"),
@@ -147,6 +167,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.reasons_for,
                 win_price=win_price,
                 estimated=estimated,
+                shown=shown_place,
             )
         )
         # Each-way at fixed odds: half the stake on each part, each at the best price for it.
@@ -160,7 +181,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.place,
                 win_price,
                 place_price,
-                _bookie(win_q, win_price),
+                win_q.bookmaker if win_q else None,
                 sb_win,
                 ev_ew,
                 1 / a.win,
@@ -168,6 +189,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.reasons_for,
                 win_price=win_price,
                 estimated=estimated,
+                shown=shown_win,
             )
         )
     return out

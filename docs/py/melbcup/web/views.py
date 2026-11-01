@@ -23,6 +23,7 @@ from melbcup.live import LiveBoard
 HERE = Path(__file__).parent
 BOOKMAKERS = {
     "sportsbet": "Sportsbet",
+    "betfair": "Betfair",
     "tab": "TAB",
     "ladbrokes_au": "Ladbrokes",
     "neds": "Neds",
