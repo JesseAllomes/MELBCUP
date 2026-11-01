@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=70 -->
+<!-- drainclamp-build: state; schema=1; generation=71 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T05:07:32+00:00 1cd38880 az1: inventory in .agent/azure-inventory.md; source not in any repo, sites empty, no job logs; blocked on owner (source access)
 - 2026-10-31T05:23:13+00:00 bf07a233 owner: grant any permissions needed; owner away - proceed autonomously; Render stays through Cup day
 - 2026-10-31T05:27:51+00:00 4214fe2d az1: function review done (.agent/reviews/azure-func-review.md); collector stays off through Cup week
 - 2026-10-31T07:19:13+00:00 c3b3a920 owner: launch all, cost audit first, auto-deploy main->Azure behind cost guard. Applied: budget AUD20 alerts 25/50/100%+forecast (both emails), func 512MB x1, storage lifecycle+1d soft delete, Foundry keys off, Log Analytics 0.1GB/day on jobs env, OIDC deploy app 7ab2c182 (Contributor on RG, main only)
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T05:21:26+00:00 ad427a89 owner bets only on Sportsbet: win/place/each-way now judged, ranked and staked at Sportsbet prices (was best price across bookies); no Sportsbet price = no bet. Race card prototype v4 ranks bets + best way per horse. Session branch only; main push awaits approval
 - 2026-11-01T05:59:07+00:00 bd4afe2f owner HAS a Betfair account (supersedes 'no Betfair account'); Key Vault: betfair-username, betfair-password (no app key). Built read-only Betfair prices: app logs in, fetches/creates the free delayed key, reads win+place back prices each price check; singles judged at better of Sportsbet and Betfair after 8% commission; page shows Betfair status. Unverified live: login from here is geo-blocked (403). Session branch only; main push awaits approval
 - 2026-11-01T06:05:49+00:00 ecc03ecc bf2 backend built (practice mode): melbcup/autobet.py (PIN from Key Vault melbcup-bet-pin, 5 misses = 15 min lock; auto off after restart; own daily limit = max(app record, Betfair record); last 60 s before jump; Betfair-only recheck; $5 Betfair minimum, smaller skipped; each way = two bets), Betfair placeOrders/staked_today, /api/betting endpoints; 8 tests. Auto panel added to prototype (UI awaits BUILD). Owner chose exotics too: impossible on Betfair (tote), listed for manual Sportsbet. Blockers: owner adds melbcup-bet-pin to Key Vault before main push; live key application; app scales to zero so auto runs only while awake
+- 2026-11-01T06:07:17+00:00 cd23a376 owner: auto is per race. Switched on per race with that race's own limit (PIN), runs once in the last minute, then done; Betfair tag melbcup-auto<race> so each race's spend counts Betfair's record; no day-wide auto. Tests updated, suite passes
 <!-- /DC:LOG -->

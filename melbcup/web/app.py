@@ -129,12 +129,14 @@ def create_app(
 
     @app.post("/api/betting/auto")
     async def betting_auto(request: Request):
-        """Turn auto on or off and set its daily limit. Needs the PIN."""
+        """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
         data = await _body(request)
-        on = data.get("on")
-        on = None if on in (None, "") else str(on).lower() in ("1", "true", "on", "yes")
+        race = _number(data, "race", int)
+        if race is None:
+            raise HTTPException(400, "race is required")
+        on = str(data.get("on", "")).lower() in ("1", "true", "on", "yes")
         limit = _number(data, "limit")
-        return _betting_answer(lambda: betting.set_auto(data.get("pin"), on, limit))
+        return _betting_answer(lambda: betting.set_auto(data.get("pin"), race, on, limit))
 
     @app.post("/api/betting/bet")
     async def betting_bet(request: Request):

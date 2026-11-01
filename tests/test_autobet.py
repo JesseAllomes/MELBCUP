@@ -1,4 +1,4 @@
-"""Betting: PIN, practice mode, auto's last-minute window, its own daily limit."""
+"""Betting: PIN, practice mode, auto per race in the last minute, each race with its own limit."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -57,7 +57,7 @@ class FakeBoard:
                         race_date=self.card.race_date, venue="Flemington")
 
 
-def betting(bf=None, live=False, limit="500", pin="2468", now=NOW):
+def betting(bf=None, live=False, limit="50", pin="2468", now=NOW):
     env = {"AUTO_LIMIT": limit, "BET_PIN": pin} if pin else {"AUTO_LIMIT": limit}
     if live:
         env["BET_MODE"] = "live"
@@ -69,46 +69,55 @@ def test_pin_is_required_and_locks_after_five_misses():
     b, _ = betting()
     for _ in range(5):
         with pytest.raises(PinError):
-            b.set_auto("0000", on=True)
+            b.set_auto("0000", 7, True, 50)
     with pytest.raises(PinError, match="locked"):
-        b.set_auto("2468", on=True)
+        b.set_auto("2468", 7, True, 50)
     nopin, _ = betting(pin=None)
     with pytest.raises(PinError, match="no PIN"):
-        nopin.set_auto("2468", on=True)
+        nopin.set_auto("2468", 7, True, 50)
 
 
-def test_auto_is_off_until_turned_on():
+def test_auto_is_off_until_turned_on_for_the_race():
     b, board = betting()
     assert b.tick() == [] and board.bf.orders == []
+    with pytest.raises(BetError, match="limit"):
+        b.set_auto("2468", 7, True)  # a limit is required per race
+    with pytest.raises(BetError, match="not open"):
+        b.set_auto("2468", 8, True, 50)
+    b.set_auto("2468", 7, True, 50)
+    b.set_auto("2468", 7, False)
+    assert b.tick() == []
 
 
 def test_auto_practice_bets_betfair_value_in_the_last_minute_once():
     b, board = betting()
-    b.set_auto("2468", on=True)
+    b.set_auto("2468", 7, True, 500)
     placed = b.tick()
     assert placed and all(p.status == "practice" and p.mode == "practice" for p in placed)
     assert {p.number for p in placed} == {1}
     assert board.bf.orders == []  # practice places nothing
     assert b.tick() == []  # once per race
-    assert b.status()["spent_today"] == sum(p.stake for p in placed)
+    assert b.status()["auto_races"][0]["spent"] == sum(p.stake for p in placed)
+    with pytest.raises(BetError, match="already run"):
+        b.set_auto("2468", 7, True, 50)
 
 
 def test_sportsbet_only_value_is_not_auto_bet():
     b, board = betting(FakeBf(exchange(win1=2.6, place1=1.2)))  # Betfair short: no value
-    b.set_auto("2468", on=True)
+    b.set_auto("2468", 7, True, 50)
     assert [p for p in b.tick() if p.status == "practice"] == []
 
 
 def test_outside_the_window_nothing_happens():
     b, _ = betting(now=JUMP - timedelta(minutes=5))
-    b.set_auto("2468", on=True)
+    b.set_auto("2468", 7, True, 50)
     assert b.tick() == []
 
 
 def test_auto_limit_caps_and_counts_betfair_record_when_live():
     bf = FakeBf(staked=498.0)
     b, _ = betting(bf, live=True)
-    b.set_auto("2468", on=True)
+    b.set_auto("2468", 7, True, 500)
     placed = b.tick()
     assert bf.orders == []
     assert placed and all(p.status == "skipped" and "limit" in p.note for p in placed)
@@ -117,9 +126,9 @@ def test_auto_limit_caps_and_counts_betfair_record_when_live():
 def test_live_auto_places_on_betfair_within_limit():
     bf = FakeBf()
     b, _ = betting(bf, live=True)
-    b.set_auto("2468", on=True)
+    b.set_auto("2468", 7, True, 500)
     placed = b.tick()
-    assert bf.orders and all(o[4] == "melbcup-auto" for o in bf.orders)
+    assert bf.orders and all(o[4] == "melbcup-auto7" for o in bf.orders)
     assert sum(o[3] for o in bf.orders) <= 500
     assert all(p.status == "matched" for p in placed if p.status != "skipped")
 

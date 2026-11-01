@@ -6,12 +6,13 @@ Safety, in the order it is checked:
 - Practice mode is the default: it records what it would bet and places nothing. Only
   BET_MODE=live places real bets, and Betfair refuses those until the account's live app key
   is in use.
-- Auto is off after every restart and has its own daily limit. What auto has spent today is
-  the larger of this app's record and Betfair's own record for auto's bets, so a restart
-  cannot reset it.
+- Auto runs only on races the owner switches it on for, each with its own limit (owner,
+  2026-11-01). Every race starts off, and every switch is cleared by a restart. What auto has
+  spent on a race is the larger of this app's record and Betfair's own record for that race's
+  auto bets, so a restart cannot reset it.
 - Auto only bets win, place and each-way lines that are a BET at Betfair's latest price after
-  commission (Sportsbet's prices are taken out before the recheck), sized as if the day's
-  budget were the auto limit. Exotics pay tote dividends, which Betfair does not offer, so
+  commission (Sportsbet's prices are taken out before the recheck), sized as if the race's
+  limit were the day's budget. Exotics pay tote dividends, which Betfair does not offer, so
   auto never places them.
 """
 
@@ -37,7 +38,13 @@ MIN_STAKE = 5.0  # Betfair Australia's smallest back bet; smaller stakes are ski
 MAX_HAND_STAKE = 500.0  # one bet by hand, a typo guard
 MAX_PIN_FAILS = 5
 PIN_LOCKOUT = timedelta(minutes=15)
-STRATEGY = {"auto": "melbcup-auto", "hand": "melbcup-hand"}
+HAND = "melbcup-hand"
+MAX_RACE_LIMIT = 10_000.0
+
+
+def auto_strategy(race: int) -> str:
+    """Betfair's tag for one race's auto bets (15 characters at most)."""
+    return f"melbcup-auto{race}"
 
 
 class PinError(PermissionError):
@@ -70,8 +77,8 @@ class Betting:
     def __init__(self, settings: Settings, board, clock=None):
         self._pin = settings.bet_pin
         self.live = settings.bet_live
-        self.limit = settings.auto_limit
-        self.on = False
+        self.default_limit = settings.auto_limit  # suggested in the form, never applied alone
+        self.armed: dict[tuple[date, int], float] = {}  # (day, race) -> that race's limit
         self.board = board
         self.clock = clock or board.clock
         self.ledger: list[Placed] = []
@@ -98,50 +105,63 @@ class Betting:
             self._fails.clear()
 
     # -- settings and status ------------------------------------------------------------------
-    def set_auto(self, pin: str | None, on: bool | None = None, limit: float | None = None) -> dict:
+    def set_auto(
+        self, pin: str | None, race: int, on: bool, limit: float | None = None
+    ) -> dict:
+        """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
         self.check_pin(pin)
-        if limit is not None:
-            if not 0 <= limit <= 10_000:
-                raise BetError("The auto limit must be between $0 and $10,000.")
-            self.limit = float(limit)
-        if on is not None:
-            if on and self.board.bf is None:
-                raise BetError("Auto needs the Betfair login in Key Vault.")
-            self.on = on
+        day = self._day(self.clock())
+        key = (day, race)
+        if not on:
+            self.armed.pop(key, None)
+            return self.status()
+        if self.board.bf is None:
+            raise BetError("Auto needs the Betfair login in Key Vault.")
+        if limit is None or not 0 < limit <= MAX_RACE_LIMIT:
+            raise BetError(f"Enter this race's auto limit, up to ${MAX_RACE_LIMIT:,.0f}.")
+        snap = self.board.snapshot()
+        found = next((r for r in snap.card.races if r.number == race), None) if snap.card else None
+        if found is None or found.result is not None:
+            raise BetError(f"Race {race} is not open.")
+        if key in self._done:
+            raise BetError(f"Auto has already run on race {race}.")
+        self.armed[key] = float(limit)
         return self.status()
 
     def _day(self, now: datetime) -> date:
         return now.astimezone(MELBOURNE).date()
 
-    def spent(self, source: str = "auto") -> float:
-        """Dollars ``source`` has put on today: this app's record, or Betfair's if higher."""
-        now = self.clock()
-        day = self._day(now)
-        mine = sum(
+    def _mine(self, day: date, source: str, race: int | None = None) -> float:
+        return sum(
             p.stake for p in self.ledger
-            if p.source == source and p.counts() and self._day(p.at) == day and p.mode == self.mode
+            if p.source == source and p.counts() and self._day(p.at) == day
+            and p.mode == self.mode and (race is None or p.race == race)
         )
+
+    def spent_on_race(self, race: int) -> float:
+        """Dollars auto has put on ``race`` today: this app's record, or Betfair's if higher."""
+        day = self._day(self.clock())
+        mine = self._mine(day, "auto", race)
         if self.live and self.board.bf is not None:
             try:
-                return max(mine, self.board.bf.staked_today(day, STRATEGY[source]))
+                return max(mine, self.board.bf.staked_today(day, auto_strategy(race)))
             except SourceError as exc:
                 log.warning("Betfair staked_today: %s", exc)
-                raise BetError("Could not check today's spend on Betfair, so no bet.") from exc
+                raise BetError("Could not check this race's spend on Betfair, so no bet.") from exc
         return mine
 
     def status(self) -> dict:
-        spent = sum(
-            p.stake for p in self.ledger
-            if p.source == "auto" and p.counts() and self._day(p.at) == self._day(self.clock())
-        )
+        day = self._day(self.clock())
         return {
-            "auto": self.on,
             "mode": self.mode,
-            "limit": self.limit,
-            "spent_today": spent,
-            "left_today": max(0.0, self.limit - spent),
             "pin_set": self._pin is not None,
             "betfair": self.board.bf is not None,
+            "default_limit": self.default_limit,
+            "auto_races": [
+                {"race": race, "limit": limit, "spent": self._mine(day, "auto", race),
+                 "done": (d, race) in self._done}
+                for (d, race), limit in sorted(self.armed.items()) if d == day
+            ],
             "bets": [
                 {**asdict(p), "at": p.at.astimezone(MELBOURNE).strftime("%-I:%M:%S%p").lower()}
                 for p in self.ledger[-50:]
@@ -195,7 +215,8 @@ class Betting:
                           "practice", "practice: nothing placed")
         ref = f"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}"
         try:
-            order = self.board.bf.place(market, sel, price, stake, ref, STRATEGY[source])
+            tag = auto_strategy(race.number) if source == "auto" else HAND
+            order = self.board.bf.place(market, sel, price, stake, ref, tag)
         except SourceError as exc:
             return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
                           exc.kind, str(exc))
@@ -232,8 +253,8 @@ class Betting:
 
     # -- auto ---------------------------------------------------------------------------------
     def tick(self) -> list[Placed]:
-        """Bet every race whose jump is within the next minute, once per race."""
-        if not self.on or self.board.bf is None:
+        """Bet each race auto is on for, once, in the last minute before its jump."""
+        if not self.armed or self.board.bf is None:
             return []
         now = self.clock()
         snap = self.board.snapshot()
@@ -244,7 +265,7 @@ class Betting:
             r for r in snap.card.races
             if r.result is None and r.start_time is not None
             and timedelta(0) < r.start_time - now <= WINDOW
-            and (day, r.number) not in self._done
+            and (day, r.number) in self.armed and (day, r.number) not in self._done
         ]
         if not due:
             return []
@@ -260,21 +281,22 @@ class Betting:
             exchange = fresh.get(race.number)
             if exchange is None or race.number not in models:
                 continue
-            for s in self.betfair_lines(models[race.number], exchange, self.limit):
+            limit = self.armed[(day, race.number)]
+            for s in self.betfair_lines(models[race.number], exchange, limit):
                 parts = (
                     [("win", s.stake / 2), ("place", s.stake / 2)]
                     if s.kind == "each_way" else [(s.kind, float(s.stake))]
                 )
                 for kind, stake in parts:
                     try:
-                        left = self.limit - self.spent("auto")
+                        left = limit - self.spent_on_race(race.number)
                     except BetError as exc:
                         out.append(Placed(now, race.number, s.number, s.name, kind, 0.0, stake,
                                           self.mode, "auto", "skipped", str(exc)))
                         continue
                     if left < MIN_STAKE:
                         out.append(Placed(now, race.number, s.number, s.name, kind, 0.0, stake,
-                                          self.mode, "auto", "skipped", "auto limit reached"))
+                                          self.mode, "auto", "skipped", "race limit reached"))
                         continue
                     placed = self._order(race, exchange, s.number, kind, min(stake, left), "auto", now)
                     self.ledger.append(placed)
