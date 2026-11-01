@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=76 -->
+<!-- drainclamp-build: state; schema=1; generation=77 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T08:56:32+00:00 c77cd273 az3: melbcup-web live on Container Apps (https://melbcup-web.mangoflower-343da0ef.australiaeast.azurecontainerapps.io, 0-1 replicas, password gate); keys copied Render->Key Vault unprinted; Render kept as backup through Cup day; Lotto site live on SWA ambitious-plant-0e97ae900.6.azurestaticapps.net
 - 2026-10-31T10:31:04+00:00 0abbb6d8 custom domain asynym.dev (Cloudflare, DNS only): cup.asynym.dev -> melbcup-web (managed cert), comps.asynym.dev -> swa-lotto; customDomains kept in azure/webapp/melbcup-web.json so deploys keep the binding
 - 2026-10-31T13:43:17+00:00 820e26c6 web: PuntersEdge removed, racing.com prices (Sportsbet/Ladbrokes/PointsBet/bet365), history unencrypted, no notes, no login (PUBLIC_ACCESS=1); UI redesign (BET/HOLD/SKIP, race strip, budget top, phone table, 44px) in progress by Sonnet worker -> commit to session branch, then main after review; FormFav valid till 29 Nov; review .agent/reviews/ui-review-product-ui.md
 - 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T06:39:46+00:00 c3e17e4e Betfair live OK after fix (Betfair prices on site). Owner: day budget shared across the whole day by chance each bet pays, value BETs keep model stake, exotics keep outlay, max 20% of budget per race; every race gets win/place/each-way picks with $. Built melbcup/bets/allocate.py + 5 tests (not wired to pages: UI awaits BUILD). Live Cup-day run: $200 used, Cup $18. Prototype v10: SB navy / BF amber price pills (owner asked for pills), Good/Short price pills, stakes
 - 2026-11-01T06:41:01+00:00 94aa7deb owner: practice auto/PIN pointless without live key; wants to see if last-minute rechecks would change/improve own bets. Plan: drop Auto card/PIN from UI (autobet backend stays dormant); Last-minute check card: save picks+stakes at T-30, again at last check before jump, show changes, after result show returns of both; running total on History. Prototype v11 has the card (3 example states). Build after BUILD
 - 2026-11-01T06:42:13+00:00 ae50d0ec owner: separate day amounts for Sportsbet and Betfair (Betfair holds $50). allocate_accounts: share both together, route to the better-paying account; Betfair only if stake >= $5 (EW >= $10) and Betfair money left, biggest price gain first; exotics Sportsbet; reshare so neither account goes over. 2 tests. Prototype v12 has the two amounts
+- 2026-11-01T06:45:33+00:00 0658b905 owner: two sticky bars at the very top (Sportsbet, Betfair: limit, left); each bet has 'Placed on Sportsbet/Betfair' tick that confirms and takes the stake off that account; exotics Sportsbet only. Plan for build: ticks kept in a cookie on the owner's phone (no login), placed stakes lock, remaining money reshared over unplaced bets. Last-minute check moved to bottom. Prototype v14
 <!-- /DC:LOG -->
