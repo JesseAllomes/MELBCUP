@@ -1,0 +1,1956 @@
+{
+ "T2": {
+  "dev": {
+   "races": 19986,
+   "days": 1083,
+   "win": {
+    "bets": 19986,
+    "strike": 0.175,
+    "roi": -16.8,
+    "lo": -19.6,
+    "hi": -13.8,
+    "med_price": 5.5
+   },
+   "win_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.175,
+    "roi": -13.5,
+    "lo": -15.7,
+    "hi": -11.2,
+    "med_price": 5.5
+   },
+   "win_fields14plus": {
+    "bets": 1736,
+    "strike": 0.126,
+    "roi": -16.7,
+    "lo": -29.8,
+    "hi": -2.6,
+    "med_price": 8.5
+   },
+   "place": {
+    "bets": 19986,
+    "strike": 0.649,
+    "roi": -10.2,
+    "lo": -11.2,
+    "hi": -9.2,
+    "med_price": 2.8
+   },
+   "place_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.649,
+    "roi": -9.6,
+    "lo": -10.4,
+    "hi": -8.6,
+    "med_price": 2.8
+   },
+   "place_fields14plus": {
+    "bets": 1736,
+    "strike": 0.551,
+    "roi": -13.1,
+    "lo": -17.3,
+    "hi": -9.1,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 19917,
+    "strike": 0.313,
+    "roi": -25.8,
+    "lo": -27.9,
+    "hi": -23.5,
+    "med_price": 8.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 19917,
+    "strike": 0.313,
+    "roi": -24.6,
+    "lo": -26.5,
+    "hi": -22.5,
+    "med_price": 8.0
+   },
+   "each_way_fields14plus": {
+    "bets": 1734,
+    "strike": 0.273,
+    "roi": -27.5,
+    "lo": -34.4,
+    "hi": -19.7,
+    "med_price": 9.0
+   },
+   "value": {
+    "bets": 21,
+    "strike": 0.095,
+    "roi": -61.4,
+    "lo": -100.0,
+    "hi": -12.6,
+    "med_price": 9.5
+   },
+   "value_chance_weighted": {
+    "bets": 21,
+    "strike": 0.095,
+    "roi": -36.9,
+    "lo": -100.0,
+    "hi": 19.4,
+    "med_price": 9.5
+   },
+   "value_fields14plus": {
+    "bets": 2,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 14.0
+   },
+   "favourite_win": {
+    "bets": 19986,
+    "strike": 0.343,
+    "roi": -11.9,
+    "lo": -13.7,
+    "hi": -10.1,
+    "med_price": 2.8
+   },
+   "all_runners_win": {
+    "bets": 201458,
+    "strike": 0.099,
+    "roi": -30.0,
+    "lo": -31.1,
+    "hi": -28.7,
+    "med_price": 12.0
+   }
+  },
+  "tune2": {
+   "races": 2438,
+   "days": 120,
+   "win": {
+    "bets": 2438,
+    "strike": 0.143,
+    "roi": -20.6,
+    "lo": -28.6,
+    "hi": -12.6,
+    "med_price": 7.0
+   },
+   "win_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.143,
+    "roi": -17.4,
+    "lo": -23.9,
+    "hi": -10.9,
+    "med_price": 7.0
+   },
+   "win_fields14plus": {
+    "bets": 167,
+    "strike": 0.096,
+    "roi": -23.8,
+    "lo": -60.8,
+    "hi": 22.1,
+    "med_price": 9.0
+   },
+   "place": {
+    "bets": 2438,
+    "strike": 0.66,
+    "roi": -10.5,
+    "lo": -12.9,
+    "hi": -8.2,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.66,
+    "roi": -10.4,
+    "lo": -12.7,
+    "hi": -8.1,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 167,
+    "strike": 0.545,
+    "roi": -16.6,
+    "lo": -26.5,
+    "hi": -6.5,
+    "med_price": 3.2
+   },
+   "each_way": {
+    "bets": 2429,
+    "strike": 0.326,
+    "roi": -26.9,
+    "lo": -33.3,
+    "hi": -20.0,
+    "med_price": 8.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 2429,
+    "strike": 0.326,
+    "roi": -25.8,
+    "lo": -31.9,
+    "hi": -19.4,
+    "med_price": 8.0
+   },
+   "each_way_fields14plus": {
+    "bets": 166,
+    "strike": 0.301,
+    "roi": -9.1,
+    "lo": -36.7,
+    "hi": 24.4,
+    "med_price": 8.0
+   },
+   "value": {
+    "bets": 1,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 18.0
+   },
+   "value_chance_weighted": {
+    "bets": 1,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 18.0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 2438,
+    "strike": 0.355,
+    "roi": -12.1,
+    "lo": -17.2,
+    "hi": -7.1,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 23793,
+    "strike": 0.102,
+    "roi": -30.2,
+    "lo": -33.8,
+    "hi": -26.8,
+    "med_price": 12.0
+   }
+  },
+  "final": {
+   "races": 5026,
+   "days": 151,
+   "win": {
+    "bets": 5026,
+    "strike": 0.137,
+    "roi": -21.9,
+    "lo": -28.6,
+    "hi": -15.3,
+    "med_price": 7.5
+   },
+   "win_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.137,
+    "roi": -18.2,
+    "lo": -23.3,
+    "hi": -13.5,
+    "med_price": 7.5
+   },
+   "win_fields14plus": {
+    "bets": 380,
+    "strike": 0.103,
+    "roi": -38.2,
+    "lo": -58.9,
+    "hi": -16.8,
+    "med_price": 9.0
+   },
+   "place": {
+    "bets": 5026,
+    "strike": 0.645,
+    "roi": -11.0,
+    "lo": -12.9,
+    "hi": -9.0,
+    "med_price": 2.8
+   },
+   "place_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.645,
+    "roi": -10.6,
+    "lo": -12.3,
+    "hi": -8.7,
+    "med_price": 2.8
+   },
+   "place_fields14plus": {
+    "bets": 380,
+    "strike": 0.558,
+    "roi": -12.3,
+    "lo": -22.0,
+    "hi": -2.1,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 5001,
+    "strike": 0.308,
+    "roi": -24.5,
+    "lo": -28.7,
+    "hi": -19.9,
+    "med_price": 8.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 5001,
+    "strike": 0.308,
+    "roi": -23.9,
+    "lo": -27.9,
+    "hi": -19.8,
+    "med_price": 8.0
+   },
+   "each_way_fields14plus": {
+    "bets": 380,
+    "strike": 0.276,
+    "roi": -20.8,
+    "lo": -38.3,
+    "hi": -1.5,
+    "med_price": 8.5
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 5026,
+    "strike": 0.332,
+    "roi": -15.1,
+    "lo": -18.3,
+    "hi": -11.7,
+    "med_price": 2.8
+   },
+   "all_runners_win": {
+    "bets": 50683,
+    "strike": 0.099,
+    "roi": -29.0,
+    "lo": -31.3,
+    "hi": -26.3,
+    "med_price": 12.0
+   }
+  },
+  "fwd": {
+   "races": 1271,
+   "days": 31,
+   "win": {
+    "bets": 1271,
+    "strike": 0.142,
+    "roi": -20.6,
+    "lo": -32.7,
+    "hi": -7.1,
+    "med_price": 7.0
+   },
+   "win_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.142,
+    "roi": -16.6,
+    "lo": -26.7,
+    "hi": -4.7,
+    "med_price": 7.0
+   },
+   "win_fields14plus": {
+    "bets": 62,
+    "strike": 0.129,
+    "roi": -20.3,
+    "lo": -72.0,
+    "hi": 48.2,
+    "med_price": 8.5
+   },
+   "place": {
+    "bets": 1271,
+    "strike": 0.668,
+    "roi": -9.0,
+    "lo": -13.8,
+    "hi": -5.0,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.668,
+    "roi": -9.0,
+    "lo": -13.3,
+    "hi": -5.4,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 62,
+    "strike": 0.613,
+    "roi": -6.2,
+    "lo": -29.9,
+    "hi": 14.5,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 1266,
+    "strike": 0.299,
+    "roi": -31.9,
+    "lo": -40.0,
+    "hi": -25.0,
+    "med_price": 8.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 1266,
+    "strike": 0.299,
+    "roi": -30.6,
+    "lo": -39.6,
+    "hi": -22.7,
+    "med_price": 8.0
+   },
+   "each_way_fields14plus": {
+    "bets": 62,
+    "strike": 0.29,
+    "roi": -47.5,
+    "lo": -70.0,
+    "hi": -25.2,
+    "med_price": 8.5
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 1271,
+    "strike": 0.343,
+    "roi": -13.6,
+    "lo": -20.5,
+    "hi": -7.3,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 12187,
+    "strike": 0.104,
+    "roi": -29.9,
+    "lo": -34.7,
+    "hi": -24.6,
+    "med_price": 11.0
+   }
+  }
+ },
+ "T2_alpha114": {
+  "dev": {
+   "races": 19986,
+   "days": 1083,
+   "win": {
+    "bets": 19986,
+    "strike": 0.335,
+    "roi": -13.2,
+    "lo": -15.0,
+    "hi": -11.2,
+    "med_price": 2.8
+   },
+   "win_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.335,
+    "roi": -12.3,
+    "lo": -13.9,
+    "hi": -10.7,
+    "med_price": 2.8
+   },
+   "win_fields14plus": {
+    "bets": 1736,
+    "strike": 0.259,
+    "roi": -17.5,
+    "lo": -24.3,
+    "hi": -11.2,
+    "med_price": 3.5
+   },
+   "place": {
+    "bets": 19986,
+    "strike": 0.649,
+    "roi": -10.2,
+    "lo": -11.2,
+    "hi": -9.1,
+    "med_price": 2.8
+   },
+   "place_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.649,
+    "roi": -9.6,
+    "lo": -10.5,
+    "hi": -8.6,
+    "med_price": 2.8
+   },
+   "place_fields14plus": {
+    "bets": 1736,
+    "strike": 0.55,
+    "roi": -13.4,
+    "lo": -17.6,
+    "hi": -9.4,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 19808,
+    "strike": 0.372,
+    "roi": -23.1,
+    "lo": -25.2,
+    "hi": -21.3,
+    "med_price": 6.5
+   },
+   "each_way_chance_weighted": {
+    "bets": 19808,
+    "strike": 0.372,
+    "roi": -22.0,
+    "lo": -23.9,
+    "hi": -20.0,
+    "med_price": 6.5
+   },
+   "each_way_fields14plus": {
+    "bets": 1731,
+    "strike": 0.351,
+    "roi": -22.9,
+    "lo": -29.2,
+    "hi": -15.7,
+    "med_price": 6.5
+   },
+   "value": {
+    "bets": 35,
+    "strike": 0.2,
+    "roi": -29.1,
+    "lo": -71.1,
+    "hi": 13.6,
+    "med_price": 4.0
+   },
+   "value_chance_weighted": {
+    "bets": 35,
+    "strike": 0.2,
+    "roi": -10.0,
+    "lo": -59.4,
+    "hi": 40.2,
+    "med_price": 4.0
+   },
+   "value_fields14plus": {
+    "bets": 3,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 12.0
+   },
+   "favourite_win": {
+    "bets": 19986,
+    "strike": 0.343,
+    "roi": -11.9,
+    "lo": -13.7,
+    "hi": -10.1,
+    "med_price": 2.8
+   },
+   "all_runners_win": {
+    "bets": 201458,
+    "strike": 0.099,
+    "roi": -30.0,
+    "lo": -31.1,
+    "hi": -28.7,
+    "med_price": 12.0
+   }
+  },
+  "tune2": {
+   "races": 2438,
+   "days": 120,
+   "win": {
+    "bets": 2438,
+    "strike": 0.349,
+    "roi": -13.0,
+    "lo": -17.8,
+    "hi": -8.1,
+    "med_price": 2.7
+   },
+   "win_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.349,
+    "roi": -12.3,
+    "lo": -16.7,
+    "hi": -8.0,
+    "med_price": 2.7
+   },
+   "win_fields14plus": {
+    "bets": 167,
+    "strike": 0.251,
+    "roi": -23.4,
+    "lo": -40.7,
+    "hi": -5.1,
+    "med_price": 3.2
+   },
+   "place": {
+    "bets": 2438,
+    "strike": 0.662,
+    "roi": -10.3,
+    "lo": -12.7,
+    "hi": -7.9,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.662,
+    "roi": -10.3,
+    "lo": -12.6,
+    "hi": -7.9,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 167,
+    "strike": 0.551,
+    "roi": -15.4,
+    "lo": -25.6,
+    "hi": -5.6,
+    "med_price": 3.2
+   },
+   "each_way": {
+    "bets": 2416,
+    "strike": 0.396,
+    "roi": -17.9,
+    "lo": -24.4,
+    "hi": -12.2,
+    "med_price": 6.5
+   },
+   "each_way_chance_weighted": {
+    "bets": 2416,
+    "strike": 0.396,
+    "roi": -18.2,
+    "lo": -24.3,
+    "hi": -12.7,
+    "med_price": 6.5
+   },
+   "each_way_fields14plus": {
+    "bets": 166,
+    "strike": 0.361,
+    "roi": -21.6,
+    "lo": -38.9,
+    "hi": -1.1,
+    "med_price": 6.5
+   },
+   "value": {
+    "bets": 2,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 3.35
+   },
+   "value_chance_weighted": {
+    "bets": 2,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 3.35
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 2438,
+    "strike": 0.355,
+    "roi": -12.1,
+    "lo": -17.2,
+    "hi": -7.1,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 23793,
+    "strike": 0.102,
+    "roi": -30.2,
+    "lo": -33.8,
+    "hi": -26.8,
+    "med_price": 12.0
+   }
+  },
+  "final": {
+   "races": 5026,
+   "days": 151,
+   "win": {
+    "bets": 5026,
+    "strike": 0.331,
+    "roi": -13.5,
+    "lo": -16.9,
+    "hi": -10.1,
+    "med_price": 2.8
+   },
+   "win_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.331,
+    "roi": -13.3,
+    "lo": -16.1,
+    "hi": -10.4,
+    "med_price": 2.8
+   },
+   "win_fields14plus": {
+    "bets": 380,
+    "strike": 0.253,
+    "roi": -18.4,
+    "lo": -32.6,
+    "hi": -4.7,
+    "med_price": 3.5
+   },
+   "place": {
+    "bets": 5026,
+    "strike": 0.644,
+    "roi": -11.1,
+    "lo": -13.0,
+    "hi": -9.1,
+    "med_price": 2.8
+   },
+   "place_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.644,
+    "roi": -10.7,
+    "lo": -12.4,
+    "hi": -8.7,
+    "med_price": 2.8
+   },
+   "place_fields14plus": {
+    "bets": 380,
+    "strike": 0.558,
+    "roi": -12.4,
+    "lo": -22.0,
+    "hi": -2.1,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 4977,
+    "strike": 0.367,
+    "roi": -20.4,
+    "lo": -24.4,
+    "hi": -16.7,
+    "med_price": 6.5
+   },
+   "each_way_chance_weighted": {
+    "bets": 4977,
+    "strike": 0.367,
+    "roi": -20.6,
+    "lo": -24.5,
+    "hi": -16.9,
+    "med_price": 6.5
+   },
+   "each_way_fields14plus": {
+    "bets": 380,
+    "strike": 0.321,
+    "roi": -19.2,
+    "lo": -34.6,
+    "hi": -4.4,
+    "med_price": 6.5
+   },
+   "value": {
+    "bets": 5,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 15.0
+   },
+   "value_chance_weighted": {
+    "bets": 5,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 15.0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 5026,
+    "strike": 0.332,
+    "roi": -15.1,
+    "lo": -18.3,
+    "hi": -11.7,
+    "med_price": 2.8
+   },
+   "all_runners_win": {
+    "bets": 50683,
+    "strike": 0.099,
+    "roi": -29.0,
+    "lo": -31.3,
+    "hi": -26.3,
+    "med_price": 12.0
+   }
+  },
+  "fwd": {
+   "races": 1271,
+   "days": 31,
+   "win": {
+    "bets": 1271,
+    "strike": 0.349,
+    "roi": -10.8,
+    "lo": -17.0,
+    "hi": -5.1,
+    "med_price": 2.7
+   },
+   "win_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.349,
+    "roi": -11.1,
+    "lo": -17.6,
+    "hi": -5.3,
+    "med_price": 2.7
+   },
+   "win_fields14plus": {
+    "bets": 62,
+    "strike": 0.323,
+    "roi": 2.1,
+    "lo": -46.9,
+    "hi": 50.2,
+    "med_price": 3.5
+   },
+   "place": {
+    "bets": 1271,
+    "strike": 0.669,
+    "roi": -8.8,
+    "lo": -13.7,
+    "hi": -4.9,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.669,
+    "roi": -9.0,
+    "lo": -13.2,
+    "hi": -5.4,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 62,
+    "strike": 0.613,
+    "roi": -6.2,
+    "lo": -29.9,
+    "hi": 14.5,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 1260,
+    "strike": 0.367,
+    "roi": -24.1,
+    "lo": -31.7,
+    "hi": -17.3,
+    "med_price": 6.5
+   },
+   "each_way_chance_weighted": {
+    "bets": 1260,
+    "strike": 0.367,
+    "roi": -22.9,
+    "lo": -30.2,
+    "hi": -16.5,
+    "med_price": 6.5
+   },
+   "each_way_fields14plus": {
+    "bets": 62,
+    "strike": 0.29,
+    "roi": -40.9,
+    "lo": -65.5,
+    "hi": -21.1,
+    "med_price": 6.25
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 1271,
+    "strike": 0.343,
+    "roi": -13.6,
+    "lo": -20.5,
+    "hi": -7.3,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 12187,
+    "strike": 0.104,
+    "roi": -29.9,
+    "lo": -34.7,
+    "hi": -24.6,
+    "med_price": 11.0
+   }
+  }
+ },
+ "T10": {
+  "dev": {
+   "races": 19851,
+   "days": 1084,
+   "win": {
+    "bets": 19851,
+    "strike": 0.165,
+    "roi": -22.8,
+    "lo": -25.7,
+    "hi": -19.9,
+    "med_price": 6.0
+   },
+   "win_chance_weighted": {
+    "bets": 19851,
+    "strike": 0.165,
+    "roi": -18.3,
+    "lo": -20.7,
+    "hi": -15.7,
+    "med_price": 6.0
+   },
+   "win_fields14plus": {
+    "bets": 1730,
+    "strike": 0.129,
+    "roi": -19.6,
+    "lo": -31.4,
+    "hi": -6.9,
+    "med_price": 8.5
+   },
+   "place": {
+    "bets": 19851,
+    "strike": 0.642,
+    "roi": -10.4,
+    "lo": -11.3,
+    "hi": -9.4,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 19851,
+    "strike": 0.642,
+    "roi": -9.7,
+    "lo": -10.6,
+    "hi": -8.9,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 1730,
+    "strike": 0.54,
+    "roi": -14.4,
+    "lo": -18.4,
+    "hi": -10.5,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 19764,
+    "strike": 0.252,
+    "roi": -35.7,
+    "lo": -37.8,
+    "hi": -33.5,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 19764,
+    "strike": 0.252,
+    "roi": -34.1,
+    "lo": -36.1,
+    "hi": -32.2,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 1727,
+    "strike": 0.224,
+    "roi": -31.1,
+    "lo": -39.7,
+    "hi": -22.5,
+    "med_price": 10.0
+   },
+   "value": {
+    "bets": 11,
+    "strike": 0.091,
+    "roi": -68.2,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 9.5
+   },
+   "value_chance_weighted": {
+    "bets": 11,
+    "strike": 0.091,
+    "roi": -44.8,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 9.5
+   },
+   "value_fields14plus": {
+    "bets": 1,
+    "strike": 0.0,
+    "roi": -100.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 16.0
+   },
+   "favourite_win": {
+    "bets": 19851,
+    "strike": 0.337,
+    "roi": -13.1,
+    "lo": -14.8,
+    "hi": -11.3,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 200159,
+    "strike": 0.099,
+    "roi": -30.9,
+    "lo": -32.0,
+    "hi": -29.8,
+    "med_price": 12.0
+   }
+  },
+  "tune2": {
+   "races": 2424,
+   "days": 120,
+   "win": {
+    "bets": 2424,
+    "strike": 0.15,
+    "roi": -15.6,
+    "lo": -25.1,
+    "hi": -5.1,
+    "med_price": 7.5
+   },
+   "win_chance_weighted": {
+    "bets": 2424,
+    "strike": 0.15,
+    "roi": -10.6,
+    "lo": -18.0,
+    "hi": -2.7,
+    "med_price": 7.5
+   },
+   "win_fields14plus": {
+    "bets": 168,
+    "strike": 0.083,
+    "roi": -39.7,
+    "lo": -70.0,
+    "hi": -4.5,
+    "med_price": 9.5
+   },
+   "place": {
+    "bets": 2424,
+    "strike": 0.655,
+    "roi": -11.0,
+    "lo": -13.6,
+    "hi": -8.6,
+    "med_price": 2.6
+   },
+   "place_chance_weighted": {
+    "bets": 2424,
+    "strike": 0.655,
+    "roi": -10.7,
+    "lo": -13.0,
+    "hi": -8.3,
+    "med_price": 2.6
+   },
+   "place_fields14plus": {
+    "bets": 168,
+    "strike": 0.536,
+    "roi": -18.4,
+    "lo": -27.8,
+    "hi": -8.5,
+    "med_price": 3.2
+   },
+   "each_way": {
+    "bets": 2414,
+    "strike": 0.256,
+    "roi": -35.1,
+    "lo": -42.2,
+    "hi": -28.5,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 2414,
+    "strike": 0.256,
+    "roi": -34.5,
+    "lo": -40.9,
+    "hi": -28.1,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 167,
+    "strike": 0.222,
+    "roi": -30.0,
+    "lo": -51.8,
+    "hi": -7.8,
+    "med_price": 10.0
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 2424,
+    "strike": 0.355,
+    "roi": -11.7,
+    "lo": -16.3,
+    "hi": -7.1,
+    "med_price": 2.6
+   },
+   "all_runners_win": {
+    "bets": 23675,
+    "strike": 0.102,
+    "roi": -31.8,
+    "lo": -35.3,
+    "hi": -28.6,
+    "med_price": 11.0
+   }
+  },
+  "final": {
+   "races": 4963,
+   "days": 151,
+   "win": {
+    "bets": 4963,
+    "strike": 0.121,
+    "roi": -24.1,
+    "lo": -30.4,
+    "hi": -17.8,
+    "med_price": 7.5
+   },
+   "win_chance_weighted": {
+    "bets": 4963,
+    "strike": 0.121,
+    "roi": -24.2,
+    "lo": -29.3,
+    "hi": -19.2,
+    "med_price": 7.5
+   },
+   "win_fields14plus": {
+    "bets": 380,
+    "strike": 0.092,
+    "roi": -32.4,
+    "lo": -56.5,
+    "hi": -7.4,
+    "med_price": 9.0
+   },
+   "place": {
+    "bets": 4963,
+    "strike": 0.635,
+    "roi": -12.0,
+    "lo": -13.9,
+    "hi": -10.0,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 4963,
+    "strike": 0.635,
+    "roi": -11.4,
+    "lo": -13.1,
+    "hi": -9.5,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 380,
+    "strike": 0.555,
+    "roi": -12.4,
+    "lo": -21.9,
+    "hi": -3.1,
+    "med_price": 3.45
+   },
+   "each_way": {
+    "bets": 4947,
+    "strike": 0.261,
+    "roi": -33.5,
+    "lo": -37.7,
+    "hi": -29.3,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 4947,
+    "strike": 0.261,
+    "roi": -32.0,
+    "lo": -35.9,
+    "hi": -28.1,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 380,
+    "strike": 0.224,
+    "roi": -24.6,
+    "lo": -43.7,
+    "hi": -4.1,
+    "med_price": 9.5
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 4963,
+    "strike": 0.333,
+    "roi": -15.4,
+    "lo": -19.1,
+    "hi": -11.5,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 50078,
+    "strike": 0.099,
+    "roi": -30.0,
+    "lo": -32.3,
+    "hi": -27.4,
+    "med_price": 11.0
+   }
+  },
+  "fwd": {
+   "races": 1259,
+   "days": 31,
+   "win": {
+    "bets": 1259,
+    "strike": 0.136,
+    "roi": -21.5,
+    "lo": -34.0,
+    "hi": -4.7,
+    "med_price": 7.5
+   },
+   "win_chance_weighted": {
+    "bets": 1259,
+    "strike": 0.136,
+    "roi": -18.5,
+    "lo": -27.4,
+    "hi": -7.1,
+    "med_price": 7.5
+   },
+   "win_fields14plus": {
+    "bets": 62,
+    "strike": 0.048,
+    "roi": -46.8,
+    "lo": -100.0,
+    "hi": 27.8,
+    "med_price": 9.0
+   },
+   "place": {
+    "bets": 1259,
+    "strike": 0.667,
+    "roi": -8.9,
+    "lo": -13.9,
+    "hi": -4.7,
+    "med_price": 2.6
+   },
+   "place_chance_weighted": {
+    "bets": 1259,
+    "strike": 0.667,
+    "roi": -8.8,
+    "lo": -13.5,
+    "hi": -5.0,
+    "med_price": 2.6
+   },
+   "place_fields14plus": {
+    "bets": 62,
+    "strike": 0.613,
+    "roi": -5.9,
+    "lo": -24.5,
+    "hi": 12.9,
+    "med_price": 3.6
+   },
+   "each_way": {
+    "bets": 1257,
+    "strike": 0.251,
+    "roi": -33.5,
+    "lo": -40.5,
+    "hi": -26.7,
+    "med_price": 9.5
+   },
+   "each_way_chance_weighted": {
+    "bets": 1257,
+    "strike": 0.251,
+    "roi": -32.3,
+    "lo": -40.6,
+    "hi": -24.5,
+    "med_price": 9.5
+   },
+   "each_way_fields14plus": {
+    "bets": 62,
+    "strike": 0.226,
+    "roi": -53.3,
+    "lo": -78.7,
+    "hi": -16.0,
+    "med_price": 11.0
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 1259,
+    "strike": 0.35,
+    "roi": -12.1,
+    "lo": -20.3,
+    "hi": -5.0,
+    "med_price": 2.6
+   },
+   "all_runners_win": {
+    "bets": 12096,
+    "strike": 0.104,
+    "roi": -31.4,
+    "lo": -35.7,
+    "hi": -27.1,
+    "med_price": 11.0
+   }
+  }
+ },
+ "T30_market_same_races": {
+  "dev": {
+   "races": 19986,
+   "days": 1083,
+   "win": {
+    "bets": 19986,
+    "strike": 0.158,
+    "roi": -18.7,
+    "lo": -22.2,
+    "hi": -15.3,
+    "med_price": 7.0
+   },
+   "win_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.158,
+    "roi": -15.1,
+    "lo": -17.8,
+    "hi": -12.3,
+    "med_price": 7.0
+   },
+   "win_fields14plus": {
+    "bets": 1736,
+    "strike": 0.107,
+    "roi": -22.6,
+    "lo": -34.4,
+    "hi": -10.3,
+    "med_price": 9.5
+   },
+   "place": {
+    "bets": 19986,
+    "strike": 0.637,
+    "roi": -10.6,
+    "lo": -11.6,
+    "hi": -9.6,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 19986,
+    "strike": 0.637,
+    "roi": -10.0,
+    "lo": -11.0,
+    "hi": -9.2,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 1736,
+    "strike": 0.536,
+    "roi": -14.3,
+    "lo": -18.3,
+    "hi": -10.2,
+    "med_price": 3.5
+   },
+   "each_way": {
+    "bets": 19898,
+    "strike": 0.235,
+    "roi": -39.1,
+    "lo": -41.2,
+    "hi": -37.0,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 19898,
+    "strike": 0.235,
+    "roi": -37.5,
+    "lo": -39.5,
+    "hi": -35.5,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 1734,
+    "strike": 0.203,
+    "roi": -31.7,
+    "lo": -40.1,
+    "hi": -23.2,
+    "med_price": 10.0
+   },
+   "value": {
+    "bets": 52,
+    "strike": 0.231,
+    "roi": 37.6,
+    "lo": -22.4,
+    "hi": 93.7,
+    "med_price": 5.75
+   },
+   "value_chance_weighted": {
+    "bets": 52,
+    "strike": 0.231,
+    "roi": 15.8,
+    "lo": -29.1,
+    "hi": 54.7,
+    "med_price": 5.75
+   },
+   "value_fields14plus": {
+    "bets": 1,
+    "strike": 1.0,
+    "roi": 600.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 7.0
+   },
+   "favourite_win": {
+    "bets": 19986,
+    "strike": 0.332,
+    "roi": -14.7,
+    "lo": -16.4,
+    "hi": -13.0,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 201458,
+    "strike": 0.099,
+    "roi": -29.4,
+    "lo": -30.6,
+    "hi": -28.1,
+    "med_price": 11.0
+   }
+  },
+  "tune2": {
+   "races": 2438,
+   "days": 120,
+   "win": {
+    "bets": 2438,
+    "strike": 0.175,
+    "roi": -10.2,
+    "lo": -20.3,
+    "hi": 0.2,
+    "med_price": 7.0
+   },
+   "win_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.175,
+    "roi": -7.7,
+    "lo": -14.8,
+    "hi": -0.7,
+    "med_price": 7.0
+   },
+   "win_fields14plus": {
+    "bets": 167,
+    "strike": 0.096,
+    "roi": -45.6,
+    "lo": -73.7,
+    "hi": -6.1,
+    "med_price": 8.0
+   },
+   "place": {
+    "bets": 2438,
+    "strike": 0.654,
+    "roi": -10.6,
+    "lo": -12.9,
+    "hi": -8.2,
+    "med_price": 2.6
+   },
+   "place_chance_weighted": {
+    "bets": 2438,
+    "strike": 0.654,
+    "roi": -10.4,
+    "lo": -12.6,
+    "hi": -8.0,
+    "med_price": 2.6
+   },
+   "place_fields14plus": {
+    "bets": 167,
+    "strike": 0.521,
+    "roi": -21.1,
+    "lo": -31.4,
+    "hi": -10.2,
+    "med_price": 3.2
+   },
+   "each_way": {
+    "bets": 2425,
+    "strike": 0.235,
+    "roi": -39.0,
+    "lo": -44.9,
+    "hi": -32.3,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 2425,
+    "strike": 0.235,
+    "roi": -37.9,
+    "lo": -43.7,
+    "hi": -31.9,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 166,
+    "strike": 0.175,
+    "roi": -42.6,
+    "lo": -64.4,
+    "hi": -17.7,
+    "med_price": 10.0
+   },
+   "value": {
+    "bets": 10,
+    "strike": 0.2,
+    "roi": -40.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 6.0
+   },
+   "value_chance_weighted": {
+    "bets": 10,
+    "strike": 0.2,
+    "roi": -0.4,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 6.0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 2438,
+    "strike": 0.35,
+    "roi": -13.2,
+    "lo": -17.3,
+    "hi": -9.0,
+    "med_price": 2.6
+   },
+   "all_runners_win": {
+    "bets": 23793,
+    "strike": 0.102,
+    "roi": -30.9,
+    "lo": -34.3,
+    "hi": -27.7,
+    "med_price": 11.0
+   }
+  },
+  "final": {
+   "races": 5026,
+   "days": 151,
+   "win": {
+    "bets": 5026,
+    "strike": 0.149,
+    "roi": -21.3,
+    "lo": -27.5,
+    "hi": -14.8,
+    "med_price": 7.0
+   },
+   "win_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.149,
+    "roi": -18.4,
+    "lo": -22.9,
+    "hi": -13.7,
+    "med_price": 7.0
+   },
+   "win_fields14plus": {
+    "bets": 380,
+    "strike": 0.129,
+    "roi": -10.6,
+    "lo": -37.8,
+    "hi": 24.2,
+    "med_price": 8.5
+   },
+   "place": {
+    "bets": 5026,
+    "strike": 0.627,
+    "roi": -12.6,
+    "lo": -14.6,
+    "hi": -10.4,
+    "med_price": 2.7
+   },
+   "place_chance_weighted": {
+    "bets": 5026,
+    "strike": 0.627,
+    "roi": -12.0,
+    "lo": -13.9,
+    "hi": -9.9,
+    "med_price": 2.7
+   },
+   "place_fields14plus": {
+    "bets": 380,
+    "strike": 0.561,
+    "roi": -10.5,
+    "lo": -19.2,
+    "hi": -1.8,
+    "med_price": 3.4
+   },
+   "each_way": {
+    "bets": 5002,
+    "strike": 0.238,
+    "roi": -38.6,
+    "lo": -42.7,
+    "hi": -34.5,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 5002,
+    "strike": 0.238,
+    "roi": -37.0,
+    "lo": -41.0,
+    "hi": -33.2,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 380,
+    "strike": 0.184,
+    "roi": -39.8,
+    "lo": -56.5,
+    "hi": -22.6,
+    "med_price": 9.5
+   },
+   "value": {
+    "bets": 15,
+    "strike": 0.133,
+    "roi": -28.0,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 7.5
+   },
+   "value_chance_weighted": {
+    "bets": 15,
+    "strike": 0.133,
+    "roi": -12.8,
+    "lo": NaN,
+    "hi": NaN,
+    "med_price": 7.5
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 5026,
+    "strike": 0.328,
+    "roi": -16.2,
+    "lo": -19.8,
+    "hi": -12.4,
+    "med_price": 2.7
+   },
+   "all_runners_win": {
+    "bets": 50683,
+    "strike": 0.099,
+    "roi": -27.5,
+    "lo": -29.9,
+    "hi": -24.7,
+    "med_price": 11.0
+   }
+  },
+  "fwd": {
+   "races": 1271,
+   "days": 31,
+   "win": {
+    "bets": 1271,
+    "strike": 0.149,
+    "roi": -19.2,
+    "lo": -32.1,
+    "hi": -7.7,
+    "med_price": 7.5
+   },
+   "win_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.149,
+    "roi": -17.4,
+    "lo": -29.0,
+    "hi": -6.9,
+    "med_price": 7.5
+   },
+   "win_fields14plus": {
+    "bets": 62,
+    "strike": 0.065,
+    "roi": -53.9,
+    "lo": -91.3,
+    "hi": 6.7,
+    "med_price": 7.5
+   },
+   "place": {
+    "bets": 1271,
+    "strike": 0.65,
+    "roi": -10.9,
+    "lo": -16.7,
+    "hi": -6.0,
+    "med_price": 2.6
+   },
+   "place_chance_weighted": {
+    "bets": 1271,
+    "strike": 0.65,
+    "roi": -10.5,
+    "lo": -15.8,
+    "hi": -6.1,
+    "med_price": 2.6
+   },
+   "place_fields14plus": {
+    "bets": 62,
+    "strike": 0.613,
+    "roi": -3.6,
+    "lo": -27.5,
+    "hi": 15.9,
+    "med_price": 3.4
+   },
+   "each_way": {
+    "bets": 1265,
+    "strike": 0.228,
+    "roi": -36.6,
+    "lo": -45.3,
+    "hi": -27.6,
+    "med_price": 9.0
+   },
+   "each_way_chance_weighted": {
+    "bets": 1265,
+    "strike": 0.228,
+    "roi": -35.4,
+    "lo": -43.9,
+    "hi": -26.9,
+    "med_price": 9.0
+   },
+   "each_way_fields14plus": {
+    "bets": 62,
+    "strike": 0.161,
+    "roi": -52.7,
+    "lo": -83.5,
+    "hi": -12.0,
+    "med_price": 10.0
+   },
+   "value": {
+    "bets": 0
+   },
+   "value_chance_weighted": {
+    "bets": 0
+   },
+   "value_fields14plus": {
+    "bets": 0
+   },
+   "favourite_win": {
+    "bets": 1271,
+    "strike": 0.343,
+    "roi": -14.5,
+    "lo": -23.6,
+    "hi": -6.7,
+    "med_price": 2.6
+   },
+   "all_runners_win": {
+    "bets": 12187,
+    "strike": 0.104,
+    "roi": -29.1,
+    "lo": -34.2,
+    "hi": -23.8,
+    "med_price": 11.0
+   }
+  }
+ },
+ "variants_dev_only": {
+  "win_floor_0.02": {
+   "bets": 19986,
+   "strike": 0.162,
+   "roi": -19.6,
+   "lo": -23.0,
+   "hi": -15.9,
+   "med_price": 6.0
+  },
+  "ew_win_floor_0.02": {
+   "bets": 19979,
+   "strike": 0.265,
+   "roi": -30.0,
+   "lo": -32.3,
+   "hi": -27.5,
+   "med_price": 9.5
+  },
+  "win_floor_0.04": {
+   "bets": 19986,
+   "strike": 0.175,
+   "roi": -16.8,
+   "lo": -19.6,
+   "hi": -13.8,
+   "med_price": 5.5
+  },
+  "ew_win_floor_0.04": {
+   "bets": 19917,
+   "strike": 0.313,
+   "roi": -25.8,
+   "lo": -27.9,
+   "hi": -23.5,
+   "med_price": 8.0
+  },
+  "win_floor_0.08": {
+   "bets": 19986,
+   "strike": 0.211,
+   "roi": -14.7,
+   "lo": -17.0,
+   "hi": -12.0,
+   "med_price": 4.6
+  },
+  "ew_win_floor_0.08": {
+   "bets": 18827,
+   "strike": 0.368,
+   "roi": -22.6,
+   "lo": -24.6,
+   "hi": -20.5,
+   "med_price": 7.0
+  },
+  "win_floor_0.15": {
+   "bets": 19863,
+   "strike": 0.289,
+   "roi": -11.4,
+   "lo": -13.6,
+   "hi": -9.4,
+   "med_price": 3.5
+  },
+  "ew_win_floor_0.15": {
+   "bets": 5510,
+   "strike": 0.459,
+   "roi": -14.8,
+   "lo": -17.6,
+   "hi": -11.6,
+   "med_price": 5.0
+  },
+  "ew_price_floor_4": {
+   "bets": 19962,
+   "strike": 0.35,
+   "roi": -25.1,
+   "lo": -27.0,
+   "hi": -22.9,
+   "med_price": 6.5
+  },
+  "ew_price_floor_5": {
+   "bets": 19917,
+   "strike": 0.313,
+   "roi": -25.8,
+   "lo": -27.9,
+   "hi": -23.5,
+   "med_price": 8.0
+  },
+  "ew_price_floor_8": {
+   "bets": 19391,
+   "strike": 0.24,
+   "roi": -29.1,
+   "lo": -31.6,
+   "hi": -26.4,
+   "med_price": 11.0
+  },
+  "ew_price_floor_10": {
+   "bets": 18377,
+   "strike": 0.217,
+   "roi": -29.7,
+   "lo": -32.5,
+   "hi": -26.9,
+   "med_price": 13.0
+  },
+  "ew_price_floor_15": {
+   "bets": 13084,
+   "strike": 0.186,
+   "roi": -27.4,
+   "lo": -31.3,
+   "hi": -23.4,
+   "med_price": 17.0
+  },
+  "win_rule_closest": {
+   "bets": 19986,
+   "strike": 0.175,
+   "roi": -16.8,
+   "lo": -19.6,
+   "hi": -13.8,
+   "med_price": 5.5
+  },
+  "ew_rule_closest": {
+   "bets": 19917,
+   "strike": 0.313,
+   "roi": -25.8,
+   "lo": -27.9,
+   "hi": -23.5,
+   "med_price": 8.0
+  },
+  "win_rule_favourite": {
+   "bets": 19986,
+   "strike": 0.343,
+   "roi": -11.9,
+   "lo": -13.7,
+   "hi": -10.1,
+   "med_price": 2.8
+  },
+  "ew_rule_favourite": {
+   "bets": 19917,
+   "strike": 0.402,
+   "roi": -19.9,
+   "lo": -21.7,
+   "hi": -17.9,
+   "med_price": 6.0
+  },
+  "win_rule_best_ev": {
+   "bets": 19986,
+   "strike": 0.133,
+   "roi": -20.1,
+   "lo": -23.2,
+   "hi": -16.9,
+   "med_price": 7.5
+  },
+  "ew_rule_best_ev": {
+   "bets": 19917,
+   "strike": 0.304,
+   "roi": -27.0,
+   "lo": -29.2,
+   "hi": -24.7,
+   "med_price": 8.0
+  }
+ },
+ "alpha_pick_changes_dev": {
+  "win": 0.696,
+  "each_way": "n differs",
+  "value_bets_alpha1": 21,
+  "value_bets_alpha114": 35
+ },
+ "win_pick_AE_by_price_dev_alpha1": {
+  "(1, 2]": [
+   609,
+   1.17
+  ],
+  "(2, 3]": [
+   2519,
+   1.11
+  ],
+  "(3, 5]": [
+   5870,
+   1.05
+  ],
+  "(5, 8]": [
+   4555,
+   0.97
+  ],
+  "(8, 12]": [
+   3435,
+   1.04
+  ],
+  "(12, 21]": [
+   2968,
+   0.75
+  ],
+  "(21, 1000]": [
+   30,
+   0.76
+  ]
+ },
+ "win_pick_AE_by_price_dev_alpha114": {
+  "(1, 2]": [
+   3828,
+   1.0
+  ],
+  "(2, 3]": [
+   8221,
+   0.99
+  ],
+  "(3, 5]": [
+   7318,
+   0.97
+  ],
+  "(5, 8]": [
+   553,
+   0.8
+  ],
+  "(8, 12]": [
+   29,
+   1.04
+  ],
+  "(12, 21]": [
+   34,
+   0.88
+  ],
+  "(21, 1000]": [
+   3,
+   0.0
+  ]
+ }
+}

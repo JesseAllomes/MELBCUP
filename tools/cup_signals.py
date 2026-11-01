@@ -20,7 +20,7 @@ import numpy as np
 
 URL = "https://graphql.rmdprod.racing.com/"
 KEY = "da2-6nsi4ztsynar3l3frgxf77q5fe"
-ALPHA = 1.0     # plain market chance, as in the app; the 1.13 odds adjustment is promising but not deployed (research/RESULTS.md)
+ALPHA = 1.14    # favourite-long-shot correction, as in the app (melbcup/model/probability.py MARKET_ALPHA; research/RERUN.md, M7_RESULTS.md)
 BOOKS = {"sb": ("SB2", "Sportsbet"), "lb": ("LB2", "Ladbrokes"), "pb": ("PB3", "PointsBet"), "bt": ("BT", "bet365")}
 HOME = "sb"                # the owner bets only with Sportsbet: every pick shows Sportsbet's price and a verdict on it
 EXOTIC_BAR = 0.20          # show a top-four trifecta box as "a try" only if it comes in at least this often

@@ -131,7 +131,15 @@ def test_priced_chances_are_the_margin_free_market_alone():
     assert m.sources == ["market"]  # the form model does not move priced chances
     market = {n: p.consensus_prob for n, p in race.prices.items() if n in m.runners}
     total = sum(market.values())
-    assert all(m.runners[n].win == pytest.approx(v / total) for n, v in market.items())
+    raw = {n: v / total for n, v in market.items()}
+    # the chance is the market corrected for the favourite-long-shot bias (p ** 1.14, renormalised)
+    powered = sum(v**probability.MARKET_ALPHA for v in raw.values())
+    alpha = probability.MARKET_ALPHA
+    assert all(m.runners[n].win == pytest.approx(v**alpha / powered) for n, v in raw.items())
+    assert all(m.runners[n].market_win == pytest.approx(v) for n, v in raw.items())
+    fav = max(raw, key=raw.get)
+    assert m.runners[fav].win > raw[fav]  # favourites gain, long shots lose
+    assert min(m.runners.values(), key=lambda a: a.win).win < min(raw.values())
     assert sum(a.win for a in m.runners.values()) == pytest.approx(1.0)
     assert sum(a.place for a in m.runners.values()) == pytest.approx(3.0)
     top = m.ranked()[0]

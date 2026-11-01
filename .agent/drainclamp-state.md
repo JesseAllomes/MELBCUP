@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=85 -->
+<!-- drainclamp-build: state; schema=1; generation=88 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -72,7 +72,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | m4 | bet engine: win/place/each-way value, trifecta, first four, quaddies, multis, staking | melbcup/bets/__init__.py;melbcup/bets/singles.py;melbcup/bets/exotics.py;melbcup/bets/multis.py;melbcup/bets/staking.py;tests/test_bets.py | done | m3 |
 | m5 | live web app: poller, mobile pages, password | melbcup/live.py;melbcup/web/__init__.py;melbcup/web/app.py;melbcup/web/templates;melbcup/web/static;tests/test_web.py | done | m4 |
 | m6 | Render deploy config and setup guide | render.yaml;README.md | done | m5 |
-| m7 | live-key dry run on real Cup day fields; tune weights | melbcup/model/features.py;melbcup/model/probability.py;tests/test_model.py | active | m6 |
+| m7 | live-key dry run on real Cup day fields; tune weights -> reframed (research/M7_REVIEW.md): card rules replayed on the archive, favourite-long-shot correction 1.14 applied, forward test tool; no other tuning possible (holdouts spent) | melbcup/model/probability.py;melbcup/bets/offers.py;tools/forward_check.py;research/m7/;research/M7_REVIEW.md;research/M7_RESULTS.md | done | m6 |
 | az1 | Azure inventory and verification for MELBCUP: web app (replaces Render), live collector, archive storage (replaces GCS) mapped and checked against main for code version, start command, health check, settings and secret names; no changes | .agent/azure-inventory.md | done |  |
 | az2 | Azure dry runs for MELBCUP: app /healthz and password check, one collector run writing to Azure storage, archive compared with GCS | .agent/azure-inventory.md | done | az1 |
 | az3 | MELBCUP cutover: owner-approved Azure on, Render, live-collector.yml and archive-to-gcs.yml off, after Cup day unless the owner says otherwise | render.yaml;.github/workflows/;.agent/azure-inventory.md | done | az2 |
@@ -98,8 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T22:21:42+00:00 943d57e3 venues (research/VENUES.md, 28,721 races): T-2 favourite ROI SB -12.6, LB -11.3, best SB/LB -10.9, tote -10.9, Betfair SP -2.9 (5% comm); Betfair beats SB +9.6 pts (CI +9.3..+9.9) proven; take over all runners SB -29.8, tote -24.6, Betfair -6.4; no rule provably profitable anywhere
-- 2026-10-31T23:56:42+00:00 7596800e m9 live 5a6e50d7 (owner approved): quinella info-only, offers check + /api/offer, $1 floor. Live check 1 Nov 10:55am prices: Cup is race 7 (3:00pm); each-way 1/4 x4 HOLD on all 24 (worst EV -0.1% to -24.5%); race 8 Amanda Elliott 7 BETs $2
 - 2026-10-31T23:57:11+00:00 f34a851b owner: finish, token budget spent. ui3 design round 2 stopped (pending); trifecta question unanswered, left as is; open: ui3, ui4 multi picks, m7, az4 (after 7 Nov)
 - 2026-11-01T04:14:26+00:00 ec15b83b owner: race card hard to follow -> one prototype (artifact RuFZKwqFknJwC5jKEQwZWc: bets first, plain First Four legs, field below, odds-only folded). Trifecta now odds only, never BET (owner 2026-11-01); tests pass; session branch only, main push awaits approval
 - 2026-11-01T05:21:26+00:00 ad427a89 owner bets only on Sportsbet: win/place/each-way now judged, ranked and staked at Sportsbet prices (was best price across bookies); no Sportsbet price = no bet. Race card prototype v4 ranks bets + best way per horse. Session branch only; main push awaits approval
@@ -118,4 +116,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T09:29:32+00:00 859d4892 live check: race card live, Betfair pills on every line; only $163/$200 used (Betfair-better stakes under $5). Owner: yes, raise them to $5 on Betfair while Betfair money lasts. route() lifts; test added; suite passes; awaiting push approval
 - 2026-11-01T09:37:37+00:00 6ce3d0f0 c83b388f live (owner approved): day $194/$200 in bets; Cup win/place/EW all on Betfair ($5/$5/$10), returns after commission. ui3 done pending owner feedback
 - 2026-11-01T09:48:29+00:00 38a65a70 owner: all good ($6 leftover kept as spare). ui3 done. Open: ui4 multi picks, m7, bf2 (betting backend dormant, no live key), az4 after 7 Nov
+- 2026-11-01T10:45:05+00:00 87d1aada m7 review (research/M7_REVIEW.md): 'tune weights' is dead (market model, holdouts spent); honest work = replay the card's fixed rules on the archive, apply the already-proven price^1.14 correction if it helps on blocks it was not fitted on, build a token-free forward test; variants reported, never chosen (overfitting)
+- 2026-11-01T10:45:06+00:00 265c5294 m7 done. Replay (research/m7/card_rules.py, 28,721 races): card win pick at alpha 1 loses -17/-21/-22/-21% (dev/tune2/final/fwd), worse than the favourite, because 'closest to fair' lands on 2-21 shots (A/E 0.75); at alpha 1.14 -13/-13/-13.5/-11 (4-10 pts better on every block, 3 of them unseen by the fit). Shipped MARKET_ALPHA 1.14 in probability.py (+offers scenarios, cup_signals), tools/forward_check.py (T-30 v last price from collector obs, graded from racing.com; 31 Oct sample 121 races saved). Rejected: floors, pick rule, stake weighting, value rule (fitted noise/untestable). Owner call: fixed-odds EW at 3 places is the worst pick everywhere (-18..-24%). Tests green; session branch only, main push awaits owner
 <!-- /DC:LOG -->

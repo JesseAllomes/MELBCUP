@@ -1,0 +1,9929 @@
+{
+ "5194777/1": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4649,
+    "ev": -0.174,
+    "name": "Clouded Thoughts",
+    "no": 10,
+    "place_price": 1.75,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6842,
+    "ev": -0.111,
+    "name": "Shotpoint",
+    "no": 9,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.2883,
+    "ev": -0.135,
+    "name": "Shotpoint",
+    "no": 9,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "12:43:12",
+  "early_back": {
+   "each_way": 0.875,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 6,
+   "10": 3,
+   "12": 2,
+   "13": 5,
+   "2": 8,
+   "3": 1,
+   "6": 10,
+   "7": 9,
+   "8": 4,
+   "9": 7
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.2326,
+    "ev": -0.264,
+    "name": "Clouded Thoughts",
+    "no": 10,
+    "place_price": 3.3,
+    "price": 16.0
+   },
+   "place": {
+    "chance": 0.7555,
+    "ev": -0.056,
+    "name": "Palmanova",
+    "no": 12,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3252,
+    "ev": -0.09,
+    "name": "Palmanova",
+    "no": 12,
+    "price": 2.8
+   }
+  },
+  "late_at_mel": "13:08:22",
+  "late_back": {
+   "each_way": 1.65,
+   "place": 1.25,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 1,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:09"
+ },
+ "5194777/2": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.5143,
+    "ev": -0.281,
+    "name": "Worthy Stunnah",
+    "no": 1,
+    "place_price": 1.5,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.9636,
+    "ev": -0.017,
+    "name": "The Grey One",
+    "no": 6,
+    "price": 1.02
+   },
+   "win": {
+    "chance": 0.7275,
+    "ev": -0.098,
+    "name": "The Grey One",
+    "no": 6,
+    "price": 1.24
+   }
+  },
+  "early_at_mel": "13:23:22",
+  "early_back": {
+   "each_way": 0.75,
+   "place": 1.02,
+   "win": 1.24
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "11": 6,
+   "12": 5,
+   "13": 10,
+   "14": 9,
+   "2": 3,
+   "3": 7,
+   "4": 4,
+   "6": 1,
+   "7": 8
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4846,
+    "ev": -0.207,
+    "name": "Worthy Stunnah",
+    "no": 1,
+    "place_price": 1.67,
+    "price": 10.0
+   },
+   "place": {
+    "chance": 0.9667,
+    "ev": -0.014,
+    "name": "The Grey One",
+    "no": 6,
+    "price": 1.02
+   },
+   "win": {
+    "chance": 0.7404,
+    "ev": -0.111,
+    "name": "The Grey One",
+    "no": 6,
+    "price": 1.2
+   }
+  },
+  "late_at_mel": "13:48:22",
+  "late_back": {
+   "each_way": 0.835,
+   "place": 1.02,
+   "win": 1.2
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 2,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:49"
+ },
+ "5194777/3": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.2959,
+    "ev": -0.244,
+    "name": "Symbolise",
+    "no": 6,
+    "place_price": 2.6,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.7508,
+    "ev": -0.062,
+    "name": "Filthy",
+    "no": 1,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4016,
+    "ev": -0.117,
+    "name": "Filthy",
+    "no": 1,
+    "price": 2.2
+   }
+  },
+  "early_at_mel": "14:03:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "10": 8,
+   "12": 1,
+   "2": 6,
+   "3": 11,
+   "4": 3,
+   "5": 5,
+   "6": 4,
+   "7": 9,
+   "8": 7,
+   "9": 10
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.2413,
+    "ev": -0.266,
+    "name": "Rising Queen",
+    "no": 9,
+    "place_price": 3.1,
+    "price": 13.0
+   },
+   "place": {
+    "chance": 0.7949,
+    "ev": -0.046,
+    "name": "Filthy",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4507,
+    "ev": -0.076,
+    "name": "Filthy",
+    "no": 1,
+    "price": 2.05
+   }
+  },
+  "late_at_mel": "14:28:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 3,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 14:29"
+ },
+ "5194777/4": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2973,
+    "ev": -0.251,
+    "name": "Pelevecchio",
+    "no": 4,
+    "place_price": 2.5,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5385,
+    "ev": -0.154,
+    "name": "Samurai Warrior",
+    "no": 1,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.3051,
+    "ev": -0.146,
+    "name": "Samurai Warrior",
+    "no": 1,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "14:43:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 2.8
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "3": 5,
+   "4": 6,
+   "5": 2,
+   "7": 3,
+   "8": 7,
+   "9": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2506,
+    "ev": -0.23,
+    "name": "Pelevecchio",
+    "no": 4,
+    "place_price": 3.0,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.4947,
+    "ev": -0.159,
+    "name": "Samurai Warrior",
+    "no": 1,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.2575,
+    "ev": -0.125,
+    "name": "Miss Dynamo",
+    "no": 5,
+    "price": 3.4
+   }
+  },
+  "late_at_mel": "15:08:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.7,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 4,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 15:09"
+ },
+ "5194777/5": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3401,
+    "ev": -0.227,
+    "name": "Meltdown",
+    "no": 3,
+    "place_price": 2.3,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6509,
+    "ev": -0.134,
+    "name": "The Torque Factor",
+    "no": 2,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3949,
+    "ev": -0.151,
+    "name": "The Torque Factor",
+    "no": 2,
+    "price": 2.15
+   }
+  },
+  "early_at_mel": "15:23:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 2.15
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "2": 1,
+   "3": 3,
+   "5": 4,
+   "6": 2,
+   "8": 6,
+   "9": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.345,
+    "ev": -0.199,
+    "name": "Meltdown",
+    "no": 3,
+    "place_price": 2.3,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5711,
+    "ev": -0.143,
+    "name": "The Torque Factor",
+    "no": 2,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3264,
+    "ev": -0.151,
+    "name": "The Torque Factor",
+    "no": 2,
+    "price": 2.6
+   }
+  },
+  "late_at_mel": "15:48:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 2.6
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 5,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:49"
+ },
+ "5194777/6": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.461,
+    "ev": -0.211,
+    "name": "Concession",
+    "no": 2,
+    "place_price": 1.73,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7934,
+    "ev": -0.048,
+    "name": "Quein Step",
+    "no": 10,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4056,
+    "ev": -0.128,
+    "name": "Quein Step",
+    "no": 10,
+    "price": 2.15
+   }
+  },
+  "early_at_mel": "16:04:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.15
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 1,
+   "2": 5,
+   "3": 4,
+   "4": 7,
+   "5": 9,
+   "6": 8,
+   "7": 2,
+   "8": 3,
+   "9": 6
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.5369,
+    "ev": -0.183,
+    "name": "Concession",
+    "no": 2,
+    "place_price": 1.53,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7729,
+    "ev": -0.073,
+    "name": "Quein Step",
+    "no": 10,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3622,
+    "ev": -0.113,
+    "name": "Quein Step",
+    "no": 10,
+    "price": 2.45
+   }
+  },
+  "late_at_mel": "16:29:28",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.45
+  },
+  "late_minutes_out": 0.5,
+  "meet": "5194777",
+  "race": 6,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 16:30"
+ },
+ "5194777/7": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3433,
+    "ev": -0.216,
+    "name": "Vacillation",
+    "no": 8,
+    "place_price": 2.3,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6509,
+    "ev": -0.134,
+    "name": "Divine Justice",
+    "no": 6,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3992,
+    "ev": -0.122,
+    "name": "Divine Justice",
+    "no": 6,
+    "price": 2.2
+   }
+  },
+  "early_at_mel": "16:43:23",
+  "early_back": {
+   "each_way": 1.15,
+   "place": 1.33,
+   "win": 2.2
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 5,
+   "3": 3,
+   "5": 4,
+   "6": 1,
+   "8": 2,
+   "9": 6
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3729,
+    "ev": -0.197,
+    "name": "Laridae",
+    "no": 3,
+    "place_price": 2.15,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7309,
+    "ev": -0.086,
+    "name": "Divine Justice",
+    "no": 6,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4758,
+    "ev": -0.12,
+    "name": "Divine Justice",
+    "no": 6,
+    "price": 1.85
+   }
+  },
+  "late_at_mel": "17:08:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 1.85
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 7,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 17:09"
+ },
+ "5194777/8": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3766,
+    "ev": -0.12,
+    "name": "Australasia",
+    "no": 13,
+    "place_price": 2.38,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6249,
+    "ev": -0.063,
+    "name": "Extreme Spirit",
+    "no": 7,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2721,
+    "ev": -0.102,
+    "name": "Extreme Spirit",
+    "no": 7,
+    "price": 3.3
+   }
+  },
+  "early_at_mel": "17:24:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 3.3
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 10,
+   "11": 7,
+   "13": 5,
+   "15": 2,
+   "16": 11,
+   "17": 9,
+   "3": 3,
+   "5": 4,
+   "6": 8,
+   "7": 1,
+   "9": 6
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3867,
+    "ev": -0.131,
+    "name": "Excessor",
+    "no": 6,
+    "place_price": 2.25,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6382,
+    "ev": -0.106,
+    "name": "Smashing Nova",
+    "no": 5,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2478,
+    "ev": -0.009,
+    "name": "Extreme Spirit",
+    "no": 7,
+    "price": 4.0
+   }
+  },
+  "late_at_mel": "17:49:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 4.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194777",
+  "race": 8,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 17:50"
+ },
+ "5194777/9": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3839,
+    "ev": -0.259,
+    "name": "Certify",
+    "no": 9,
+    "place_price": 1.62,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7013,
+    "ev": -0.158,
+    "name": "Hellarious",
+    "no": 12,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4444,
+    "ev": -0.045,
+    "name": "Hellarious",
+    "no": 12,
+    "price": 2.15
+   }
+  },
+  "early_at_mel": "17:59:26",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 2,
+   "12": 8,
+   "15": 7,
+   "16": 6,
+   "7": 5,
+   "8": 4,
+   "9": 3
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.2535,
+    "ev": -0.324,
+    "name": "Certify",
+    "no": 9,
+    "place_price": 2.05,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.6515,
+    "ev": -0.186,
+    "name": "Hellarious",
+    "no": 12,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3828,
+    "ev": -0.005,
+    "name": "Hellarious",
+    "no": 12,
+    "price": 2.6
+   }
+  },
+  "late_at_mel": "18:24:38",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.4,
+  "meet": "5194777",
+  "race": 9,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 18:25"
+ },
+ "5194789/1": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.4149,
+    "ev": -0.096,
+    "name": "Wanted Hillbilly",
+    "no": 2,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.502,
+    "ev": -0.232,
+    "name": "North Court",
+    "no": 5,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2855,
+    "ev": 0.113,
+    "name": "North Court",
+    "no": 5,
+    "price": 3.9
+   }
+  },
+  "early_at_mel": "17:48:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "12": 5,
+   "2": 7,
+   "3": 1,
+   "4": 8,
+   "5": 2,
+   "6": 4,
+   "9": 3
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2876,
+    "ev": -0.134,
+    "name": "Igotcha",
+    "no": 9,
+    "place_price": 2.3,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.5403,
+    "ev": -0.19,
+    "name": "North Court",
+    "no": 5,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3119,
+    "ev": 0.123,
+    "name": "North Court",
+    "no": 5,
+    "price": 3.6
+   }
+  },
+  "late_at_mel": "18:13:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194789",
+  "race": 1,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 18:14"
+ },
+ "5194789/2": {
+  "early": {
+   "_field": 5,
+   "each_way": {
+    "chance": 0.3181,
+    "ev": -0.266,
+    "name": "Treporti",
+    "no": 2,
+    "place_price": 2.3,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7047,
+    "ev": -0.084,
+    "name": "Provance",
+    "no": 3,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.4421,
+    "ev": -0.116,
+    "name": "Provance",
+    "no": 3,
+    "price": 2.0
+   }
+  },
+  "early_at_mel": "18:24:38",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.4,
+  "finish": {
+   "2": 3,
+   "3": 2,
+   "4": 4,
+   "5": 1,
+   "6": 5
+  },
+  "late": {
+   "_field": 5,
+   "each_way": {
+    "chance": 0.3871,
+    "ev": -0.187,
+    "name": "Jemeldi",
+    "no": 4,
+    "place_price": 2.1,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7542,
+    "ev": -0.057,
+    "name": "Provance",
+    "no": 3,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4934,
+    "ev": -0.087,
+    "name": "Provance",
+    "no": 3,
+    "price": 1.85
+   }
+  },
+  "late_at_mel": "18:49:34",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.4,
+  "meet": "5194789",
+  "race": 2,
+  "snapshots": 97,
+  "start_mel": "2026-10-31 18:50"
+ },
+ "5194789/3": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2766,
+    "ev": -0.248,
+    "name": "Happyaziam",
+    "no": 8,
+    "place_price": 2.7,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5428,
+    "ev": -0.148,
+    "name": "Savage Sequel",
+    "no": 4,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.3105,
+    "ev": -0.13,
+    "name": "Savage Sequel",
+    "no": 4,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "18:59:00",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 0.0
+  },
+  "early_minutes_out": 29.0,
+  "finish": {
+   "1": 5,
+   "4": 2,
+   "5": 1,
+   "6": 7,
+   "7": 6,
+   "8": 3,
+   "9": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2766,
+    "ev": -0.248,
+    "name": "Happyaziam",
+    "no": 8,
+    "place_price": 2.7,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5428,
+    "ev": -0.148,
+    "name": "Savage Sequel",
+    "no": 4,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.3105,
+    "ev": -0.13,
+    "name": "Savage Sequel",
+    "no": 4,
+    "price": 2.8
+   }
+  },
+  "late_at_mel": "18:59:00",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 0.0
+  },
+  "late_minutes_out": 29.0,
+  "meet": "5194789",
+  "race": 3,
+  "snapshots": 62,
+  "start_mel": "2026-10-31 19:28"
+ },
+ "5194789/4": {
+  "finish": {
+   "1": 1,
+   "10": 7,
+   "2": 2,
+   "3": 6,
+   "4": 8,
+   "5": 9,
+   "6": 3,
+   "7": 4,
+   "8": 5
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5002,
+    "ev": -0.199,
+    "name": "I'm On Fire",
+    "no": 6,
+    "place_price": 1.67,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.9007,
+    "ev": -0.054,
+    "name": "Dual Mastery",
+    "no": 2,
+    "price": 1.05
+   },
+   "win": {
+    "chance": 0.5557,
+    "ev": -0.139,
+    "name": "Dual Mastery",
+    "no": 2,
+    "price": 1.55
+   }
+  },
+  "late_at_mel": "18:59:00",
+  "late_back": {
+   "each_way": 0.835,
+   "place": 1.05,
+   "win": 0.0
+  },
+  "late_minutes_out": 66.0,
+  "meet": "5194789",
+  "race": 4,
+  "snapshots": 14,
+  "start_mel": "2026-10-31 20:05"
+ },
+ "5194790/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3351,
+    "ev": -0.24,
+    "name": "Sea Commits",
+    "no": 5,
+    "place_price": 2.3,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.6385,
+    "ev": -0.151,
+    "name": "Speedy One",
+    "no": 1,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.2595,
+    "ev": -0.17,
+    "name": "Speedy One",
+    "no": 1,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "12:56:22",
+  "early_back": {
+   "each_way": 1.15,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "2": 6,
+   "3": 5,
+   "4": 4,
+   "5": 3,
+   "6": 7,
+   "7": 2,
+   "8": 1
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.2295,
+    "ev": -0.237,
+    "name": "Nuts 'N' Bolts",
+    "no": 3,
+    "place_price": 3.4,
+    "price": 15.0
+   },
+   "place": {
+    "chance": 0.6687,
+    "ev": -0.131,
+    "name": "Speedy One",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.2777,
+    "ev": -0.139,
+    "name": "Speedy One",
+    "no": 1,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "13:21:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 1,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 13:22"
+ },
+ "5194790/2": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3942,
+    "ev": 0.025,
+    "name": "Serial Offender",
+    "no": 5,
+    "place_price": 2.2,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.7945,
+    "ev": 0.033,
+    "name": "Booya Boy",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.5385,
+    "ev": 0.346,
+    "name": "Booya Boy",
+    "no": 4,
+    "price": 2.5
+   }
+  },
+  "early_at_mel": "13:36:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "12": 3,
+   "13": 5,
+   "14": 9,
+   "15": 1,
+   "2": 2,
+   "3": 7,
+   "4": 4,
+   "5": 10,
+   "6": 6,
+   "9": 8
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.4283,
+    "ev": 0.007,
+    "name": "Mr Evans",
+    "no": 2,
+    "place_price": 2.05,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.8363,
+    "ev": 0.045,
+    "name": "Booya Boy",
+    "no": 4,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.5992,
+    "ev": 0.348,
+    "name": "Booya Boy",
+    "no": 4,
+    "price": 2.25
+   }
+  },
+  "late_at_mel": "14:01:22",
+  "late_back": {
+   "each_way": 1.025,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 2,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 14:02"
+ },
+ "5194790/3": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2527,
+    "ev": -0.403,
+    "name": "Staffo",
+    "no": 6,
+    "place_price": 1.8,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6861,
+    "ev": -0.197,
+    "name": "Chop Chop Go",
+    "no": 1,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.3768,
+    "ev": -0.096,
+    "name": "Mishani Senorita",
+    "no": 5,
+    "price": 2.4
+   }
+  },
+  "early_at_mel": "14:16:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 2.4
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 7,
+   "11": 9,
+   "13": 2,
+   "2": 4,
+   "4": 6,
+   "5": 1,
+   "6": 5,
+   "7": 8
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3053,
+    "ev": -0.383,
+    "name": "Staffo",
+    "no": 6,
+    "place_price": 1.57,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6695,
+    "ev": -0.197,
+    "name": "Mishani Senorita",
+    "no": 5,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3593,
+    "ev": -0.066,
+    "name": "Chop Chop Go",
+    "no": 1,
+    "price": 2.6
+   }
+  },
+  "late_at_mel": "14:41:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 3,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:42"
+ },
+ "5194790/4": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4567,
+    "ev": -0.199,
+    "name": "Russian Sub",
+    "no": 9,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5358,
+    "ev": -0.159,
+    "name": "This Is One",
+    "no": 7,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.21,
+    "ev": -0.181,
+    "name": "This Is One",
+    "no": 7,
+    "price": 3.9
+   }
+  },
+  "early_at_mel": "14:56:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 3.9
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 4,
+   "2": 8,
+   "3": 5,
+   "4": 2,
+   "5": 3,
+   "7": 1,
+   "8": 6,
+   "9": 7
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4833,
+    "ev": -0.159,
+    "name": "Russian Sub",
+    "no": 9,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6173,
+    "ev": -0.136,
+    "name": "This Is One",
+    "no": 7,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.1833,
+    "ev": -0.12,
+    "name": "Warilla Gorilla",
+    "no": 3,
+    "price": 4.8
+   }
+  },
+  "late_at_mel": "15:21:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 4,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:22"
+ },
+ "5194790/5": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3531,
+    "ev": -0.233,
+    "name": "Ezeiza",
+    "no": 6,
+    "place_price": 2.2,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6019,
+    "ev": -0.097,
+    "name": "Hawaiian Bloom",
+    "no": 3,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.261,
+    "ev": -0.139,
+    "name": "Hawaiian Bloom",
+    "no": 3,
+    "price": 3.3
+   }
+  },
+  "early_at_mel": "15:36:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 8,
+   "11": 10,
+   "2": 7,
+   "3": 2,
+   "4": 4,
+   "5": 5,
+   "6": 9,
+   "8": 6,
+   "9": 1
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.328,
+    "ev": -0.231,
+    "name": "Our Warrior",
+    "no": 5,
+    "place_price": 2.38,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.634,
+    "ev": -0.112,
+    "name": "Hawaiian Bloom",
+    "no": 3,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2823,
+    "ev": -0.097,
+    "name": "Hawaiian Bloom",
+    "no": 3,
+    "price": 3.2
+   }
+  },
+  "late_at_mel": "16:01:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 5,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 16:02"
+ },
+ "5194790/6": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3393,
+    "ev": -0.282,
+    "name": "Standlee",
+    "no": 4,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.4744,
+    "ev": -0.336,
+    "name": "Snugg",
+    "no": 5,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2636,
+    "ev": -0.104,
+    "name": "Snugg",
+    "no": 5,
+    "price": 3.4
+   }
+  },
+  "early_at_mel": "16:14:26",
+  "early_back": {
+   "each_way": 0.875,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "10": 8,
+   "11": 9,
+   "12": 6,
+   "4": 2,
+   "5": 4,
+   "6": 6,
+   "7": 3,
+   "8": 1
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.359,
+    "ev": -0.25,
+    "name": "Drialle",
+    "no": 1,
+    "place_price": 1.7,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5243,
+    "ev": -0.266,
+    "name": "Botanica",
+    "no": 8,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3005,
+    "ev": -0.068,
+    "name": "Botanica",
+    "no": 8,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "16:39:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.1
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 6,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 16:40"
+ },
+ "5194790/7": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3528,
+    "ev": -0.076,
+    "name": "Tuhinga",
+    "no": 8,
+    "place_price": 2.15,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.5787,
+    "ev": -0.132,
+    "name": "Cardiologist",
+    "no": 5,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3365,
+    "ev": 0.178,
+    "name": "Cardiologist",
+    "no": 5,
+    "price": 3.5
+   }
+  },
+  "early_at_mel": "16:56:24",
+  "early_back": {
+   "each_way": 1.075,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 7,
+   "11": 10,
+   "13": 5,
+   "14": 4,
+   "4": 9,
+   "5": 8,
+   "7": 6,
+   "8": 2,
+   "9": 3
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.4059,
+    "ev": 0.001,
+    "name": "Tuhinga",
+    "no": 8,
+    "place_price": 2.0,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6294,
+    "ev": -0.056,
+    "name": "Cardiologist",
+    "no": 5,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3861,
+    "ev": 0.274,
+    "name": "Cardiologist",
+    "no": 5,
+    "price": 3.3
+   }
+  },
+  "late_at_mel": "17:21:22",
+  "late_back": {
+   "each_way": 1.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 7,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 17:22"
+ },
+ "5194790/8": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.4238,
+    "ev": -0.122,
+    "name": "Bate",
+    "no": 1,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6011,
+    "ev": -0.158,
+    "name": "Royal Diplomat",
+    "no": 4,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3432,
+    "ev": 0.098,
+    "name": "Royal Diplomat",
+    "no": 4,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "17:31:22",
+  "early_back": {
+   "each_way": 0.865,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "10": 6,
+   "11": 7,
+   "12": 5,
+   "14": 1,
+   "6": 3,
+   "7": 4,
+   "8": 8
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.4434,
+    "ev": -0.074,
+    "name": "Bate",
+    "no": 1,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5728,
+    "ev": -0.141,
+    "name": "Royal Diplomat",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3153,
+    "ev": 0.104,
+    "name": "Royal Diplomat",
+    "no": 4,
+    "price": 3.5
+   }
+  },
+  "late_at_mel": "17:56:22",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194790",
+  "race": 8,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 17:57"
+ },
+ "5194813/1": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.1962,
+    "ev": -0.28,
+    "name": "Better Than Words",
+    "no": 6,
+    "place_price": 3.6,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.3855,
+    "ev": -0.171,
+    "name": "Shipping Lane",
+    "no": 5,
+    "price": 2.15
+   },
+   "win": {
+    "chance": 0.1989,
+    "ev": -0.165,
+    "name": "Shipping Lane",
+    "no": 5,
+    "price": 4.2
+   }
+  },
+  "early_at_mel": "13:16:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "2": 2,
+   "3": 3,
+   "5": 4,
+   "6": 6,
+   "7": 1
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3095,
+    "ev": -0.137,
+    "name": "Cobbo",
+    "no": 1,
+    "place_price": 2.7,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.4793,
+    "ev": -0.171,
+    "name": "Too Many Kisses",
+    "no": 7,
+    "price": 1.73
+   },
+   "win": {
+    "chance": 0.1378,
+    "ev": -0.104,
+    "name": "Blue Allure",
+    "no": 3,
+    "price": 6.5
+   }
+  },
+  "late_at_mel": "13:41:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.73,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 1,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 13:42"
+ },
+ "5194813/2": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4094,
+    "ev": -0.206,
+    "name": "Our Last Chance",
+    "no": 9,
+    "place_price": 1.95,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5566,
+    "ev": -0.148,
+    "name": "Figo",
+    "no": 2,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2387,
+    "ev": -0.141,
+    "name": "Figo",
+    "no": 2,
+    "price": 3.6
+   }
+  },
+  "early_at_mel": "13:56:22",
+  "early_back": {
+   "each_way": 0.975,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "10": 2,
+   "2": 4,
+   "3": 7,
+   "4": 8,
+   "5": 5,
+   "7": 9,
+   "8": 1,
+   "9": 3
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4477,
+    "ev": -0.118,
+    "name": "Early Edition",
+    "no": 1,
+    "place_price": 1.91,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5485,
+    "ev": -0.139,
+    "name": "Figo",
+    "no": 2,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.2326,
+    "ev": -0.07,
+    "name": "Figo",
+    "no": 2,
+    "price": 4.0
+   }
+  },
+  "late_at_mel": "14:21:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 2,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 14:22"
+ },
+ "5194813/3": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3227,
+    "ev": -0.206,
+    "name": "Melo Melo Kava",
+    "no": 6,
+    "place_price": 2.4,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6415,
+    "ev": -0.102,
+    "name": "Miss Moneypenny",
+    "no": 4,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.4009,
+    "ev": -0.118,
+    "name": "Miss Moneypenny",
+    "no": 4,
+    "price": 2.2
+   }
+  },
+  "early_at_mel": "14:36:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "2": 4,
+   "3": 1,
+   "4": 2,
+   "5": 5,
+   "6": 3,
+   "7": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2723,
+    "ev": -0.233,
+    "name": "Melo Melo Kava",
+    "no": 6,
+    "place_price": 2.8,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6624,
+    "ev": -0.119,
+    "name": "Miss Moneypenny",
+    "no": 4,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.4224,
+    "ev": -0.113,
+    "name": "Miss Moneypenny",
+    "no": 4,
+    "price": 2.1
+   }
+  },
+  "late_at_mel": "15:01:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 3,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 15:02"
+ },
+ "5194813/4": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3205,
+    "ev": -0.19,
+    "name": "Hot Torque Invegas",
+    "no": 5,
+    "place_price": 2.5,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.3598,
+    "ev": -0.172,
+    "name": "Proof Of Purchase",
+    "no": 3,
+    "price": 2.3
+   },
+   "win": {
+    "chance": 0.1897,
+    "ev": -0.165,
+    "name": "Proof Of Purchase",
+    "no": 3,
+    "price": 4.4
+   }
+  },
+  "early_at_mel": "15:16:23",
+  "early_back": {
+   "each_way": 3.75,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "2": 2,
+   "3": 3,
+   "4": 5,
+   "5": 1,
+   "6": 7,
+   "7": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.329,
+    "ev": -0.183,
+    "name": "Proof Of Purchase",
+    "no": 3,
+    "place_price": 2.4,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.3691,
+    "ev": -0.151,
+    "name": "Hot Torque Invegas",
+    "no": 5,
+    "price": 2.3
+   },
+   "win": {
+    "chance": 0.1956,
+    "ev": -0.139,
+    "name": "Hot Torque Invegas",
+    "no": 5,
+    "price": 4.4
+   }
+  },
+  "late_at_mel": "15:41:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 2.3,
+   "win": 4.4
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 4,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:42"
+ },
+ "5194813/5": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4857,
+    "ev": -0.216,
+    "name": "Sailor's Rum",
+    "no": 8,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7641,
+    "ev": -0.083,
+    "name": "Woodstock Rock",
+    "no": 6,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3863,
+    "ev": -0.131,
+    "name": "Woodstock Rock",
+    "no": 6,
+    "price": 2.25
+   }
+  },
+  "early_at_mel": "15:57:22",
+  "early_back": {
+   "each_way": 3.335,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 7,
+   "2": 8,
+   "4": 5,
+   "5": 4,
+   "6": 2,
+   "7": 6,
+   "8": 1
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5184,
+    "ev": -0.187,
+    "name": "Sailor's Rum",
+    "no": 8,
+    "place_price": 1.57,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7443,
+    "ev": -0.07,
+    "name": "Woodstock Rock",
+    "no": 6,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.2714,
+    "ev": -0.132,
+    "name": "Sunnycoast",
+    "no": 2,
+    "price": 3.2
+   }
+  },
+  "late_at_mel": "16:22:23",
+  "late_back": {
+   "each_way": 3.285,
+   "place": 1.25,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 5,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 16:23"
+ },
+ "5194813/6": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2571,
+    "ev": -0.269,
+    "name": "June",
+    "no": 9,
+    "place_price": 2.8,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6865,
+    "ev": -0.108,
+    "name": "Red Hot Lizzie",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.4268,
+    "ev": -0.125,
+    "name": "Red Hot Lizzie",
+    "no": 1,
+    "price": 2.05
+   }
+  },
+  "early_at_mel": "16:36:22",
+  "early_back": {
+   "each_way": 1.4,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "11": 4,
+   "5": 1,
+   "6": 5,
+   "7": 7,
+   "8": 3,
+   "9": 2
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2783,
+    "ev": -0.228,
+    "name": "June",
+    "no": 9,
+    "place_price": 2.75,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6555,
+    "ev": -0.128,
+    "name": "Red Hot Lizzie",
+    "no": 1,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.4025,
+    "ev": -0.114,
+    "name": "Red Hot Lizzie",
+    "no": 1,
+    "price": 2.2
+   }
+  },
+  "late_at_mel": "17:01:22",
+  "late_back": {
+   "each_way": 1.375,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 6,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 17:02"
+ },
+ "5194813/7": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.3705,
+    "ev": -0.212,
+    "name": "Agnar",
+    "no": 2,
+    "place_price": 2.15,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6508,
+    "ev": -0.134,
+    "name": "Heroic Talent",
+    "no": 4,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3135,
+    "ev": -0.122,
+    "name": "Heroic Talent",
+    "no": 4,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "17:16:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 8,
+   "10": 9,
+   "11": 2,
+   "12": 12,
+   "2": 4,
+   "3": 10,
+   "4": 3,
+   "5": 11,
+   "6": 1,
+   "7": 7,
+   "8": 5,
+   "9": 6
+  },
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.3959,
+    "ev": -0.214,
+    "name": "Pampuni",
+    "no": 11,
+    "place_price": 1.95,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.712,
+    "ev": -0.074,
+    "name": "Heroic Talent",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.358,
+    "ev": -0.105,
+    "name": "Heroic Talent",
+    "no": 4,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "17:41:22",
+  "late_back": {
+   "each_way": 0.975,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5194813",
+  "race": 7,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 17:42"
+ },
+ "5195435/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.2901,
+    "ev": -0.292,
+    "name": "Crescendoed",
+    "no": 5,
+    "place_price": 2.4,
+    "price": 11.0
+   },
+   "place": {
+    "chance": 0.7051,
+    "ev": -0.083,
+    "name": "Ghost Gum",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.2966,
+    "ev": -0.11,
+    "name": "Ghost Gum",
+    "no": 1,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "12:26:11",
+  "early_back": {
+   "each_way": 1.2,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 5,
+   "2": 2,
+   "3": 6,
+   "4": 7,
+   "5": 3,
+   "6": 8,
+   "7": 1,
+   "8": 4
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.2671,
+    "ev": -0.223,
+    "name": "Crescendoed",
+    "no": 5,
+    "place_price": 2.8,
+    "price": 14.0
+   },
+   "place": {
+    "chance": 0.7434,
+    "ev": -0.108,
+    "name": "Ghost Gum",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.2509,
+    "ev": -0.122,
+    "name": "Katsuko",
+    "no": 2,
+    "price": 3.5
+   }
+  },
+  "late_at_mel": "12:51:22",
+  "late_back": {
+   "each_way": 1.4,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 1,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 12:52"
+ },
+ "5195435/10": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4724,
+    "ev": -0.17,
+    "name": "Amuseantes",
+    "no": 12,
+    "place_price": 1.75,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7717,
+    "ev": -0.035,
+    "name": "Ten Deep",
+    "no": 7,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4158,
+    "ev": -0.065,
+    "name": "Ten Deep",
+    "no": 7,
+    "price": 2.25
+   }
+  },
+  "early_at_mel": "18:11:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "11": 4,
+   "12": 8,
+   "13": 9,
+   "2": 3,
+   "4": 5,
+   "5": 6,
+   "6": 1,
+   "7": 2,
+   "8": 7
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4841,
+    "ev": -0.164,
+    "name": "Amuseantes",
+    "no": 12,
+    "place_price": 1.73,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.8787,
+    "ev": -0.033,
+    "name": "Ten Deep",
+    "no": 7,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.5532,
+    "ev": -0.059,
+    "name": "Ten Deep",
+    "no": 7,
+    "price": 1.7
+   }
+  },
+  "late_at_mel": "18:36:33",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.1,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.4,
+  "meet": "5195435",
+  "race": 10,
+  "snapshots": 87,
+  "start_mel": "2026-10-31 18:37"
+ },
+ "5195435/2": {
+  "early": {
+   "_field": 4,
+   "win": {
+    "chance": 0.5286,
+    "ev": -0.075,
+    "name": "Win Star",
+    "no": 1,
+    "price": 1.75
+   }
+  },
+  "early_at_mel": "13:06:22",
+  "early_back": {
+   "each_way": null,
+   "place": null,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "2": 1,
+   "5": 4,
+   "6": 3
+  },
+  "late": {
+   "_field": 4,
+   "win": {
+    "chance": 0.4429,
+    "ev": -0.048,
+    "name": "Win Star",
+    "no": 1,
+    "price": 2.15
+   }
+  },
+  "late_at_mel": "13:31:22",
+  "late_back": {
+   "each_way": null,
+   "place": null,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 2,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:32"
+ },
+ "5195435/3": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4664,
+    "ev": -0.142,
+    "name": "Thinkhardandfast",
+    "no": 9,
+    "place_price": 1.8,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.4664,
+    "ev": -0.161,
+    "name": "Thinkhardandfast",
+    "no": 9,
+    "price": 1.8
+   },
+   "win": {
+    "chance": 0.1755,
+    "ev": -0.123,
+    "name": "Thinkhardandfast",
+    "no": 9,
+    "price": 5.0
+   }
+  },
+  "early_at_mel": "13:46:22",
+  "early_back": {
+   "each_way": 3.4,
+   "place": 1.8,
+   "win": 5.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 4,
+   "10": 6,
+   "2": 5,
+   "4": 8,
+   "5": 9,
+   "6": 2,
+   "7": 3,
+   "8": 7,
+   "9": 1
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4503,
+    "ev": -0.124,
+    "name": "Thinkhardandfast",
+    "no": 9,
+    "place_price": 1.91,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5244,
+    "ev": -0.124,
+    "name": "Awaygoesthebunny",
+    "no": 6,
+    "price": 1.67
+   },
+   "win": {
+    "chance": 0.1623,
+    "ev": -0.107,
+    "name": "Thinkhardandfast",
+    "no": 9,
+    "price": 5.5
+   }
+  },
+  "late_at_mel": "14:11:22",
+  "late_back": {
+   "each_way": 3.705,
+   "place": 1.67,
+   "win": 5.5
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 3,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 14:12"
+ },
+ "5195435/4": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4057,
+    "ev": -0.097,
+    "name": "Millennium Blade",
+    "no": 5,
+    "place_price": 2.3,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.8517,
+    "ev": 0.065,
+    "name": "Cardonette",
+    "no": 11,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.5076,
+    "ev": 0.041,
+    "name": "Cardonette",
+    "no": 11,
+    "price": 2.05
+   }
+  },
+  "early_at_mel": "14:26:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 2.05
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 8,
+   "11": 1,
+   "14": 5,
+   "15": 3,
+   "16": 12,
+   "19": 7,
+   "2": 4,
+   "20": 11,
+   "21": 2,
+   "3": 10,
+   "5": 6,
+   "6": 9
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.5356,
+    "ev": 0.038,
+    "name": "Il Fratello",
+    "no": 10,
+    "place_price": 2.0,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.8993,
+    "ev": 0.052,
+    "name": "Cardonette",
+    "no": 11,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.5869,
+    "ev": 0.027,
+    "name": "Cardonette",
+    "no": 11,
+    "price": 1.75
+   }
+  },
+  "late_at_mel": "14:51:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.17,
+   "win": 1.75
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 4,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 14:52"
+ },
+ "5195435/5": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3062,
+    "ev": -0.282,
+    "name": "O'reillys Flight",
+    "no": 4,
+    "place_price": 2.38,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.734,
+    "ev": -0.046,
+    "name": "Kickup Rocky",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3444,
+    "ev": -0.105,
+    "name": "Kickup Rocky",
+    "no": 1,
+    "price": 2.6
+   }
+  },
+  "early_at_mel": "15:06:22",
+  "early_back": {
+   "each_way": 1.19,
+   "place": 1.3,
+   "win": 2.6
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "2": 5,
+   "3": 6,
+   "4": 3,
+   "5": 8,
+   "6": 7,
+   "7": 4,
+   "8": 9,
+   "9": 2
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.229,
+    "ev": -0.314,
+    "name": "O'reillys Flight",
+    "no": 4,
+    "place_price": 3.0,
+    "price": 15.0
+   },
+   "place": {
+    "chance": 0.7695,
+    "ev": -0.038,
+    "name": "Kickup Rocky",
+    "no": 1,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3651,
+    "ev": -0.087,
+    "name": "Kickup Rocky",
+    "no": 1,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "15:31:22",
+  "late_back": {
+   "each_way": 1.5,
+   "place": 1.25,
+   "win": 2.5
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 5,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 15:32"
+ },
+ "5195435/6": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4813,
+    "ev": -0.157,
+    "name": "Vintage Vibes",
+    "no": 15,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5851,
+    "ev": -0.122,
+    "name": "Scheherazade",
+    "no": 6,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2371,
+    "ev": -0.099,
+    "name": "True Amor",
+    "no": 1,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "15:46:22",
+  "early_back": {
+   "each_way": 3.365,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 11,
+   "13": 4,
+   "15": 1,
+   "16": 12,
+   "18": 5,
+   "19": 10,
+   "3": 7,
+   "5": 8,
+   "6": 2,
+   "7": 9,
+   "8": 6
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4653,
+    "ev": -0.176,
+    "name": "Vintage Vibes",
+    "no": 15,
+    "place_price": 1.75,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6163,
+    "ev": -0.137,
+    "name": "Scheherazade",
+    "no": 6,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2499,
+    "ev": -0.1,
+    "name": "Scheherazade",
+    "no": 6,
+    "price": 3.6
+   }
+  },
+  "late_at_mel": "16:11:22",
+  "late_back": {
+   "each_way": 3.625,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 6,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 16:12"
+ },
+ "5195435/7": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3555,
+    "ev": -0.217,
+    "name": "Headhunter",
+    "no": 11,
+    "place_price": 2.15,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6248,
+    "ev": -0.125,
+    "name": "Toro Strike",
+    "no": 9,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2743,
+    "ev": -0.095,
+    "name": "Toro Strike",
+    "no": 9,
+    "price": 3.3
+   }
+  },
+  "early_at_mel": "16:26:22",
+  "early_back": {
+   "each_way": 1.075,
+   "place": 1.4,
+   "win": 3.3
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 9,
+   "11": 2,
+   "12": 7,
+   "14": 5,
+   "15": 6,
+   "2": 10,
+   "6": 8,
+   "7": 3,
+   "8": 4,
+   "9": 1
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.2578,
+    "ev": -0.221,
+    "name": "Fire And Light",
+    "no": 10,
+    "place_price": 3.0,
+    "price": 12.0
+   },
+   "place": {
+    "chance": 0.6709,
+    "ev": -0.108,
+    "name": "Duke Of Camden",
+    "no": 8,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3102,
+    "ev": -0.069,
+    "name": "Duke Of Camden",
+    "no": 8,
+    "price": 3.0
+   }
+  },
+  "late_at_mel": "16:51:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 7,
+  "snapshots": 97,
+  "start_mel": "2026-10-31 16:52"
+ },
+ "5195435/8": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4277,
+    "ev": -0.176,
+    "name": "Last Command",
+    "no": 5,
+    "place_price": 1.91,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5399,
+    "ev": -0.152,
+    "name": "Atmosphere",
+    "no": 3,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.2219,
+    "ev": -0.112,
+    "name": "Atmosphere",
+    "no": 3,
+    "price": 4.0
+   }
+  },
+  "early_at_mel": "17:06:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 4.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 8,
+   "10": 6,
+   "11": 10,
+   "2": 2,
+   "3": 1,
+   "4": 4,
+   "5": 5,
+   "6": 9,
+   "7": 7,
+   "9": 3
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4787,
+    "ev": -0.173,
+    "name": "Bluepinot",
+    "no": 7,
+    "place_price": 1.7,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6769,
+    "ev": -0.12,
+    "name": "Atmosphere",
+    "no": 3,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3223,
+    "ev": -0.097,
+    "name": "Atmosphere",
+    "no": 3,
+    "price": 2.8
+   }
+  },
+  "late_at_mel": "17:31:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 2.8
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 8,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 17:32"
+ },
+ "5195435/9": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3863,
+    "ev": -0.187,
+    "name": "Fleetwood",
+    "no": 3,
+    "place_price": 2.1,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6801,
+    "ev": -0.095,
+    "name": "Now Is The Hour",
+    "no": 10,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3397,
+    "ev": -0.049,
+    "name": "Now Is The Hour",
+    "no": 10,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "17:41:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 2.8
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 11,
+   "10": 1,
+   "12": 4,
+   "2": 3,
+   "3": 8,
+   "4": 10,
+   "5": 5,
+   "6": 7,
+   "7": 9,
+   "8": 6,
+   "9": 2
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3876,
+    "ev": -0.191,
+    "name": "Fleetwood",
+    "no": 3,
+    "place_price": 2.1,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.7761,
+    "ev": -0.069,
+    "name": "Now Is The Hour",
+    "no": 10,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4357,
+    "ev": -0.041,
+    "name": "Now Is The Hour",
+    "no": 10,
+    "price": 2.2
+   }
+  },
+  "late_at_mel": "18:06:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.2
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195435",
+  "race": 9,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 18:07"
+ },
+ "5195786/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5118,
+    "ev": 0.184,
+    "name": "Fantasy Reel",
+    "no": 3,
+    "place_price": 2.15,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6672,
+    "ev": 0.047,
+    "name": "Champagne Sabre",
+    "no": 2,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.2811,
+    "ev": 0.293,
+    "name": "Champagne Sabre",
+    "no": 2,
+    "price": 4.6
+   }
+  },
+  "early_at_mel": "13:00:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "11": 5,
+   "12": 9,
+   "2": 4,
+   "3": 8,
+   "5": 10,
+   "6": 3,
+   "7": 2,
+   "8": 7,
+   "9": 6
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5134,
+    "ev": 0.27,
+    "name": "Fantasy Reel",
+    "no": 3,
+    "place_price": 2.2,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.696,
+    "ev": 0.065,
+    "name": "Cashemcowboy",
+    "no": 1,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2351,
+    "ev": 0.411,
+    "name": "Champagne Sabre",
+    "no": 2,
+    "price": 6.0
+   }
+  },
+  "late_at_mel": "13:25:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 1,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 13:26"
+ },
+ "5195786/2": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3892,
+    "ev": -0.215,
+    "name": "Peace Seeker",
+    "no": 9,
+    "place_price": 2.05,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.7077,
+    "ev": -0.08,
+    "name": "Back Up Barbie",
+    "no": 6,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.327,
+    "ev": -0.15,
+    "name": "Back Up Barbie",
+    "no": 6,
+    "price": 2.6
+   }
+  },
+  "early_at_mel": "13:40:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 2.6
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "10": 3,
+   "11": 10,
+   "2": 6,
+   "3": 5,
+   "4": 9,
+   "5": 7,
+   "6": 1,
+   "7": 4,
+   "9": 8
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3569,
+    "ev": -0.235,
+    "name": "Peace Seeker",
+    "no": 9,
+    "place_price": 2.15,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.7631,
+    "ev": -0.084,
+    "name": "Back Up Barbie",
+    "no": 6,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.371,
+    "ev": -0.11,
+    "name": "Back Up Barbie",
+    "no": 6,
+    "price": 2.4
+   }
+  },
+  "late_at_mel": "14:05:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.4
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 2,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:06"
+ },
+ "5195786/3": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4457,
+    "ev": -0.281,
+    "name": "Starseatic",
+    "no": 9,
+    "place_price": 1.73,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.9346,
+    "ev": -0.028,
+    "name": "Villa Grande",
+    "no": 10,
+    "price": 1.04
+   },
+   "win": {
+    "chance": 0.5952,
+    "ev": -0.107,
+    "name": "Villa Grande",
+    "no": 10,
+    "price": 1.5
+   }
+  },
+  "early_at_mel": "14:20:22",
+  "early_back": {
+   "each_way": 0.865,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 5,
+   "11": 10,
+   "12": 6,
+   "2": 9,
+   "3": 4,
+   "4": 2,
+   "5": 1,
+   "6": 8,
+   "9": 3
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5954,
+    "ev": -0.151,
+    "name": "Starseatic",
+    "no": 9,
+    "place_price": 1.5,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.9306,
+    "ev": -0.023,
+    "name": "Villa Grande",
+    "no": 10,
+    "price": 1.05
+   },
+   "win": {
+    "chance": 0.5847,
+    "ev": -0.094,
+    "name": "Villa Grande",
+    "no": 10,
+    "price": 1.55
+   }
+  },
+  "late_at_mel": "14:45:22",
+  "late_back": {
+   "each_way": 0.75,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 3,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:46"
+ },
+ "5195786/4": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4747,
+    "ev": -0.203,
+    "name": "Abby's Crossword",
+    "no": 7,
+    "place_price": 1.7,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7308,
+    "ev": -0.05,
+    "name": "Money Honey",
+    "no": 8,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3691,
+    "ev": -0.114,
+    "name": "Money Honey",
+    "no": 8,
+    "price": 2.4
+   }
+  },
+  "early_at_mel": "15:00:22",
+  "early_back": {
+   "each_way": 0.85,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 6,
+   "11": 8,
+   "2": 7,
+   "3": 10,
+   "4": 1,
+   "5": 9,
+   "6": 5,
+   "7": 2,
+   "8": 4
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3675,
+    "ev": -0.184,
+    "name": "Becauseyou're Mine",
+    "no": 4,
+    "place_price": 2.2,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.7423,
+    "ev": -0.035,
+    "name": "Money Honey",
+    "no": 8,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3753,
+    "ev": -0.062,
+    "name": "Money Honey",
+    "no": 8,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "15:25:22",
+  "late_back": {
+   "each_way": 5.1,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 4,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 15:26"
+ },
+ "5195786/5": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4751,
+    "ev": -0.201,
+    "name": "Triomphe",
+    "no": 2,
+    "place_price": 1.7,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6635,
+    "ev": -0.118,
+    "name": "Runway Ruler",
+    "no": 4,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.2943,
+    "ev": -0.147,
+    "name": "Runway Ruler",
+    "no": 4,
+    "price": 2.9
+   }
+  },
+  "early_at_mel": "15:40:22",
+  "early_back": {
+   "each_way": 0.85,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "10": 2,
+   "2": 3,
+   "3": 1,
+   "4": 4,
+   "6": 6,
+   "7": 5,
+   "8": 8,
+   "9": 7
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4717,
+    "ev": -0.18,
+    "name": "Triomphe",
+    "no": 2,
+    "place_price": 1.73,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7001,
+    "ev": -0.09,
+    "name": "Runway Ruler",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3195,
+    "ev": -0.137,
+    "name": "Runway Ruler",
+    "no": 4,
+    "price": 2.7
+   }
+  },
+  "late_at_mel": "16:05:22",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 5,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 16:06"
+ },
+ "5195786/6": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4707,
+    "ev": -0.163,
+    "name": "Omnic",
+    "no": 9,
+    "place_price": 1.8,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6192,
+    "ev": -0.071,
+    "name": "Aftermath",
+    "no": 1,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2704,
+    "ev": -0.135,
+    "name": "Aftermath",
+    "no": 1,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "16:20:22",
+  "early_back": {
+   "each_way": 0.9,
+   "place": 1.5,
+   "win": 3.2
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 8,
+   "11": 7,
+   "2": 6,
+   "3": 5,
+   "4": 2,
+   "6": 4,
+   "8": 9,
+   "9": 3
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4471,
+    "ev": -0.163,
+    "name": "Omnic",
+    "no": 9,
+    "place_price": 1.88,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.627,
+    "ev": -0.122,
+    "name": "Aftermath",
+    "no": 1,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2758,
+    "ev": -0.117,
+    "name": "Aftermath",
+    "no": 1,
+    "price": 3.2
+   }
+  },
+  "late_at_mel": "16:45:22",
+  "late_back": {
+   "each_way": 0.94,
+   "place": 1.4,
+   "win": 3.2
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 6,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 16:46"
+ },
+ "5195786/7": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4023,
+    "ev": -0.162,
+    "name": "Semper Fortis",
+    "no": 4,
+    "place_price": 2.1,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5545,
+    "ev": -0.152,
+    "name": "Princess Sakiko",
+    "no": 8,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2346,
+    "ev": -0.155,
+    "name": "Princess Sakiko",
+    "no": 8,
+    "price": 3.6
+   }
+  },
+  "early_at_mel": "17:00:22",
+  "early_back": {
+   "each_way": 1.05,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 10,
+   "10": 1,
+   "2": 6,
+   "3": 9,
+   "4": 3,
+   "5": 8,
+   "6": 7,
+   "7": 4,
+   "8": 2,
+   "9": 5
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3619,
+    "ev": -0.209,
+    "name": "Amphactor",
+    "no": 6,
+    "place_price": 2.15,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.5714,
+    "ev": -0.143,
+    "name": "Princess Sakiko",
+    "no": 8,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.241,
+    "ev": -0.108,
+    "name": "Princess Sakiko",
+    "no": 8,
+    "price": 3.7
+   }
+  },
+  "late_at_mel": "17:25:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195786",
+  "race": 7,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 17:26"
+ },
+ "5195788/1": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2484,
+    "ev": -0.444,
+    "name": "Expanding Power",
+    "no": 6,
+    "place_price": 1.73,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6961,
+    "ev": -0.234,
+    "name": "Castelli In Aria",
+    "no": 5,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.3464,
+    "ev": -0.151,
+    "name": "Pinazaki",
+    "no": 10,
+    "price": 2.45
+   }
+  },
+  "early_at_mel": "12:50:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.1,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 2,
+   "11": 8,
+   "12": 9,
+   "13": 10,
+   "3": 6,
+   "5": 1,
+   "6": 3,
+   "8": 4,
+   "9": 5
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2579,
+    "ev": -0.397,
+    "name": "Expanding Power",
+    "no": 6,
+    "place_price": 1.75,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.7289,
+    "ev": -0.198,
+    "name": "Castelli In Aria",
+    "no": 5,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.4502,
+    "ev": -0.1,
+    "name": "Castelli In Aria",
+    "no": 5,
+    "price": 2.0
+   }
+  },
+  "late_at_mel": "13:15:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.1,
+   "win": 2.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 1,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 13:16"
+ },
+ "5195788/2": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4943,
+    "ev": -0.077,
+    "name": "Zouie",
+    "no": 8,
+    "place_price": 1.91,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6745,
+    "ev": -0.056,
+    "name": "Satoshi",
+    "no": 10,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2961,
+    "ev": -0.023,
+    "name": "Satoshi",
+    "no": 10,
+    "price": 3.3
+   }
+  },
+  "early_at_mel": "13:30:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.3
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "10": 1,
+   "12": 3,
+   "13": 6,
+   "14": 2,
+   "15": 8,
+   "3": 4,
+   "5": 12,
+   "6": 11,
+   "7": 10,
+   "8": 9,
+   "9": 7
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4536,
+    "ev": -0.075,
+    "name": "The Destroyer",
+    "no": 12,
+    "place_price": 2.05,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6764,
+    "ev": -0.053,
+    "name": "Satoshi",
+    "no": 10,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2965,
+    "ev": 0.008,
+    "name": "Satoshi",
+    "no": 10,
+    "price": 3.4
+   }
+  },
+  "late_at_mel": "13:55:22",
+  "late_back": {
+   "each_way": 1.025,
+   "place": 1.4,
+   "win": 3.4
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 2,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:56"
+ },
+ "5195788/3": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3846,
+    "ev": -0.226,
+    "name": "Shuwaib",
+    "no": 4,
+    "place_price": 2.0,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6366,
+    "ev": -0.109,
+    "name": "Top Liner",
+    "no": 9,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2839,
+    "ev": -0.12,
+    "name": "Top Liner",
+    "no": 9,
+    "price": 3.1
+   }
+  },
+  "early_at_mel": "14:10:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.1
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 12,
+   "12": 5,
+   "13": 6,
+   "2": 7,
+   "3": 11,
+   "4": 4,
+   "5": 9,
+   "6": 2,
+   "7": 10,
+   "8": 8,
+   "9": 1
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3457,
+    "ev": -0.19,
+    "name": "Vadar",
+    "no": 6,
+    "place_price": 2.3,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.62,
+    "ev": -0.132,
+    "name": "Top Liner",
+    "no": 9,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2716,
+    "ev": -0.104,
+    "name": "Top Liner",
+    "no": 9,
+    "price": 3.3
+   }
+  },
+  "late_at_mel": "14:35:22",
+  "late_back": {
+   "each_way": 1.15,
+   "place": 1.4,
+   "win": 3.3
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 3,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 14:36"
+ },
+ "5195788/4": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.3276,
+    "ev": -0.224,
+    "name": "Avonview",
+    "no": 9,
+    "place_price": 2.38,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.5687,
+    "ev": -0.147,
+    "name": "Up And Under",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2477,
+    "ev": -0.158,
+    "name": "Up And Under",
+    "no": 4,
+    "price": 3.4
+   }
+  },
+  "early_at_mel": "14:50:22",
+  "early_minutes_out": 25.6,
+  "finish": null,
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.4659,
+    "ev": -0.164,
+    "name": "Spirit Angel",
+    "no": 12,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6134,
+    "ev": -0.141,
+    "name": "Up And Under",
+    "no": 4,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2812,
+    "ev": -0.1,
+    "name": "Up And Under",
+    "no": 4,
+    "price": 3.2
+   }
+  },
+  "late_at_mel": "15:15:22",
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 4,
+  "snapshots": 105,
+  "start_mel": "2026-10-31 15:16"
+ },
+ "5195788/5": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3255,
+    "ev": -0.243,
+    "name": "Headstock",
+    "no": 2,
+    "place_price": 2.38,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.5447,
+    "ev": -0.167,
+    "name": "Ze Bee Nine",
+    "no": 8,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2217,
+    "ev": -0.158,
+    "name": "Ze Bee Nine",
+    "no": 8,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "15:30:22",
+  "early_minutes_out": 25.6,
+  "finish": null,
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.2578,
+    "ev": -0.178,
+    "name": "Frederick",
+    "no": 3,
+    "place_price": 3.1,
+    "price": 12.0
+   },
+   "place": {
+    "chance": 0.5428,
+    "ev": -0.169,
+    "name": "Ze Bee Nine",
+    "no": 8,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2199,
+    "ev": -0.143,
+    "name": "Ze Bee Nine",
+    "no": 8,
+    "price": 3.9
+   }
+  },
+  "late_at_mel": "15:55:22",
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 5,
+  "snapshots": 76,
+  "start_mel": "2026-10-31 15:56"
+ },
+ "5195788/6": {
+  "finish": null,
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4543,
+    "ev": -0.202,
+    "name": "She Nailed It",
+    "no": 8,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5122,
+    "ev": -0.17,
+    "name": "Alpinova",
+    "no": 9,
+    "price": 1.62
+   },
+   "win": {
+    "chance": 0.1954,
+    "ev": -0.179,
+    "name": "Trinity's D'oro",
+    "no": 3,
+    "price": 4.2
+   }
+  },
+  "late_at_mel": "15:56:22",
+  "late_minutes_out": 40.6,
+  "meet": "5195788",
+  "race": 6,
+  "snapshots": 35,
+  "start_mel": "2026-10-31 16:37"
+ },
+ "5195788/7": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3693,
+    "ev": -0.271,
+    "name": "Stewart",
+    "no": 7,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6952,
+    "ev": -0.166,
+    "name": "Beau Strada",
+    "no": 8,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4521,
+    "ev": -0.051,
+    "name": "Beau Strada",
+    "no": 8,
+    "price": 2.1
+   }
+  },
+  "early_at_mel": "16:50:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 4,
+   "13": 6,
+   "14": 5,
+   "2": 1,
+   "5": 9,
+   "6": 2,
+   "7": 8,
+   "8": 3,
+   "9": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.348,
+    "ev": -0.213,
+    "name": "Stewart",
+    "no": 7,
+    "place_price": 1.8,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6833,
+    "ev": -0.18,
+    "name": "Beau Strada",
+    "no": 8,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4417,
+    "ev": -0.028,
+    "name": "Beau Strada",
+    "no": 8,
+    "price": 2.2
+   }
+  },
+  "late_at_mel": "17:15:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195788",
+  "race": 7,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 17:16"
+ },
+ "5195789/1": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4935,
+    "ev": -0.173,
+    "name": "High Falls",
+    "no": 3,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7176,
+    "ev": -0.067,
+    "name": "Unhinged",
+    "no": 2,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3481,
+    "ev": -0.06,
+    "name": "Unhinged",
+    "no": 2,
+    "price": 2.7
+   }
+  },
+  "early_at_mel": "11:54:12",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "10": 1,
+   "12": 9,
+   "2": 2,
+   "3": 7,
+   "4": 5,
+   "5": 4,
+   "6": 8,
+   "8": 6,
+   "9": 3
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4698,
+    "ev": -0.165,
+    "name": "Conquer The World",
+    "no": 9,
+    "place_price": 1.73,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6854,
+    "ev": -0.088,
+    "name": "Unhinged",
+    "no": 2,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3175,
+    "ev": -0.079,
+    "name": "Unhinged",
+    "no": 2,
+    "price": 2.9
+   }
+  },
+  "late_at_mel": "12:19:16",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.7,
+  "meet": "5195789",
+  "race": 1,
+  "snapshots": 71,
+  "start_mel": "2026-10-31 12:20"
+ },
+ "5195789/2": {
+  "early": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.3391,
+    "ev": -0.192,
+    "name": "I Am Aria",
+    "no": 2,
+    "place_price": 2.3,
+    "price": 9.0
+   },
+   "place": {
+    "chance": 0.7637,
+    "ev": -0.045,
+    "name": "Regal Ambition",
+    "no": 1,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4092,
+    "ev": -0.059,
+    "name": "Regal Ambition",
+    "no": 1,
+    "price": 2.3
+   }
+  },
+  "early_at_mel": "12:34:16",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 2.3
+  },
+  "early_minutes_out": 25.7,
+  "finish": {
+   "1": 1,
+   "10": 11,
+   "11": 13,
+   "12": 10,
+   "13": 12,
+   "2": 4,
+   "3": 3,
+   "4": 9,
+   "5": 2,
+   "6": 8,
+   "7": 6,
+   "8": 5,
+   "9": 7
+  },
+  "late": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.4254,
+    "ev": -0.164,
+    "name": "I Am Aria",
+    "no": 2,
+    "place_price": 1.91,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.667,
+    "ev": -0.113,
+    "name": "Regal Ambition",
+    "no": 1,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3201,
+    "ev": -0.072,
+    "name": "Regal Ambition",
+    "no": 1,
+    "price": 2.9
+   }
+  },
+  "late_at_mel": "12:59:27",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 2.9
+  },
+  "late_minutes_out": 0.5,
+  "meet": "5195789",
+  "race": 2,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 13:00"
+ },
+ "5195789/3": {
+  "early": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.4353,
+    "ev": -0.176,
+    "name": "Your Colour",
+    "no": 5,
+    "place_price": 1.88,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6462,
+    "ev": -0.095,
+    "name": "Icelady",
+    "no": 1,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3027,
+    "ev": -0.062,
+    "name": "Icelady",
+    "no": 1,
+    "price": 3.1
+   }
+  },
+  "early_at_mel": "13:14:30",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.5,
+  "finish": {
+   "1": 3,
+   "11": 9,
+   "12": 6,
+   "13": 17,
+   "14": 16,
+   "15": 13,
+   "16": 5,
+   "17": 10,
+   "18": 12,
+   "19": 2,
+   "2": 14,
+   "3": 1,
+   "4": 7,
+   "5": 11,
+   "6": 4,
+   "7": 15,
+   "9": 8
+  },
+  "late": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.4351,
+    "ev": -0.151,
+    "name": "Your Colour",
+    "no": 5,
+    "place_price": 1.91,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.582,
+    "ev": -0.11,
+    "name": "Icelady",
+    "no": 1,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2561,
+    "ev": -0.052,
+    "name": "De Armas",
+    "no": 3,
+    "price": 3.7
+   }
+  },
+  "late_at_mel": "13:39:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 3.7
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 3,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 13:40"
+ },
+ "5195789/4": {
+  "early": {
+   "_field": 19,
+   "each_way": {
+    "chance": 0.3508,
+    "ev": -0.174,
+    "name": "Sweynesday",
+    "no": 5,
+    "place_price": 2.25,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.4562,
+    "ev": -0.129,
+    "name": "Hankee Alpha",
+    "no": 20,
+    "price": 1.91
+   },
+   "win": {
+    "chance": 0.1971,
+    "ev": -0.054,
+    "name": "Hankee Alpha",
+    "no": 20,
+    "price": 4.8
+   }
+  },
+  "early_at_mel": "13:54:23",
+  "early_back": {
+   "each_way": 1.125,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 18,
+   "10": 9,
+   "11": 15,
+   "13": 17,
+   "14": 4,
+   "15": 12,
+   "16": 13,
+   "17": 11,
+   "18": 8,
+   "19": 5,
+   "2": 16,
+   "20": 10,
+   "3": 14,
+   "4": 1,
+   "5": 2,
+   "6": 19,
+   "7": 6,
+   "8": 3,
+   "9": 7
+  },
+  "late": {
+   "_field": 19,
+   "each_way": {
+    "chance": 0.4087,
+    "ev": -0.089,
+    "name": "Napoleonic",
+    "no": 2,
+    "place_price": 2.15,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4087,
+    "ev": -0.121,
+    "name": "Napoleonic",
+    "no": 2,
+    "price": 2.15
+   },
+   "win": {
+    "chance": 0.1716,
+    "ev": -0.056,
+    "name": "Napoleonic",
+    "no": 2,
+    "price": 5.5
+   }
+  },
+  "late_at_mel": "14:19:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 4,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 14:20"
+ },
+ "5195789/5": {
+  "early": {
+   "_field": 14,
+   "each_way": {
+    "chance": 0.4706,
+    "ev": 0.055,
+    "name": "Warnie",
+    "no": 5,
+    "place_price": 2.15,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4706,
+    "ev": 0.012,
+    "name": "Warnie",
+    "no": 5,
+    "price": 2.15
+   },
+   "win": {
+    "chance": 0.1998,
+    "ev": 0.099,
+    "name": "Warnie",
+    "no": 5,
+    "price": 5.5
+   }
+  },
+  "early_at_mel": "14:34:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 15,
+   "11": 7,
+   "12": 8,
+   "13": 4,
+   "14": 14,
+   "15": 3,
+   "16": 5,
+   "17": 12,
+   "18": 11,
+   "2": 1,
+   "4": 6,
+   "5": 9,
+   "6": 10,
+   "7": 2,
+   "8": 16,
+   "9": 13
+  },
+  "late": {
+   "_field": 14,
+   "each_way": {
+    "chance": 0.3637,
+    "ev": -0.074,
+    "name": "Persian Spirit",
+    "no": 12,
+    "place_price": 2.4,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.5738,
+    "ev": 0.004,
+    "name": "Warnie",
+    "no": 5,
+    "price": 1.75
+   },
+   "win": {
+    "chance": 0.272,
+    "ev": 0.088,
+    "name": "Warnie",
+    "no": 5,
+    "price": 4.0
+   }
+  },
+  "late_at_mel": "14:59:25",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 5,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 15:00"
+ },
+ "5195789/6": {
+  "early": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.4296,
+    "ev": -0.144,
+    "name": "Satono Glow",
+    "no": 13,
+    "place_price": 1.91,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6385,
+    "ev": -0.106,
+    "name": "The Next Episode",
+    "no": 1,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2054,
+    "ev": -0.076,
+    "name": "St Gotthard",
+    "no": 5,
+    "price": 4.5
+   }
+  },
+  "early_at_mel": "15:14:26",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 7,
+   "12": 9,
+   "13": 13,
+   "14": 5,
+   "2": 12,
+   "3": 6,
+   "4": 11,
+   "5": 2,
+   "6": 10,
+   "7": 4,
+   "8": 8,
+   "9": 3
+  },
+  "late": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.4332,
+    "ev": -0.135,
+    "name": "Satono Glow",
+    "no": 13,
+    "place_price": 1.91,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6392,
+    "ev": -0.041,
+    "name": "The Next Episode",
+    "no": 1,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2978,
+    "ev": -0.077,
+    "name": "The Next Episode",
+    "no": 1,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "15:39:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 3.1
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 6,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 15:40"
+ },
+ "5195789/7": {
+  "early": {
+   "_field": 15,
+   "each_way": {
+    "chance": 0.3904,
+    "ev": -0.087,
+    "name": "Cormier",
+    "no": 1,
+    "place_price": 2.3,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.4748,
+    "ev": -0.107,
+    "name": "Stormy Marco",
+    "no": 2,
+    "price": 1.88
+   },
+   "win": {
+    "chance": 0.2093,
+    "ev": -0.058,
+    "name": "Stormy Marco",
+    "no": 2,
+    "price": 4.5
+   }
+  },
+  "early_at_mel": "15:54:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.88,
+   "win": 4.5
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 14,
+   "12": 12,
+   "13": 11,
+   "14": 2,
+   "15": 15,
+   "16": 3,
+   "17": 16,
+   "2": 1,
+   "3": 5,
+   "4": 8,
+   "5": 4,
+   "6": 10,
+   "7": 13,
+   "8": 6,
+   "9": 9
+  },
+  "late": {
+   "_field": 15,
+   "each_way": {
+    "chance": 0.3516,
+    "ev": -0.098,
+    "name": "Cormier",
+    "no": 1,
+    "place_price": 2.5,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.4579,
+    "ev": -0.125,
+    "name": "Stormy Marco",
+    "no": 2,
+    "price": 1.91
+   },
+   "win": {
+    "chance": 0.1973,
+    "ev": -0.053,
+    "name": "Stormy Marco",
+    "no": 2,
+    "price": 4.8
+   }
+  },
+  "late_at_mel": "16:19:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.91,
+   "win": 4.8
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 7,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 16:20"
+ },
+ "5195789/8": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.4901,
+    "ev": -0.164,
+    "name": "Concord Connie",
+    "no": 10,
+    "place_price": 1.67,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7964,
+    "ev": -0.044,
+    "name": "Lady Shenandoah",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4399,
+    "ev": -0.076,
+    "name": "Lady Shenandoah",
+    "no": 1,
+    "price": 2.1
+   }
+  },
+  "early_at_mel": "16:34:23",
+  "early_back": {
+   "each_way": 0.835,
+   "place": 1.2,
+   "win": 2.1
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 2,
+   "11": 6,
+   "2": 3,
+   "3": 5,
+   "4": 7,
+   "5": 10,
+   "6": 101,
+   "7": 8,
+   "8": 9,
+   "9": 4
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.5134,
+    "ev": -0.157,
+    "name": "Surfin' Bird",
+    "no": 3,
+    "place_price": 1.57,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8608,
+    "ev": -0.053,
+    "name": "Lady Shenandoah",
+    "no": 1,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.5163,
+    "ev": -0.045,
+    "name": "Lady Shenandoah",
+    "no": 1,
+    "price": 1.85
+   }
+  },
+  "late_at_mel": "16:59:25",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.1,
+   "win": 1.85
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 8,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 17:00"
+ },
+ "5195789/9": {
+  "early": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.4109,
+    "ev": -0.106,
+    "name": "Bridal Waltz",
+    "no": 10,
+    "place_price": 2.15,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.7467,
+    "ev": -0.029,
+    "name": "Flying For Fun",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.4267,
+    "ev": -0.061,
+    "name": "Flying For Fun",
+    "no": 4,
+    "price": 2.2
+   }
+  },
+  "early_at_mel": "17:14:26",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 2.2
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "10": 16,
+   "11": 12,
+   "12": 8,
+   "13": 3,
+   "14": 10,
+   "15": 5,
+   "16": 9,
+   "17": 6,
+   "3": 4,
+   "4": 1,
+   "5": 11,
+   "6": 13,
+   "7": 7,
+   "8": 15,
+   "9": 14
+  },
+  "late": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.4247,
+    "ev": -0.127,
+    "name": "Bridal Waltz",
+    "no": 10,
+    "place_price": 2.05,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7463,
+    "ev": -0.03,
+    "name": "Flying For Fun",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.4243,
+    "ev": -0.024,
+    "name": "Flying For Fun",
+    "no": 4,
+    "price": 2.3
+   }
+  },
+  "late_at_mel": "17:39:24",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 2.3
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195789",
+  "race": 9,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 17:40"
+ },
+ "5195790/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3924,
+    "ev": -0.218,
+    "name": "Khan Capital",
+    "no": 4,
+    "place_price": 2.05,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.7205,
+    "ev": -0.063,
+    "name": "Path To Victory",
+    "no": 5,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3571,
+    "ev": -0.125,
+    "name": "Path To Victory",
+    "no": 5,
+    "price": 2.45
+   }
+  },
+  "early_at_mel": "12:40:11",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 2,
+   "2": 7,
+   "3": 6,
+   "4": 8,
+   "5": 5,
+   "6": 4,
+   "7": 3,
+   "8": 1
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4736,
+    "ev": -0.179,
+    "name": "Ruthless Soul",
+    "no": 8,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6741,
+    "ev": -0.104,
+    "name": "Path To Victory",
+    "no": 5,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3154,
+    "ev": -0.085,
+    "name": "Path To Victory",
+    "no": 5,
+    "price": 2.9
+   }
+  },
+  "late_at_mel": "13:05:22",
+  "late_back": {
+   "each_way": 3.375,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 1,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 13:06"
+ },
+ "5195790/2": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.327,
+    "ev": -0.329,
+    "name": "Water Mill",
+    "no": 4,
+    "place_price": 1.7,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5947,
+    "ev": -0.227,
+    "name": "Scorching Beauty",
+    "no": 8,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3677,
+    "ev": -0.117,
+    "name": "Scorching Beauty",
+    "no": 8,
+    "price": 2.4
+   }
+  },
+  "early_at_mel": "13:20:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "2": 2,
+   "3": 6,
+   "4": 3,
+   "6": 8,
+   "7": 4,
+   "8": 5,
+   "9": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2549,
+    "ev": -0.359,
+    "name": "Rapid Fury",
+    "no": 6,
+    "place_price": 1.95,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6427,
+    "ev": -0.197,
+    "name": "Scorching Beauty",
+    "no": 8,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.4095,
+    "ev": -0.038,
+    "name": "Scorching Beauty",
+    "no": 8,
+    "price": 2.35
+   }
+  },
+  "late_at_mel": "13:45:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 2,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 13:46"
+ },
+ "5195790/3": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2538,
+    "ev": -0.429,
+    "name": "Manhattan Darling",
+    "no": 3,
+    "place_price": 1.67,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6934,
+    "ev": -0.237,
+    "name": "Coco La Boss",
+    "no": 7,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.4275,
+    "ev": -0.145,
+    "name": "Coco La Boss",
+    "no": 7,
+    "price": 2.0
+   }
+  },
+  "early_at_mel": "14:00:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "2": 2,
+   "3": 3,
+   "5": 5,
+   "6": 1,
+   "7": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2489,
+    "ev": -0.396,
+    "name": "Manhattan Darling",
+    "no": 3,
+    "place_price": 1.75,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6333,
+    "ev": -0.24,
+    "name": "Coco La Boss",
+    "no": 7,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3676,
+    "ev": -0.081,
+    "name": "Coco La Boss",
+    "no": 7,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "14:25:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 3,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 14:26"
+ },
+ "5195790/4": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3016,
+    "ev": -0.345,
+    "name": "Raging Monkey",
+    "no": 7,
+    "place_price": 1.75,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5391,
+    "ev": -0.299,
+    "name": "Airclash",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3115,
+    "ev": -0.128,
+    "name": "Airclash",
+    "no": 1,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "14:40:22",
+  "early_back": {
+   "each_way": 0.875,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 4,
+   "2": 6,
+   "3": 3,
+   "4": 8,
+   "6": 1,
+   "7": 2,
+   "8": 7,
+   "9": 5
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.197,
+    "ev": -0.38,
+    "name": "Raging Monkey",
+    "no": 7,
+    "place_price": 2.38,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.6339,
+    "ev": -0.239,
+    "name": "Airclash",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3893,
+    "ev": -0.105,
+    "name": "Airclash",
+    "no": 1,
+    "price": 2.3
+   }
+  },
+  "late_at_mel": "15:05:22",
+  "late_back": {
+   "each_way": 1.19,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 4,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 15:06"
+ },
+ "5195790/5": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4311,
+    "ev": -0.215,
+    "name": "Discobay",
+    "no": 8,
+    "place_price": 1.88,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7846,
+    "ev": -0.058,
+    "name": "Dusty's Deel",
+    "no": 4,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.425,
+    "ev": -0.129,
+    "name": "Dusty's Deel",
+    "no": 4,
+    "price": 2.05
+   }
+  },
+  "early_at_mel": "15:21:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "2": 8,
+   "3": 6,
+   "4": 2,
+   "5": 1,
+   "6": 5,
+   "7": 7,
+   "8": 4
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.41,
+    "ev": -0.2,
+    "name": "Dubai Legend",
+    "no": 5,
+    "place_price": 2.0,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.8145,
+    "ev": -0.023,
+    "name": "Dusty's Deel",
+    "no": 4,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4577,
+    "ev": -0.085,
+    "name": "Dusty's Deel",
+    "no": 4,
+    "price": 2.0
+   }
+  },
+  "late_at_mel": "15:46:22",
+  "late_back": {
+   "each_way": 4.5,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 5,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:47"
+ },
+ "5195790/6": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.2864,
+    "ev": -0.274,
+    "name": "Paltinian",
+    "no": 8,
+    "place_price": 2.6,
+    "price": 11.0
+   },
+   "place": {
+    "chance": 0.7516,
+    "ev": -0.098,
+    "name": "Scalextrics",
+    "no": 4,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3509,
+    "ev": -0.14,
+    "name": "Scalextrics",
+    "no": 4,
+    "price": 2.45
+   }
+  },
+  "early_at_mel": "16:02:22",
+  "early_back": {
+   "each_way": 1.3,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "2": 5,
+   "3": 4,
+   "4": 2,
+   "5": 1,
+   "6": 8,
+   "7": 7,
+   "8": 3
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3182,
+    "ev": -0.261,
+    "name": "Mangione",
+    "no": 3,
+    "place_price": 2.38,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.7827,
+    "ev": -0.061,
+    "name": "Scalextrics",
+    "no": 4,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3999,
+    "ev": -0.12,
+    "name": "Scalextrics",
+    "no": 4,
+    "price": 2.2
+   }
+  },
+  "late_at_mel": "16:27:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 6,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 16:28"
+ },
+ "5195790/7": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3242,
+    "ev": -0.221,
+    "name": "Billie Bronx",
+    "no": 4,
+    "place_price": 1.95,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5479,
+    "ev": -0.233,
+    "name": "French Reign",
+    "no": 5,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3173,
+    "ev": -0.016,
+    "name": "French Reign",
+    "no": 5,
+    "price": 3.1
+   }
+  },
+  "early_at_mel": "16:41:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.1
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "10": 5,
+   "11": 6,
+   "2": 8,
+   "4": 3,
+   "5": 1,
+   "6": 7,
+   "7": 4
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3136,
+    "ev": -0.216,
+    "name": "Billie Bronx",
+    "no": 4,
+    "place_price": 2.0,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.5824,
+    "ev": -0.185,
+    "name": "French Reign",
+    "no": 5,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3421,
+    "ev": 0.026,
+    "name": "French Reign",
+    "no": 5,
+    "price": 3.0
+   }
+  },
+  "late_at_mel": "17:06:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5195790",
+  "race": 7,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 17:07"
+ },
+ "5196088/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5504,
+    "ev": -0.142,
+    "name": "Dark Looks",
+    "no": 2,
+    "place_price": 1.53,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.778,
+    "ev": -0.066,
+    "name": "I Love Ya Money",
+    "no": 3,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3797,
+    "ev": -0.089,
+    "name": "I Love Ya Money",
+    "no": 3,
+    "price": 2.4
+   }
+  },
+  "early_at_mel": "14:18:23",
+  "early_back": {
+   "each_way": 0.765,
+   "place": 1.2,
+   "win": 2.4
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "2": 2,
+   "3": 1,
+   "4": 7,
+   "5": 8,
+   "6": 5,
+   "7": 4,
+   "8": 3
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5028,
+    "ev": -0.151,
+    "name": "Dark Looks",
+    "no": 2,
+    "place_price": 1.67,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7375,
+    "ev": -0.078,
+    "name": "I Love Ya Money",
+    "no": 3,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3415,
+    "ev": -0.112,
+    "name": "I Love Ya Money",
+    "no": 3,
+    "price": 2.6
+   }
+  },
+  "late_at_mel": "14:43:23",
+  "late_back": {
+   "each_way": 0.835,
+   "place": 1.25,
+   "win": 2.6
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 1,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 14:44"
+ },
+ "5196088/2": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4687,
+    "ev": -0.242,
+    "name": "Street Band",
+    "no": 2,
+    "place_price": 1.67,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7754,
+    "ev": -0.069,
+    "name": "Linchpin",
+    "no": 5,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.379,
+    "ev": -0.109,
+    "name": "Linchpin",
+    "no": 5,
+    "price": 2.35
+   }
+  },
+  "early_at_mel": "14:58:23",
+  "early_back": {
+   "each_way": 0.835,
+   "place": 1.2,
+   "win": 2.35
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "10": 2,
+   "2": 3,
+   "3": 7,
+   "4": 6,
+   "5": 1,
+   "7": 8,
+   "9": 4
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3806,
+    "ev": -0.234,
+    "name": "Street Band",
+    "no": 2,
+    "place_price": 2.0,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.7142,
+    "ev": -0.071,
+    "name": "Linchpin",
+    "no": 5,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3234,
+    "ev": -0.094,
+    "name": "Linchpin",
+    "no": 5,
+    "price": 2.8
+   }
+  },
+  "late_at_mel": "15:23:23",
+  "late_back": {
+   "each_way": 1.0,
+   "place": 1.3,
+   "win": 2.8
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 2,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 15:24"
+ },
+ "5196088/3": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.4495,
+    "ev": -0.179,
+    "name": "Alaskan",
+    "no": 5,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5356,
+    "ev": -0.181,
+    "name": "I'm Nipote",
+    "no": 4,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2289,
+    "ev": -0.13,
+    "name": "I'm Nipote",
+    "no": 4,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "15:38:23",
+  "early_back": {
+   "each_way": 3.375,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "10": 7,
+   "11": 8,
+   "12": 6,
+   "2": 2,
+   "3": 11,
+   "4": 3,
+   "5": 1,
+   "6": 5,
+   "7": 12,
+   "8": 10,
+   "9": 4
+  },
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.3347,
+    "ev": -0.171,
+    "name": "Late Arrival",
+    "no": 1,
+    "place_price": 2.4,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.5026,
+    "ev": -0.146,
+    "name": "I'm Nipote",
+    "no": 4,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.2135,
+    "ev": -0.103,
+    "name": "I'm Nipote",
+    "no": 4,
+    "price": 4.2
+   }
+  },
+  "late_at_mel": "16:03:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.7,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 3,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 16:04"
+ },
+ "5196088/4": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3743,
+    "ev": -0.23,
+    "name": "Horcrux",
+    "no": 4,
+    "place_price": 2.05,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6724,
+    "ev": -0.106,
+    "name": "Like Clockwork",
+    "no": 9,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3071,
+    "ev": -0.109,
+    "name": "Like Clockwork",
+    "no": 9,
+    "price": 2.9
+   }
+  },
+  "early_at_mel": "16:22:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "2": 5,
+   "3": 8,
+   "4": 7,
+   "5": 6,
+   "6": 3,
+   "7": 2,
+   "8": 1,
+   "9": 4
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3404,
+    "ev": -0.249,
+    "name": "Horcrux",
+    "no": 4,
+    "place_price": 2.2,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.6964,
+    "ev": -0.095,
+    "name": "Like Clockwork",
+    "no": 9,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3276,
+    "ev": -0.083,
+    "name": "Like Clockwork",
+    "no": 9,
+    "price": 2.8
+   }
+  },
+  "late_at_mel": "16:47:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 4,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 16:48"
+ },
+ "5196088/5": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.2558,
+    "ev": -0.255,
+    "name": "Storm Away",
+    "no": 6,
+    "place_price": 3.0,
+    "price": 11.0
+   },
+   "place": {
+    "chance": 0.6917,
+    "ev": -0.101,
+    "name": "Anaconda Jones",
+    "no": 11,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3377,
+    "ev": -0.088,
+    "name": "Anaconda Jones",
+    "no": 11,
+    "price": 2.7
+   }
+  },
+  "early_at_mel": "16:58:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 4,
+   "11": 6,
+   "2": 8,
+   "3": 2,
+   "4": 5,
+   "5": 9,
+   "6": 7,
+   "7": 3,
+   "8": 10,
+   "9": 1
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.439,
+    "ev": -0.145,
+    "name": "Delzee",
+    "no": 7,
+    "place_price": 1.88,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6484,
+    "ev": -0.092,
+    "name": "Anaconda Jones",
+    "no": 11,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2959,
+    "ev": -0.083,
+    "name": "Anaconda Jones",
+    "no": 11,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "17:23:24",
+  "late_back": {
+   "each_way": 0.94,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 5,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 17:24"
+ },
+ "5196088/6": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3187,
+    "ev": -0.367,
+    "name": "Morning Thunder",
+    "no": 4,
+    "place_price": 1.57,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.8186,
+    "ev": -0.14,
+    "name": "Afireofgidgeecoals",
+    "no": 1,
+    "price": 1.05
+   },
+   "win": {
+    "chance": 0.5934,
+    "ev": -0.11,
+    "name": "Afireofgidgeecoals",
+    "no": 1,
+    "price": 1.5
+   }
+  },
+  "early_at_mel": "17:37:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.05,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "2": 5,
+   "4": 6,
+   "5": 1,
+   "6": 7,
+   "7": 3,
+   "9": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2944,
+    "ev": -0.398,
+    "name": "Morning Thunder",
+    "no": 4,
+    "place_price": 1.62,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.8577,
+    "ev": -0.099,
+    "name": "Afireofgidgeecoals",
+    "no": 1,
+    "price": 1.05
+   },
+   "win": {
+    "chance": 0.646,
+    "ev": -0.063,
+    "name": "Afireofgidgeecoals",
+    "no": 1,
+    "price": 1.45
+   }
+  },
+  "late_at_mel": "18:02:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.05,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196088",
+  "race": 6,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 18:03"
+ },
+ "5196088/7": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4406,
+    "ev": -0.23,
+    "name": "I Dreamed A Dream",
+    "no": 8,
+    "place_price": 1.75,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.8595,
+    "ev": -0.029,
+    "name": "Western Miss",
+    "no": 9,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.5325,
+    "ev": -0.068,
+    "name": "Western Miss",
+    "no": 9,
+    "price": 1.75
+   }
+  },
+  "early_at_mel": "18:15:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.13,
+   "win": 1.75
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "11": 8,
+   "12": 10,
+   "2": 3,
+   "3": 5,
+   "4": 6,
+   "5": 4,
+   "7": 2,
+   "8": 9,
+   "9": 1
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4833,
+    "ev": -0.215,
+    "name": "Decoration",
+    "no": 2,
+    "place_price": 1.67,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8843,
+    "ev": -0.027,
+    "name": "Western Miss",
+    "no": 9,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.5652,
+    "ev": -0.067,
+    "name": "Western Miss",
+    "no": 9,
+    "price": 1.65
+   }
+  },
+  "late_at_mel": "18:40:32",
+  "late_back": {
+   "each_way": 0.835,
+   "place": 1.1,
+   "win": 1.65
+  },
+  "late_minutes_out": 0.5,
+  "meet": "5196088",
+  "race": 7,
+  "snapshots": 89,
+  "start_mel": "2026-10-31 18:41"
+ },
+ "5196088/8": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4858,
+    "ev": -0.219,
+    "name": "Twisted Steel",
+    "no": 4,
+    "place_price": 1.57,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7477,
+    "ev": -0.103,
+    "name": "Immortal Bliss",
+    "no": 2,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3138,
+    "ev": -0.121,
+    "name": "Talkanco",
+    "no": 8,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "18:50:33",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.8
+  },
+  "early_minutes_out": 25.4,
+  "finish": {
+   "10": 10,
+   "11": 6,
+   "2": 2,
+   "3": 7,
+   "4": 4,
+   "5": 9,
+   "6": 5,
+   "7": 3,
+   "8": 1,
+   "9": 8
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4519,
+    "ev": -0.218,
+    "name": "Twisted Steel",
+    "no": 4,
+    "place_price": 1.7,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7426,
+    "ev": -0.109,
+    "name": "Immortal Bliss",
+    "no": 2,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.352,
+    "ev": -0.12,
+    "name": "Immortal Bliss",
+    "no": 2,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "18:59:00",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 17.0,
+  "meet": "5196088",
+  "race": 8,
+  "snapshots": 74,
+  "start_mel": "2026-10-31 19:16"
+ },
+ "5196088/9": {
+  "finish": {
+   "1": 3,
+   "10": 5,
+   "11": 4,
+   "2": 2,
+   "3": 9,
+   "4": 1,
+   "5": 10,
+   "6": 6,
+   "7": 8,
+   "8": 7,
+   "9": 11
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.4653,
+    "ev": -0.211,
+    "name": "Playin'it Sweet",
+    "no": 10,
+    "place_price": 1.67,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8211,
+    "ev": -0.039,
+    "name": "Hot And High",
+    "no": 4,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.4584,
+    "ev": -0.083,
+    "name": "Hot And High",
+    "no": 4,
+    "price": 2.0
+   }
+  },
+  "late_at_mel": "18:59:00",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.17,
+   "win": 2.0
+  },
+  "late_minutes_out": 52.0,
+  "meet": "5196088",
+  "race": 9,
+  "snapshots": 39,
+  "start_mel": "2026-10-31 19:51"
+ },
+ "5196315/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4361,
+    "ev": -0.168,
+    "name": "Agent Zero",
+    "no": 1,
+    "place_price": 1.88,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6426,
+    "ev": -0.1,
+    "name": "Donatello",
+    "no": 7,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2806,
+    "ev": -0.102,
+    "name": "Donatello",
+    "no": 7,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "11:44:12",
+  "early_back": {
+   "each_way": 3.94,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 1,
+   "2": 4,
+   "3": 5,
+   "4": 8,
+   "5": 3,
+   "6": 6,
+   "7": 2,
+   "9": 7
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4677,
+    "ev": -0.148,
+    "name": "Azarax",
+    "no": 3,
+    "place_price": 1.8,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6124,
+    "ev": -0.143,
+    "name": "Donatello",
+    "no": 7,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2534,
+    "ev": -0.113,
+    "name": "Donatello",
+    "no": 7,
+    "price": 3.5
+   }
+  },
+  "late_at_mel": "12:09:12",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.8,
+  "meet": "5196315",
+  "race": 1,
+  "snapshots": 66,
+  "start_mel": "2026-10-31 12:10"
+ },
+ "5196315/10": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3449,
+    "ev": -0.208,
+    "name": "Where'stheprofit",
+    "no": 4,
+    "place_price": 2.25,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.6021,
+    "ev": -0.097,
+    "name": "Whatalegacy",
+    "no": 8,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2525,
+    "ev": -0.091,
+    "name": "Whatalegacy",
+    "no": 8,
+    "price": 3.6
+   }
+  },
+  "early_at_mel": "17:29:26",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "12": 8,
+   "13": 5,
+   "14": 2,
+   "15": 1,
+   "4": 6,
+   "5": 4,
+   "6": 7,
+   "8": 3
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4383,
+    "ev": -0.188,
+    "name": "Somerton Smart",
+    "no": 14,
+    "place_price": 1.8,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.681,
+    "ev": -0.094,
+    "name": "Whatalegacy",
+    "no": 8,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3126,
+    "ev": -0.062,
+    "name": "Whatalegacy",
+    "no": 8,
+    "price": 3.0
+   }
+  },
+  "late_at_mel": "17:54:23",
+  "late_back": {
+   "each_way": 0.9,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 10,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 17:55"
+ },
+ "5196315/2": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3928,
+    "ev": -0.155,
+    "name": "Street Force",
+    "no": 16,
+    "place_price": 2.3,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.872,
+    "ev": 0.02,
+    "name": "Bluish Hue",
+    "no": 2,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.564,
+    "ev": -0.013,
+    "name": "Bluish Hue",
+    "no": 2,
+    "price": 1.75
+   }
+  },
+  "early_at_mel": "12:19:16",
+  "early_back": {
+   "each_way": 1.15,
+   "place": 1.17,
+   "win": 1.75
+  },
+  "early_minutes_out": 25.7,
+  "finish": {
+   "14": 4,
+   "15": 6,
+   "16": 3,
+   "17": 14,
+   "18": 11,
+   "2": 1,
+   "20": 7,
+   "3": 5,
+   "4": 9,
+   "5": 13,
+   "6": 2,
+   "7": 10,
+   "8": 12,
+   "9": 8
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.2923,
+    "ev": -0.172,
+    "name": "Magic Merlin",
+    "no": 5,
+    "place_price": 2.8,
+    "price": 14.0
+   },
+   "place": {
+    "chance": 0.8905,
+    "ev": 0.006,
+    "name": "Bluish Hue",
+    "no": 2,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.5949,
+    "ev": -0.018,
+    "name": "Bluish Hue",
+    "no": 2,
+    "price": 1.65
+   }
+  },
+  "late_at_mel": "12:44:27",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.13,
+   "win": 1.65
+  },
+  "late_minutes_out": 0.5,
+  "meet": "5196315",
+  "race": 2,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 12:45"
+ },
+ "5196315/3": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4208,
+    "ev": -0.169,
+    "name": "Damien",
+    "no": 5,
+    "place_price": 1.91,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.6512,
+    "ev": -0.134,
+    "name": "Ruination",
+    "no": 4,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3097,
+    "ev": -0.102,
+    "name": "Ruination",
+    "no": 4,
+    "price": 2.9
+   }
+  },
+  "early_at_mel": "12:54:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 2.9
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 8,
+   "10": 5,
+   "2": 3,
+   "3": 2,
+   "4": 1,
+   "5": 4,
+   "6": 9,
+   "7": 6,
+   "8": 7,
+   "9": 10
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3556,
+    "ev": -0.189,
+    "name": "Just Response",
+    "no": 8,
+    "place_price": 2.25,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.6481,
+    "ev": -0.093,
+    "name": "Ruination",
+    "no": 4,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3032,
+    "ev": -0.06,
+    "name": "Ruination",
+    "no": 4,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "13:19:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 3.1
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 3,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 13:20"
+ },
+ "5196315/4": {
+  "early": {
+   "_field": 17,
+   "each_way": {
+    "chance": 0.4135,
+    "ev": -0.071,
+    "name": "Dusty Bay",
+    "no": 3,
+    "place_price": 2.2,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4135,
+    "ev": -0.09,
+    "name": "Dusty Bay",
+    "no": 3,
+    "price": 2.2
+   },
+   "win": {
+    "chance": 0.1724,
+    "ev": -0.052,
+    "name": "Dusty Bay",
+    "no": 3,
+    "price": 5.5
+   }
+  },
+  "early_at_mel": "13:34:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 6,
+   "11": 5,
+   "12": 13,
+   "13": 3,
+   "14": 12,
+   "15": 14,
+   "16": 1,
+   "17": 17,
+   "18": 9,
+   "19": 16,
+   "3": 10,
+   "4": 18,
+   "5": 2,
+   "6": 4,
+   "7": 8,
+   "8": 15,
+   "9": 11
+  },
+  "late": {
+   "_field": 17,
+   "each_way": {
+    "chance": 0.3663,
+    "ev": -0.047,
+    "name": "Dusty Bay",
+    "no": 3,
+    "place_price": 2.5,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.3663,
+    "ev": -0.084,
+    "name": "Dusty Bay",
+    "no": 3,
+    "price": 2.5
+   },
+   "win": {
+    "chance": 0.1415,
+    "ev": -0.009,
+    "name": "Dusty Bay",
+    "no": 3,
+    "price": 7.0
+   }
+  },
+  "late_at_mel": "13:59:25",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 4,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:00"
+ },
+ "5196315/5": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.2951,
+    "ev": -0.179,
+    "name": "Think Itz You",
+    "no": 9,
+    "place_price": 2.7,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6064,
+    "ev": -0.151,
+    "name": "Columbus",
+    "no": 8,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3526,
+    "ev": -0.119,
+    "name": "Columbus",
+    "no": 8,
+    "price": 2.5
+   }
+  },
+  "early_at_mel": "14:14:26",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 2.5
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "11": 4,
+   "12": 3,
+   "5": 6,
+   "6": 2,
+   "8": 1,
+   "9": 5
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3553,
+    "ev": -0.206,
+    "name": "Cavalry",
+    "no": 11,
+    "place_price": 2.2,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6409,
+    "ev": -0.103,
+    "name": "Columbus",
+    "no": 8,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3824,
+    "ev": -0.101,
+    "name": "Columbus",
+    "no": 8,
+    "price": 2.35
+   }
+  },
+  "late_at_mel": "14:39:25",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 2.35
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 5,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 14:40"
+ },
+ "5196315/6": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.4548,
+    "ev": -0.154,
+    "name": "Ertijaaj",
+    "no": 3,
+    "place_price": 1.8,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5216,
+    "ev": -0.129,
+    "name": "Regal Problem",
+    "no": 12,
+    "price": 1.67
+   },
+   "win": {
+    "chance": 0.2189,
+    "ev": -0.081,
+    "name": "Regal Problem",
+    "no": 12,
+    "price": 4.2
+   }
+  },
+  "early_at_mel": "14:54:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.67,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 12,
+   "11": 9,
+   "12": 2,
+   "14": 11,
+   "2": 7,
+   "3": 5,
+   "4": 10,
+   "5": 3,
+   "6": 8,
+   "7": 1,
+   "8": 4,
+   "9": 6
+  },
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.4726,
+    "ev": -0.118,
+    "name": "Regal Problem",
+    "no": 12,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.4726,
+    "ev": -0.173,
+    "name": "Regal Problem",
+    "no": 12,
+    "price": 1.75
+   },
+   "win": {
+    "chance": 0.1875,
+    "ev": -0.063,
+    "name": "Regal Problem",
+    "no": 12,
+    "price": 5.0
+   }
+  },
+  "late_at_mel": "15:19:25",
+  "late_back": {
+   "each_way": 0.875,
+   "place": 1.75,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 6,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 15:20"
+ },
+ "5196315/7": {
+  "early": {
+   "_field": 14,
+   "each_way": {
+    "chance": 0.2368,
+    "ev": -0.231,
+    "name": "Grafterburners",
+    "no": 5,
+    "place_price": 3.1,
+    "price": 12.0
+   },
+   "place": {
+    "chance": 0.5232,
+    "ev": -0.111,
+    "name": "Jimmysstar",
+    "no": 1,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.219,
+    "ev": -0.08,
+    "name": "Jimmysstar",
+    "no": 1,
+    "price": 4.2
+   }
+  },
+  "early_at_mel": "15:34:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 15,
+   "11": 8,
+   "12": 11,
+   "13": 6,
+   "15": 13,
+   "17": 10,
+   "2": 9,
+   "3": 3,
+   "4": 1,
+   "5": 5,
+   "6": 4,
+   "7": 14,
+   "8": 2,
+   "9": 12
+  },
+  "late": {
+   "_field": 14,
+   "each_way": {
+    "chance": 0.2511,
+    "ev": -0.196,
+    "name": "Grafterburners",
+    "no": 5,
+    "place_price": 3.0,
+    "price": 12.0
+   },
+   "place": {
+    "chance": 0.5638,
+    "ev": -0.115,
+    "name": "Jimmysstar",
+    "no": 1,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.1994,
+    "ev": -0.083,
+    "name": "Headwall",
+    "no": 8,
+    "price": 4.6
+   }
+  },
+  "late_at_mel": "15:59:26",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 7,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 16:00"
+ },
+ "5196315/8": {
+  "early": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.3852,
+    "ev": -0.202,
+    "name": "Beiwacht",
+    "no": 1,
+    "place_price": 2.0,
+    "price": 9.0
+   },
+   "place": {
+    "chance": 0.8977,
+    "ev": -0.013,
+    "name": "Sheza Alibi",
+    "no": 16,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.6209,
+    "ev": -0.038,
+    "name": "Sheza Alibi",
+    "no": 16,
+    "price": 1.55
+   }
+  },
+  "early_at_mel": "16:19:23",
+  "early_back": {
+   "each_way": 1.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 6,
+   "11": 16,
+   "14": 10,
+   "15": 9,
+   "16": 11,
+   "17": 8,
+   "18": 14,
+   "2": 1,
+   "3": 5,
+   "4": 15,
+   "5": 12,
+   "6": 13,
+   "7": 2,
+   "8": 4,
+   "9": 7
+  },
+  "late": {
+   "_field": 16,
+   "each_way": {
+    "chance": 0.4089,
+    "ev": -0.222,
+    "name": "Beiwacht",
+    "no": 1,
+    "place_price": 1.88,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.9153,
+    "ev": -0.03,
+    "name": "Sheza Alibi",
+    "no": 16,
+    "price": 1.06
+   },
+   "win": {
+    "chance": 0.6484,
+    "ev": -0.027,
+    "name": "Sheza Alibi",
+    "no": 16,
+    "price": 1.5
+   }
+  },
+  "late_at_mel": "16:44:25",
+  "late_back": {
+   "each_way": 0.94,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 8,
+  "snapshots": 86,
+  "start_mel": "2026-10-31 16:45"
+ },
+ "5196315/9": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3162,
+    "ev": -0.236,
+    "name": "Kovalica",
+    "no": 1,
+    "place_price": 2.38,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.5933,
+    "ev": -0.169,
+    "name": "Barrengarry",
+    "no": 14,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2357,
+    "ev": -0.104,
+    "name": "Starzintheireyes",
+    "no": 9,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "16:54:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 4,
+   "11": 10,
+   "12": 11,
+   "14": 2,
+   "3": 5,
+   "4": 9,
+   "6": 1,
+   "7": 6,
+   "8": 8,
+   "9": 3
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.497,
+    "ev": -0.141,
+    "name": "Anthracite",
+    "no": 10,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6625,
+    "ev": -0.119,
+    "name": "Barrengarry",
+    "no": 14,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3047,
+    "ev": -0.055,
+    "name": "Barrengarry",
+    "no": 14,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "17:19:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196315",
+  "race": 9,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 17:20"
+ },
+ "5196326/1": {
+  "early": {
+   "_field": 9,
+   "place": {
+    "chance": 0.8102,
+    "ev": -0.052,
+    "name": "Shahaameh",
+    "no": 4,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.4172,
+    "ev": -0.124,
+    "name": "Shahaameh",
+    "no": 4,
+    "price": 2.1
+   }
+  },
+  "early_at_mel": "12:38:12",
+  "early_back": {
+   "each_way": null,
+   "place": 1.17,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "10": 6,
+   "11": 10,
+   "2": 5,
+   "3": 3,
+   "4": 2,
+   "5": 1,
+   "6": 4,
+   "7": 8,
+   "8": 7,
+   "9": 9
+  },
+  "late": {
+   "_field": 9,
+   "place": {
+    "chance": 0.8627,
+    "ev": -0.051,
+    "name": "Shahaameh",
+    "no": 4,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.1932,
+    "ev": -0.111,
+    "name": "Mumbai Maharani",
+    "no": 3,
+    "price": 4.6
+   }
+  },
+  "late_at_mel": "13:03:22",
+  "late_back": {
+   "each_way": null,
+   "place": 1.1,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 1,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:04"
+ },
+ "5196326/2": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.4423,
+    "ev": -0.179,
+    "name": "Landing Gear",
+    "no": 3,
+    "place_price": 1.62,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.7939,
+    "ev": -0.047,
+    "name": "Rain Delay",
+    "no": 2,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.5487,
+    "ev": 0.07,
+    "name": "Rain Delay",
+    "no": 2,
+    "price": 1.95
+   }
+  },
+  "early_at_mel": "13:18:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 5,
+   "11": 8,
+   "13": 10,
+   "14": 4,
+   "2": 2,
+   "3": 6,
+   "4": 1,
+   "5": 9,
+   "7": 7,
+   "8": 3
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.4095,
+    "ev": -0.152,
+    "name": "Landing Gear",
+    "no": 3,
+    "place_price": 1.73,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.8419,
+    "ev": -0.049,
+    "name": "Rain Delay",
+    "no": 2,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.6142,
+    "ev": 0.044,
+    "name": "Rain Delay",
+    "no": 2,
+    "price": 1.7
+   }
+  },
+  "late_at_mel": "13:43:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.13,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 2,
+  "snapshots": 77,
+  "start_mel": "2026-10-31 13:44"
+ },
+ "5196326/3": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3557,
+    "ev": -0.199,
+    "name": "C'mon Flyer",
+    "no": 4,
+    "place_price": 2.25,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7761,
+    "ev": -0.069,
+    "name": "Fioprospero",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.5407,
+    "ev": -0.108,
+    "name": "Fioprospero",
+    "no": 1,
+    "price": 1.65
+   }
+  },
+  "early_at_mel": "13:58:22",
+  "early_back": {
+   "each_way": 3.875,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "2": 6,
+   "3": 3,
+   "4": 1,
+   "6": 2,
+   "7": 4,
+   "8": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.349,
+    "ev": -0.222,
+    "name": "C'mon Flyer",
+    "no": 4,
+    "place_price": 2.25,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8302,
+    "ev": -0.029,
+    "name": "Fioprospero",
+    "no": 1,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.6076,
+    "ev": -0.089,
+    "name": "Fioprospero",
+    "no": 1,
+    "price": 1.5
+   }
+  },
+  "late_at_mel": "14:23:22",
+  "late_back": {
+   "each_way": 4.125,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 3,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 14:24"
+ },
+ "5196326/4": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.1815,
+    "ev": -0.275,
+    "name": "Perini Miss",
+    "no": 4,
+    "place_price": 4.0,
+    "price": 13.0
+   },
+   "place": {
+    "chance": 0.8484,
+    "ev": -0.101,
+    "name": "Imelda",
+    "no": 5,
+    "price": 1.06
+   },
+   "win": {
+    "chance": 0.5558,
+    "ev": -0.166,
+    "name": "Imelda",
+    "no": 5,
+    "price": 1.5
+   }
+  },
+  "early_at_mel": "14:38:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.06,
+   "win": 1.5
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "3": 4,
+   "4": 3,
+   "5": 1,
+   "7": 4,
+   "8": 6
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.1797,
+    "ev": -0.333,
+    "name": "Perini Miss",
+    "no": 4,
+    "place_price": 3.6,
+    "price": 12.0
+   },
+   "place": {
+    "chance": 0.8267,
+    "ev": -0.033,
+    "name": "Imelda",
+    "no": 5,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.5233,
+    "ev": -0.084,
+    "name": "Imelda",
+    "no": 5,
+    "price": 1.75
+   }
+  },
+  "late_at_mel": "15:03:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.17,
+   "win": 1.75
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 4,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 15:04"
+ },
+ "5196326/5": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3614,
+    "ev": -0.265,
+    "name": "Funky Fun",
+    "no": 5,
+    "place_price": 2.1,
+    "price": 8.0
+   },
+   "place": {
+    "chance": 0.7661,
+    "ev": -0.081,
+    "name": "Ole Steele",
+    "no": 8,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3634,
+    "ev": -0.146,
+    "name": "Ole Steele",
+    "no": 8,
+    "price": 2.35
+   }
+  },
+  "early_at_mel": "15:19:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.35
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "2": 5,
+   "3": 2,
+   "4": 6,
+   "5": 4,
+   "6": 8,
+   "7": 3,
+   "8": 1,
+   "9": 9
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.5364,
+    "ev": -0.161,
+    "name": "Doralee",
+    "no": 3,
+    "place_price": 1.53,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.8184,
+    "ev": -0.075,
+    "name": "Ole Steele",
+    "no": 8,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.253,
+    "ev": -0.115,
+    "name": "Bundy Belle",
+    "no": 7,
+    "price": 3.5
+   }
+  },
+  "late_at_mel": "15:44:26",
+  "late_back": {
+   "each_way": 0.765,
+   "place": 1.13,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 5,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 15:45"
+ },
+ "5196326/6": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2925,
+    "ev": -0.21,
+    "name": "Hidden Star",
+    "no": 3,
+    "place_price": 2.63,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5543,
+    "ev": -0.152,
+    "name": "Potomac River",
+    "no": 4,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.3214,
+    "ev": -0.132,
+    "name": "Potomac River",
+    "no": 4,
+    "price": 2.7
+   }
+  },
+  "early_at_mel": "16:00:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "2": 4,
+   "3": 5,
+   "4": 2,
+   "5": 6,
+   "6": 1,
+   "8": 3
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2662,
+    "ev": -0.205,
+    "name": "She's Assort",
+    "no": 6,
+    "place_price": 2.88,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6095,
+    "ev": -0.086,
+    "name": "Potomac River",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3664,
+    "ev": -0.084,
+    "name": "Potomac River",
+    "no": 4,
+    "price": 2.5
+   }
+  },
+  "late_at_mel": "16:25:22",
+  "late_back": {
+   "each_way": 4.9399999999999995,
+   "place": 1.5,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 6,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 16:26"
+ },
+ "5196326/7": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4967,
+    "ev": -0.064,
+    "name": "Jacenza",
+    "no": 6,
+    "place_price": 1.88,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6274,
+    "ev": -0.04,
+    "name": "Unreachable",
+    "no": 8,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.262,
+    "ev": -0.004,
+    "name": "Unreachable",
+    "no": 8,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "16:38:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 6,
+   "11": 8,
+   "3": 5,
+   "4": 4,
+   "5": 1,
+   "6": 7,
+   "7": 9,
+   "8": 2,
+   "9": 3
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4133,
+    "ev": -0.086,
+    "name": "Commanding Artist",
+    "no": 3,
+    "place_price": 2.25,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.699,
+    "ev": -0.021,
+    "name": "Alabama Blitz",
+    "no": 7,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.314,
+    "ev": 0.036,
+    "name": "Alabama Blitz",
+    "no": 7,
+    "price": 3.3
+   }
+  },
+  "late_at_mel": "17:03:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 7,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 17:04"
+ },
+ "5196326/8": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.34,
+    "ev": -0.248,
+    "name": "Howzat Harry",
+    "no": 8,
+    "place_price": 1.8,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5498,
+    "ev": -0.269,
+    "name": "Strawberry Impact",
+    "no": 2,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3144,
+    "ev": -0.057,
+    "name": "Strawberry Impact",
+    "no": 2,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "17:18:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "11": 4,
+   "12": 5,
+   "2": 2,
+   "3": 1,
+   "4": 6,
+   "7": 8,
+   "8": 3,
+   "9": 9
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3102,
+    "ev": -0.277,
+    "name": "Lego Master",
+    "no": 7,
+    "place_price": 1.88,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5413,
+    "ev": -0.242,
+    "name": "Strawberry Impact",
+    "no": 2,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3053,
+    "ev": 0.008,
+    "name": "Strawberry Impact",
+    "no": 2,
+    "price": 3.3
+   }
+  },
+  "late_at_mel": "17:43:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196326",
+  "race": 8,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 17:44"
+ },
+ "5196348/1": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.344,
+    "ev": -0.212,
+    "name": "Too Hard To Find",
+    "no": 8,
+    "place_price": 2.3,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6509,
+    "ev": -0.134,
+    "name": "G'day Ausbred",
+    "no": 2,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.4016,
+    "ev": -0.137,
+    "name": "G'day Ausbred",
+    "no": 2,
+    "price": 2.15
+   }
+  },
+  "early_at_mel": "14:08:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 2.15
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "2": 1,
+   "3": 4,
+   "5": 2,
+   "6": 3,
+   "7": 6,
+   "8": 5
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3277,
+    "ev": -0.201,
+    "name": "Too Hard To Find",
+    "no": 8,
+    "place_price": 2.38,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6437,
+    "ev": -0.099,
+    "name": "G'day Ausbred",
+    "no": 2,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3955,
+    "ev": -0.11,
+    "name": "G'day Ausbred",
+    "no": 2,
+    "price": 2.25
+   }
+  },
+  "late_at_mel": "14:33:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 2.25
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196348",
+  "race": 1,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 14:34"
+ },
+ "5196348/2": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.415,
+    "ev": -0.234,
+    "name": "Busterboy",
+    "no": 6,
+    "place_price": 1.88,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.727,
+    "ev": -0.055,
+    "name": "Morebar",
+    "no": 2,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3323,
+    "ev": -0.136,
+    "name": "Morebar",
+    "no": 2,
+    "price": 2.6
+   }
+  },
+  "early_at_mel": "14:48:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "10": 1,
+   "2": 3,
+   "3": 2,
+   "4": 7,
+   "5": 8,
+   "6": 4,
+   "7": 9,
+   "8": 6
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3985,
+    "ev": -0.215,
+    "name": "Busterboy",
+    "no": 6,
+    "place_price": 1.95,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.6766,
+    "ev": -0.12,
+    "name": "Sweet Enchantress",
+    "no": 10,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.2888,
+    "ev": -0.105,
+    "name": "Morebar",
+    "no": 2,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "15:13:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196348",
+  "race": 2,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 15:14"
+ },
+ "5196348/3": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3242,
+    "ev": -0.233,
+    "name": "Benriach",
+    "no": 6,
+    "place_price": 2.38,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7091,
+    "ev": -0.078,
+    "name": "Youwroteuponit",
+    "no": 2,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.4548,
+    "ev": -0.113,
+    "name": "Youwroteuponit",
+    "no": 2,
+    "price": 1.95
+   }
+  },
+  "early_at_mel": "15:25:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "2": 2,
+   "3": 5,
+   "4": 1,
+   "5": 6,
+   "6": 3,
+   "7": 4
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.2675,
+    "ev": -0.244,
+    "name": "Introducing",
+    "no": 3,
+    "place_price": 2.75,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.758,
+    "ev": -0.09,
+    "name": "Youwroteuponit",
+    "no": 2,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.5045,
+    "ev": -0.092,
+    "name": "Youwroteuponit",
+    "no": 2,
+    "price": 1.8
+   }
+  },
+  "late_at_mel": "15:50:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196348",
+  "race": 3,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:51"
+ },
+ "5196348/4": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.1878,
+    "ev": -0.266,
+    "name": "Mammoth Mountain",
+    "no": 2,
+    "place_price": 3.75,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.463,
+    "ev": -0.167,
+    "name": "Class Revolution",
+    "no": 3,
+    "price": 1.8
+   },
+   "win": {
+    "chance": 0.2495,
+    "ev": -0.152,
+    "name": "Class Revolution",
+    "no": 3,
+    "price": 3.4
+   }
+  },
+  "early_at_mel": "16:09:23",
+  "early_back": {
+   "each_way": 1.875,
+   "place": 1.8,
+   "win": 3.4
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "2": 2,
+   "3": 1,
+   "4": 3,
+   "5": 4,
+   "6": 6,
+   "7": 5
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.3242,
+    "ev": -0.184,
+    "name": "Dupont",
+    "no": 5,
+    "place_price": 2.4,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4625,
+    "ev": -0.168,
+    "name": "Class Revolution",
+    "no": 3,
+    "price": 1.8
+   },
+   "win": {
+    "chance": 0.2479,
+    "ev": -0.108,
+    "name": "Class Revolution",
+    "no": 3,
+    "price": 3.6
+   }
+  },
+  "late_at_mel": "16:34:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.8,
+   "win": 3.6
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196348",
+  "race": 4,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 16:35"
+ },
+ "5196348/5": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4661,
+    "ev": -0.218,
+    "name": "Picupstixx",
+    "no": 7,
+    "place_price": 1.7,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7714,
+    "ev": -0.074,
+    "name": "She's A Wild One",
+    "no": 4,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3939,
+    "ev": -0.114,
+    "name": "She's A Wild One",
+    "no": 4,
+    "price": 2.25
+   }
+  },
+  "early_at_mel": "16:45:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.25
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "2": 6,
+   "3": 8,
+   "4": 1,
+   "5": 7,
+   "6": 5,
+   "7": 4,
+   "8": 2,
+   "9": 9
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4744,
+    "ev": -0.179,
+    "name": "Spills",
+    "no": 1,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6892,
+    "ev": -0.104,
+    "name": "She's A Wild One",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3329,
+    "ev": -0.101,
+    "name": "She's A Wild One",
+    "no": 4,
+    "price": 2.7
+   }
+  },
+  "late_at_mel": "17:10:22",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 1.3,
+   "win": 2.7
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196348",
+  "race": 5,
+  "snapshots": 87,
+  "start_mel": "2026-10-31 17:11"
+ },
+ "5196377/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4697,
+    "ev": -0.184,
+    "name": "Tavijewel",
+    "no": 6,
+    "place_price": 1.73,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6857,
+    "ev": -0.109,
+    "name": "D'oro Choice",
+    "no": 4,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3043,
+    "ev": -0.148,
+    "name": "D'oro Choice",
+    "no": 4,
+    "price": 2.8
+   }
+  },
+  "early_at_mel": "11:58:11",
+  "early_back": {
+   "each_way": 0.865,
+   "place": 1.3,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 1,
+   "2": 5,
+   "3": 8,
+   "4": 2,
+   "5": 4,
+   "6": 3,
+   "7": 6,
+   "8": 7
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.494,
+    "ev": -0.181,
+    "name": "Delrico",
+    "no": 3,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6657,
+    "ev": -0.115,
+    "name": "D'oro Choice",
+    "no": 4,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.2859,
+    "ev": -0.114,
+    "name": "D'oro Choice",
+    "no": 4,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "12:23:11",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.33,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.8,
+  "meet": "5196377",
+  "race": 1,
+  "snapshots": 65,
+  "start_mel": "2026-10-31 12:24"
+ },
+ "5196377/2": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.3958,
+    "ev": -0.222,
+    "name": "Simply Sonnet",
+    "no": 12,
+    "place_price": 1.95,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.636,
+    "ev": -0.11,
+    "name": "Beyond Perfection",
+    "no": 1,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2951,
+    "ev": -0.115,
+    "name": "Beyond Perfection",
+    "no": 1,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "12:29:13",
+  "early_back": {
+   "each_way": 0.975,
+   "place": 1.4,
+   "win": 3.0
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 1,
+   "10": 10,
+   "11": 2,
+   "12": 3,
+   "2": 6,
+   "3": 8,
+   "4": 7,
+   "5": 9,
+   "6": 4,
+   "7": 11,
+   "8": 12,
+   "9": 5
+  },
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.4441,
+    "ev": -0.18,
+    "name": "Simply Sonnet",
+    "no": 12,
+    "place_price": 1.75,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7411,
+    "ev": -0.111,
+    "name": "Beyond Perfection",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.1841,
+    "ev": -0.117,
+    "name": "Above Board",
+    "no": 9,
+    "price": 4.8
+   }
+  },
+  "late_at_mel": "12:54:23",
+  "late_back": {
+   "each_way": 0.875,
+   "place": 1.2,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 2,
+  "snapshots": 87,
+  "start_mel": "2026-10-31 12:55"
+ },
+ "5196377/3": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3743,
+    "ev": -0.186,
+    "name": "Recognition",
+    "no": 5,
+    "place_price": 2.15,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.4776,
+    "ev": -0.188,
+    "name": "The Beast",
+    "no": 7,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.1708,
+    "ev": -0.18,
+    "name": "Big Brad",
+    "no": 10,
+    "price": 4.8
+   }
+  },
+  "early_at_mel": "13:02:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 4.8
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 1,
+   "11": 9,
+   "13": 4,
+   "2": 7,
+   "3": 11,
+   "4": 10,
+   "5": 6,
+   "6": 2,
+   "7": 8,
+   "8": 5
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3783,
+    "ev": -0.164,
+    "name": "Castro",
+    "no": 1,
+    "place_price": 2.2,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.4907,
+    "ev": -0.166,
+    "name": "The Beast",
+    "no": 7,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.1944,
+    "ev": -0.145,
+    "name": "The Beast",
+    "no": 7,
+    "price": 4.4
+   }
+  },
+  "late_at_mel": "13:27:22",
+  "late_back": {
+   "each_way": 1.1,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 3,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 13:28"
+ },
+ "5196377/4": {
+  "early": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.381,
+    "ev": -0.177,
+    "name": "Woollen",
+    "no": 14,
+    "place_price": 2.2,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.6764,
+    "ev": -0.053,
+    "name": "Smart Scud",
+    "no": 2,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3389,
+    "ev": -0.085,
+    "name": "Smart Scud",
+    "no": 2,
+    "price": 2.7
+   }
+  },
+  "early_at_mel": "13:42:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.4,
+   "win": 2.7
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 7,
+   "10": 9,
+   "12": 2,
+   "13": 14,
+   "14": 8,
+   "15": 10,
+   "16": 12,
+   "2": 1,
+   "3": 3,
+   "4": 6,
+   "5": 4,
+   "6": 5,
+   "7": 11,
+   "9": 13
+  },
+  "late": {
+   "_field": 12,
+   "each_way": {
+    "chance": 0.474,
+    "ev": -0.126,
+    "name": "Swift Gun",
+    "no": 3,
+    "place_price": 1.8,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6339,
+    "ev": -0.049,
+    "name": "Smart Scud",
+    "no": 2,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3016,
+    "ev": -0.065,
+    "name": "Smart Scud",
+    "no": 2,
+    "price": 3.1
+   }
+  },
+  "late_at_mel": "14:07:22",
+  "late_back": {
+   "each_way": 0.9,
+   "place": 1.5,
+   "win": 3.1
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 4,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:08"
+ },
+ "5196377/5": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4402,
+    "ev": -0.113,
+    "name": "Penciller",
+    "no": 1,
+    "place_price": 2.0,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5065,
+    "ev": -0.114,
+    "name": "My Boy Scout",
+    "no": 5,
+    "price": 1.75
+   },
+   "win": {
+    "chance": 0.2045,
+    "ev": -0.08,
+    "name": "My Boy Scout",
+    "no": 5,
+    "price": 4.5
+   }
+  },
+  "early_at_mel": "14:22:22",
+  "early_back": {
+   "each_way": 1.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 3,
+   "10": 12,
+   "12": 6,
+   "13": 4,
+   "14": 11,
+   "2": 10,
+   "3": 8,
+   "4": 2,
+   "5": 5,
+   "6": 7,
+   "8": 1,
+   "9": 9
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3649,
+    "ev": -0.09,
+    "name": "Wootten It Be Nice",
+    "no": 2,
+    "place_price": 2.5,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.5337,
+    "ev": -0.077,
+    "name": "Marinera",
+    "no": 4,
+    "price": 1.73
+   },
+   "win": {
+    "chance": 0.2091,
+    "ev": -0.059,
+    "name": "My Boy Scout",
+    "no": 5,
+    "price": 4.5
+   }
+  },
+  "late_at_mel": "14:47:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.73,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 5,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:48"
+ },
+ "5196377/6": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4481,
+    "ev": -0.227,
+    "name": "Smart And Dapper",
+    "no": 10,
+    "place_price": 1.75,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7561,
+    "ev": -0.055,
+    "name": "Crook",
+    "no": 6,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.391,
+    "ev": -0.12,
+    "name": "Crook",
+    "no": 6,
+    "price": 2.25
+   }
+  },
+  "early_at_mel": "15:02:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 2.25
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "10": 8,
+   "2": 2,
+   "3": 3,
+   "4": 6,
+   "6": 1,
+   "7": 4,
+   "8": 7,
+   "9": 5
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.3923,
+    "ev": -0.212,
+    "name": "Smart And Dapper",
+    "no": 10,
+    "place_price": 2.0,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.7473,
+    "ev": -0.066,
+    "name": "Crook",
+    "no": 6,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3808,
+    "ev": -0.105,
+    "name": "Crook",
+    "no": 6,
+    "price": 2.35
+   }
+  },
+  "late_at_mel": "15:27:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 2.35
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 6,
+  "snapshots": 83,
+  "start_mel": "2026-10-31 15:28"
+ },
+ "5196377/7": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4909,
+    "ev": -0.141,
+    "name": "Keadool",
+    "no": 2,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6292,
+    "ev": -0.119,
+    "name": "Supreme Style",
+    "no": 11,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2706,
+    "ev": -0.107,
+    "name": "Supreme Style",
+    "no": 11,
+    "price": 3.3
+   }
+  },
+  "early_at_mel": "15:42:22",
+  "early_back": {
+   "each_way": 0.875,
+   "place": 1.4,
+   "win": 3.3
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 12,
+   "11": 1,
+   "13": 9,
+   "15": 6,
+   "2": 3,
+   "3": 7,
+   "4": 10,
+   "5": 5,
+   "6": 4,
+   "7": 11,
+   "8": 8,
+   "9": 2
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4989,
+    "ev": -0.131,
+    "name": "Keadool",
+    "no": 2,
+    "place_price": 1.73,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6233,
+    "ev": -0.065,
+    "name": "Blue De Beers",
+    "no": 7,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2467,
+    "ev": -0.038,
+    "name": "Supreme Style",
+    "no": 11,
+    "price": 3.9
+   }
+  },
+  "late_at_mel": "16:07:22",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 0.0,
+   "win": 3.9
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 7,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 16:08"
+ },
+ "5196377/8": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4463,
+    "ev": -0.231,
+    "name": "Michelangelo",
+    "no": 5,
+    "place_price": 1.75,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7848,
+    "ev": -0.058,
+    "name": "Hammoon Sensation",
+    "no": 6,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4015,
+    "ev": -0.137,
+    "name": "Hammoon Sensation",
+    "no": 6,
+    "price": 2.15
+   }
+  },
+  "early_at_mel": "16:25:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.15
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 4,
+   "11": 3,
+   "12": 2,
+   "13": 7,
+   "5": 6,
+   "6": 1,
+   "7": 9,
+   "8": 8,
+   "9": 5
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4525,
+    "ev": -0.241,
+    "name": "Michelangelo",
+    "no": 5,
+    "place_price": 1.7,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.779,
+    "ev": -0.065,
+    "name": "Hammoon Sensation",
+    "no": 6,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3804,
+    "ev": -0.087,
+    "name": "Hammoon Sensation",
+    "no": 6,
+    "price": 2.4
+   }
+  },
+  "late_at_mel": "16:50:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.2,
+   "win": 2.4
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 8,
+  "snapshots": 77,
+  "start_mel": "2026-10-31 16:51"
+ },
+ "5196377/9": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.48,
+    "ev": -0.099,
+    "name": "Lang Park",
+    "no": 1,
+    "place_price": 1.88,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.5964,
+    "ev": -0.034,
+    "name": "Onyspeed",
+    "no": 4,
+    "price": 1.62
+   },
+   "win": {
+    "chance": 0.264,
+    "ev": -0.05,
+    "name": "Onyspeed",
+    "no": 4,
+    "price": 3.6
+   }
+  },
+  "early_at_mel": "17:02:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.62,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "10": 6,
+   "11": 8,
+   "14": 13,
+   "15": 10,
+   "16": 12,
+   "18": 9,
+   "2": 7,
+   "4": 3,
+   "5": 1,
+   "6": 2,
+   "7": 4,
+   "8": 11,
+   "9": 100
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.3794,
+    "ev": -0.126,
+    "name": "Mega Pixel",
+    "no": 2,
+    "place_price": 2.3,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.5442,
+    "ev": -0.075,
+    "name": "Onyspeed",
+    "no": 4,
+    "price": 1.7
+   },
+   "win": {
+    "chance": 0.1969,
+    "ev": -0.055,
+    "name": "Lang Park",
+    "no": 1,
+    "price": 4.8
+   }
+  },
+  "late_at_mel": "17:27:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.7,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196377",
+  "race": 9,
+  "snapshots": 85,
+  "start_mel": "2026-10-31 17:28"
+ },
+ "5196899/1": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3874,
+    "ev": -0.209,
+    "name": "Ramasis",
+    "no": 1,
+    "place_price": 2.05,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.8359,
+    "ev": -0.055,
+    "name": "It'sanotherbattle",
+    "no": 4,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.5967,
+    "ev": -0.105,
+    "name": "It'sanotherbattle",
+    "no": 4,
+    "price": 1.5
+   }
+  },
+  "early_at_mel": "12:09:13",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.13,
+   "win": 1.5
+  },
+  "early_minutes_out": 25.8,
+  "finish": {
+   "1": 6,
+   "2": 3,
+   "3": 5,
+   "4": 1,
+   "6": 2,
+   "7": 4,
+   "8": 7
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.3633,
+    "ev": -0.199,
+    "name": "Ramasis",
+    "no": 1,
+    "place_price": 2.2,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8311,
+    "ev": -0.061,
+    "name": "It'sanotherbattle",
+    "no": 4,
+    "price": 1.13
+   },
+   "win": {
+    "chance": 0.5819,
+    "ev": -0.098,
+    "name": "It'sanotherbattle",
+    "no": 4,
+    "price": 1.55
+   }
+  },
+  "late_at_mel": "12:34:17",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.13,
+   "win": 1.55
+  },
+  "late_minutes_out": 0.7,
+  "meet": "5196899",
+  "race": 1,
+  "snapshots": 78,
+  "start_mel": "2026-10-31 12:35"
+ },
+ "5196899/2": {
+  "early": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.5033,
+    "ev": -0.107,
+    "name": "Buffo",
+    "no": 1,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.6654,
+    "ev": -0.002,
+    "name": "Mean Mazzle",
+    "no": 9,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.307,
+    "ev": -0.018,
+    "name": "Mean Mazzle",
+    "no": 9,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "12:46:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 9,
+   "10": 4,
+   "11": 6,
+   "12": 8,
+   "13": 1,
+   "14": 2,
+   "16": 7,
+   "2": 3,
+   "3": 13,
+   "4": 14,
+   "5": 11,
+   "6": 12,
+   "7": 10,
+   "9": 5
+  },
+  "late": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.3252,
+    "ev": -0.144,
+    "name": "Klasyk Mode",
+    "no": 14,
+    "place_price": 2.5,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.6079,
+    "ev": -0.088,
+    "name": "Buffo",
+    "no": 1,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2302,
+    "ev": 0.059,
+    "name": "In All Honesty",
+    "no": 13,
+    "price": 4.6
+   }
+  },
+  "late_at_mel": "13:11:22",
+  "late_back": {
+   "each_way": 1.25,
+   "place": 0.0,
+   "win": 4.6
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 2,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 13:12"
+ },
+ "5196899/3": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4416,
+    "ev": -0.176,
+    "name": "Czech Out",
+    "no": 1,
+    "place_price": 1.88,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6404,
+    "ev": -0.103,
+    "name": "Rebel Tuesday",
+    "no": 3,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.2886,
+    "ev": -0.134,
+    "name": "Rebel Tuesday",
+    "no": 3,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "13:26:23",
+  "early_back": {
+   "each_way": 3.69,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "2": 2,
+   "3": 7,
+   "4": 6,
+   "5": 8,
+   "6": 3,
+   "7": 4,
+   "8": 5
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.416,
+    "ev": -0.193,
+    "name": "Haniata",
+    "no": 6,
+    "place_price": 1.95,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.7571,
+    "ev": -0.054,
+    "name": "Rebel Tuesday",
+    "no": 3,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3939,
+    "ev": -0.074,
+    "name": "Rebel Tuesday",
+    "no": 3,
+    "price": 2.35
+   }
+  },
+  "late_at_mel": "13:51:22",
+  "late_back": {
+   "each_way": 0.975,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 3,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 13:52"
+ },
+ "5196899/4": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4794,
+    "ev": -0.225,
+    "name": "Dazelles",
+    "no": 5,
+    "place_price": 1.67,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.747,
+    "ev": -0.066,
+    "name": "Beyond Mysti",
+    "no": 1,
+    "price": 1.25
+   },
+   "win": {
+    "chance": 0.3665,
+    "ev": -0.102,
+    "name": "Beyond Mysti",
+    "no": 1,
+    "price": 2.45
+   }
+  },
+  "early_at_mel": "14:06:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.25,
+   "win": 2.45
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 3,
+   "3": 2,
+   "4": 7,
+   "5": 6,
+   "6": 9,
+   "7": 5,
+   "8": 4,
+   "9": 8
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4346,
+    "ev": -0.223,
+    "name": "Machrimore",
+    "no": 6,
+    "place_price": 1.75,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.7106,
+    "ev": -0.076,
+    "name": "Beyond Mysti",
+    "no": 1,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3325,
+    "ev": -0.102,
+    "name": "Beyond Mysti",
+    "no": 1,
+    "price": 2.7
+   }
+  },
+  "late_at_mel": "14:31:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.3,
+   "win": 2.7
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 4,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 14:32"
+ },
+ "5196899/5": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.4687,
+    "ev": -0.212,
+    "name": "Accuser",
+    "no": 1,
+    "place_price": 1.7,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.7713,
+    "ev": -0.074,
+    "name": "Extra Fling",
+    "no": 3,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.3948,
+    "ev": -0.112,
+    "name": "Extra Fling",
+    "no": 3,
+    "price": 2.25
+   }
+  },
+  "early_at_mel": "14:46:23",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 6,
+   "11": 8,
+   "2": 5,
+   "3": 4,
+   "4": 7,
+   "5": 1,
+   "6": 3,
+   "8": 2
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3837,
+    "ev": -0.172,
+    "name": "Accuser",
+    "no": 1,
+    "place_price": 2.15,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.8128,
+    "ev": -0.025,
+    "name": "Extra Fling",
+    "no": 3,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4427,
+    "ev": -0.07,
+    "name": "Extra Fling",
+    "no": 3,
+    "price": 2.1
+   }
+  },
+  "late_at_mel": "15:11:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 5,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 15:12"
+ },
+ "5196899/6": {
+  "early": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4254,
+    "ev": -0.212,
+    "name": "Tower Of Tuscany",
+    "no": 9,
+    "place_price": 1.88,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.8158,
+    "ev": -0.021,
+    "name": "Longer Route",
+    "no": 1,
+    "price": 1.2
+   },
+   "win": {
+    "chance": 0.4645,
+    "ev": -0.094,
+    "name": "Longer Route",
+    "no": 1,
+    "price": 1.95
+   }
+  },
+  "early_at_mel": "15:26:23",
+  "early_back": {
+   "each_way": 0.94,
+   "place": 1.2,
+   "win": 1.95
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 1,
+   "10": 8,
+   "11": 9,
+   "12": 4,
+   "4": 6,
+   "5": 5,
+   "6": 2,
+   "8": 7,
+   "9": 3
+  },
+  "late": {
+   "_field": 9,
+   "each_way": {
+    "chance": 0.4779,
+    "ev": -0.169,
+    "name": "Tower Of Tuscany",
+    "no": 9,
+    "place_price": 1.73,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.8326,
+    "ev": -0.026,
+    "name": "Longer Route",
+    "no": 1,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.4831,
+    "ev": -0.082,
+    "name": "Longer Route",
+    "no": 1,
+    "price": 1.9
+   }
+  },
+  "late_at_mel": "15:51:23",
+  "late_back": {
+   "each_way": 0.865,
+   "place": 1.17,
+   "win": 1.9
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 6,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 15:52"
+ },
+ "5196899/7": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4465,
+    "ev": -0.152,
+    "name": "All Too Mysti",
+    "no": 12,
+    "place_price": 1.88,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6467,
+    "ev": -0.095,
+    "name": "Shadow Eagle",
+    "no": 8,
+    "price": 1.4
+   },
+   "win": {
+    "chance": 0.3022,
+    "ev": -0.093,
+    "name": "Shadow Eagle",
+    "no": 8,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "16:07:23",
+  "early_back": {
+   "each_way": 3.69,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 10,
+   "10": 9,
+   "11": 5,
+   "12": 1,
+   "2": 2,
+   "3": 6,
+   "4": 3,
+   "6": 8,
+   "7": 7,
+   "8": 4
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4489,
+    "ev": -0.164,
+    "name": "Shady Thinker",
+    "no": 2,
+    "place_price": 1.8,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.6521,
+    "ev": -0.133,
+    "name": "Shadow Eagle",
+    "no": 8,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.3081,
+    "ev": -0.107,
+    "name": "Shadow Eagle",
+    "no": 8,
+    "price": 2.9
+   }
+  },
+  "late_at_mel": "16:32:23",
+  "late_back": {
+   "each_way": 0.9,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 7,
+  "snapshots": 100,
+  "start_mel": "2026-10-31 16:33"
+ },
+ "5196899/8": {
+  "early": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.4204,
+    "ev": -0.108,
+    "name": "I Am Ralph",
+    "no": 2,
+    "place_price": 2.1,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4204,
+    "ev": -0.117,
+    "name": "I Am Ralph",
+    "no": 2,
+    "price": 2.1
+   },
+   "win": {
+    "chance": 0.1639,
+    "ev": -0.099,
+    "name": "I Am Ralph",
+    "no": 2,
+    "price": 5.5
+   }
+  },
+  "early_at_mel": "16:46:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "10": 3,
+   "12": 9,
+   "13": 1,
+   "14": 4,
+   "16": 12,
+   "2": 8,
+   "3": 2,
+   "4": 6,
+   "5": 5,
+   "6": 7,
+   "7": 11,
+   "9": 10
+  },
+  "late": {
+   "_field": 11,
+   "each_way": {
+    "chance": 0.4264,
+    "ev": -0.119,
+    "name": "Flossing",
+    "no": 3,
+    "place_price": 2.0,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.4264,
+    "ev": -0.147,
+    "name": "Flossing",
+    "no": 3,
+    "price": 2.0
+   },
+   "win": {
+    "chance": 0.1653,
+    "ev": -0.091,
+    "name": "Flossing",
+    "no": 3,
+    "price": 5.5
+   }
+  },
+  "late_at_mel": "17:11:22",
+  "late_back": {
+   "each_way": 1.0,
+   "place": 2.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 8,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 17:12"
+ },
+ "5196899/9": {
+  "early": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.3337,
+    "ev": -0.146,
+    "name": "Riche D'amour",
+    "no": 12,
+    "place_price": 2.5,
+    "price": 8.5
+   },
+   "place": {
+    "chance": 0.6609,
+    "ev": -0.009,
+    "name": "Golden Cloud",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3234,
+    "ev": 0.035,
+    "name": "Golden Cloud",
+    "no": 4,
+    "price": 3.2
+   }
+  },
+  "early_at_mel": "17:33:22",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 3.2
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "11": 5,
+   "12": 9,
+   "13": 7,
+   "15": 4,
+   "16": 13,
+   "17": 6,
+   "18": 8,
+   "2": 14,
+   "3": 15,
+   "4": 1,
+   "5": 10,
+   "6": 2,
+   "7": 12,
+   "8": 3,
+   "9": 11
+  },
+  "late": {
+   "_field": 13,
+   "each_way": {
+    "chance": 0.2726,
+    "ev": -0.161,
+    "name": "Riche D'amour",
+    "no": 12,
+    "place_price": 3.0,
+    "price": 11.0
+   },
+   "place": {
+    "chance": 0.6338,
+    "ev": -0.005,
+    "name": "Golden Cloud",
+    "no": 4,
+    "price": 1.57
+   },
+   "win": {
+    "chance": 0.3006,
+    "ev": 0.052,
+    "name": "Golden Cloud",
+    "no": 4,
+    "price": 3.5
+   }
+  },
+  "late_at_mel": "17:58:22",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.57,
+   "win": 3.5
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5196899",
+  "race": 9,
+  "snapshots": 80,
+  "start_mel": "2026-10-31 17:59"
+ },
+ "5197759/1": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.2693,
+    "ev": -0.309,
+    "name": "You'resogolden",
+    "no": 5,
+    "place_price": 2.7,
+    "price": 14.0
+   },
+   "place": {
+    "chance": 0.8412,
+    "ev": -0.075,
+    "name": "Yule Point",
+    "no": 2,
+    "price": 1.1
+   },
+   "win": {
+    "chance": 0.4035,
+    "ev": -0.153,
+    "name": "Yule Point",
+    "no": 2,
+    "price": 2.1
+   }
+  },
+  "early_at_mel": "14:29:26",
+  "early_back": {
+   "each_way": 8.35,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "2": 6,
+   "3": 2,
+   "4": 3,
+   "5": 1,
+   "6": 7,
+   "7": 8,
+   "8": 4
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.5341,
+    "ev": -0.22,
+    "name": "Voronya",
+    "no": 1,
+    "place_price": 1.5,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.8152,
+    "ev": -0.046,
+    "name": "Yule Point",
+    "no": 2,
+    "price": 1.17
+   },
+   "win": {
+    "chance": 0.3725,
+    "ev": -0.143,
+    "name": "Yule Point",
+    "no": 2,
+    "price": 2.3
+   }
+  },
+  "late_at_mel": "14:54:24",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5197759",
+  "race": 1,
+  "snapshots": 84,
+  "start_mel": "2026-10-31 14:55"
+ },
+ "5197759/2": {
+  "early": {
+   "_field": 5,
+   "each_way": {
+    "chance": 0.3115,
+    "ev": -0.244,
+    "name": "Real Valentia",
+    "no": 3,
+    "place_price": 2.4,
+    "price": 5.5
+   },
+   "place": {
+    "chance": 0.5329,
+    "ev": -0.11,
+    "name": "Verbosity",
+    "no": 2,
+    "price": 1.67
+   },
+   "win": {
+    "chance": 0.2855,
+    "ev": -0.144,
+    "name": "Verbosity",
+    "no": 2,
+    "price": 3.0
+   }
+  },
+  "early_at_mel": "15:04:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.67,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 5,
+   "2": 2,
+   "3": 3,
+   "4": 1,
+   "5": 4
+  },
+  "late": {
+   "_field": 5,
+   "each_way": {
+    "chance": 0.2936,
+    "ev": -0.268,
+    "name": "Real Valentia",
+    "no": 3,
+    "place_price": 2.4,
+    "price": 6.0
+   },
+   "place": {
+    "chance": 0.5797,
+    "ev": -0.13,
+    "name": "Tellez",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.3181,
+    "ev": -0.141,
+    "name": "Tellez",
+    "no": 4,
+    "price": 2.7
+   }
+  },
+  "late_at_mel": "15:29:27",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 2.7
+  },
+  "late_minutes_out": 0.5,
+  "meet": "5197759",
+  "race": 2,
+  "snapshots": 81,
+  "start_mel": "2026-10-31 15:30"
+ },
+ "5197759/3": {
+  "early": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.4024,
+    "ev": -0.229,
+    "name": "Black Zous",
+    "no": 2,
+    "place_price": 1.95,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.9089,
+    "ev": -0.046,
+    "name": "Golden Tunes",
+    "no": 3,
+    "price": 1.05
+   },
+   "win": {
+    "chance": 0.7129,
+    "ev": -0.13,
+    "name": "Golden Tunes",
+    "no": 3,
+    "price": 1.22
+   }
+  },
+  "early_at_mel": "15:49:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.05,
+   "win": 1.22
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 4,
+   "2": 3,
+   "3": 1,
+   "4": 2,
+   "5": 6,
+   "6": 5
+  },
+  "late": {
+   "_field": 6,
+   "each_way": {
+    "chance": 0.4487,
+    "ev": -0.186,
+    "name": "Black Zous",
+    "no": 2,
+    "place_price": 1.8,
+    "price": 7.5
+   },
+   "place": {
+    "chance": 0.9406,
+    "ev": -0.022,
+    "name": "Golden Tunes",
+    "no": 3,
+    "price": 1.04
+   },
+   "win": {
+    "chance": 0.7694,
+    "ev": -0.138,
+    "name": "Golden Tunes",
+    "no": 3,
+    "price": 1.12
+   }
+  },
+  "late_at_mel": "16:14:26",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.04,
+   "win": 1.12
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5197759",
+  "race": 3,
+  "snapshots": 82,
+  "start_mel": "2026-10-31 16:15"
+ },
+ "5197759/4": {
+  "early": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.2526,
+    "ev": -0.247,
+    "name": "Our Squamosa",
+    "no": 6,
+    "place_price": 3.0,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.5043,
+    "ev": -0.158,
+    "name": "Miss Top Gun",
+    "no": 1,
+    "price": 1.67
+   },
+   "win": {
+    "chance": 0.2239,
+    "ev": -0.172,
+    "name": "Bonny Impact",
+    "no": 2,
+    "price": 3.7
+   }
+  },
+  "early_at_mel": "16:29:28",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.67,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.5,
+  "finish": {
+   "1": 1,
+   "2": 7,
+   "3": 3,
+   "4": 2,
+   "5": 5,
+   "6": 6,
+   "7": 4
+  },
+  "late": {
+   "_field": 7,
+   "each_way": {
+    "chance": 0.1915,
+    "ev": -0.27,
+    "name": "Our Squamosa",
+    "no": 6,
+    "place_price": 3.6,
+    "price": 9.5
+   },
+   "place": {
+    "chance": 0.5577,
+    "ev": -0.147,
+    "name": "Miss Top Gun",
+    "no": 1,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.3246,
+    "ev": -0.124,
+    "name": "Miss Top Gun",
+    "no": 1,
+    "price": 2.7
+   }
+  },
+  "late_at_mel": "16:54:24",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 2.7
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5197759",
+  "race": 4,
+  "snapshots": 87,
+  "start_mel": "2026-10-31 16:55"
+ },
+ "5197759/5": {
+  "early": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.4476,
+    "ev": -0.211,
+    "name": "Even Sharper",
+    "no": 3,
+    "place_price": 1.75,
+    "price": 5.0
+   },
+   "place": {
+    "chance": 0.66,
+    "ev": -0.122,
+    "name": "Starton",
+    "no": 2,
+    "price": 1.33
+   },
+   "win": {
+    "chance": 0.321,
+    "ev": -0.133,
+    "name": "Starton",
+    "no": 2,
+    "price": 2.7
+   }
+  },
+  "early_at_mel": "17:09:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 8,
+   "10": 1,
+   "2": 10,
+   "3": 4,
+   "4": 3,
+   "5": 5,
+   "6": 9,
+   "7": 2,
+   "8": 6,
+   "9": 7
+  },
+  "late": {
+   "_field": 10,
+   "each_way": {
+    "chance": 0.3687,
+    "ev": -0.196,
+    "name": "Taipan Tommy",
+    "no": 4,
+    "place_price": 2.2,
+    "price": 7.0
+   },
+   "place": {
+    "chance": 0.7099,
+    "ev": -0.077,
+    "name": "Starton",
+    "no": 2,
+    "price": 1.3
+   },
+   "win": {
+    "chance": 0.3668,
+    "ev": -0.101,
+    "name": "Starton",
+    "no": 2,
+    "price": 2.45
+   }
+  },
+  "late_at_mel": "17:34:23",
+  "late_back": {
+   "each_way": 1.1,
+   "place": 0.0,
+   "win": 0.0
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5197759",
+  "race": 5,
+  "snapshots": 77,
+  "start_mel": "2026-10-31 17:35"
+ },
+ "5197759/6": {
+  "early": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3764,
+    "ev": -0.214,
+    "name": "Limited Risk",
+    "no": 2,
+    "place_price": 2.15,
+    "price": 6.5
+   },
+   "place": {
+    "chance": 0.5486,
+    "ev": -0.161,
+    "name": "Magarten",
+    "no": 6,
+    "price": 1.53
+   },
+   "win": {
+    "chance": 0.2161,
+    "ev": -0.179,
+    "name": "Magarten",
+    "no": 6,
+    "price": 3.8
+   }
+  },
+  "early_at_mel": "17:39:24",
+  "early_back": {
+   "each_way": 0.0,
+   "place": 1.53,
+   "win": 3.8
+  },
+  "early_minutes_out": 25.6,
+  "finish": {
+   "1": 2,
+   "2": 4,
+   "3": 8,
+   "4": 3,
+   "5": 6,
+   "6": 1,
+   "7": 5,
+   "8": 7
+  },
+  "late": {
+   "_field": 8,
+   "each_way": {
+    "chance": 0.3203,
+    "ev": -0.186,
+    "name": "Limited Risk",
+    "no": 2,
+    "place_price": 2.5,
+    "price": 9.0
+   },
+   "place": {
+    "chance": 0.5415,
+    "ev": -0.188,
+    "name": "Grinzinger Lass",
+    "no": 4,
+    "price": 1.5
+   },
+   "win": {
+    "chance": 0.2087,
+    "ev": -0.082,
+    "name": "Magarten",
+    "no": 6,
+    "price": 4.4
+   }
+  },
+  "late_at_mel": "18:04:23",
+  "late_back": {
+   "each_way": 0.0,
+   "place": 1.5,
+   "win": 4.4
+  },
+  "late_minutes_out": 0.6,
+  "meet": "5197759",
+  "race": 6,
+  "snapshots": 79,
+  "start_mel": "2026-10-31 18:05"
+ }
+}

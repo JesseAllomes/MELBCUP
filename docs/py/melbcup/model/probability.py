@@ -2,7 +2,8 @@
 
 1. Each factor is standardised within the race (z-score); a runner missing a factor scores 0.
 2. Weighted sum -> softmax gives the form model's win probability.
-3. Production: with prices, a runner's chance is the margin-free bookmaker consensus alone; the
+3. Production: with prices, a runner's chance is the margin-free bookmaker consensus alone,
+   corrected for the favourite-long-shot bias (consensus ** MARKET_ALPHA, renormalised); the
    form model is used only before any prices exist, and is experimental. Its weights were fitted
    on one month that also shaped the design, with jockey and trainer figures that include later
    races, so it must not move priced chances until a clean, frozen test says it helps. BLEND
@@ -24,6 +25,14 @@ from melbcup.model.features import FACTORS, raw_factors
 
 SOFTMAX_SCALE = 1.0
 BLEND = {"market": 1.0, "feed": 0.0, "model": 0.3}
+# Favourite-long-shot correction: a runner's chance is the margin-free consensus raised to this
+# power and renormalised. The market under-rates favourites and over-rates long shots; 1.14 is
+# the frozen value of research/RERUN.md, fitted on 2023-2025 and proven on tune2, the sealed
+# block and the forward month (+0.005 to +0.008 nats per race at every T). On the race card's
+# own pick rules (research/M7_RESULTS.md) it cut the win pick's loss by 4 to 10 points on every
+# block it was not fitted on, because "closest to fair" at alpha 1 lands on $12-21 runners whose
+# true chance is 25% below the market's.
+MARKET_ALPHA = 1.14
 # Harville discount exponents for 1st, 2nd, 3rd, 4th place.
 DISCOUNT = (1.0, 0.81, 0.65, 0.55)
 EXACT_LIMIT = 15_000  # enumerate finishing orders up to this many; simulate beyond it
@@ -76,6 +85,11 @@ def _zscores(raw: dict[int, dict[str, float]]) -> dict[int, dict[str, float]]:
 def _normalise(p: dict[int, float]) -> dict[int, float]:
     total = sum(p.values())
     return {n: v / total for n, v in p.items()} if total > 0 else {}
+
+
+def corrected_market(market: dict[int, float], alpha: float = MARKET_ALPHA) -> dict[int, float]:
+    """The margin-free market with the favourite-long-shot correction: p ** alpha, renormalised."""
+    return _normalise({n: max(p, 0.0) ** alpha for n, p in market.items()})
 
 
 def model_probs(race: Race) -> tuple[dict[int, float], dict[int, dict[str, float]]]:
@@ -217,7 +231,7 @@ def assess(race: Race) -> RaceModel:
     if len(market) < len(starters):
         market = {}
     if market:
-        win, sources = _normalise(dict(market)), ["market"]
+        win, sources = corrected_market(market), ["market"]
     else:  # no prices yet: the experimental form model, until prices arrive
         win, sources = (
             (_normalise(dict(model)), ["form model (experimental)"]) if model else ({}, [])

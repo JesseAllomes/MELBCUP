@@ -406,8 +406,9 @@ def _normalise(p: dict[int, float]) -> dict[int, float]:
 def scenarios(model: RaceModel) -> list[Scenario]:
     """The six chance scenarios every offer is priced under; the worst EV decides.
 
-    consensus        the agreed model: margin-free consensus, app discount exponents
-    flb_1_14         consensus corrected for the favourite-longshot bias, chance ~ p ** 1.14
+    consensus        the plain margin-free consensus (uncorrected), app discount exponents
+    flb_1_14         the app's chance: consensus corrected for the favourite-long-shot bias,
+                     p ** 1.14 (melbcup.model.probability.MARKET_ALPHA)
     sportsbet_only   Sportsbet's own prices with the margin taken out (needs a price for every
                      starter; otherwise the scenario cannot run and the offer is held)
     discount_low     2nd 0.76, 3rd-4th 0.60 (flatter minor places)
@@ -415,18 +416,20 @@ def scenarios(model: RaceModel) -> list[Scenario]:
     mc_2se           consensus with every paying chance lowered by 2 standard errors of the
                      simulation (the same as consensus when places are enumerated exactly)
     """
-    consensus = _normalise(model.win_probs())
+    corrected = _normalise(model.win_probs())  # the app's chance: consensus ** MARKET_ALPHA
     prices = model.race.prices
+    raw = {n: a.market_win for n, a in model.runners.items() if a.market_win}
+    if len(raw) == len(corrected):
+        consensus = _normalise(raw)
+    else:  # chances not built from a market (saved cards, tests): correct them here instead
+        consensus = corrected
+        corrected = _normalise({n: p**FLB_ALPHA for n, p in consensus.items()})
     sb = {n: prices[n].sportsbet_win if n in prices else None for n in consensus}
     missing = sorted(n for n, v in sb.items() if not v)
     sportsbet = None if missing else _normalise({n: 1.0 / v for n, v in sb.items()})
     return [
         Scenario("consensus", "plain consensus", consensus),
-        Scenario(
-            "flb_1_14",
-            "price^1.14 corrected",
-            _normalise({n: p**FLB_ALPHA for n, p in consensus.items()}),
-        ),
+        Scenario("flb_1_14", "price^1.14 corrected", corrected),
         Scenario(
             "sportsbet_only",
             "Sportsbet-only margin-free",
