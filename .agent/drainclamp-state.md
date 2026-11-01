@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=82 -->
+<!-- drainclamp-build: state; schema=1; generation=83 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T15:44:31+00:00 3ac4223c m8 rerun done (research/RERUN.md): late money and all 20 families add nothing beyond the T-2 price on tune2 (Jan-Apr 2026, used once; final block sealed); frozen win rule 3 bets +27% no interval; quinella/exacta/trifecta lose; price^1.14 correction is the only gain, still below Sportsbet margin. Verdict: nothing to switch on; app unchanged pending owner
 - 2026-10-31T22:08:28+00:00 1bb079bf m8 final block opened once (owner 'Run the test'): win rule 8 bets 2 wins +17.5% CI -100..+240 not proven; agreed rule 4 bets +50%; trifecta off (-24%, CI -41..-5); quinella/exacta ~breakeven; price^1.14 +0.0047 nats CI +0.0020..+0.0073; final + examined month now spent
 - 2026-10-31T22:21:42+00:00 943d57e3 venues (research/VENUES.md, 28,721 races): T-2 favourite ROI SB -12.6, LB -11.3, best SB/LB -10.9, tote -10.9, Betfair SP -2.9 (5% comm); Betfair beats SB +9.6 pts (CI +9.3..+9.9) proven; take over all runners SB -29.8, tote -24.6, Betfair -6.4; no rule provably profitable anywhere
 - 2026-10-31T23:56:42+00:00 7596800e m9 live 5a6e50d7 (owner approved): quinella info-only, offers check + /api/offer, $1 floor. Live check 1 Nov 10:55am prices: Cup is race 7 (3:00pm); each-way 1/4 x4 HOLD on all 24 (worst EV -0.1% to -24.5%); race 8 Amanda Elliott 7 BETs $2
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T08:21:03+00:00 94b53960 ui3 BUILD built on session branch ccr-63b3240a-qdwy3g (51ab72cc, 0d1c6a3f): wallet bars, SB $150/BF $50 cookies, placed ticks cookie, allocate_accounts(placed), SB/BF pills, Good/Short price, per-race exotics, day list, last-minute check (in memory) + History total; 438 tests pass; main push awaits owner
 - 2026-11-01T08:43:56+00:00 0819df81 owner: Deploy. ui3 race card build (51ab72cc..39919ca2, 438 tests) pushed to main with owner approval; verifying live
 - 2026-11-01T09:29:32+00:00 859d4892 live check: race card live, Betfair pills on every line; only $163/$200 used (Betfair-better stakes under $5). Owner: yes, raise them to $5 on Betfair while Betfair money lasts. route() lifts; test added; suite passes; awaiting push approval
+- 2026-11-01T09:37:37+00:00 6ce3d0f0 c83b388f live (owner approved): day $194/$200 in bets; Cup win/place/EW all on Betfair ($5/$5/$10), returns after commission. ui3 done pending owner feedback
 <!-- /DC:LOG -->
