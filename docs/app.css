@@ -120,7 +120,7 @@ p { margin: 0 0 8px; }
 
 /* Placed buttons */
 .placed { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
-.placed button { min-height: 40px; padding: 0 12px; border-radius: 999px; font: 600 15px var(--body); cursor: pointer;
+.placed button { min-height: 40px; padding: 0 11px; border-radius: 999px; font: 600 14px var(--body); cursor: pointer;
   background: var(--sheet); border: 1.5px solid var(--rule); color: var(--ink); }
 .placed button[data-acct="sb"][aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--on-dark); }
 .placed button[data-acct="bf"][aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1A1300; }
