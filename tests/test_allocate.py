@@ -184,11 +184,11 @@ def test_small_betfair_better_stakes_are_raised_to_the_minimum():
 
 
 MULTI_DAY = [
-    ([0.5, 0.3, 0.2], [2.0, 3.4, 5.0]),
-    ([0.45, 0.35, 0.2], [2.4, 3.0, 5.5]),
-    ([0.4, 0.4, 0.2], [2.5, 2.6, 6.0]),
-    ([0.38, 0.32, 0.3], [2.7, 3.1, 3.4]),
-    ([0.42, 0.33, 0.25], [2.4, 3.0, 4.0]),
+    ([0.5, 0.3, 0.2], [2.0, 3.4, 5.0], [1.3, 1.6, 2.0]),
+    ([0.45, 0.35, 0.2], [2.4, 3.0, 5.5], [1.4, 1.5, 2.1]),
+    ([0.4, 0.4, 0.2], [2.5, 2.6, 6.0], [1.4, 1.4, 2.2]),
+    ([0.38, 0.32, 0.3], [2.7, 3.1, 3.4], [1.5, 1.4, 1.5]),
+    ([0.42, 0.33, 0.25], [2.4, 3.0, 4.0], [1.4, 1.4, 1.7]),
 ]
 
 
@@ -204,7 +204,7 @@ def _multis(routed):
 
 def test_multis_share_the_money_by_chance_and_always_go_to_sportsbet():
     d = multi_day()
-    d = _betfair_better(d)  # Betfair pays more on every horse, but a multi must stay at one bookie
+    d = _betfair_better(d)  # Betfair pays more on every horse; a multi stays with one bookie
     routed = allocate_accounts(d, 150, 50)
     ms = _multis(routed)
     assert len(ms) == 5
@@ -213,9 +213,10 @@ def test_multis_share_the_money_by_chance_and_always_go_to_sportsbet():
     assert all(r.pick.race == r.pick.multi.legs[0].race and not r.pick.good_price for r in ms)
     assert _spent(routed, "sportsbet") <= 150 and _spent(routed, "betfair") <= 50
     assert sum(r.pick.stake for r in routed) <= 200
-    # likelier multis never get less
+    # likelier multis never get more than a rounding dollar less
     by_chance = sorted(ms, key=lambda r: r.pick.chance)
-    assert [r.pick.stake for r in by_chance] == sorted(r.pick.stake for r in by_chance)
+    stakes = [r.pick.stake for r in by_chance]
+    assert all(a <= b + 1 for i, a in enumerate(stakes) for b in stakes[i + 1 :])
 
 
 def test_a_placed_multi_keeps_its_stake_and_the_other_multis_stay():

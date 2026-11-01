@@ -140,8 +140,9 @@ p { margin: 0 0 8px; }
 .multi.is-placed { background: var(--navy-wash); }
 .multi .stake { font-size: 26px; }
 .mlegs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.mlegs li { display: grid; grid-template-columns: 2.2em auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.mlegs li { display: grid; grid-template-columns: 2.2em auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
 .mlegs .rno { font: 600 17px var(--head); color: var(--muted); }
+.mlegs .lk { font: 600 13px var(--body); color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 1px 8px; }
 .mlegs b { font-weight: 600; overflow-wrap: anywhere; }
 .mfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 

@@ -216,15 +216,15 @@ def test_chances_and_dollars_read_like_the_prototype():
 def test_placed_multis_are_kept_by_their_legs():
     when = datetime(2026, 11, 3).date()
     raw = quote(json.dumps([
-        ["2026-11-03", 1, "m", 1010201, "bf", 3],  # Betfair is not an option for a multi
-        ["2026-11-03", 1, "m", 1010301, "sb", 2],  # same first race, other legs: its own slot
-        ["2026-11-03", 1, "m", 1010201, "sb", 9],  # the same legs again
-        ["2026-11-03", 1, "m", 0, "sb", 4],  # not a multi key
+        ["2026-11-03", 1, "m", 101102011, "bf", 3],  # Betfair is not an option for a multi
+        ["2026-11-03", 1, "m", 101202011, "sb", 2],  # same runner, but a place leg: its own slot
+        ["2026-11-03", 1, "m", 101102011, "sb", 9],  # the same legs again
+        ["2026-11-03", 1, "m", 1010201, "sb", 4],  # not a multi key (old four-digit legs)
     ]))
     placed = parse_placed(raw, when)
     assert [(p.kind, p.account, p.key, p.stake) for p in placed] == [
-        ("multi", "sportsbet", 1010201, 3),
-        ("multi", "sportsbet", 1010301, 2),
+        ("multi", "sportsbet", 101102011, 3),
+        ("multi", "sportsbet", 101202011, 2),
     ]
 
 
@@ -235,6 +235,7 @@ def test_day_page_shows_multi_picks_and_a_ticked_multi_drops_the_wallet(views):
     cards = re.findall(r'<article class="bet multi.*?</article>', html, re.S)
     assert len(cards) == 5
     assert all('class="cloth sm"' in c and "Lands " in c for c in cards)
+    assert all(re.search(r'class="lk">(Win|Place)</span>', c) for c in cards)
     assert all('class="pill sb best"' in c for c in cards)
     assert all(("Good price" in c) != ("Short price" in c) for c in cards)
     assert all('data-acct="sb"' in c and 'data-acct="bf"' not in c for c in cards)

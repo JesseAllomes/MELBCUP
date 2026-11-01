@@ -44,8 +44,8 @@
 <article class="bet multi{{ ' is-placed' if line.placed }}">
   <div class="bet-top"><h3>{{ line.title }}</h3>{% if line.stake %}<span class="stake sb">${{ line.stake }}<small>Sportsbet</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}</div>
   <ol class="mlegs">
-    {% for race, number, name in line.multi_legs %}
-    <li><span class="rno">R{{ race }}</span><span class="cloth sm">{{ number }}</span><b>{{ name }}</b></li>
+    {% for race, number, name, kind in line.multi_legs %}
+    <li><span class="rno">R{{ race }}</span><span class="cloth sm">{{ number }}</span><b>{{ name }}</b><span class="lk">{{ kind }}</span></li>
     {% endfor %}
   </ol>
   <div class="mfoot">

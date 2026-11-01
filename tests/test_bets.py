@@ -451,17 +451,24 @@ def test_price_verdict_compares_a_quote_with_the_runners_chance():
 
 def _multi_models():
     return [
-        make_model(1, [0.5, 0.3, 0.2], [2.0, 3.4, 5.0]),
-        make_model(2, [0.45, 0.35, 0.2], [2.4, 3.0, 5.5]),
-        make_model(3, [0.4, 0.4, 0.2], [2.5, 2.6, 6.0]),
-        make_model(4, [0.5, 0.5], [2.0, 2.0], sportsbet=False),
+        make_model(1, [0.5, 0.3, 0.2], [2.0, 3.4, 5.0], [1.3, 1.6, 2.0]),
+        make_model(2, [0.45, 0.35, 0.2], [2.4, 3.0, 5.5], [1.4, 1.5, 2.1]),
+        make_model(3, [0.4, 0.4, 0.2], [2.5, 2.6, 6.0], [1.4, 1.4, 2.2]),
+        make_model(4, [0.5, 0.5], [2.0, 2.0], [1.3, 1.3], sportsbet=False),
     ]
 
 
-def test_day_multis_are_the_five_likeliest_distinct_cross_race_win_multis():
+def _chance_of(models, leg):
+    a = next(a for m in models if m.race.number == leg.race for a in m.ranked()
+             if a.number == leg.number)
+    return a.place if leg.kind == "place" else a.win
+
+
+def test_day_multis_are_the_five_likeliest_distinct_cross_race_multis():
     from melbcup.bets.multis import MULTI_EDGE, day_multis
 
-    ms = day_multis(_multi_models())
+    models = _multi_models()
+    ms = day_multis(models)
     assert len(ms) == 5
     assert [m.prob for m in ms] == sorted((m.prob for m in ms), reverse=True)
     assert len({m.key for m in ms}) == 5
@@ -469,12 +476,37 @@ def test_day_multis_are_the_five_likeliest_distinct_cross_race_win_multis():
         assert 2 <= len(m.legs) <= 3
         races = [leg.race for leg in m.legs]
         assert len(set(races)) == len(races) and 4 not in races  # no Sportsbet price in R4
-        assert m.prob == pytest.approx(math.prod(g.prob for g in m.legs))
+        assert m.prob == pytest.approx(math.prod(_chance_of(models, g) for g in m.legs))
         assert m.price == pytest.approx(math.prod(g.price for g in m.legs))
         assert m.good_price == (m.prob * m.price >= 1 + MULTI_EDGE)
-    best = ms[0]
-    assert [(g.race, g.number) for g in best.legs] == [(1, 1), (2, 1)]
-    assert len(day_multis(_multi_models(), 2)) == 2
+    assert len(day_multis(models, 2)) == 2
+
+
+def test_day_multi_legs_can_be_win_or_place_and_mixed():
+    from melbcup.bets.multis import day_multis
+
+    models = _multi_models()
+    ms = day_multis(models, 200)
+    kinds = {tuple(g.kind for g in m.legs) for m in ms if len(m.legs) == 2}
+    assert {("win", "win"), ("place", "place"), ("win", "place"), ("place", "win")} <= kinds
+    place = next(g for m in ms for g in m.legs if g.kind == "place")
+    runner = next(a for a in models[place.race - 1].ranked() if a.number == place.number)
+    prices = models[place.race - 1].race.prices[place.number]
+    assert place.prob == pytest.approx(runner.place) and place.price == prices.sportsbet_place
+    top = ms[0]  # places are likelier than wins, so the likeliest multi is all places
+    assert all(g.kind == "place" for g in top.legs)
+    # a win leg and a place leg on one runner make different multis
+    by_legs = {tuple((g.race, g.number, g.kind) for g in m.legs): m.key for m in ms}
+    assert by_legs[((1, 1, "win"), (2, 1, "win"))] != by_legs[((1, 1, "place"), (2, 1, "win"))]
+    assert len({m.key for m in ms}) == len(ms)
+
+
+def test_a_runner_without_a_sportsbet_place_price_gets_no_place_leg():
+    from melbcup.bets.multis import day_multis
+
+    models = [make_model(1, [0.5, 0.5], [2.0, 2.0], None), make_model(2, [0.5, 0.5], [2.0, 2.0])]
+    ms = day_multis(models, 50)
+    assert ms and all(g.kind == "win" for m in ms for g in m.legs)
 
 
 def test_day_multis_only_use_the_races_given_and_good_price_follows_the_edge():
@@ -495,14 +527,20 @@ def test_day_multis_only_use_the_races_given_and_good_price_follows_the_edge():
 
 
 def test_multi_key_round_trips_and_rebuilds_the_multi():
-    from melbcup.bets.multis import build_multi, day_multis, key_legs
+    from melbcup.bets.multis import build_multi, day_multis, key_legs, multi_key
 
     models = _multi_models()
-    for m in day_multis(models):
-        assert key_legs(m.key) == [(g.race, g.number) for g in m.legs]
+    for m in day_multis(models, 40):
+        assert key_legs(m.key) == [(g.race, g.number, g.kind) for g in m.legs]
         rebuilt = build_multi(models, m.key)
         assert rebuilt is not None and rebuilt.key == m.key
         assert rebuilt.prob == pytest.approx(m.prob) and rebuilt.price == pytest.approx(m.price)
-    assert key_legs(0) == [] and key_legs(101) == [] and key_legs(1010101010101) == []
-    assert build_multi(models, 4010501) is None  # race 4 has no Sportsbet price
-    assert build_multi(models, 1010901) is None  # no runner 9
+    assert multi_key([(1, 2, "win"), (3, 1, "place")]) != multi_key(
+        [(1, 2, "place"), (3, 1, "place")]
+    )
+    assert key_legs(0) == [] and key_legs(101) == [] and key_legs(10101101011010110101) == []
+    assert key_legs(multi_key([(1, 1, "win"), (1, 2, "win")])) == []  # one race twice
+    assert build_multi(models, multi_key([(4, 1, "win"), (1, 1, "win")])) is None  # no price
+    assert build_multi(models, multi_key([(1, 1, "win"), (2, 9, "win")])) is None  # no runner 9
+    no_place = [make_model(1, [0.5, 0.5], [2.0, 2.0]), make_model(2, [0.5, 0.5], [2.0, 2.0])]
+    assert build_multi(no_place, multi_key([(1, 1, "win"), (2, 1, "place")])) is None

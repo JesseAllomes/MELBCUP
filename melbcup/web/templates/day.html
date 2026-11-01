@@ -49,7 +49,7 @@
   {% if day.multis %}
   <section aria-labelledby="multis-h">
     <h2 id="multis-h">Multi picks for the day</h2>
-    <p class="split">The {{ day.multis | length }} likeliest win multis across races still to run, placed with Sportsbet. Each leg is a win bet; a leg missing its race or a Sportsbet price is left out.</p>
+    <p class="split">The {{ day.multis | length }} likeliest multis across races still to run, placed with Sportsbet. Each leg is a win or a place bet in a different race.</p>
     <div class="bets multis">
       {% for line in day.multis %}{{ multi_card(line) }}{% endfor %}
     </div>

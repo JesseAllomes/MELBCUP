@@ -134,7 +134,8 @@ def parse_placed(raw: str | None, race_date: date | None) -> list[Placed]:
         if not all(isinstance(x, int) and not isinstance(x, bool) for x in (race, key, stake)):
             continue
         slot = (race, kind, key if kind == "multi" else 0)
-        if not (0 < stake <= MAX_AMOUNT) or slot in seen or (kind == "multi" and not key_legs(key)):
+        bad_multi = kind == "multi" and not key_legs(key)
+        if not (0 < stake <= MAX_AMOUNT) or slot in seen or bad_multi:
             continue
         if kind in SPORTSBET_ONLY:
             account = "sportsbet"
@@ -239,7 +240,8 @@ class Line:
     record: str = ""  # JSON for the Placed buttons: [date, race, kind, runner, account, stake]
     sportsbet_only: bool = False
     key: int = 0  # a multi's legs, packed (multis.multi_key): the placed record's key
-    multi_legs: list[tuple[int, int, str]] = field(default_factory=list)  # race, number, name
+    # race, number, name, "Win" | "Place"
+    multi_legs: list[tuple[int, int, str, str]] = field(default_factory=list)
     price: float | None = None  # a multi's Sportsbet price
 
     @property
@@ -341,7 +343,7 @@ def _multi_line(m: Multi, routed: Routed | None, race_date: date) -> Line:
         pills=[Pill("sb", price_text(m.price), True)],
         sportsbet_only=True,
         key=m.key,
-        multi_legs=[(leg.race, leg.number, leg.name) for leg in m.legs],
+        multi_legs=[(leg.race, leg.number, leg.name, LABELS[leg.kind]) for leg in m.legs],
         price=m.price,
     )
     line.title = f"{len(m.legs)}-leg multi"
