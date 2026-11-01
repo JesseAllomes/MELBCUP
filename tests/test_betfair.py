@@ -71,7 +71,7 @@ def test_creates_and_uses_the_delayed_key_then_reads_prices():
     fake = FakeBetfair()
     client = BetfairClient("me", "pw", post=fake)
     got = client.meeting(date(2026, 11, 3), "Flemington")
-    assert got == {7: RacePrices(win={20: 7.2}, place={20: 2.9})}
+    assert got == {7: RacePrices({20: 7.2}, {20: 2.9}, "1.10", "1.11", {20: 501, 2: 502})}
     methods = [m for m, _ in fake.calls]
     assert methods[:4] == ["login", "getDeveloperAppKeys", "createDeveloperAppKeys", "getDeveloperAppKeys"]
     assert all(key == "DELAYKEY" for m, key in fake.calls if m.startswith("list"))

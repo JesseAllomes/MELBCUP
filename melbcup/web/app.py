@@ -16,6 +16,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
 from melbcup.archive import Archive
+from melbcup.autobet import BetError, Betting, PinError, start_loop
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
@@ -44,12 +45,17 @@ def create_app(
 
         board = LiveBoard(settings, archive=Archive(read), rc=RacingComClient())
     views = Views(settings, board)
+    betting = Betting(settings, board)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
+        stop_auto = None
         if start_background:
             board.start()
+            stop_auto = start_loop(betting)
         yield
+        if stop_auto is not None:
+            stop_auto.set()
         board.stop()
 
     app = FastAPI(title="MELBCUP", lifespan=lifespan, docs_url=None, redoc_url=None)
@@ -92,6 +98,59 @@ def create_app(
         except OfferRequestError as exc:
             raise HTTPException(400, str(exc)) from exc
         return JSONResponse(body, headers={"Cache-Control": "no-store"})
+
+    def _betting_answer(fn):
+        try:
+            return JSONResponse(fn(), headers={"Cache-Control": "no-store"})
+        except PinError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except BetError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    async def _body(request: Request) -> dict:
+        if request.headers.get("content-type", "").startswith("application/json"):
+            data = await request.json()
+            return data if isinstance(data, dict) else {}
+        return dict(await request.form())
+
+    def _number(data: dict, key: str, kind=float):
+        raw = data.get(key)
+        if raw in (None, ""):
+            return None
+        try:
+            return kind(raw)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(400, f"{key} must be a number") from exc
+
+    @app.get("/api/betting")
+    def betting_status():
+        """Auto and betting status: mode, limit, spent today, recent bets. No secrets."""
+        return _betting_answer(betting.status)
+
+    @app.post("/api/betting/auto")
+    async def betting_auto(request: Request):
+        """Turn auto on or off and set its daily limit. Needs the PIN."""
+        data = await _body(request)
+        on = data.get("on")
+        on = None if on in (None, "") else str(on).lower() in ("1", "true", "on", "yes")
+        limit = _number(data, "limit")
+        return _betting_answer(lambda: betting.set_auto(data.get("pin"), on, limit))
+
+    @app.post("/api/betting/bet")
+    async def betting_bet(request: Request):
+        """One bet by hand on Betfair: race, runner, kind (win or place), stake. Needs the PIN."""
+        data = await _body(request)
+        race, runner = _number(data, "race", int), _number(data, "runner", int)
+        stake = _number(data, "stake")
+        if race is None or runner is None or stake is None:
+            raise HTTPException(400, "race, runner and stake are required")
+        kind = str(data.get("kind") or "win")
+        return _betting_answer(
+            lambda: _placed(betting.bet_by_hand(data.get("pin"), race, runner, kind, stake))
+        )
+
+    def _placed(p) -> dict:
+        return {k: v for k, v in betting.status()["bets"][-1].items()} if p else {}
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):

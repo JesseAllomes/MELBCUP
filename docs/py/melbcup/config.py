@@ -31,6 +31,9 @@ class Settings:
     betfair_username: str | None = field(default=None, repr=False)
     betfair_password: str | None = field(default=None, repr=False)
     betfair_app_key: str | None = field(default=None, repr=False)
+    bet_pin: str | None = field(default=None, repr=False)  # BET_PIN: every betting action
+    bet_live: bool = False  # BET_MODE=live: real Betfair bets (needs the live app key)
+    auto_limit: float = 20.0  # AUTO_LIMIT: auto's default daily limit in dollars
 
 
 def _clean(value: str | None) -> str | None:
@@ -59,4 +62,20 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         betfair_username=_clean(env.get("BETFAIR_USERNAME")),
         betfair_password=_clean(env.get("BETFAIR_PASSWORD")),
         betfair_app_key=_clean(env.get("BETFAIR_APP_KEY")),
+        bet_pin=_clean(env.get("BET_PIN")),
+        bet_live=(_clean(env.get("BET_MODE")) or "").lower() == "live",
+        auto_limit=_money(env.get("AUTO_LIMIT"), 20.0),
     )
+
+
+def _money(raw: str | None, default: float) -> float:
+    raw = _clean(raw)
+    if raw is None:
+        return default
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ConfigError(f"AUTO_LIMIT must be a dollar amount, got {raw!r}") from exc
+    if value < 0:
+        raise ConfigError("AUTO_LIMIT cannot be negative")
+    return value

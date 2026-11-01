@@ -100,6 +100,7 @@ class LiveBoard:
             else None
         )
         self._bf_status: str | None = "waiting for the first price check" if self.bf else None
+        self._exchange: dict = {}  # race number -> betfair.RacePrices from the last check
         self.auto = settings.auto_refresh
         self.race_date = settings.race_date
         self.venue = settings.venue
@@ -236,6 +237,8 @@ class LiveBoard:
                     self._models[race.number] = assess(race)
             if status is not None:
                 self._bf_status = status
+            if exchange:
+                self._exchange = exchange
             self._priced_at = now
             self._updated_at = now
 

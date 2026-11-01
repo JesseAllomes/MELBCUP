@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
@@ -53,10 +53,23 @@ def _httpx_post(url: str, headers: dict[str, str], body: Any, is_json: bool) -> 
 
 @dataclass
 class RacePrices:
-    """Best back prices by saddlecloth number for one race."""
+    """Best back prices by saddlecloth number for one race, and the ids needed to bet on it."""
 
     win: dict[int, float]
     place: dict[int, float]
+    win_market: str | None = None
+    place_market: str | None = None
+    selections: dict[int, int] = field(default_factory=dict)  # saddlecloth -> selection id
+
+
+@dataclass
+class Order:
+    """Betfair's answer to one back bet."""
+
+    status: str  # "SUCCESS" or Betfair's failure code
+    bet_id: str | None = None
+    matched: float = 0.0
+    price: float | None = None
 
 
 class BetfairClient:
@@ -197,8 +210,66 @@ class BetfairClient:
             win = {cloth[s]: p for s, p in books.get(win_id, {}).items() if s in cloth}
             place = {cloth[s]: p for s, p in books.get(place_id, {}).items() if s in cloth}
             if win or place:
-                out[number] = RacePrices(win, place)
+                out[number] = RacePrices(
+                    win, place, win_id, place_id, {c: s for s, c in cloth.items()}
+                )
         return out
+
+    # -- betting (needs the live app key: the delayed key is refused) --------------------------
+    def place(
+        self, market_id: str, selection_id: int, price: float, stake: float, ref: str, strategy: str
+    ) -> Order:
+        """Back one runner at ``price`` or better. The bet lapses if not matched by the jump.
+        ``ref`` makes a retry within Betfair's window a no-op instead of a second bet."""
+        self._session()
+        result = self._betting(
+            "placeOrders",
+            {
+                "marketId": market_id,
+                "customerRef": ref[:32],
+                "customerStrategyRef": strategy[:15],
+                "instructions": [
+                    {
+                        "selectionId": selection_id,
+                        "handicap": 0,
+                        "side": "BACK",
+                        "orderType": "LIMIT",
+                        "limitOrder": {
+                            "size": round(stake, 2),
+                            "price": price,
+                            "persistenceType": "LAPSE",
+                        },
+                    }
+                ],
+            },
+        ) or {}
+        reports = result.get("instructionReports") or [{}]
+        rep = reports[0]
+        if result.get("status") != "SUCCESS":
+            code = rep.get("errorCode") or result.get("errorCode") or result.get("status") or "FAILED"
+            return Order(str(code))
+        return Order(
+            "SUCCESS", rep.get("betId"), float(rep.get("sizeMatched") or 0.0),
+            rep.get("averagePriceMatched"),
+        )
+
+    def staked_today(self, day: date, strategy: str) -> float:
+        """Dollars staked today under ``strategy``: open bets plus bets already settled."""
+        self._session()
+        start = datetime.combine(day, time(0), MELBOURNE).astimezone(UTC)
+        span = {"from": _iso(start), "to": _iso(start + timedelta(days=1))}
+        current = self._betting(
+            "listCurrentOrders",
+            {"customerStrategyRefs": [strategy], "dateRange": span, "orderProjection": "ALL"},
+        ) or {}
+        total = sum(float(o.get("sizeMatched") or 0) + float(o.get("sizeRemaining") or 0)
+                    for o in current.get("currentOrders", []))
+        cleared = self._betting(
+            "listClearedOrders",
+            {"betStatus": "SETTLED", "customerStrategyRefs": [strategy], "settledDateRange": span},
+        ) or {}
+        total += sum(float(o.get("sizeSettled") or 0) for o in cleared.get("clearedOrders", []))
+        return total
 
 
 def _iso(t: datetime) -> str:
