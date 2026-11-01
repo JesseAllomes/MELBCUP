@@ -63,10 +63,10 @@ def views_split(a: Assessment) -> bool:
     return any(v and abs(math.log(v / a.market_win)) >= SPLIT for v in (a.model_win, a.feed_win))
 
 
-# Quinella is shown for information only and never recommended or staked (owner, 2026-10-31:
-# research/v2/CUP_TRENDS_2.md, no quinella pays over fair on average).
+# Quinella and trifecta are shown for information only and never recommended or staked.
+# Quinella (owner, 2026-10-31): research/v2/CUP_TRENDS_2.md, no quinella pays over fair on average.
+# Trifecta (owner, 2026-11-01): research/RERUN.md, trifecta recommendations lost money in testing.
 MIN_HIT = {
-    "trifecta": 0.15,
     "first_four": 0.06,
     "quaddie": 0.12,
     "early_quaddie": 0.12,
@@ -119,7 +119,7 @@ def build_picks(models: list[RaceModel], budget: float | None = None) -> DayPick
         for s in rp.best.values():
             if s is not None:
                 s.stake = _single_stake(s, budget)
-        for group in (rp.trifectas, rp.first_fours):
+        for group in (rp.first_fours,):
             if chosen := recommend(group, MIN_HIT[group[0].kind] if group else 0):
                 _size_exotic(chosen, budget)
         races.append(rp)

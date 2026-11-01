@@ -147,6 +147,17 @@ def test_quinella_is_information_only():
         assert all(e.outlay is None for e in rp.quinellas)
 
 
+def test_trifecta_is_information_only():
+    """Owner: show trifecta odds, never a BET (trifecta lost money in testing)."""
+    prices = [3.5, 3.0, 6.0, 10.0, 13.0, 15.0]
+    models = [make_model(n, FIELD, prices, [1.4, 1.5, 2.0, 2.5, 3.0, 3.5]) for n in range(1, 4)]
+    day = build_picks(models, budget=200)
+    for rp in day.races:
+        assert rp.trifectas
+        assert not any(e.recommended for e in rp.trifectas)
+        assert all(e.outlay is None for e in rp.trifectas)
+
+
 def test_first_four_structures_and_recommendation():
     ff = first_fours(make_model(1, FIELD))
     assert ff[0].combos == 24
@@ -231,9 +242,9 @@ def test_build_picks_end_to_end_with_budget():
     assert len(day.races) == 10
     r1 = day.races[0]
     assert r1.best["win"].number == 1 and r1.best["win"].stake
-    assert sum(e.recommended for e in r1.trifectas) == 1
-    rec = next(e for e in r1.trifectas if e.recommended)
-    assert rec.outlay == 2 and rec.flexi_pct == pytest.approx(100 * 2 / rec.combos, abs=0.1)
+    assert not any(e.recommended for e in r1.trifectas)
+    rec = next(e for e in r1.first_fours if e.recommended)
+    assert rec.outlay and rec.flexi_pct == pytest.approx(100 * 2 / rec.combos, abs=0.1)
     assert {e.kind for e in day.quaddies} == {"quaddie", "early_quaddie"}
     total = sum(
         (s.stake or 0)

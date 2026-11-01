@@ -169,7 +169,7 @@ def test_history_page_tallies_saved_and_new_races(tmp_path, monkeypatch):
     read = saved_meeting(tmp_path, day)
     saved_card = archive.Archive(read).load(day, VENUE)
     record = history.entries(build_picks([assess(r) for r in saved_card.races]))
-    assert len(record) == 2 and {"top_win", "top_place", "trifecta"} <= set(record[0]["picks"])
+    assert len(record) == 2 and {"top_win", "top_place"} <= set(record[0]["picks"])
     archive.write(str(tmp_path), [saved_card], history=record)
 
     router = Router()
