@@ -1,10 +1,11 @@
 {
- "build": "09885d06b02c",
+ "build": "9707a748a035",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
   "melbcup/autobet.py",
   "melbcup/bets/__init__.py",
+  "melbcup/bets/allocate.py",
   "melbcup/bets/exotics.py",
   "melbcup/bets/grade.py",
   "melbcup/bets/multis.py",
