@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -19,6 +19,8 @@ from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_
 from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
+from melbcup.web import racecard
+from melbcup.web.racecard import PLACED_COOKIE, build_day, parse_placed, pick_amounts, wallet
 
 HERE = Path(__file__).parent
 BOOKMAKERS = {
@@ -245,6 +247,14 @@ def make_env() -> Environment:
         open_races=open_races,
     )
     env.globals["shown"] = history.shown
+    env.filters.update(
+        one_in=racecard.one_in,
+        dollars=racecard.dollars,
+        price=racecard.price_text,
+        jump=racecard.jump,
+        pills=racecard.pills,
+        before=lambda dt, minutes: local_time(dt - timedelta(minutes=minutes)) if dt else "",
+    )
     return env
 
 
@@ -284,24 +294,35 @@ class Views:
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
     ) -> dict:
         snap = self.board.snapshot()
-        budget, chosen = pick_budget(query, cookies)
-        picks = snap.picks(budget) if snap.models else None
+        cookies = cookies or {}
+        sb, bf, chosen = pick_amounts(query, cookies)
+        placed = parse_placed(cookies.get(PLACED_COOKIE), snap.race_date)
+        day_total = sb + bf
+        picks = snap.picks(day_total or None) if snap.models else None
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
         )
         marks = {rg.race: {g.kind: g for g in rg.lines} for rg in (grade.races if grade else [])}
+        card = (
+            build_day(picks, sb, bf, placed, open_races(picks), snap.race_date) if picks else None
+        )
         return {
             "settings": self.settings,
             "browser": self.browser,
             "snap": snap,
             "card": snap.card,
-            "budget": budget,
-            "budget_q": f"?budget={budget:g}" if chosen else "",
+            "day": card,
+            "wallet": wallet(sb, bf, placed),
+            "amounts_chosen": chosen,
+            "race_date_iso": snap.race_date.isoformat() if snap.race_date else "",
+            "budget": day_total,
+            "budget_q": "",
             "picks": picks,
             "grade": grade,
             "marks": marks,
+            "checks": snap.checks,
             "today": melbourne_today(),
-            "here": path + (f"?budget={budget:g}" if chosen else ""),
+            "here": path,
             "can_fetch": self.board.can_fetch,
             "now": datetime.now(UTC),
         }
@@ -324,6 +345,7 @@ class Views:
                 h2h=history.head_to_head(record),
                 groups=history.meetings(record),
                 saved_count=len(saved),
+                check_totals=self.board.check_totals(),
             )
             return self.env.get_template("history.html").render(ctx)
         if path == "/meetings":
@@ -351,6 +373,8 @@ class Views:
                 raise NotFound(f"Race {number} is not on the card yet")
             ctx["rp"] = rp
             ctx["race"] = rp.model.race
+            ctx["rc"] = ctx["day"].race(number)
+            ctx["check"] = ctx["checks"].get(number)
             return self.env.get_template("race.html").render(ctx)
         raise NotFound(path)
 

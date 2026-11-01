@@ -1,0 +1,49 @@
+{# Pieces of the race card (.grok/product-ui/). A line is a racecard.Line. #}
+
+{% macro pillset(list, start=false) %}{% if list %}<span class="pills{{ ' start' if start }}">{% for p in list %}<span class="pill {{ p.account }}{{ ' best' if p.best }}"><small>{{ p.account | upper }}</small>{{ p.text }}</span>{% endfor %}</span>{% endif %}{% endmacro %}
+
+{# "Placed on Sportsbet" / "Placed on Betfair" (exotics: Sportsbet only). Only a line with a stake
+   can be ticked; a ticked one reads "✓ Placed $N on ..." filled in that bookie's colour. #}
+{% macro placed(line) %}{% if line.stake %}
+<div class="placed">
+  {% for code, name in [('sb', 'Sportsbet'), ('bf', 'Betfair')] if code == 'sb' or not line.sportsbet_only %}
+  {% set on = line.placed and line.acct == code %}
+  <button type="button" data-acct="{{ code }}" data-rec="{{ line.record }}" aria-pressed="{{ 'true' if on else 'false' }}">{% if on %}✓ Placed ${{ line.stake }} on {{ name }}{% else %}Placed on {{ name }}{% endif %}</button>
+  {% endfor %}
+</div>
+{% endif %}{% endmacro %}
+
+{% macro pick_row(line) %}
+<div class="pick{{ ' is-placed' if line.placed }}">
+  <span class="type">{{ line.label }}</span>
+  <span class="who"><span class="cloth sm">{{ line.number }}</span><b>{{ line.name }}</b></span>
+  {% if line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
+  <span class="fun">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}</span>
+  <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>
+  {{ placed(line) }}
+</div>
+{% endmacro %}
+
+{% macro exotic_card(line) %}
+<article class="bet">
+  <div class="bet-top"><h3>{{ line.title }}</h3>{% if line.stake %}<span class="amt">${{ line.stake }}</span>{% endif %}</div>
+  {% if line.legs %}
+  <dl class="legs">
+    {% for label, numbers, suffix in line.legs %}
+    <dt>{{ label }}</dt><dd>{% for n in numbers %}<span class="cloth sm">{{ n }}</span>{% endfor %}{% if suffix %}<span class="suffix">{{ suffix }}</span>{% endif %}</dd>
+    {% endfor %}
+  </dl>
+  {% endif %}
+  {% if line.say or line.bold %}<p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}{% if line.caveat %} {{ line.caveat }}{% endif %}</p>{% endif %}
+  {{ placed(line) }}
+</article>
+{% endmacro %}
+
+{# The two day amounts. A plain form: the server remembers them in cookies. #}
+{% macro amounts(wallet, here) %}
+<form class="money" method="get" action="{{ here }}">
+  <label for="m-sb"><span><span class="pill sb best"><small>Sportsbet</small></span> today</span><input id="m-sb" name="sb" inputmode="decimal" autocomplete="off" value="{{ wallet.sportsbet | dollars }}"></label>
+  <label for="m-bf"><span><span class="pill bf best"><small>Betfair</small></span> today</span><input id="m-bf" name="bf" inputmode="decimal" autocomplete="off" value="{{ wallet.betfair | dollars }}"></label>
+  <button type="submit">Share it out</button>
+</form>
+{% endmacro %}

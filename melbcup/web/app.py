@@ -21,6 +21,7 @@ from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.offer_api import OfferNotFound, OfferRequestError, offer_response
+from melbcup.web.racecard import BF_COOKIE, SB_COOKIE, pick_amounts
 from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
@@ -161,14 +162,23 @@ def create_app(
         except NotFound as exc:
             raise HTTPException(404, str(exc)) from exc
         response = HTMLResponse(html)
-        if "budget" in request.query_params:  # the budget form was submitted: remember it
-            chosen = parse_budget(request.query_params["budget"])
+        query = request.query_params
+        keep = {"max_age": 365 * 86400, "samesite": "lax", "httponly": True}
+        if "budget" in query:  # the old single budget: remembered for /api/offer too
+            chosen = parse_budget(query["budget"])
             if chosen:
-                response.set_cookie(
-                    BUDGET_COOKIE, f"{chosen:g}", max_age=365 * 86400, samesite="lax", httponly=True
-                )
+                response.set_cookie(BUDGET_COOKIE, f"{chosen:g}", **keep)
             else:
                 response.delete_cookie(BUDGET_COOKIE)
+        if "sb" in query or "bf" in query or "budget" in query:
+            # The day amounts were submitted (or ?budget= alone: all on Sportsbet): remember them
+            sb, bf, chosen = pick_amounts(query)
+            if chosen:
+                response.set_cookie(SB_COOKIE, f"{sb:g}", **keep)
+                response.set_cookie(BF_COOKIE, f"{bf:g}", **keep)
+            else:
+                response.delete_cookie(SB_COOKIE)
+                response.delete_cookie(BF_COOKIE)
         return response
 
     return app

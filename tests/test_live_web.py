@@ -268,7 +268,7 @@ def test_buttons_and_data_source_on_page(client):
     assert "Live data from racing.com" not in html and "Sportsbet prices" not in html
     assert "credits" not in html.lower() and "PuntersEdge" not in html
     assert "Refresh prices" in html and "Reload card" in html and "Auto off" in html
-    assert "next=/%3Fbudget%3D50" in html
+    assert "next=/&" in html or 'next=/"' in html  # buttons come back to the page
 
 
 def test_auto_page_has_no_load_or_refresh_buttons_just_a_status_line(monkeypatch):
@@ -349,34 +349,36 @@ def test_public_access_needs_no_password():
 def test_day_page_shows_every_race_and_sections(client):
     html = client.get("/", auth=AUTH).text
     assert "Furphy Sprint" in html and "Lexus Melbourne Cup" in html
-    assert (
-        "First four" in html
-    )  # each ways appear only when a price beats its chance
+    assert "/race/1" in html and "/race/2" in html
+    # no day-wide quaddie block and no "Bet now" block: those live on each race's card
+    assert "Quaddies and multis" not in html and "Bet now" not in html
     assert "None: no two races" not in html  # empty sections are hidden, not explained
     assert "1800 858 858" in html
     assert "Bet $" not in html
 
 
 def test_budget_sizes_bets(client):
+    """?budget= alone still works: all of it on Sportsbet, none on Betfair."""
     html = client.get("/?budget=500", auth=AUTH).text
-    assert 'value="500"' in html
-    assert "/race/1?budget=500" in html
+    assert 'name="sb" inputmode="decimal" autocomplete="off" value="$500"' in html
+    assert 'name="bf" inputmode="decimal" autocomplete="off" value="$0"' in html
+    assert "/race/1" in html
 
 
 def test_bad_budget_falls_back_to_the_default(client):
     html = client.get("/?budget=lots", auth=AUTH).text
-    assert 'value="200"' in html
+    assert 'value="$150"' in html and 'value="$50"' in html
 
 
 def test_race_page(client):
     r = client.get("/race/2", auth=AUTH)
     assert r.status_code == 200
     html = r.text
-    assert "Grand Tempo" in html and "Racing Syndicate" in html  # owner shown
-    assert "First Four" in html and "Fair div" in html
-    assert 'class="sect">Quinella<' in html
-    assert html.index('class="sect">Quinella<') < html.index('class="sect">Trifecta<')
-    assert "Sportsbet" in html or "SB" in html
+    assert "Grand Tempo" in html and "Racing Syndicate" in html  # owner shown (under Form)
+    assert "First Four, race 2" in html
+    assert "<h3>Quinella</h3>" in html
+    assert html.index("<h3>Quinella</h3>") < html.index("<h3>Trifecta</h3>")
+    assert "<small>SB</small>" in html
     assert client.get("/race/9", auth=AUTH).status_code == 404
 
 
@@ -453,10 +455,11 @@ def test_results_button_grades_the_day(board_and_router, monkeypatch):
         assert r.status_code == 303
         assert router.hits["rc/results"] == 2
         html = c.get("/", auth=AUTH).text
-        assert "So far today: top pick won" in html and "✓" in html
+        assert "So far today: top pick won" in html and "Won by" in html
         assert "Best value right now" not in html  # every race has run
         race = c.get("/race/2", auth=AUTH).text
-        assert "Our picks before the race" in race and "1st" in race
+        assert ">Result<" in race and "1st" in race
+        assert "Win, place, each way" not in race  # no new picks once a race has run
 
 
 def test_dates_render_without_platform_specific_formats():

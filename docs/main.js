@@ -1,11 +1,12 @@
 // MELBCUP in the browser: routes taps and forms to the Python app in worker.js, keeps the API
-// keys, the day budget and the loaded card on this phone, and redraws the page.
+// keys and the loaded card on this phone, and redraws the page. The day amounts and the placed
+// ticks are cookies, as on the server (the page's own scripts do not run here, so this file
+// handles the Placed buttons and the "Show all runners" toggle).
 (function () {
   "use strict";
 
   const KEYS = "melbcup.keys";
   const STATE = "melbcup.state";
-  const BUDGET = "melbcup.budget";
   const ROUTE = "melbcup.route";
 
   const $ = (id) => document.getElementById(id);
@@ -47,13 +48,23 @@
     $("busy").hidden = false;
   }
 
-  function withBudget(url) {
-    const budget = store.get(BUDGET);
-    const u = new URL(url, "https://x.invalid");
-    if (budget && !u.searchParams.has("budget") && !u.pathname.startsWith("/actions/")) {
-      u.searchParams.set("budget", budget);
-    }
-    return u.pathname + u.search;
+  function setCookie(name, value) {
+    document.cookie = name + "=" + value + "; path=/; max-age=31536000; samesite=lax";
+  }
+
+  function readPlaced() {
+    const m = document.cookie.match(/(?:^|;\s*)placed=([^;]*)/);
+    try { const v = m ? JSON.parse(decodeURIComponent(m[1])) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  }
+
+  // Tap to tick a bet as placed, tap again to untick, tap the other account to move it.
+  function togglePlaced(button) {
+    const rec = JSON.parse(button.getAttribute("data-rec"));
+    const on = button.getAttribute("aria-pressed") === "true";
+    const list = readPlaced().filter((r) => Array.isArray(r) && r[0] === rec[0] && !(r[1] === rec[1] && r[2] === rec[2]));
+    if (!on) { rec[4] = button.getAttribute("data-acct"); list.push(rec); }
+    document.cookie = "placed=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
+    show(route, true);
   }
 
   function paint(html, keepScroll) {
@@ -71,10 +82,10 @@
   }
 
   async function show(url, keepScroll) {
-    route = withBudget(url);
+    route = url;
     store.set(ROUTE, route);
     try {
-      paint(await send("render", { url: route }), keepScroll);
+      paint(await send("render", { url: route, cookies: document.cookie }), keepScroll);
     } catch (err) {
       showError(err);
     }
@@ -103,6 +114,16 @@
   // --- taps and forms ------------------------------------------------------------------------
 
   $("app").addEventListener("click", (e) => {
+    const placed = e.target.closest("button[data-rec]");
+    if (placed) { togglePlaced(placed); return; }
+    const more = e.target.closest("button[data-more]");
+    if (more) {
+      const open = more.getAttribute("aria-expanded") !== "true";
+      document.querySelectorAll("#" + more.getAttribute("data-more") + " li.extra").forEach((li) => { li.hidden = !open; });
+      more.setAttribute("aria-expanded", String(open));
+      more.textContent = open ? "Show fewer" : more.getAttribute("data-label");
+      return;
+    }
     const a = e.target.closest("a");
     if (!a) return;
     const href = a.getAttribute("href") || "";
@@ -119,9 +140,11 @@
       return;
     }
     const params = new URLSearchParams(new FormData(form));
-    if (params.has("budget")) {
-      store.set(BUDGET, params.get("budget").trim());
-      if (!params.get("budget").trim()) params.delete("budget");
+    if (params.has("sb") || params.has("bf")) {  // the day amounts: remembered as cookies
+      setCookie("sb_budget", encodeURIComponent((params.get("sb") || "").trim()));
+      setCookie("bf_budget", encodeURIComponent((params.get("bf") || "").trim()));
+      params.delete("sb");
+      params.delete("bf");
     }
     const qs = params.toString();
     go(action + (qs ? (action.includes("?") ? "&" : "?") + qs : ""));

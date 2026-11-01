@@ -1,111 +1,124 @@
 {% extends "base.html" %}
 {% block title %}R{{ race.number }} · MELBCUP{% endblock %}
-{% from "_chip.html" import chip %}
+{% from "_card.html" import pick_row, exotic_card, amounts, pillset %}
 {% block top %}{% include "_racestrip.html" %}{% endblock %}
 {% block content %}
-
-<article class="race solo">
-  <header>
-    <h1><span class="cloth big">{{ race.number }}</span><span>{{ race.name | racename or 'Race ' ~ race.number }}</span></h1>
-    <p class="meta">{{ race.start_time | local_time }} {{ race.start_time | until }} · {{ race.distance_m or '?' }}m
-      · {{ race.race_class or '' }} · {{ race.condition or card.condition or '' }}{% if race.weather %}, {{ race.weather | lower }}{% endif %}{% if race.condition_was %} (was {{ race.condition_was }}){% endif %}
-      {% if race.prize_total %} · ${{ '{:,}'.format(race.prize_total) }}{% endif %} · pays {{ race.places_paid }} places</p>
-  </header>
-  {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
-  {% if rg %}<h2 class="sect">Result</h2>{% include "_placings.html" %}<h2 class="sect">Our picks before the race</h2>{% endif %}
-  {% with marks = marks.get(race.number) %}{% include "_picks.html" %}{% endwith %}
-</article>
-
-<section class="block">
-  <h2 class="sect">Field</h2>
-  <div class="tablewrap">
-  <table class="field">
-    <thead><tr><th>Runner</th><th>Win</th><th>Place</th><th class="opt">Market</th><th class="opt">Fair</th><th>Best</th><th>SB</th><th>Edge</th></tr></thead>
-    <tbody>
-    {% for a in rp.model.ranked() %}
-      {% set r = race.runner(a.number) %}
-      {% set p = race.prices.get(a.number) %}
-      {% set w = rp.singles | selectattr('kind', 'equalto', 'win') | selectattr('number', 'equalto', a.number) | first %}
-      {% set fin = race.result.finish.get(a.number) if race.result else none %}
-      <tr class="{{ 'value' if w and w.value }}">
-        <td class="runner">
-          <span class="cloth">{{ a.number }}</span> <strong>{{ r.name }}</strong> <span class="small">({{ r.barrier or '?' }})</span>
-          {% if fin %}<span class="finish{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}
-          <div class="rv">{{ chip(runner_call(rp, a.number)) }}</div>
-          <div class="small">{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %}</div>
-        </td>
-        <td class="num">{{ a.win | pct(1) }}</td>
-        <td class="num">{{ a.place | pct }}</td>
-        <td class="num opt">{{ a.market_win | pct(1) }}</td>
-        <td class="num opt">{{ (1 / a.win) | money }}</td>
-        <td class="num">{% if p and p.best_win %}{{ p.best_win.price | money }}<div class="small">{{ p.best_win.bookmaker | book }}</div>{% else %}–{% endif %}</td>
-        <td class="num sb">{{ p.sportsbet_win | money if p else '–' }}</td>
-        <td class="num">{{ w.ev | edge if w else '–' }}</td>
-      </tr>
-      <tr class="detail"><td colspan="8">
-        <details>
-          <summary>Form, connections and why</summary>
-          <dl class="facts">
-            {% if a.reasons_for %}<dt>For</dt><dd>{{ a.reasons_for | join(', ') }}</dd>{% endif %}
-            {% if a.reasons_against %}<dt>Against</dt><dd>{{ a.reasons_against | join(', ') }}</dd>{% endif %}
-            <dt>Model · market</dt><dd>{{ a.model_win | pct(1) }} · {{ a.market_win | pct(1) }}</dd>
-            <dt>Last 10</dt><dd>{{ r.last10 or '–' }}{% if r.hcp_rating %} · rating {{ r.hcp_rating }}{% endif %}{% if r.class_rating %} · class {{ r.class_rating }}{% endif %}</dd>
-            <dt>Career, track, distance, going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
-            {% if r.first_up or r.second_up %}<dt>First and second up</dt><dd>{{ r.first_up | statline }} · {{ r.second_up | statline }}</dd>{% endif %}
-            {% if r.running_style %}<dt>Speed map</dt><dd>{{ r.running_style }}{% if r.settling_position %}, settles about {{ '%.0f' % r.settling_position }}{% endif %}</dd>{% endif %}
-            {% if r.jockey_stats %}<dt>Jockey</dt><dd>last 90 days {{ r.jockey_stats.recent | statline }} · at {{ race.venue }} {{ r.jockey_stats.at_track | statline }}{% if r.jockey_stats.on_going and r.jockey_stats.on_going(race.condition) %} · on {{ race.condition }} going {{ r.jockey_stats.on_going(race.condition) | statline }}{% endif %}</dd>{% endif %}
-            {% if r.trainer_stats %}<dt>Trainer</dt><dd>last 90 days {{ r.trainer_stats.recent | statline }} · at {{ race.venue }} {{ r.trainer_stats.at_track | statline }}{% if r.trainer_stats.on_going and r.trainer_stats.on_going(race.condition) %} · on {{ race.condition }} going {{ r.trainer_stats.on_going(race.condition) | statline }}{% endif %}</dd>{% endif %}
-            {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
-            {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
-            {% if r.notes %}<dt>Notes</dt><dd>{{ r.notes | join(', ') }}</dd>{% endif %}
-          </dl>
-          {% set noted = (r.run_notes or []) | selectattr('stewards') | list %}
-          {% if noted %}
-          <dl class="facts stewards">
-            {% for n in noted[:4] %}<dt>{{ n.run_date | shortdate }} {{ n.venue }}{% if n.finish %} · {{ n.finish }}{{ {1:'st',2:'nd',3:'rd'}.get(n.finish, 'th') }}{% endif %}</dt><dd>{{ n.stewards }}</dd>{% endfor %}
-          </dl>
-          {% endif %}
-          {% if r.runs %}
-          <table class="runs">
-            <thead><tr><th>Date</th><th>Track</th><th>m</th><th>Going</th><th>Pos</th><th>Mgn</th><th>SP</th></tr></thead>
-            <tbody>{% for run in r.runs[:6] %}
-              <tr><td>{{ run.run_date | shortdate }}</td><td>{{ run.venue }}</td><td>{{ run.distance_m or '' }}</td><td>{{ run.condition or '' }}</td>
-                <td>{{ run.position or '–' }}/{{ run.field_size or '?' }}</td><td>{{ run.margin_l if run.margin_l is not none else '' }}</td><td>{{ run.sp | money }}</td></tr>
-            {% endfor %}</tbody>
-          </table>
-          {% endif %}
-        </details>
-      </td></tr>
-    {% endfor %}
-    {% for r in race.runners if r.scratched %}
-      <tr class="scratched"><td colspan="8"><span class="cloth">{{ r.number }}</span> {{ r.name }}, scratched</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
+{% set runners = race.starters | length %}
+<header class="head">
+  <span class="cloth big" aria-hidden="true">{{ race.number }}</span>
+  <div>
+    <h1>{{ race.name | racename or 'Race ' ~ race.number }}</h1>
+    <p>{{ race.start_time | jump }}{% if race.distance_m %} · {{ race.distance_m }}m{% endif %} · {{ runners }} runners{% if race.condition or card.condition %} · {{ race.condition or card.condition }}{% endif %}</p>
   </div>
+</header>
+
+{% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+{% if rg %}
+<section aria-labelledby="result-h">
+  <h2 id="result-h">Result</h2>
+  {% include "_placings.html" %}
+</section>
+{% endif %}
+
+{% if rc.open or rc.board %}
+<section aria-labelledby="picks-h">
+  <h2 id="picks-h">{{ 'Win, place, each way' if rc.open else 'Your bets before the race' }}</h2>
+  {% if rc.open %}
+  {{ amounts(wallet, here) }}
+  <p class="split">Your <b>{{ wallet.total | dollars }}</b>{% if wallet.left < wallet.total %} (<b>{{ wallet.left | dollars }}</b> left){% endif %} is shared across {{ 'all ' ~ day.races | length if day.open_count == day.races | length else 'the ' ~ day.open_count }} races{{ ' still to run' if day.open_count != day.races | length }} by how likely each bet is to pay. This race gets <b>${{ rc.total }}</b>. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.</p>
+  {% endif %}
+  {% if rc.board %}
+  <div class="board">
+    {% for line in rc.board %}{{ pick_row(line) }}{% endfor %}
+    <p class="board-foot">Short price: pays a bit less than its chance deserves. Good price: pays more, and gets the model's own stake first.</p>
+  </div>
+  {% else %}
+  <p class="note">No prices yet for this race.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if rc.exotics or rc.quaddie_legs %}
+<section aria-labelledby="bets-h">
+  <h2 id="bets-h">Exotics in this race</h2>
+  <div class="bets">
+    {% for line in rc.exotics %}{{ exotic_card(line) }}{% endfor %}
+  </div>
+  {% for q in rc.quaddie_legs %}
+  <p class="split leg">{{ q.title }} leg {{ q.leg }} (races {{ q.first }} to {{ q.last }}): your numbers {% for n in q.numbers %}<span class="cloth sm">{{ n }}</span>{% endfor %}</p>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% set ranked = rp.model.ranked() %}
+<section aria-labelledby="field-h">
+  <h2 id="field-h">The field</h2>
+  <ul class="field" id="field">
+    {% for a in ranked %}
+    {% set r = race.runner(a.number) %}
+    {% set fin = race.result.finish.get(a.number) if race.result else none %}
+    <li class="{{ 'mine' if a.number in rc.mine }}{{ ' extra' if loop.index > 6 }}"{% if loop.index > 6 %} hidden{% endif %}>
+      <span class="cloth sm">{{ a.number }}</span>
+      <span class="nm">{{ r.name }}{% if fin %} <span class="fin{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}</span>
+      {{ pillset(race.prices.get(a.number) | pills) }}
+      <span class="ch">Wins {{ a.win | one_in }} · places {{ a.place | one_in }}</span>
+      <details class="form">
+        <summary>Form</summary>
+        <dl class="facts">
+          <dt>Rider, trainer</dt><dd>{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %} · barrier {{ r.barrier or '?' }}</dd>
+          {% if a.reasons_for %}<dt>For</dt><dd>{{ a.reasons_for | join(', ') }}</dd>{% endif %}
+          {% if a.reasons_against %}<dt>Against</dt><dd>{{ a.reasons_against | join(', ') }}</dd>{% endif %}
+          <dt>Last 10</dt><dd>{{ r.last10 or '–' }}{% if r.hcp_rating %} · rating {{ r.hcp_rating }}{% endif %}</dd>
+          <dt>Career, track, distance, going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
+          {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
+          {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
+          {% if r.last_start_note %}<dt>Last start</dt><dd>{{ r.last_start_note | truncate(140) }}</dd>{% endif %}
+        </dl>
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if ranked | length > 6 %}
+  {% set label = 'Show all ' ~ (ranked | length) ~ ' runners' %}
+  <button class="more" type="button" data-more="field" data-label="{{ label }}" aria-expanded="false">{{ label }}</button>
+  {% endif %}
+  {% set gone = race.runners | selectattr('scratched') | list %}
+  {% if gone %}<p class="note">Scratched: {% for r in gone %}{{ r.number }} {{ r.name }}{{ ', ' if not loop.last }}{% endfor %}.</p>{% endif %}
 </section>
 
-<section class="block">
-  {% if rp.quinellas %}
-  <h2 class="sect">Quinella</h2>
-  <div class="tablewrap"><table class="exo">
-    <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
-    <tbody>{% for e in rp.quinellas %}{% include "_exotic.html" %}{% endfor %}</tbody>
-  </table></div>
+{% set c = check %}
+<section class="auto" aria-labelledby="auto-h">
+  <div class="auto-top">
+    <h2 id="auto-h">Last-minute check</h2>
+    <span class="mode">Records only</span>
+  </div>
+  {% macro desc(x, account=false) %}{% if x.exotic is not none %}{{ x.key }}{% else %}{{ x.key }} {{ x.name }}{% if x.price and x.kind != 'each_way' %} {{ x.price | price }}{% endif %}{% endif %}{% if account and x.account == 'betfair' %} Betfair{% endif %}{% endmacro %}
+  {% if race.result and c and (c.early_back is not none or c.late_back is not none) %}
+    <p class="state"><b>Result: {{ c.winner or 'in' }}{{ ' won' if c.winner }}.</b></p>
+    <dl class="cmp">
+      {% if c.early_back is not none %}<dt>{{ c.early_at | local_time }} picks</dt><dd><b>{{ c.early_back | dollars }}</b> back from ${{ c.staked(c.early) }}</dd>{% endif %}
+      {% if c.late_back is not none %}<dt>Last minute</dt><dd><b>{{ c.late_back | dollars }}</b> back from ${{ c.staked(c.late) }}</dd>{% endif %}
+    </dl>
+    {% if c.unknown %}<p class="fine">Some dividends were not known yet; those bets are left out.</p>{% endif %}
+    <p class="fine">Running total on the <a href="/history">History page</a>: which one comes out ahead over many races.</p>
+  {% elif c and c.late is not none %}
+    {% set n = c.changed %}
+    <p class="state"><b>{{ 'No changes' if n == 0 else (n ~ ' change' ~ ('' if n == 1 else 's')) }} at {{ c.late_at | local_time }}.</b></p>
+    <dl class="cmp">
+      {% for kind, now, was in c.changes() %}
+      <dt>{{ {'win': 'Win', 'place': 'Place', 'each_way': 'Each way', 'quinella': 'Quinella', 'trifecta': 'Trifecta', 'first_four': 'First Four'}[kind] }}</dt>
+      <dd>{% if now and now.same(was) %}same: {{ desc(now) }}{% elif now %}now <b>{{ desc(now, true) }}</b>, was {{ desc(was) if was else 'no bet' }}{% else %}now no bet, was {{ desc(was) }}{% endif %}</dd>
+      {% endfor %}
+    </dl>
+  {% elif c and c.early is not none %}
+    <p class="state"><b>Picks saved at {{ c.early_at | local_time }}.</b> At about {{ race.start_time | before(1) }} it checks again at the latest prices and shows what changed here.</p>
+  {% elif race.result %}
+    <p class="state">No saved picks for this race: the app was not running before the jump, or it has restarted since.</p>
+  {% elif race.start_time %}
+    <p class="state"><b>Waiting.</b> At {{ race.start_time | before(30) }} the app saves its picks. At about {{ race.start_time | before(1) }} it checks again at the latest prices and shows what changed here.</p>
   {% endif %}
-  {% if rp.trifectas %}
-  <h2 class="sect">Trifecta</h2>
-  <div class="tablewrap"><table class="exo">
-    <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
-    <tbody>{% for e in rp.trifectas %}{% include "_exotic.html" %}{% endfor %}</tbody>
-  </table></div>
-  {% endif %}
-  {% if rp.first_fours %}
-  <h2 class="sect">First Four</h2>
-  <div class="tablewrap"><table class="exo">
-    <thead><tr><th>Structure</th><th>Combos</th><th>Lands</th><th>Fair div</th><th>Bet</th></tr></thead>
-    <tbody>{% for e in rp.first_fours %}{% include "_exotic.html" %}{% endfor %}</tbody>
-  </table></div>
-  {% endif %}
+  <p class="fine">Saved at $150 Sportsbet and $50 Betfair, while the app is running. A restart loses them.</p>
 </section>
+
+<p class="help">Prices: Sportsbet and Betfair (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endblock %}

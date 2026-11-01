@@ -178,12 +178,23 @@ def _split(url: str) -> tuple[str, dict[str, str]]:
     return parts.path or "/", dict(parse_qsl(parts.query))
 
 
-def render(url: str) -> str:
+def _cookies(raw: str) -> dict[str, str]:
+    """document.cookie ("a=1; b=2") as a dict: the day amounts and the placed ticks."""
+    out = {}
+    for part in (raw or "").split(";"):
+        name, _, value = part.strip().partition("=")
+        if name:
+            out[name] = value
+    return out
+
+
+def render(url: str, cookies: str = "") -> str:
     path, query = _split(url)
+    jar = _cookies(cookies)
     try:
-        return _views.page(path, query)
+        return _views.page(path, query, jar)
     except NotFound:
-        return _views.page("/", query)
+        return _views.page("/", query, jar)
 
 
 def act(url: str) -> str:

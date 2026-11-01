@@ -11,19 +11,20 @@ from test_live_web import AUTH, ENV, START, Clock, board_with
 
 from melbcup.config import load_settings
 from melbcup.web.app import create_app
+from melbcup.web.racecard import DEFAULT_BETFAIR, DEFAULT_SPORTSBET, pick_amounts
 from melbcup.web.views import (
-    DEFAULT_BUDGET,
     Call,
     betting_open,
     call,
-    make_env,
     multis_call,
     pick_budget,
     race_call,
     single_call,
 )
 
-CHIP = re.compile(r'<span class="chip bet"[^>]*>(.*?)</span>', re.S)
+# Every stake the race card shows: a pick's stake, an exotic's amount, a race's total.
+STAKE = re.compile(r'<span class="(?:stake (?:sb|bf)|amt)">(.*?)</span>', re.S)
+TOTAL = re.compile(r'<span class="rt">\s*<b>(.*?)</b>', re.S)
 
 
 def test_value_is_a_bet_with_its_stake():
@@ -57,28 +58,6 @@ def test_betting_closes_once_a_race_has_run():
     gone = SimpleNamespace(result=None, start_time=now - timedelta(minutes=30))
     done = SimpleNamespace(result=object(), start_time=now + timedelta(minutes=20))
     assert betting_open(ahead) and not betting_open(gone) and not betting_open(done)
-
-
-def test_zero_stake_value_multi_holds_and_a_staked_one_bets():
-    macro = make_env().get_template("_chip.html").module.multi_row
-    leg = SimpleNamespace(race=3, number=10, name="Tuscan Rose")
-    m = SimpleNamespace(legs=[leg, leg], value=True, stake=None, price=20.0, prob=0.08)
-    assert "chip hold" in str(macro(m)) and "chip bet" not in str(macro(m))
-    m.stake = 0
-    assert "chip bet" not in str(macro(m))
-    m.stake = 7
-    assert "BET <b>$7</b>" in str(macro(m))
-
-
-def test_quaddie_row_without_outlay_holds():
-    macro = make_env().get_template("_chip.html").module.quaddie_row
-    e = SimpleNamespace(
-        kind="quaddie", outlay=None, leg_labels=["a", "b"], combos=4, prob=0.01,
-        flexi_pct=None, fair_dividend=100.0,
-    )  # fmt: skip
-    assert "chip bet" not in str(macro(e))
-    e.outlay = 3
-    assert "BET <b>$3</b>" in str(macro(e))
 
 
 def _line(kind, stake):
@@ -117,7 +96,7 @@ def test_multis_call_sums_quaddies_and_value_multis():
 
 
 def test_budget_is_query_then_cookie_then_200():
-    assert DEFAULT_BUDGET == 200
+    """The single budget, still read by /api/offer."""
     assert pick_budget({}, {}) == (200, False)
     assert pick_budget({}, {"budget": "350"}) == (350, True)
     assert pick_budget({"budget": "50"}, {"budget": "350"}) == (50, True)
@@ -136,50 +115,90 @@ def client():
         yield c
 
 
-PAGES = ["/", "/race/1", "/race/2", "/?budget=500", "/race/2?budget=20", "/?budget=1"]
+PAGES = ["/", "/race/1", "/race/2", "/?budget=500", "/race/2?sb=20&bf=0", "/?sb=1&bf=1"]
+
+
+def stakes(html):
+    return STAKE.findall(html) + TOTAL.findall(html)
 
 
 @pytest.mark.parametrize("path", PAGES)
-def test_no_page_shows_a_bet_without_dollars(client, path):
+def test_every_stake_shown_has_dollars(client, path):
     html = client.get(path, auth=AUTH).text
-    assert html.count('class="chip bet"') == len(CHIP.findall(html))
-    assert all(re.search(r"\$\d", c) for c in CHIP.findall(html))
-    # nothing renders a bare BET chip, whatever the markup
-    assert not re.search(r"chip bet[^>]*>\s*BET\s*</span>", html)
+    assert all(re.fullmatch(r"\$\d[\d,]*(<small>\w+</small>)?", x) for x in stakes(html)), path
+    # the old verdict words are gone from the race card
+    for word in ("BET <b>", ">HOLD<", ">SKIP<", "For fun"):
+        assert word not in html, word
 
 
-def test_no_page_shows_a_bet_without_dollars_under_a_cookie_budget(client):
-    client.cookies.set("budget", "30")
+def test_every_stake_shown_has_dollars_under_cookie_amounts(client):
+    client.cookies.set("sb_budget", "30")
+    client.cookies.set("bf_budget", "0")
     for path in PAGES:
         html = client.get(path, auth=AUTH).text
-        assert all(re.search(r"\$\d", c) for c in CHIP.findall(html)), path
+        assert all(re.match(r"\$\d", x) for x in stakes(html)), path
 
 
-def test_the_default_budget_is_200(client):
+def test_a_pick_with_no_money_shows_no_dollars_and_no_placed_buttons(client):
+    html = client.get("/race/2?sb=0&bf=0", auth=AUTH).text
+    assert "Win, place, each way" in html
+    assert STAKE.findall(html) == [] and "data-rec=" not in html
+    assert 'class="stake none"' in html
+
+
+def test_the_day_never_goes_over_the_two_amounts(client):
+    for sb, bf in ((150, 50), (20, 0), (7, 3), (1000, 0)):
+        html = client.get(f"/?sb={sb}&bf={bf}", auth=AUTH).text
+        total = sum(int(x.strip("$").replace(",", "")) for x in TOTAL.findall(html))
+        assert 0 < total <= sb + bf, (sb, bf, total)
+        on = {"sb": 0, "bf": 0}
+        for n in (1, 2):
+            race = client.get(f"/race/{n}?sb={sb}&bf={bf}", auth=AUTH).text
+            for acct, amount in re.findall(r'<span class="stake (sb|bf)">\$(\d+)', race):
+                on[acct] += int(amount)
+            on["sb"] += sum(int(x) for x in re.findall(r'<span class="amt">\$(\d+)', race))
+        assert on["sb"] <= sb and on["bf"] <= bf, (sb, bf, on)
+
+
+def test_default_amounts_are_150_sportsbet_and_50_betfair(client):
+    assert (DEFAULT_SPORTSBET, DEFAULT_BETFAIR) == (150, 50)
     html = client.get("/", auth=AUTH).text
-    assert 'value="200"' in html
-    assert "budget=" not in html.split("<main")[1]  # not chosen, so links stay plain
+    assert 'value="$150"' in html and 'value="$50"' in html
+    assert "$150</b> left of $150" in html and "$50</b> left of $50" in html
+    assert "budget=" not in html.split("<main")[1]
 
 
-def test_a_cookie_budget_is_used(client):
-    client.cookies.set("budget", "350")
+def test_amounts_come_from_the_query_then_the_cookies():
+    assert pick_amounts({}, {}) == (150, 50, False)
+    assert pick_amounts({}, {"sb_budget": "300", "bf_budget": "0"}) == (300, 0, True)
+    assert pick_amounts({"sb": "$80", "bf": "20"}, {"sb_budget": "300"}) == (80, 20, True)
+    assert pick_amounts({"budget": "75"}, {"sb_budget": "300"}) == (75, 0, True)  # old ?budget=
+    assert pick_amounts({"budget": "lots"}) == (150, 50, False)
+    assert pick_amounts({"sb": "", "bf": ""}) == (150, 50, False)  # blank resets
+    assert pick_amounts({}, {"sb_budget": "%24120"}) == (120, 50, True)  # set by the browser
+
+
+def test_cookie_amounts_are_used(client):
+    client.cookies.set("sb_budget", "350")
+    client.cookies.set("bf_budget", "25")
     html = client.get("/", auth=AUTH).text
-    assert 'value="350"' in html and "/race/1?budget=350" in html
-    assert 'value="40"' in client.get("/?budget=40", auth=AUTH).text
+    assert 'value="$350"' in html and 'value="$25"' in html
+    assert 'value="$40"' in client.get("/?sb=40&bf=0", auth=AUTH).text
 
 
-def test_submitting_a_budget_remembers_it(client):
-    r = client.get("/?budget=75", auth=AUTH)
-    assert "budget=75" in r.headers["set-cookie"]
-    r = client.get("/?budget=", auth=AUTH)
-    assert 'budget=""' in r.headers["set-cookie"] or "Max-Age=0" in r.headers["set-cookie"]
+def test_submitting_amounts_remembers_them(client):
+    r = client.get("/?sb=75&bf=10", auth=AUTH)
+    cookies = r.headers.get_list("set-cookie")
+    assert any("sb_budget=75" in c for c in cookies) and any("bf_budget=10" in c for c in cookies)
+    r = client.get("/?budget=60", auth=AUTH)  # the old form: all on Sportsbet
+    cookies = r.headers.get_list("set-cookie")
+    assert any("sb_budget=60" in c for c in cookies) and any("bf_budget=0" in c for c in cookies)
+    assert any("budget=60" in c and "_budget" not in c for c in cookies)  # still for /api/offer
     assert "set-cookie" not in client.get("/", auth=AUTH).headers
 
 
-def test_a_bigger_budget_gives_bigger_race_dollars(client):
+def test_bigger_amounts_give_bigger_race_dollars(client):
     def dollars(path):
-        return sorted(
-            int(x) for x in re.findall(r"BET <b>\$(\d+)</b>", client.get(path, auth=AUTH).text)
-        )
+        return sorted(int(x.strip("$")) for x in TOTAL.findall(client.get(path, auth=AUTH).text))
 
-    assert dollars("/?budget=2000") != dollars("/?budget=20")
+    assert dollars("/?sb=2000&bf=0") != dollars("/?sb=20&bf=0")

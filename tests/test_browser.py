@@ -43,7 +43,7 @@ def test_full_flow_and_reopening_fetches_nothing():
     nxt = browser.act("/actions/load?next=/")
     assert nxt == "/"
     html = browser.render(nxt)
-    assert "Lexus Melbourne Cup" in html and "Most likely" in html
+    assert "Lexus Melbourne Cup" in html and "Today's money" in html
     assert router.hits["rc/card_races"] == 1
     assert router.hits["rc/prices"] == 2  # one price call per race, no other price source
     assert "Grand Tempo" in browser.render("/race/2?budget=100")
@@ -122,7 +122,7 @@ def test_friends_need_no_keys_racingcom_supplies_everything():
     assert "PuntersEdge" not in html
     browser.act("/actions/load?next=/")
     html = browser.render("/")
-    assert "Most likely" in html and "Lexus Melbourne Cup" in html  # racing.com's own race names
+    assert "Today's money" in html and "Lexus Melbourne Cup" in html  # racing.com's own race names
     browser.act("/actions/prices?next=/")
     assert not any(k.startswith("/v1/") for k in router.hits)  # no FormFav calls
     card = browser._views.board.snapshot().card
@@ -145,7 +145,7 @@ def test_warm_works_with_no_keys():
     )
     assert asyncio.run(browser.warm(True)) > 5  # each runner's racing.com runs, side by side
     browser.act("/actions/load?next=/")
-    assert "Most likely" in browser.render("/")
+    assert "Today's money" in browser.render("/")
     assert not any(k.startswith("/v1/") for k in router.hits)
 
 

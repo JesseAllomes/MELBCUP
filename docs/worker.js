@@ -71,7 +71,7 @@ self.onmessage = async (event) => {
     if (!app) app = await booting;
     const b = app.browser;
     let result;
-    if (msg.type === "render") result = b.render(msg.url);
+    if (msg.type === "render") result = b.render(msg.url, msg.cookies || "");
     else if (msg.type === "act") {
       if (msg.url.startsWith("/actions/load")) await b.warm(true);
       result = b.act(msg.url);

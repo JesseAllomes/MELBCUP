@@ -3,24 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f6f6f2" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0f1214" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#E9ECF1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0C1017" media="(prefers-color-scheme: dark)">
   <title>{% block title %}MELBCUP{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
-  <header class="masthead">
-    <div class="wrap bar">
-      <a class="brand" href="/{{ budget_q }}">MELBCUP</a>
-      <nav>
-        <a class="meet" href="/meetings{{ budget_q }}">{{ snap.venue }} · {{ snap.race_date | day }}</a>
-        <a href="/history">History</a>
-      </nav>
-    </div>
-  </header>
-  <main id="main" class="wrap" data-refresh="{% block refresh %}30{% endblock %}">
+  <main id="main" class="page" data-refresh="{% block refresh %}30{% endblock %}">
+    {% include "_wallet.html" %}
+    <nav class="topnav" aria-label="Site">
+      <a class="brand" href="/">MELBCUP</a>
+      <a class="meet" href="/meetings">{{ snap.venue }} · {{ snap.race_date | day }}</a>
+      <a href="/history">History</a>
+    </nav>
     {% block top %}{% endblock %}
+    {% block content %}{% endblock %}
     {% if can_fetch and not snap.saved %}
     {% if snap.auto %}
     <div class="status">
@@ -46,12 +47,45 @@
     </div>
     {% endif %}
     {% endif %}
-    {% block content %}{% endblock %}
+    <footer>
+      <p>Estimates from form and market data. They improve the odds of a good decision; they do not
+        guarantee a result. Bet only what you can afford to lose.</p>
+      <p class="help"><span>Gambling Help Online</span> <a href="tel:1800858858">1800 858 858</a> <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
+    </footer>
   </main>
-  <footer class="wrap">
-    <p>Estimates from form and market data. They improve the odds of a good decision; they do not
-      guarantee a result. Bet only what you can afford to lose.</p>
-    <p class="help"><span>Gambling Help Online</span> <a href="tel:1800858858">1800 858 858</a> <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
-  </footer>
+  <script>
+  // Placed ticks live in a cookie on this phone (no login, by design): tap to tick, tap again to
+  // untick, tap the other account to move it. Records for other days are dropped.
+  (function () {
+    function read() {
+      var m = document.cookie.match(/(?:^|;\s*)placed=([^;]*)/);
+      try { var v = m ? JSON.parse(decodeURIComponent(m[1])) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
+    }
+    function write(list) {
+      document.cookie = "placed=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
+    }
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("button[data-rec]");
+      if (b) {
+        var rec = JSON.parse(b.getAttribute("data-rec")), acct = b.getAttribute("data-acct");
+        var on = b.getAttribute("aria-pressed") === "true";
+        var list = read().filter(function (r) {
+          return Array.isArray(r) && r[0] === rec[0] && !(r[1] === rec[1] && r[2] === rec[2]);
+        });
+        if (!on) { rec[4] = acct; list.push(rec); }
+        write(list);
+        location.reload();
+        return;
+      }
+      var more = e.target.closest && e.target.closest("button[data-more]");
+      if (more) {
+        var open = more.getAttribute("aria-expanded") !== "true";
+        document.querySelectorAll("#" + more.getAttribute("data-more") + " li.extra").forEach(function (li) { li.hidden = !open; });
+        more.setAttribute("aria-expanded", String(open));
+        more.textContent = open ? "Show fewer" : more.getAttribute("data-label");
+      }
+    });
+  })();
+  </script>
 </body>
 </html>

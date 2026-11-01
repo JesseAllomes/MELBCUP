@@ -2,6 +2,19 @@
 {% block title %}History · MELBCUP{% endblock %}
 {% block refresh %}0{% endblock %}
 {% block content %}
+{% if check_totals %}
+{% set t = check_totals %}
+<section class="checks" aria-labelledby="checks-h">
+  <h2 id="checks-h">Last-minute check, running total</h2>
+  <p class="split">Over {{ t.races }} race{{ '' if t.races == 1 else 's' }} graded since the app last started:</p>
+  <dl class="cmp">
+    <dt>30-minute picks</dt><dd><b>{{ t.early_back | dollars }}</b> back from {{ t.early_staked | dollars }}</dd>
+    <dt>Last minute</dt><dd><b>{{ t.late_back | dollars }}</b> back from {{ t.late_staked | dollars }}</dd>
+  </dl>
+  {% if t.unknown %}<p class="fine">Some dividends were not known; those bets are left out.</p>{% endif %}
+  <p class="fine">Kept in memory while the app runs: a restart starts it again.</p>
+</section>
+{% endif %}
 <section class="block">
   <h1>History</h1>
   {% if record %}

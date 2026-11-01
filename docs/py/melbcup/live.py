@@ -15,6 +15,12 @@ Auto mode (the default; PRICE_MODE=manual turns it off) keeps the page live on i
 Prices are racing.com's fixed odds from Sportsbet, Ladbrokes, PointsBet and bet365; the
 Sportsbet price drives the Sportsbet-only multis and the price verdicts. FormFav is optional
 enrichment.
+
+Last-minute check (owner, 2026-11-01): after each price check, every race still to run has its
+picks saved once 25-35 minutes before the jump ("early") and again at every check in the last
+3 minutes ("late"), both at the default amounts ($150 Sportsbet, $50 Betfair). Once the race
+has a result both are graded, so the History page can show which does better over many races.
+Records only: nothing is placed.
 """
 
 from __future__ import annotations
@@ -22,14 +28,16 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from melbcup import history
 from melbcup.bets import DayPicks, build_picks
+from melbcup.bets.allocate import allocate_accounts
+from melbcup.bets.grade import _exotic as grade_exotic
 from melbcup.config import MELBOURNE, Settings
-from melbcup.domain import Card, Race
+from melbcup.domain import Card, Race, betfair_net
 from melbcup.model.probability import RaceModel, assess
 from melbcup.sources import apply_exchange, apply_market, apply_result, load_card
 from melbcup.sources.betfair import BetfairClient
@@ -50,6 +58,146 @@ RESULTS_AFTER = timedelta(minutes=3)  # first results check, after each jump
 RESULTS_EVERY = timedelta(minutes=2)  # then again until every placing is final
 RESULTS_GIVE_UP = timedelta(hours=2)  # stop re-checking a race that never turns final
 PRICES_EVERY = timedelta(seconds=60)  # Auto prices the whole card this often
+CHECK_EARLY = (timedelta(minutes=25), timedelta(minutes=35))  # saved once in this window
+CHECK_LATE = timedelta(minutes=3)  # overwritten at every check this close to the jump
+CHECK_AMOUNTS = (150.0, 50.0)  # Sportsbet, Betfair: the page's default day amounts
+CHECK_KINDS = ("win", "place", "each_way", "quinella", "trifecta", "first_four")
+EXOTIC_DEPTH = {"quinella": 2, "trifecta": 3, "first_four": 4}
+
+
+@dataclass(frozen=True)
+class CheckLine:
+    """One saved pick: what it was, where it would go, at what price and stake."""
+
+    kind: str
+    key: str  # runner number, or the exotic's legs
+    name: str
+    account: str  # "sportsbet" | "betfair"
+    price: float | None  # as that account shows it (Betfair before commission); EW: win price
+    stake: int
+    place_price: float | None = None  # each way only
+    exotic: object | None = field(default=None, compare=False)
+
+    def same(self, other: CheckLine | None) -> bool:
+        return other is not None and (self.key, self.account) == (other.key, other.account)
+
+
+@dataclass(frozen=True)
+class RaceCheck:
+    """The last-minute check for one race. Kept in memory only: a restart loses it."""
+
+    race: int
+    jump: datetime | None
+    early: tuple[CheckLine, ...] | None = None
+    early_at: datetime | None = None
+    late: tuple[CheckLine, ...] | None = None
+    late_at: datetime | None = None
+    early_back: float | None = None  # dollars back from the early picks, once graded
+    late_back: float | None = None
+    unknown: bool = False  # some part's dividend was not known: left out of the sums
+    graded: bool = False
+    winner: str | None = None
+
+    @staticmethod
+    def staked(lines) -> int:
+        return sum(x.stake for x in lines or ())
+
+    def changes(self) -> list[tuple[str, CheckLine | None, CheckLine | None]]:
+        """(kind, late, early) for each kind in either snapshot."""
+        early = {x.kind: x for x in self.early or ()}
+        late = {x.kind: x for x in self.late or ()}
+        return [(k, late.get(k), early.get(k)) for k in CHECK_KINDS if k in early or k in late]
+
+    @property
+    def changed(self) -> int:
+        return sum(1 for _, now, was in self.changes() if not (now and now.same(was)))
+
+
+def check_lines(day: DayPicks, routed) -> dict[int, tuple[CheckLine, ...]]:
+    """Routed picks as saved lines, per race (quaddies span races and are left out)."""
+    out: dict[int, list[CheckLine]] = {}
+    for r in routed:
+        p = r.pick
+        if p.kind not in CHECK_KINDS or not p.stake:
+            continue
+        if p.single is not None:
+            s = p.single
+            place = None
+            if p.kind == "each_way":
+                rp = next(x for x in day.races if x.model.race.number == p.race)
+                prices = rp.model.race.prices.get(s.number)
+                if prices is not None:
+                    place = (
+                        prices.betfair_place if r.account == "betfair" else prices.sportsbet_place
+                    )
+            line = CheckLine(p.kind, str(s.number), s.name, r.account, r.price, p.stake, place)
+        else:
+            e = p.exotic
+            line = CheckLine(
+                p.kind, " / ".join(e.leg_labels), e.title, r.account, None, p.stake, exotic=e
+            )
+        out.setdefault(p.race, []).append(line)
+    return {n: tuple(lines) for n, lines in out.items()}
+
+
+def line_return(line: CheckLine, race: Race) -> float | None:
+    """Dollars back from one saved line at its saved price; None when not known."""
+    result = race.result
+
+    def at(price: float | None) -> float | None:
+        if price is None:
+            return None
+        return betfair_net(price) if line.account == "betfair" else price
+
+    if line.exotic is not None:
+        g = grade_exotic(line.exotic, result, line.kind, EXOTIC_DEPTH[line.kind])
+        return None if g.returned is None else g.returned * line.stake
+    pos = result.finish.get(int(line.key))
+    won = pos == 1
+    placed = pos is not None and pos <= race.places_paid
+    if line.kind == "win":
+        return (None if at(line.price) is None else line.stake * at(line.price)) if won else 0.0
+    if line.kind == "place":
+        return (None if at(line.price) is None else line.stake * at(line.price)) if placed else 0.0
+    half = line.stake / 2
+    win_part = (None if at(line.price) is None else half * at(line.price)) if won else 0.0
+    place_part = (
+        (None if at(line.place_price) is None else half * at(line.place_price)) if placed else 0.0
+    )
+    return None if win_part is None or place_part is None else win_part + place_part
+
+
+def grade_check(check: RaceCheck, race: Race) -> RaceCheck:
+    unknown = False
+
+    def back(lines) -> float | None:
+        nonlocal unknown
+        if lines is None:
+            return None
+        total = 0.0
+        for x in lines:
+            got = line_return(x, race)
+            if got is None:
+                unknown = True
+            else:
+                total += got
+        return total
+
+    early, late = back(check.early), back(check.late)
+    first = race.result.placegetters(1)
+    winner = None
+    if first:
+        n = first[0]
+        runner = race.runner(n)
+        winner = f"{n} {race.result.names.get(n) or (runner.name if runner else '')}"
+    return replace(
+        check,
+        early_back=early,
+        late_back=late,
+        unknown=unknown,
+        graded=race.result.status == "final",
+        winner=winner.strip() if winner else None,
+    )
 
 
 @dataclass
@@ -70,6 +218,7 @@ class Snapshot:
     saved: bool = False  # a finished meeting opened from the saved copy
     field_due: date | None = None
     betfair: str | None = None  # None: no Betfair login set; else a short status line
+    checks: dict[int, RaceCheck] = field(default_factory=dict)  # last-minute check per race
 
     def picks(self, budget: float | None) -> DayPicks:
         return build_picks(self.models, budget)
@@ -121,6 +270,8 @@ class LiveBoard:
         self._paused_until: datetime | None = None
         self._errors: list[str] = []
         self._updated_at: datetime | None = None
+        # Last-minute check per race. In memory only: a restart (or a new deploy) loses it.
+        self._checks: dict[int, RaceCheck] = {}
 
     # -- reading ------------------------------------------------------------------------------
 
@@ -143,7 +294,26 @@ class LiveBoard:
                 saved=self._archived(self.clock()),
                 field_due=self.field_due(self.clock()),
                 betfair=self._bf_status,
+                checks=dict(self._checks),
             )
+
+    def check_totals(self) -> dict | None:
+        """Running totals of the last-minute check over races graded with both snapshots."""
+        with self._lock:
+            done = [
+                c for c in self._checks.values()
+                if c.early is not None and c.late is not None and c.early_back is not None
+            ]
+        if not done:
+            return None
+        return {
+            "races": len(done),
+            "early_back": sum(c.early_back for c in done),
+            "early_staked": sum(RaceCheck.staked(c.early) for c in done),
+            "late_back": sum(c.late_back for c in done),
+            "late_staked": sum(RaceCheck.staked(c.late) for c in done),
+            "unknown": any(c.unknown for c in done),
+        }
 
     # -- actions ------------------------------------------------------------------------------
 
@@ -241,6 +411,47 @@ class LiveBoard:
                 self._exchange = exchange
             self._priced_at = now
             self._updated_at = now
+        self._record_checks(now)
+
+    def _record_checks(self, now: datetime) -> None:
+        """Save each race's picks once 25-35 minutes before its jump, and again at every check
+        in the last three minutes (overwriting), at the default amounts."""
+        with self._lock:
+            if self._card is None:
+                return
+            races = list(self._card.races)
+            models = [self._models[n] for n in sorted(self._models)]
+            checks = dict(self._checks)
+        early, late = [], []
+        for race in races:
+            if race.result is not None or race.start_time is None:
+                continue
+            to_go = race.start_time - now
+            had = checks.get(race.number)
+            if CHECK_EARLY[0] <= to_go <= CHECK_EARLY[1] and (had is None or had.early is None):
+                early.append(race.number)
+            elif timedelta(0) <= to_go <= CHECK_LATE:
+                late.append(race.number)
+        if not early and not late:
+            return
+        day = build_picks(models, sum(CHECK_AMOUNTS))
+        still = {
+            r.number for r in races
+            if r.result is None and (r.start_time is None or r.start_time > now)
+        }
+        lines = check_lines(day, allocate_accounts(day, *CHECK_AMOUNTS, races=still))
+        with self._lock:
+            for race in races:
+                n = race.number
+                if n not in early and n not in late:
+                    continue
+                had = self._checks.get(n) or RaceCheck(n, race.start_time)
+                saved = lines.get(n, ())
+                if n in early:
+                    had = replace(had, early=saved, early_at=now, jump=race.start_time)
+                else:
+                    had = replace(had, late=saved, late_at=now, jump=race.start_time)
+                self._checks[n] = had
 
     def _betfair_prices(self, now: datetime) -> tuple[dict, str | None]:
         """Betfair's prices for the meeting and a status line. A Betfair failure never stops
@@ -331,6 +542,9 @@ class LiveBoard:
                 if race.number in results:
                     apply_result(race, results[race.number])
                     self._models[race.number] = assess(race)
+                check = self._checks.get(race.number)
+                if check is not None and race.result is not None and race.result.finish:
+                    self._checks[race.number] = grade_check(check, race)
             self._results_at = now
             self._updated_at = now
             day = build_picks([self._models[n] for n in sorted(self._models)])
@@ -377,7 +591,7 @@ class LiveBoard:
             if (race_date, venue.lower()) == (self.race_date, self.venue.lower()):
                 return True
             self.race_date, self.venue = race_date, venue
-            self._card, self._models = None, {}
+            self._card, self._models, self._checks = None, {}, {}
             self._form_at = self._priced_at = self._updated_at = self._results_at = None
             self._price_try = self._results_try = None
             self._errors = []

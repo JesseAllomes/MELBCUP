@@ -12,6 +12,10 @@ Money goes out in this order, and the day never goes over the budget:
 3. What is left is shared over the remaining picks in proportion to the chance each pays
    (win: wins; place and each way: places), with no race taking more than RACE_CAP of the
    budget. Each way is rounded to an even number of dollars so it splits evenly.
+
+With two accounts (allocate_accounts), bets the owner ticked as placed keep their stake and
+account, and only the money left in each account is shared over the unplaced picks in the races
+still to run.
 """
 
 from __future__ import annotations
@@ -69,44 +73,110 @@ def race_picks(rp) -> dict[str, Single | None]:
     }
 
 
-def _fixed(day) -> dict[int, float]:
-    """Dollars already committed per race: value BETs and recommended exotics."""
-    out: dict[int, float] = {}
+FIXED_EXOTICS = ("first_four", "early_quaddie", "quaddie")  # keep their recommended outlay
+# Tote bets: the owner places these with Sportsbet only (there is no tote on Betfair).
+SPORTSBET_ONLY = ("quinella", "trifecta") + FIXED_EXOTICS
+
+
+@dataclass(frozen=True)
+class Placed:
+    """A bet the owner ticked as placed: it keeps this stake and account whatever the picks do
+    afterwards. ``key`` is the runner number for a horse pick and 0 for an exotic; a quaddie
+    is filed under its first race."""
+
+    race: int
+    kind: str
+    key: int
+    account: str  # "sportsbet" | "betfair"
+    stake: int
+
+
+def _even(kind: str, dollars: float) -> int:
+    return int(dollars // 2 * 2) if kind == "each_way" else int(dollars)
+
+
+def _open(day, races: set[int] | None) -> set[int]:
+    if races is not None:
+        return set(races)
+    return {rp.model.race.number for rp in day.races if rp.model.race.result is None}
+
+
+def _exotic_fixed(day, races: set[int], skip: set) -> list[Pick]:
+    """Recommended First Fours and quaddies at their outlay (a quaddie counts in its first
+    race), in the races still to run and not already placed."""
+    out: list[Pick] = []
     for rp in day.races:
         n = rp.model.race.number
-        lines = {id(s): s for k in KINDS if (s := rp.best.get(k)) is not None and s.stake}
-        out[n] = sum(s.stake for s in lines.values())
-        out[n] += sum(e.outlay or 0 for e in rp.first_fours + rp.trifectas if e.recommended)
+        if n not in races or (n, "first_four") in skip:
+            continue
+        if e := next((e for e in rp.first_fours if e.recommended and e.outlay), None):
+            out.append(Pick(n, "first_four", None, False, int(e.outlay), e))
     for q in day.quaddies:
-        if q.recommended and q.outlay and q.races:
-            out[q.races[0]] = out.get(q.races[0], 0) + q.outlay
+        first = q.races[0] if q.races else None
+        if q.recommended and q.outlay and first in races and (first, q.kind) not in skip:
+            out.append(Pick(first, q.kind, None, False, int(q.outlay), q))
     return out
 
 
-def allocate(day, budget: float) -> list[Pick]:
-    """Every race's win, place and each-way pick with a whole-dollar stake from ``budget``."""
-    fixed = _fixed(day)
-    cap = RACE_CAP * budget
+def allocate(
+    day,
+    budget: float,
+    *,
+    placed: list[Placed] | tuple = (),
+    races: set[int] | None = None,
+    cap_base: float | None = None,
+) -> list[Pick]:
+    """Every race's win, place and each-way pick, and its likeliest quinella and trifecta, with
+    a whole-dollar stake from ``budget``.
+
+    ``races`` are the races still to share in (default: those without a result). ``placed``
+    picks are done: their slots get nothing more, and their dollars count toward their race's
+    cap (but not against ``budget``, which is the money left). ``cap_base`` is the day amount
+    the race cap is a share of (default ``budget``)."""
+    return _plan(day, budget, placed, races, cap_base)[0]
+
+
+def _plan(day, budget, placed, races, cap_base) -> tuple[list[Pick], list[Pick]]:
+    """(horse, quinella and trifecta picks with a stake; fixed First Fours and quaddies)."""
+    races = _open(day, races)
+    skip = {(p.race, p.kind) for p in placed}
+    cap = RACE_CAP * (budget if cap_base is None else cap_base)
     picks: list[Pick] = []
     for rp in day.races:
-        if rp.model.race.result is not None:
-            continue
         n = rp.model.race.number
+        if n not in races:
+            continue
         for kind, s in race_picks(rp).items():
-            if s is None:
+            if s is None or (n, kind) in skip:
                 continue
             value = rp.best.get(kind)
             good = value is not None and value is s and bool(s.stake)
             picks.append(Pick(n, kind, s, good, int(s.stake) if good else 0))
         # Quinella and trifecta (owner, 2026-11-01): never a value BET, but each gets a share of
         # the day by its chance, as its likeliest structure, with the dividend it needs.
-        for group in (rp.quinellas, rp.trifectas):
+        for kind, group in (("quinella", rp.quinellas), ("trifecta", rp.trifectas)):
+            if (n, kind) in skip:
+                continue
             if likeliest := max(group, key=lambda e: e.prob, default=None):
                 picks.append(Pick(n, likeliest.kind, None, False, 0, likeliest))
 
-    left = budget - sum(fixed.values())
+    exotics = _exotic_fixed(day, races, skip)
+    fixed_items = [p for p in picks if p.good_price] + exotics
+    asked = sum(p.stake for p in fixed_items)
+    if asked > budget:  # the money left cannot cover them: scale them down to fit
+        for p in fixed_items:
+            p.stake = _even(p.kind, p.stake * budget / asked)
+    used = {n: 0.0 for n in races}  # per race: fixed stakes plus placed bets, for the cap
+    for p in fixed_items:
+        used[p.race] = used.get(p.race, 0.0) + p.stake
+    committed = sum(p.stake for p in fixed_items)
+    for p in placed:
+        if p.race in used:
+            used[p.race] += p.stake
+
+    left = budget - committed
     shared = [p for p in picks if not p.good_price]
-    room = {n: max(0.0, cap - f) for n, f in fixed.items()}
+    room = {n: max(0.0, cap - u) for n, u in used.items()}
     want = {id(p): 0.0 for p in shared}
     # Water-fill: share by chance, clamp races at their cap, share the rest again.
     open_ = list(shared)
@@ -131,15 +201,15 @@ def allocate(day, budget: float) -> list[Pick]:
         left = spill
         open_ = next_open
     for p in shared:
-        dollars = want[id(p)]
-        p.stake = int(dollars // 2 * 2) if p.kind == "each_way" else int(dollars)
-    _spend_rounding(shared, want, budget - sum(fixed.values()), fixed, cap)
-    return [p for p in picks if p.stake > 0]
+        p.stake = _even(p.kind, want[id(p)])
+    _spend_rounding(shared, want, budget - committed, used, cap)
+    return [p for p in picks if p.stake > 0], [p for p in exotics if p.stake > 0]
 
 
-def _spend_rounding(shared: list[Pick], want: dict, pot: float, fixed: dict, cap: float) -> None:
+def _spend_rounding(shared: list[Pick], want: dict, pot: float, used: dict, cap: float) -> None:
     """Rounding down leaves whole dollars unspent: give them back one at a time, first to any
-    pick still at $0, then by the largest shortfall, never past a race's cap or the budget."""
+    pick still at $0, then by the largest shortfall, never past a race's cap or the budget.
+    ``used`` holds each race's dollars outside ``shared`` (fixed stakes and placed bets)."""
     spare = int(pot - sum(p.stake for p in shared))
     in_race = {}
     for p in shared:
@@ -148,7 +218,7 @@ def _spend_rounding(shared: list[Pick], want: dict, pot: float, fixed: dict, cap
         fits = [
             p for p in shared
             if (step := 2 if p.kind == "each_way" else 1) <= spare
-            and fixed.get(p.race, 0) + in_race[p.race] + step <= cap
+            and used.get(p.race, 0) + in_race[p.race] + step <= cap
         ]
         if not fits:
             return
@@ -169,6 +239,7 @@ class Routed:
     pick: Pick
     account: str  # "sportsbet" | "betfair"
     price: float | None  # as that account shows it (Betfair before commission)
+    placed: bool = False  # the owner ticked it as placed: stake and account are theirs
 
 
 def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
@@ -202,19 +273,78 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     ]
 
 
-def allocate_accounts(day, sportsbet_budget: float, betfair_budget: float) -> list[Routed]:
+def account_price(day, pick: Pick, account: str) -> float | None:
+    """The pick's price at ``account`` as the owner sees it there (Betfair before commission):
+    the win price for win and each way, the place price for place; None for exotics."""
+    s = pick.single
+    if s is None:
+        return None
+    if account == "sportsbet":
+        return s.sportsbet
+    rp = next((r for r in day.races if r.model.race.number == pick.race), None)
+    prices = rp.model.race.prices.get(s.number) if rp else None
+    if prices is None:
+        return None
+    return prices.betfair_place if s.kind == "place" else prices.betfair_win
+
+
+def placed_pick(day, p: Placed) -> Pick:
+    """The pick a placed record stands for, at the placed stake."""
+    rp = next((r for r in day.races if r.model.race.number == p.race), None)
+    single = exotic = None
+    if rp is not None:
+        if p.kind in KINDS:
+            single = next(
+                (s for s in rp.singles if s.kind == p.kind and s.number == p.key), None
+            )
+        elif p.kind in ("quinella", "trifecta"):
+            group = rp.quinellas if p.kind == "quinella" else rp.trifectas
+            exotic = max(group, key=lambda e: e.prob, default=None)
+        elif p.kind == "first_four":
+            exotic = next((e for e in rp.first_fours if e.recommended), None)
+    if p.kind in ("quaddie", "early_quaddie"):
+        exotic = next(
+            (q for q in day.quaddies
+             if q.kind == p.kind and q.recommended and q.races and q.races[0] == p.race),
+            None,
+        )
+    good = (
+        rp is not None and single is not None and rp.best.get(p.kind) is single
+        and bool(single.stake)
+    )
+    return Pick(p.race, p.kind, single, good, p.stake, exotic)
+
+
+def allocate_accounts(
+    day,
+    sportsbet_budget: float,
+    betfair_budget: float,
+    placed: list[Placed] | tuple = (),
+    races: set[int] | None = None,
+) -> list[Routed]:
     """Share both accounts' money over the day, then route each bet to an account.
 
-    The day is shared from the two amounts together. Bets that cannot go to Betfair fall back
-    to Sportsbet; if that would take Sportsbet past its amount, the day is shared again with
-    less, so neither account ever goes over."""
-    budget = sportsbet_budget + betfair_budget
-    for _ in range(20):
-        routed = route(allocate(day, budget), betfair_budget)
+    Bets the owner has placed come first, at their own stake and account. The money left in
+    the two accounts together is shared over the unplaced picks in the races still to run
+    (``races``; default: those without a result), with the recommended First Four and quaddies
+    at their outlay on Sportsbet. Bets that cannot go to Betfair fall back to Sportsbet; if that
+    would take Sportsbet past what it has left, the day is shared again with less, so neither
+    account ever goes over."""
+    placed = list(placed)
+    sb_left = max(0.0, sportsbet_budget - sum(p.stake for p in placed if p.account == "sportsbet"))
+    bf_left = max(0.0, betfair_budget - sum(p.stake for p in placed if p.account == "betfair"))
+    held = []
+    for p in placed:
+        pick = placed_pick(day, p)
+        held.append(Routed(pick, p.account, account_price(day, pick, p.account), placed=True))
+    budget = sb_left + bf_left
+    routed: list[Routed] = []
+    for _ in range(40):
+        picks, exotics = _plan(day, budget, placed, races, sportsbet_budget + betfair_budget)
+        routed = route(picks, bf_left) + [Routed(e, "sportsbet", None) for e in exotics]
         on_sb = sum(r.pick.stake for r in routed if r.account == "sportsbet")
-        on_sb += sum(_fixed(day).values())  # exotics are tote bets: Sportsbet
-        over = on_sb - sportsbet_budget
-        if over <= 0.5 or budget <= 1:
-            return routed
-        budget = max(0.0, budget - over)
-    return routed
+        over = on_sb - sb_left
+        if over <= 0 or budget <= 0:
+            break
+        budget = max(0.0, budget - max(over, 1))
+    return held + routed

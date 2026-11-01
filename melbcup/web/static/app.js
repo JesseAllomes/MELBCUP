@@ -1,29 +1,7 @@
-// Live refresh in place (keeps scroll, open details and the race strip), a remembered budget,
-// and a race number that opens the race it jumps to.
+// Live refresh in place (keeps scroll, open details, the field's "Show all" and the race strip).
+// The day amounts and placed ticks live in cookies (see base.html).
 (function () {
   "use strict";
-
-  var KEY = "melbcup.budget";
-
-  function storedBudget() {
-    try { return localStorage.getItem(KEY); } catch (e) { return null; }
-  }
-
-  function remember(value) {
-    try {
-      if (value) localStorage.setItem(KEY, value); else localStorage.removeItem(KEY);
-    } catch (e) { /* private mode: the URL still carries it */ }
-  }
-
-  var url = new URL(window.location.href);
-  var fromUrl = url.searchParams.get("budget");
-  if (fromUrl !== null) {
-    remember(fromUrl.trim());
-  } else if (storedBudget()) {
-    url.searchParams.set("budget", storedBudget());
-    window.location.replace(url.toString());
-    return;
-  }
 
   var main = document.getElementById("main");
   if (!main) return;
@@ -33,10 +11,6 @@
     var el = id && document.getElementById(id.replace(/^#/, ""));
     if (el && el.tagName === "DETAILS") el.open = true;
   }
-  main.addEventListener("click", function (e) {
-    var a = e.target.closest && e.target.closest(".racenav a[href^='#']");
-    if (a) openTarget(a.getAttribute("href"));
-  });
   openTarget(window.location.hash);
   centreStrip();
   if (!(seconds > 0)) return; // pages with forms being filled in opt out
@@ -51,13 +25,13 @@
     return Array.prototype.some.call(main.querySelectorAll("input"), function (i) { return i.value !== i.defaultValue; });
   }
 
-  function strip() { return main.querySelector(".racenav"); }
+  function strip() { return main.querySelector(".strip"); }
 
   function centreStrip(left) {
     var nav = strip();
     if (!nav) return;
     if (left !== undefined) { nav.scrollLeft = left; return; }
-    var a = nav.querySelector("a.on, a.next");
+    var a = nav.querySelector("a.on") || nav.querySelector("a.next");
     if (a) nav.scrollLeft = a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2;
   }
 
@@ -71,12 +45,19 @@
         if (!fresh) return;
         if (typing()) return;
         var open = openDetails();
+        var shown = Array.prototype.map.call(main.querySelectorAll("button[data-more]"), function (b) {
+          return b.getAttribute("aria-expanded") === "true" ? b : null;
+        }).filter(Boolean).map(function (b) { return b.getAttribute("data-more"); });
         var y = window.scrollY;
         var nav = strip();
         var x = nav ? nav.scrollLeft : undefined;
         main.innerHTML = fresh.innerHTML;
         centreStrip(x);
         main.querySelectorAll("details").forEach(function (d, i) { if (open[i]) d.open = true; });
+        shown.forEach(function (id) {
+          var b = main.querySelector('button[data-more="' + id + '"]');
+          if (b) b.click();
+        });
         window.scrollTo(0, y);
       })
       .catch(function () { /* keep showing the last good page */ });
