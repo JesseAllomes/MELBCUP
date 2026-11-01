@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=80 -->
+<!-- drainclamp-build: state; schema=1; generation=81 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -98,7 +98,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-10-31T13:52:50+00:00 ba3f1039 ui: verdict redesign (BET/HOLD/SKIP, Bet now, sticky strip, phone) live at cup.asynym.dev 39ff2826; zero-stake value multi under budget -> HOLD
 - 2026-10-31T14:09:39+00:00 37f45210 auto-load + history-in-image live 0bb13b64 (history 1,160 races shows); ui3 round 1 (artifact 5u6y2fJPZfqJYNteqWWb4A): owner 'yuk', 4 Ticket closest; too loud, too chunky, too busy, cheap/AI. Wants: day's races at top -> tap opens full field; picks shown beside horses/exotics; front-page 'Multi picks for the day' = 5 best-chance multis with $. Round 2 = Ticket variants with that IA
 - 2026-10-31T15:44:31+00:00 3ac4223c m8 rerun done (research/RERUN.md): late money and all 20 families add nothing beyond the T-2 price on tune2 (Jan-Apr 2026, used once; final block sealed); frozen win rule 3 bets +27% no interval; quinella/exacta/trifecta lose; price^1.14 correction is the only gain, still below Sportsbet margin. Verdict: nothing to switch on; app unchanged pending owner
 - 2026-10-31T22:08:28+00:00 1bb079bf m8 final block opened once (owner 'Run the test'): win rule 8 bets 2 wins +17.5% CI -100..+240 not proven; agreed rule 4 bets +50%; trifecta off (-24%, CI -41..-5); quinella/exacta ~breakeven; price^1.14 +0.0047 nats CI +0.0020..+0.0073; final + examined month now spent
@@ -118,4 +117,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T06:45:33+00:00 0658b905 owner: two sticky bars at the very top (Sportsbet, Betfair: limit, left); each bet has 'Placed on Sportsbet/Betfair' tick that confirms and takes the stake off that account; exotics Sportsbet only. Plan for build: ticks kept in a cookie on the owner's phone (no login), placed stakes lock, remaining money reshared over unplaced bets. Last-minute check moved to bottom. Prototype v14
 - 2026-11-01T06:51:21+00:00 53aa297d owner: quinella + trifecta back on each race card with a stake from the day budget (by chance, likeliest structure) and advice 'worth a try only if the tote estimate is over the fair dividend' (combos/prob); still never a value BET; Sportsbet only. Exotics per race (First Four on its race, quaddie on its first race, legs noted on later races); day page loses quaddie/multi block. allocate.py + test; prototype v17
 - 2026-11-01T08:21:03+00:00 94b53960 ui3 BUILD built on session branch ccr-63b3240a-qdwy3g (51ab72cc, 0d1c6a3f): wallet bars, SB $150/BF $50 cookies, placed ticks cookie, allocate_accounts(placed), SB/BF pills, Good/Short price, per-race exotics, day list, last-minute check (in memory) + History total; 438 tests pass; main push awaits owner
+- 2026-11-01T08:43:56+00:00 0819df81 owner: Deploy. ui3 race card build (51ab72cc..39919ca2, 438 tests) pushed to main with owner approval; verifying live
 <!-- /DC:LOG -->
