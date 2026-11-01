@@ -15,3 +15,4 @@ resume uses `.agent/drainclamp-state.md` alone. This file is for forensics.
 - 2026-10-29T09:59:53+00:00 f1d66719 History page with per-pick tally, racebook redesign, field-not-yet guard, saved history sealed
 - 2026-10-31T05:03:14+00:00 6b648089 az: Azure migration project opened; az1-az3 added (verify, dry run, cutover)
 - 2026-10-31T05:07:32+00:00 1cd38880 az1: inventory in .agent/azure-inventory.md; source not in any repo, sites empty, no job logs; blocked on owner (source access)
+- 2026-10-31T05:23:13+00:00 bf07a233 owner: grant any permissions needed; owner away - proceed autonomously; Render stays through Cup day

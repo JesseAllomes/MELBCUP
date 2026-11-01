@@ -18,8 +18,11 @@ JUMP = datetime(2026, 11, 3, 4, 0, tzinfo=UTC)
 def exchange(win1=4.0, place1=1.6):
     """Runner 1 (35% chance) at $4.00 on Betfair pays 3.76 after commission: value."""
     return RacePrices(
-        win={1: win1, 2: 3.2, 3: 6.0}, place={1: place1, 2: 1.3, 3: 1.6},
-        win_market="1.10", place_market="1.11", selections={1: 11, 2: 12, 3: 13},
+        win={1: win1, 2: 3.2, 3: 6.0},
+        place={1: place1, 2: 1.3, 3: 1.6},
+        win_market="1.10",
+        place_market="1.11",
+        selections={1: 11, 2: 12, 3: 13},
     )
 
 
@@ -53,8 +56,13 @@ class FakeBoard:
         return self.now
 
     def snapshot(self):
-        return Snapshot(card=self.card, models=[self.model], updated_at=self.now,
-                        race_date=self.card.race_date, venue="Flemington")
+        return Snapshot(
+            card=self.card,
+            models=[self.model],
+            updated_at=self.now,
+            race_date=self.card.race_date,
+            venue="Flemington",
+        )
 
 
 def betting(bf=None, live=False, limit="50", pin="2468", now=NOW):

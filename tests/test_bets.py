@@ -3,7 +3,7 @@ import math
 import pytest
 from conftest import RACE_DATE, VENUE
 
-from melbcup.bets import MIN_HIT, build_picks
+from melbcup.bets import build_picks
 from melbcup.bets.exotics import (
     first_fours,
     quaddie,

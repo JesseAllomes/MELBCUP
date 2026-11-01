@@ -7,7 +7,7 @@ old and it cannot place bets, which is all the app needs. BETFAIR_APP_KEY, if se
 instead. Nothing here ever logs or returns a password, token or key.
 
 Prices are the best back price on each runner. Winnings pay commission, so the app judges a
-Betfair price after commission (``melbcup.domain.betfair_net``); the page shows the price Betfair shows.
+Betfair price after commission (``melbcup.domain.betfair_net``); the page shows Betfair's price.
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from melbcup.config import MELBOURNE
-from melbcup.domain import betfair_net as net
 from melbcup.sources.http import SourceError
+
 LOGIN_URL = "https://identitysso.betfair.com.au/api/login"
 ACCOUNT_URL = "https://api.betfair.com/exchange/account/json-rpc/v1"
 BETTING_URLS = (
@@ -130,7 +130,9 @@ class BetfairClient:
         try:
             status, data = self._post(url, headers, body, True)
         except OSError as exc:
-            raise SourceError("Betfair", "unavailable", f"{method} could not reach Betfair") from exc
+            raise SourceError(
+                "Betfair", "unavailable", f"{method} could not reach Betfair"
+            ) from exc
         if status != 200 or not isinstance(data, dict):
             raise SourceError("Betfair", "unavailable", f"{method} answered HTTP {status}", status)
         if "error" in data:
@@ -140,7 +142,11 @@ class BetfairClient:
                 detail = (err.get("data") or {}).values()
                 code = next((d.get("errorCode", "") for d in detail if isinstance(d, dict)), "")
                 code = code or str(err.get("message", ""))
-            kind = "auth" if re.search(r"SESSION|APP_KEY|PERMISSION|NO_SESSION", code) else "bad_request"
+            kind = (
+                "auth"
+                if re.search(r"SESSION|APP_KEY|PERMISSION|NO_SESSION", code)
+                else "bad_request"
+            )
             if kind == "auth":
                 self._token = None  # log in again next time
             raise SourceError("Betfair", kind, f"{method.split('/')[-1]} refused ({code})")
@@ -151,7 +157,9 @@ class BetfairClient:
         method = "AccountAPING/v1.0/getDeveloperAppKeys"
         apps = self._rpc(ACCOUNT_URL, method, {}) or []
         if not apps:
-            self._rpc(ACCOUNT_URL, "AccountAPING/v1.0/createDeveloperAppKeys", {"appName": APP_NAME})
+            self._rpc(
+                ACCOUNT_URL, "AccountAPING/v1.0/createDeveloperAppKeys", {"appName": APP_NAME}
+            )
             apps = self._rpc(ACCOUNT_URL, method, {}) or []
         versions = [v for app in apps for v in app.get("appVersions", [])]
         for want_delay in (True, False):
@@ -182,28 +190,38 @@ class BetfairClient:
         self._session()
         start = datetime.combine(race_date, time(0), MELBOURNE).astimezone(UTC)
         end = start + timedelta(days=1)
-        markets = self._betting(
-            "listMarketCatalogue",
-            {
-                "filter": {
-                    "eventTypeIds": [HORSE_RACING],
-                    "marketCountries": ["AU"],
-                    "marketTypeCodes": ["WIN", "PLACE"],
-                    "venues": [venue],
-                    "marketStartTime": {"from": _iso(start), "to": _iso(end)},
+        markets = (
+            self._betting(
+                "listMarketCatalogue",
+                {
+                    "filter": {
+                        "eventTypeIds": [HORSE_RACING],
+                        "marketCountries": ["AU"],
+                        "marketTypeCodes": ["WIN", "PLACE"],
+                        "venues": [venue],
+                        "marketStartTime": {"from": _iso(start), "to": _iso(end)},
+                    },
+                    "marketProjection": [
+                        "RUNNER_METADATA",
+                        "MARKET_START_TIME",
+                        "MARKET_DESCRIPTION",
+                    ],
+                    "maxResults": "200",
                 },
-                "marketProjection": ["RUNNER_METADATA", "MARKET_START_TIME", "MARKET_DESCRIPTION"],
-                "maxResults": "200",
-            },
-        ) or []
+            )
+            or []
+        )
         races = match_markets(markets)
         ids = [mid for win_id, place_id, _ in races.values() for mid in (win_id, place_id) if mid]
         books: dict[str, dict[int, float]] = {}
         for chunk in _chunks(ids, BOOK_CHUNK):
-            for book in self._betting(
-                "listMarketBook",
-                {"marketIds": chunk, "priceProjection": {"priceData": ["EX_BEST_OFFERS"]}},
-            ) or []:
+            for book in (
+                self._betting(
+                    "listMarketBook",
+                    {"marketIds": chunk, "priceProjection": {"priceData": ["EX_BEST_OFFERS"]}},
+                )
+                or []
+            ):
                 books[book.get("marketId")] = back_prices(book)
         out: dict[int, RacePrices] = {}
         for number, (win_id, place_id, cloth) in races.items():
@@ -222,34 +240,41 @@ class BetfairClient:
         """Back one runner at ``price`` or better. The bet lapses if not matched by the jump.
         ``ref`` makes a retry within Betfair's window a no-op instead of a second bet."""
         self._session()
-        result = self._betting(
-            "placeOrders",
-            {
-                "marketId": market_id,
-                "customerRef": ref[:32],
-                "customerStrategyRef": strategy[:15],
-                "instructions": [
-                    {
-                        "selectionId": selection_id,
-                        "handicap": 0,
-                        "side": "BACK",
-                        "orderType": "LIMIT",
-                        "limitOrder": {
-                            "size": round(stake, 2),
-                            "price": price,
-                            "persistenceType": "LAPSE",
-                        },
-                    }
-                ],
-            },
-        ) or {}
+        result = (
+            self._betting(
+                "placeOrders",
+                {
+                    "marketId": market_id,
+                    "customerRef": ref[:32],
+                    "customerStrategyRef": strategy[:15],
+                    "instructions": [
+                        {
+                            "selectionId": selection_id,
+                            "handicap": 0,
+                            "side": "BACK",
+                            "orderType": "LIMIT",
+                            "limitOrder": {
+                                "size": round(stake, 2),
+                                "price": price,
+                                "persistenceType": "LAPSE",
+                            },
+                        }
+                    ],
+                },
+            )
+            or {}
+        )
         reports = result.get("instructionReports") or [{}]
         rep = reports[0]
         if result.get("status") != "SUCCESS":
-            code = rep.get("errorCode") or result.get("errorCode") or result.get("status") or "FAILED"
+            code = (
+                rep.get("errorCode") or result.get("errorCode") or result.get("status") or "FAILED"
+            )
             return Order(str(code))
         return Order(
-            "SUCCESS", rep.get("betId"), float(rep.get("sizeMatched") or 0.0),
+            "SUCCESS",
+            rep.get("betId"),
+            float(rep.get("sizeMatched") or 0.0),
             rep.get("averagePriceMatched"),
         )
 
@@ -258,16 +283,28 @@ class BetfairClient:
         self._session()
         start = datetime.combine(day, time(0), MELBOURNE).astimezone(UTC)
         span = {"from": _iso(start), "to": _iso(start + timedelta(days=1))}
-        current = self._betting(
-            "listCurrentOrders",
-            {"customerStrategyRefs": [strategy], "dateRange": span, "orderProjection": "ALL"},
-        ) or {}
-        total = sum(float(o.get("sizeMatched") or 0) + float(o.get("sizeRemaining") or 0)
-                    for o in current.get("currentOrders", []))
-        cleared = self._betting(
-            "listClearedOrders",
-            {"betStatus": "SETTLED", "customerStrategyRefs": [strategy], "settledDateRange": span},
-        ) or {}
+        current = (
+            self._betting(
+                "listCurrentOrders",
+                {"customerStrategyRefs": [strategy], "dateRange": span, "orderProjection": "ALL"},
+            )
+            or {}
+        )
+        total = sum(
+            float(o.get("sizeMatched") or 0) + float(o.get("sizeRemaining") or 0)
+            for o in current.get("currentOrders", [])
+        )
+        cleared = (
+            self._betting(
+                "listClearedOrders",
+                {
+                    "betStatus": "SETTLED",
+                    "customerStrategyRefs": [strategy],
+                    "settledDateRange": span,
+                },
+            )
+            or {}
+        )
         total += sum(float(o.get("sizeSettled") or 0) for o in cleared.get("clearedOrders", []))
         return total
 
@@ -287,7 +324,10 @@ CLOTH = re.compile(r"^(\d+)\.")
 
 def _cloth(runner: dict) -> int | None:
     meta = runner.get("metadata") or {}
-    for raw in (meta.get("CLOTH_NUMBER"), (CLOTH.match(runner.get("runnerName", "")) or [None, None])[1]):
+    for raw in (
+        meta.get("CLOTH_NUMBER"),
+        (CLOTH.match(runner.get("runnerName", "")) or [None, None])[1],
+    ):
         try:
             return int(raw)
         except (TypeError, ValueError):

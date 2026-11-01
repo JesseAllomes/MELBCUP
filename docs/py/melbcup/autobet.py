@@ -105,9 +105,7 @@ class Betting:
             self._fails.clear()
 
     # -- settings and status ------------------------------------------------------------------
-    def set_auto(
-        self, pin: str | None, race: int, on: bool, limit: float | None = None
-    ) -> dict:
+    def set_auto(self, pin: str | None, race: int, on: bool, limit: float | None = None) -> dict:
         """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
         self.check_pin(pin)
         day = self._day(self.clock())
@@ -133,9 +131,13 @@ class Betting:
 
     def _mine(self, day: date, source: str, race: int | None = None) -> float:
         return sum(
-            p.stake for p in self.ledger
-            if p.source == source and p.counts() and self._day(p.at) == day
-            and p.mode == self.mode and (race is None or p.race == race)
+            p.stake
+            for p in self.ledger
+            if p.source == source
+            and p.counts()
+            and self._day(p.at) == day
+            and p.mode == self.mode
+            and (race is None or p.race == race)
         )
 
     def spent_on_race(self, race: int) -> float:
@@ -158,9 +160,14 @@ class Betting:
             "betfair": self.board.bf is not None,
             "default_limit": self.default_limit,
             "auto_races": [
-                {"race": race, "limit": limit, "spent": self._mine(day, "auto", race),
-                 "done": (d, race) in self._done}
-                for (d, race), limit in sorted(self.armed.items()) if d == day
+                {
+                    "race": race,
+                    "limit": limit,
+                    "spent": self._mine(day, "auto", race),
+                    "done": (d, race) in self._done,
+                }
+                for (d, race), limit in sorted(self.armed.items())
+                if d == day
             ],
             "bets": [
                 {**asdict(p), "at": p.at.astimezone(MELBOURNE).strftime("%-I:%M:%S%p").lower()}
@@ -196,8 +203,9 @@ class Betting:
         return lines
 
     # -- placing ------------------------------------------------------------------------------
-    def _order(self, race: Race, exchange, number: int, kind: str, stake: float, source: str,
-               now: datetime) -> Placed:
+    def _order(
+        self, race: Race, exchange, number: int, kind: str, stake: float, source: str, now: datetime
+    ) -> Placed:
         runner = race.runner(number)
         name = runner.name if runner else str(number)
         prices = exchange.win if kind == "win" else exchange.place
@@ -205,31 +213,88 @@ class Betting:
         price = prices.get(number)
         sel = exchange.selections.get(number)
         if price is None or market is None or sel is None:
-            return Placed(now, race.number, number, name, kind, 0.0, stake, self.mode, source,
-                          "skipped", "no Betfair price")
+            return Placed(
+                now,
+                race.number,
+                number,
+                name,
+                kind,
+                0.0,
+                stake,
+                self.mode,
+                source,
+                "skipped",
+                "no Betfair price",
+            )
         if stake < MIN_STAKE:
-            return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
-                          "skipped", f"under Betfair's ${MIN_STAKE:g} minimum")
+            return Placed(
+                now,
+                race.number,
+                number,
+                name,
+                kind,
+                price,
+                stake,
+                self.mode,
+                source,
+                "skipped",
+                f"under Betfair's ${MIN_STAKE:g} minimum",
+            )
         if not self.live:
-            return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
-                          "practice", "practice: nothing placed")
+            return Placed(
+                now,
+                race.number,
+                number,
+                name,
+                kind,
+                price,
+                stake,
+                self.mode,
+                source,
+                "practice",
+                "place it yourself on Betfair now",
+            )
         ref = f"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}"
         try:
             tag = auto_strategy(race.number) if source == "auto" else HAND
             order = self.board.bf.place(market, sel, price, stake, ref, tag)
         except SourceError as exc:
-            return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
-                          exc.kind, str(exc))
+            return Placed(
+                now,
+                race.number,
+                number,
+                name,
+                kind,
+                price,
+                stake,
+                self.mode,
+                source,
+                exc.kind,
+                str(exc),
+            )
         if order.status != "SUCCESS":
-            return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
-                          order.status, "refused by Betfair")
+            return Placed(
+                now,
+                race.number,
+                number,
+                name,
+                kind,
+                price,
+                stake,
+                self.mode,
+                source,
+                order.status,
+                "refused by Betfair",
+            )
         status = "matched" if order.matched >= stake - 0.01 else "placed"
         note = f"matched ${order.matched:.2f}" + (f" at ${order.price}" if order.price else "")
-        return Placed(now, race.number, number, name, kind, price, stake, self.mode, source,
-                      status, note)
+        return Placed(
+            now, race.number, number, name, kind, price, stake, self.mode, source, status, note
+        )
 
-    def bet_by_hand(self, pin: str | None, race_no: int, number: int, kind: str,
-                    stake: float) -> Placed:
+    def bet_by_hand(
+        self, pin: str | None, race_no: int, number: int, kind: str, stake: float
+    ) -> Placed:
         self.check_pin(pin)
         if kind not in ("win", "place"):
             raise BetError("Choose win or place.")
@@ -238,7 +303,9 @@ class Betting:
         if self.board.bf is None:
             raise BetError("Betting needs the Betfair login in Key Vault.")
         snap = self.board.snapshot()
-        race = next((r for r in snap.card.races if r.number == race_no), None) if snap.card else None
+        race = (
+            next((r for r in snap.card.races if r.number == race_no), None) if snap.card else None
+        )
         if race is None or race.result is not None:
             raise BetError(f"Race {race_no} is not open.")
         if race.runner(number) is None:
@@ -262,10 +329,13 @@ class Betting:
             return []
         day = self._day(now)
         due = [
-            r for r in snap.card.races
-            if r.result is None and r.start_time is not None
+            r
+            for r in snap.card.races
+            if r.result is None
+            and r.start_time is not None
             and timedelta(0) < r.start_time - now <= WINDOW
-            and (day, r.number) in self.armed and (day, r.number) not in self._done
+            and (day, r.number) in self.armed
+            and (day, r.number) not in self._done
         ]
         if not due:
             return []
@@ -285,20 +355,49 @@ class Betting:
             for s in self.betfair_lines(models[race.number], exchange, limit):
                 parts = (
                     [("win", s.stake / 2), ("place", s.stake / 2)]
-                    if s.kind == "each_way" else [(s.kind, float(s.stake))]
+                    if s.kind == "each_way"
+                    else [(s.kind, float(s.stake))]
                 )
                 for kind, stake in parts:
                     try:
                         left = limit - self.spent_on_race(race.number)
                     except BetError as exc:
-                        out.append(Placed(now, race.number, s.number, s.name, kind, 0.0, stake,
-                                          self.mode, "auto", "skipped", str(exc)))
+                        out.append(
+                            Placed(
+                                now,
+                                race.number,
+                                s.number,
+                                s.name,
+                                kind,
+                                0.0,
+                                stake,
+                                self.mode,
+                                "auto",
+                                "skipped",
+                                str(exc),
+                            )
+                        )
                         continue
                     if left < MIN_STAKE:
-                        out.append(Placed(now, race.number, s.number, s.name, kind, 0.0, stake,
-                                          self.mode, "auto", "skipped", "race limit reached"))
+                        out.append(
+                            Placed(
+                                now,
+                                race.number,
+                                s.number,
+                                s.name,
+                                kind,
+                                0.0,
+                                stake,
+                                self.mode,
+                                "auto",
+                                "skipped",
+                                "race limit reached",
+                            )
+                        )
                         continue
-                    placed = self._order(race, exchange, s.number, kind, min(stake, left), "auto", now)
+                    placed = self._order(
+                        race, exchange, s.number, kind, min(stake, left), "auto", now
+                    )
                     self.ledger.append(placed)
                     out.append(placed)
         for p in out:

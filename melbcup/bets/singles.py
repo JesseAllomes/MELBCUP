@@ -72,7 +72,7 @@ class Single:
     stake: int | None = None
     win_price: float | None = None
     estimated: bool = False  # the place price is estimated from the starting price
-    shown: float | None = None  # the price the owner sees at ``bookmaker`` (Betfair: before commission)
+    shown: float | None = None  # price as the owner sees it at ``bookmaker`` (before commission)
 
 
 def _ev(prob: float, price: float | None) -> float | None:
