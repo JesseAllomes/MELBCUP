@@ -245,10 +245,10 @@ class Routed:
 def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     """Send each pick to the account that pays more, within Betfair's money and minimum.
 
-    A pick goes to Betfair only when Betfair's price (after commission) is the better one, its
-    stake meets Betfair's $5 minimum (each way: $5 a half), and the Betfair money is not used
-    up. The biggest price gains get the Betfair money first. Everything else goes to Sportsbet
-    at Sportsbet's price."""
+    A pick goes to Betfair only when Betfair's price (after commission) is the better one and
+    the Betfair money is not used up; a stake under Betfair's $5 minimum (each way: $5 a half)
+    is raised to it. The biggest price gains get the Betfair money first. Everything else goes
+    to Sportsbet at Sportsbet's price."""
     def gain(p: Pick) -> float:
         s = p.single
         if s is None:
@@ -264,9 +264,13 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     )
     for p in better_on_betfair:
         minimum = 2 * BETFAIR_MIN if p.kind == "each_way" else BETFAIR_MIN
-        if p.stake >= minimum and p.stake <= left:
+        # A smaller stake is raised to Betfair's minimum while Betfair money lasts (owner,
+        # 2026-11-01): the better price is worth more than leaving that money unused.
+        need = max(p.stake, minimum)
+        if p.stake > 0 and need <= left:
+            p.stake = int(need)
             out[id(p)] = Routed(p, "betfair", p.single.shown)
-            left -= p.stake
+            left -= need
     return [
         out.get(id(p)) or Routed(p, "sportsbet", p.single.sportsbet if p.single else None)
         for p in picks

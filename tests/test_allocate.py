@@ -167,3 +167,17 @@ def test_placed_money_counts_toward_the_race_cap():
     shared = [r for r in routed if r.pick.race == 1 and not r.placed]
     assert all(r.pick.good_price or r.pick.kind == "first_four" for r in shared)
     assert any(not r.pick.good_price for r in routed if r.pick.race == 2 and not r.placed)
+
+
+def test_small_betfair_better_stakes_are_raised_to_the_minimum():
+    from melbcup.bets.allocate import BETFAIR_MIN, route
+
+    d = _betfair_better(day(SHORT))
+    picks = [p for p in allocate(d, 200) if p.single is not None]
+    small = [p for p in picks if p.single.bookmaker == "betfair" and 0 < p.stake < BETFAIR_MIN
+             and p.kind != "each_way"]
+    assert small, "the test needs a small stake that Betfair pays more on"
+    routed = route(small, 12)  # money for two lifted bets, not all eight
+    on_bf = [r for r in routed if r.account == "betfair"]
+    assert len(on_bf) == 2 and all(r.pick.stake == BETFAIR_MIN for r in on_bf)
+    assert all(r.pick.stake < BETFAIR_MIN for r in routed if r.account == "sportsbet")
