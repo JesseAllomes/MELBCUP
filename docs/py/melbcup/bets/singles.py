@@ -76,6 +76,12 @@ def _ev(prob: float, price: float | None) -> float | None:
     return None if price is None else prob * price - 1.0
 
 
+def _bookie(quote, price: float | None) -> str | None:
+    if quote is not None:
+        return quote.bookmaker
+    return "Sportsbet" if price is not None else None
+
+
 def singles(model: RaceModel) -> list[Single]:
     race = model.race
     out: list[Single] = []
@@ -97,6 +103,11 @@ def singles(model: RaceModel) -> list[Single]:
             place_price, estimated = estimate_place_price(market_place[a.number]), True
         sb_win = prices.sportsbet_win if prices else None
         sb_place = prices.sportsbet_place if prices else None
+        if not race.priced_from_sp:
+            # The owner bets only with Sportsbet (2026-11-01): judge, rank and stake every
+            # win, place and each-way line at Sportsbet's own prices, never another bookie's.
+            win_price, place_price, estimated = sb_win, sb_place, False
+            win_q = place_q = None
 
         ev_win = _ev(a.win, win_price)
         ev_place = _ev(a.place, place_price)
@@ -109,7 +120,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.win,
                 win_price,
                 place_price,
-                win_q.bookmaker if win_q else None,
+                _bookie(win_q, win_price),
                 sb_win,
                 ev_win,
                 1 / a.win,
@@ -128,7 +139,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.place,
                 place_price,
                 place_price,
-                place_q.bookmaker if place_q else None,
+                _bookie(place_q, place_price),
                 sb_place,
                 ev_place,
                 1 / a.place if a.place else float("inf"),
@@ -149,7 +160,7 @@ def singles(model: RaceModel) -> list[Single]:
                 a.place,
                 win_price,
                 place_price,
-                win_q.bookmaker if win_q else None,
+                _bookie(win_q, win_price),
                 sb_win,
                 ev_ew,
                 1 / a.win,

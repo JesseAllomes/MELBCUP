@@ -47,12 +47,24 @@ def make_model(
                 best_win=Quote(wp, "tab"),
                 best_place=Quote(pp, "tab") if pp else None,
                 sportsbet_win=wp if sportsbet else None,
+                sportsbet_place=pp if sportsbet else None,
             )
         runners[n] = Assessment(n, p, place[n], p, None, None, ["Recent form"], [])
     return RaceModel(race, runners, ["model"])
 
 
 FIELD = [0.35, 0.25, 0.15, 0.1, 0.08, 0.07]
+
+
+def test_singles_use_sportsbet_prices_only():
+    """Owner bets only with Sportsbet: a better price at another bookie is not a bet."""
+    m = make_model(1, FIELD, [3.5, 3.0, 6.0, 10.0, 13.0, 15.0], [1.4, 1.5, 2.0, 2.5, 3.0, 3.5])
+    m.race.prices[1].sportsbet_win = 2.5  # tab still offers 3.5 (value); Sportsbet 2.5 is not
+    win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
+    assert win.price == 2.5 and win.bookmaker == "Sportsbet" and not win.value
+    m.race.prices[1].sportsbet_win = None
+    win = next(s for s in singles(m) if s.kind == "win" and s.number == 1)
+    assert win.price is None and not win.value
 
 
 def test_singles_ev_and_value_flag():
