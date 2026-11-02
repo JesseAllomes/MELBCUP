@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=96 -->
+<!-- drainclamp-build: state; schema=1; generation=97 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -100,7 +100,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T06:07:17+00:00 cd23a376 owner: auto is per race. Switched on per race with that race's own limit (PIN), runs once in the last minute, then done; Betfair tag melbcup-auto<race> so each race's spend counts Betfair's record; no day-wide auto. Tests updated, suite passes
 - 2026-11-01T06:21:51+00:00 190fd86c owner: no Betfair live key (A$590 fee). Option 1: free delayed key for prices; auto stays practice and tells the owner what to bet in the last minute; owner places bets by hand. Owner approved push to main of trifecta odds-only, owner-accounts pricing, Betfair prices, practice auto per race. PIN in Key Vault (melbcup-bet-pin)
 - 2026-11-01T06:31:46+00:00 20f791e9 live: Betfair login OK, getDeveloperAppKeys refused placeholder app key (INVALID_APP_KEY); fix c2fd2bd1 (no X-Application on key calls) pushed to main with owner approval. Owner: confused by BET vs For fun; wants a $ from the day budget on every card; wants Sportsbet and Betfair prices as different coloured squares on each line (prototype)
 - 2026-11-01T06:39:46+00:00 c3e17e4e Betfair live OK after fix (Betfair prices on site). Owner: day budget shared across the whole day by chance each bet pays, value BETs keep model stake, exotics keep outlay, max 20% of budget per race; every race gets win/place/each-way picks with $. Built melbcup/bets/allocate.py + 5 tests (not wired to pages: UI awaits BUILD). Live Cup-day run: $200 used, Cup $18. Prototype v10: SB navy / BF amber price pills (owner asked for pills), Good/Short price pills, stakes
@@ -120,4 +119,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-02T22:25:27+00:00 96a2ea3d pb1 built (Sonnet): PointsBet third account behind POINTSBET=1 (off = pages byte-identical to baseline, verified); PB prices, wallet bar, ?pb= amount (default $0), PB pill, placed tick, best-of-three routing, Cup Run 2nd note; on in prod via azure/webapp env. Not wired: autobet, last-minute check, browser build
 - 2026-11-02T22:41:13+00:00 1f40e8af pb2 built (Sonnet): promos are bets behind PROMOS=1 (off = byte-identical, PB off and on, verified). PointsBet Run 2nd You Win (Cup, PaysAsWinner) and Sportsbet R1-2 bonus back 2nd/3rd (MoneyBack c=0.75); promo replaces the Win pick when its worst-case EV beats it; max stakes $50 assumed (melbcup/bets/promos.py). On in prod
 - 2026-11-02T23:11:54+00:00 66667dc1 owner confirmed promo max stakes $50 (PointsBet Run 2nd, Sportsbet bonus back); no code change
+- 2026-11-02T23:23:58+00:00 576b918a pb2+: PointsBet Daily Booster (racing single: max stake x chance x (price-1) PB line marked) and Daily Pay Back any multi ($50, bonus 0.75, criteria ASSUMED 'multi loses'; best EV 2-3 leg PB multi, P>=0.25) shown when PROMOS+POINTSBET on and PB amount > 0; off path byte-identical (verified)
 <!-- /DC:LOG -->

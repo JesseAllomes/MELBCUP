@@ -12,11 +12,14 @@ Win pick only if that worst-case EV is above the plain pick's own EV.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
+from itertools import combinations, product
 
 from melbcup.bets.allocate import race_picks
+from melbcup.bets.multis import KIND_DIGIT, Leg, Multi, _candidates
 from melbcup.bets.offers import (
     MIN_EV_BUFFER,
     MoneyBack,
@@ -30,6 +33,11 @@ from melbcup.bets.singles import MIN_WIN_PROB, Single
 PB_MAX_STAKE = 50.0
 SB_MAX_STAKE = 50.0
 SB_BONUS_VALUE = 0.75  # a bonus bet is worth this much per $1 of face value
+# PointsBet "Daily Pay Back, Any Multi": stake back as a bonus bet if the multi loses. The
+# criteria "multi loses" is ASSUMED (not given): any 2- or 3-leg multi that does not win.
+PB_PAYBACK_MAX = 50.0
+PB_PAYBACK_BONUS = 0.75  # the bonus bet is worth this much per $1 of stake
+PB_PAYBACK_MIN_PROB = 0.25
 
 ACCOUNT_OF = {"pointsbet": "pointsbet", "sportsbet": "sportsbet"}
 BOOKMAKER_OF = {"pointsbet": "pointsbetau", "sportsbet": "sportsbet"}  # Single.bookmaker
@@ -168,3 +176,66 @@ def promo_win(rp, promos, pointsbet: bool, budget: float | None) -> Single | Non
         shown=bet.price,
         promo=bet,
     )
+
+
+# -- PointsBet "daily" promos (PROMOS=1 and POINTSBET=1 with a PointsBet amount) ----------------
+
+BOOSTER_PILL = "PB booster: use here"
+BOOSTER_NOTE = (
+    "Use today's PointsBet racing-singles booster on this bet (biggest expected gain from a "
+    "boost). Check the booster can be combined with any promo on it."
+)
+
+
+def booster_gain(stake: float, chance: float | None, price: float | None) -> float | None:
+    """Expected gain of a single: stake x model chance x (price - 1)."""
+    if not stake or not chance or not price:
+        return None
+    return stake * chance * (price - 1.0)
+
+
+def _pointsbet_price(prices, kind: str) -> float | None:
+    return prices.pointsbet_place if kind == "place" else prices.pointsbet_win
+
+
+def payback_ev(prob: float, price: float) -> float:
+    """EV of $1 on a multi that returns the stake as a bonus bet when it loses."""
+    return prob * price + PB_PAYBACK_BONUS * (1.0 - prob) - 1.0
+
+
+def _pareto(legs: list[Leg]) -> list[Leg]:
+    """Legs no other leg of the race beats on both chance and price. Swapping a leg for one that
+    is at least as likely and pays at least as much never lowers the multi's EV, so the others
+    cannot be the best."""
+    legs = sorted(legs, key=lambda g: (-g.prob, -g.price, g.number, g.kind))
+    out: list[Leg] = []
+    top = 0.0
+    for g in legs:
+        if g.price > top:
+            out.append(g)
+            top = g.price
+    return out
+
+
+def payback_multi(models) -> tuple[Multi, float] | None:
+    """The 2- or 3-leg PointsBet multi (each leg a win or place bet in a different race, at
+    PointsBet's prices) with the highest EV under Pay Back, chance at least PB_PAYBACK_MIN_PROB.
+    Returns (multi, EV per $1), or None."""
+    per_race: dict[int, list[Leg]] = {}
+    for m in models:
+        if legs := _pareto(_candidates(m, ("win", "place"), _pointsbet_price)):
+            per_race[m.race.number] = legs
+    best: tuple[tuple, Multi, float] | None = None
+    for size in (2, 3):
+        for races in combinations(sorted(per_race), size):
+            for legs in product(*(per_race[r] for r in races)):
+                prob = math.prod(g.prob for g in legs)
+                if prob < PB_PAYBACK_MIN_PROB:
+                    continue
+                price = math.prod(g.price for g in legs)
+                ev = payback_ev(prob, price)
+                order = (ev, -size, tuple(-g.race for g in legs),
+                         tuple(-g.number for g in legs), tuple(-KIND_DIGIT[g.kind] for g in legs))
+                if best is None or order > best[0]:
+                    best = (order, Multi(list(legs), prob, price, "pointsbet"), ev)
+    return (best[1], best[2]) if best else None

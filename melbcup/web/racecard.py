@@ -26,6 +26,13 @@ from melbcup.bets.allocate import (
     race_picks,
 )
 from melbcup.bets.multis import Multi, key_legs
+from melbcup.bets.promos import (
+    BOOSTER_NOTE,
+    BOOSTER_PILL,
+    PB_PAYBACK_MAX,
+    booster_gain,
+    payback_multi,
+)
 from melbcup.config import MELBOURNE
 from melbcup.domain import betfair_net
 from melbcup.model.probability import top_k_probs
@@ -293,6 +300,9 @@ class Line:
     pointsbet: bool = False  # POINTSBET=1: the Placed buttons offer PointsBet too
     promo: str = ""  # PROMOS=1: "Promo: Run 2nd, You Win" on a promo Win bet
     promo_note: str = ""  # its one-line value note
+    booster: str = ""  # PROMOS=1 + PointsBet: "PB booster: use here" on the one single to boost
+    booster_note: str = ""
+    value_note: str = ""  # the PointsBet Pay Back multi: its value per $1 line
 
     @property
     def label(self) -> str:
@@ -557,6 +567,7 @@ class DayCard:
     races: list[RaceCard]
     open_count: int
     multis: list[Line] = field(default_factory=list)  # "Multi picks for the day"
+    payback: Line | None = None  # PROMOS=1 + PointsBet amount: "PointsBet Pay Back multi"
 
     def race(self, number: int) -> RaceCard | None:
         return next((r for r in self.races if r.race.number == number), None)
@@ -574,9 +585,12 @@ def build_day(
     open_races: set[int],
     race_date: date,
     pb: float | None = None,
+    promos: bool = False,
 ) -> DayCard:
     """Every race's lines with stakes from the two amounts and the owner's placed bets. ``pb``
-    is PointsBet's day amount (POINTSBET=1); None leaves PointsBet out."""
+    is PointsBet's day amount (POINTSBET=1); None leaves PointsBet out. ``promos`` (PROMOS=1)
+    with a PointsBet amount adds the PointsBet daily promos: the booster pill and the Pay Back
+    multi."""
     on = pb is not None
     day_list = day_multi_list(picks, open_races)  # worked out once: it is the costly part
     routed = allocate_accounts(
@@ -630,7 +644,59 @@ def build_day(
         for k, r in by_multi.items()
         if r.placed and k not in shown and r.pick.multi is not None
     ]
-    return DayCard(races, len(open_races), lines)
+    payback = None
+    if promos and pb and pb > 0:
+        _mark_booster(races)
+        payback = _payback_line(picks, open_races, race_date)
+    return DayCard(races, len(open_races), lines, payback)
+
+
+def _mark_booster(races: list) -> None:
+    """PointsBet "Daily Booster, Racing Singles" (one a day, boost unknown): flag the one win or
+    place single routed to PointsBet in the open races with the biggest expected boosted gain,
+    stake x chance x (price - 1) at PointsBet's price. Each way is skipped."""
+    best, best_gain = None, 0.0
+    for rc in races:
+        if not rc.open:
+            continue
+        for line in rc.board:
+            if line.account != "pointsbet" or line.kind not in ("win", "place"):
+                continue
+            prices = rc.race.prices.get(line.number)
+            price = prices and (
+                prices.pointsbet_win if line.kind == "win" else prices.pointsbet_place
+            )
+            gain = booster_gain(line.stake, line.chance, price)
+            if gain is not None and gain > best_gain:
+                best, best_gain = line, gain
+    if best is not None:
+        best.booster, best.booster_note = BOOSTER_PILL, BOOSTER_NOTE
+
+
+def _payback_line(picks, open_races: set[int], race_date: date) -> Line | None:
+    """The PointsBet Pay Back multi as a card: legs, PointsBet price, chance and value per $1.
+    Not part of the day's money sharing (no stake)."""
+    found = payback_multi([rp.model for rp in picks.races if rp.model.race.number in open_races])
+    if found is None:
+        return None
+    m, ev = found
+    line = Line(
+        m.race,
+        "multi",
+        chance=m.prob,
+        pills=[Pill("pb", price_text(m.price), True)],
+        sportsbet_only=True,
+        key=m.key,
+        multi_legs=[(leg.race, leg.number, leg.name, LABELS[leg.kind]) for leg in m.legs],
+        price=m.price,
+    )
+    line.title = f"PointsBet Pay Back multi, {len(m.legs)} legs"
+    line.say = f"Lands {one_in(m.prob)}."
+    line.value_note = (
+        f"Worth {ev:+.2f} per $1 with the pay back (stake back as a bonus bet if it loses), "
+        f"up to ${PB_PAYBACK_MAX:g} on PointsBet."
+    )
+    return line
 
 
 # -- the Melbourne Cup offer (POINTSBET=1) ------------------------------------------------------

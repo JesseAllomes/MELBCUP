@@ -85,21 +85,30 @@ def key_legs(key: int) -> list[tuple[int, int, str]]:
     return legs if 2 <= len(legs) <= 3 and len({r for r, _, _ in legs}) == len(legs) else []
 
 
-def _leg(model: RaceModel, number: int, kind: str = "win") -> Leg | None:
+def _sportsbet_price(prices, kind: str) -> float | None:
+    return prices.sportsbet_place if kind == "place" else prices.sportsbet_win
+
+
+def _leg(
+    model: RaceModel, number: int, kind: str = "win", price_of=_sportsbet_price
+) -> Leg | None:
+    """``price_of(prices, kind)`` picks the bookmaker's price for the leg (Sportsbet's default)."""
     a = next((a for a in model.ranked() if a.number == number), None)
     prices = model.race.prices.get(number)
     runner = model.race.runner(number)
-    price = prices and (prices.sportsbet_place if kind == "place" else prices.sportsbet_win)
+    price = prices and price_of(prices, kind)
     if a is None or not price or runner is None:
         return None
     return Leg(model.race.number, number, runner.name, a.place if kind == "place" else a.win,
                price, kind)
 
 
-def _candidates(model: RaceModel, kinds: tuple[str, ...] = ("win",)) -> list[Leg]:
-    """Legs worth a multi in this race: a win and/or place bet on each runner with a Sportsbet
-    price for it and at least MIN_LEG_PROB of landing."""
-    legs = (_leg(model, a.number, k) for a in model.ranked() for k in kinds)
+def _candidates(
+    model: RaceModel, kinds: tuple[str, ...] = ("win",), price_of=_sportsbet_price
+) -> list[Leg]:
+    """Legs worth a multi in this race: a win and/or place bet on each runner with a price (by
+    default Sportsbet's) for it and at least MIN_LEG_PROB of landing."""
+    legs = (_leg(model, a.number, k, price_of) for a in model.ranked() for k in kinds)
     return [leg for leg in legs if leg is not None and leg.prob >= MIN_LEG_PROB]
 
 

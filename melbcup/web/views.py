@@ -321,7 +321,9 @@ class Views:
         )
         marks = {rg.race: {g.kind: g for g in rg.lines} for rg in (grade.races if grade else [])}
         card = (
-            build_day(picks, sb, bf, placed, open_races(picks), snap.race_date, pb)
+            build_day(
+                picks, sb, bf, placed, open_races(picks), snap.race_date, pb, self.settings.promos
+            )
             if picks
             else None
         )

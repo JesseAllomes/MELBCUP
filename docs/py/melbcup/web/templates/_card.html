@@ -19,7 +19,7 @@
   <span class="who"><span class="cloth sm">{{ line.number }}</span><b>{{ line.name }}</b></span>
   {% if line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
   <span class="fun">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}</span>
-  <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}
+  <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}{% if line.booster %}<div class="say"><span class="verdict good">{{ line.booster }}</span><span>{{ line.booster_note }}</span></div>{% endif %}
   {{ placed(line) }}
 </div>
 {% endmacro %}
@@ -54,6 +54,20 @@
   </div>
   <p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</p>
   {{ placed(line) }}
+</article>
+{% endmacro %}
+
+{# The PointsBet Pay Back multi (PROMOS=1 + a PointsBet amount): a day multi card without a stake. #}
+{% macro payback_card(line) %}
+<article class="bet multi">
+  <div class="bet-top"><h3>{{ line.title }}</h3></div>
+  <ol class="mlegs">
+    {% for race, number, name, kind in line.multi_legs %}
+    <li><span class="rno">R{{ race }}</span><span class="cloth sm">{{ number }}</span><b>{{ name }}</b><span class="lk">{{ kind }}</span></li>
+    {% endfor %}
+  </ol>
+  <div class="mfoot">{{ pillset(line.pills, true) }}</div>
+  <p class="split">{{ line.say }} <b>{{ line.value_note }}</b></p>
 </article>
 {% endmacro %}
 

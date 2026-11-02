@@ -261,3 +261,183 @@ def test_sportsbet_promo_is_the_offers_money_back():
     offer = promo.offer(3.0)
     assert offer == MoneyBack(3.0, frozenset({2, 3}), 50, 0.75)
     assert promo.races == (1, 2)
+
+
+# -- PointsBet daily promos: booster and Pay Back multi (PROMOS=1 + POINTSBET=1 + PB amount) ----
+
+QUERY = {"sb": "100", "bf": "20", "pb": "50"}
+
+
+def pb_models():
+    """The day's races with PointsBet place prices and a different PointsBet price per race."""
+    models = day_models()
+    for m in models:
+        for a in m.runners.values():  # the fixture has no place chances: top three of seven
+            a.place = min(0.95, 2.4 * a.win)
+        for p in m.race.prices.values():
+            p.pointsbet_place = round(1 + (p.pointsbet_win - 1) / 3.5, 2)
+            p.pointsbet_win = round(p.pointsbet_win * (1 + 0.02 * m.race.number), 2)
+    return models
+
+
+def pb_views(env, models=None):
+    models = models or pb_models()
+    return Views(load_settings({"APP_PASSWORD": "x"} | env), FakeBoard(models))
+
+
+def pb_card(models, pb, promos):
+    from melbcup.web.racecard import build_day
+
+    d = build_picks(models, 200, bool(pb), PROMOS)  # the picks are the same either way
+    open_races = {rp.model.race.number for rp in d.races}
+    return build_day(d, 100, 20, [], open_races, models[0].race.race_date, pb, promos)
+
+
+@pytest.mark.parametrize(
+    "env,query",
+    [
+        ({"PROMOS": "1"}, QUERY),  # no POINTSBET
+        ({"POINTSBET": "1"}, QUERY),  # no PROMOS
+        ({"POINTSBET": "1", "PROMOS": "1"}, {"sb": "100", "bf": "20", "pb": "0"}),
+    ],
+)
+def test_pointsbet_daily_promos_need_both_switches_and_an_amount(env, query):
+    for path in ("/", "/race/1", "/race/7"):
+        page = pb_views(env).page(path, query, {})
+        assert "PB booster" not in page and "Pay Back" not in page
+    models = pb_models()
+    pb = 0.0 if env.get("POINTSBET") and env.get("PROMOS") else None
+    card = pb_card(models, pb, bool(env.get("PROMOS")))
+    assert card.payback is None
+    assert not any(x.booster for rc in card.races for x in rc.board)
+
+
+def test_off_card_is_identical_to_without_the_daily_promos():
+    models = pb_models()
+    assert pb_card(models, 50.0, False) == pb_card(models, 50.0, False)
+    on = pb_card(models, 50.0, True)
+    off = pb_card(models, 50.0, False)
+    assert off.payback is None and on.payback is not None
+    for a, b in zip(on.races, off.races, strict=True):  # only the booster mark differs
+        for x, y in zip(a.board, b.board, strict=True):
+            x.booster = x.booster_note = ""
+            assert x == y
+    assert on.multis == off.multis
+    page = pb_views({"POINTSBET": "1"}).page("/", QUERY, {})
+    assert "Pay Back" not in page and "PB booster" not in page
+
+
+def test_booster_marks_the_one_pointsbet_single_with_the_biggest_expected_gain():
+    models = pb_models()
+    card = pb_card(models, 50.0, True)
+    lines = [x for rc in card.races for x in rc.board if x.account == "pointsbet"]
+    assert lines
+    marked = [x for rc in card.races for x in rc.board if x.booster]
+    assert len(marked) == 1 and marked[0].booster == "PB booster: use here"
+    assert "racing-singles booster" in marked[0].booster_note and marked[0].account == "pointsbet"
+    by_race = {m.race.number: m.race for m in models}
+
+    def gain(x):
+        pr = by_race[x.race].prices[x.number]
+        price = pr.pointsbet_win if x.kind == "win" else pr.pointsbet_place
+        return x.stake * x.chance * (price - 1)
+
+    eligible = [x for x in lines if x.kind in ("win", "place") and x.stake]
+    assert marked[0] is max(eligible, key=gain)
+    page = pb_views({"POINTSBET": "1", "PROMOS": "1"}).page("/", QUERY, {})
+    race_pages = [
+        pb_views({"POINTSBET": "1", "PROMOS": "1"}).page(f"/race/{n}", QUERY, {})
+        for n in (1, 2, 3, 7)
+    ]
+    assert sum(p.count("PB booster: use here") for p in race_pages) == 1
+    assert "PB booster" not in page  # the day page lists races, not their lines
+
+
+def test_booster_shows_nothing_when_no_single_goes_to_pointsbet():
+    models = pb_models()
+    for m in models:  # PointsBet pays less than Sportsbet everywhere: nothing is routed there
+        for p in m.race.prices.values():
+            p.pointsbet_win, p.pointsbet_place = None, None
+    card = pb_card(models, 50.0, True)
+    assert not any(x.booster for rc in card.races for x in rc.board)
+    assert card.payback is None  # no PointsBet prices, no multi
+
+
+def brute_payback(models):
+    from itertools import combinations, product
+
+    from melbcup.bets.multis import MIN_LEG_PROB
+
+    legs = {}
+    for m in models:
+        for a in m.ranked():
+            pr = m.race.prices[a.number]
+            for kind, p, price in (
+                ("win", a.win, pr.pointsbet_win),
+                ("place", a.place, pr.pointsbet_place),
+            ):
+                if price and p >= MIN_LEG_PROB:
+                    leg = (m.race.number, a.number, kind, p, price)
+                    legs.setdefault(m.race.number, []).append(leg)
+    best = None
+    for size in (2, 3):
+        for races in combinations(sorted(legs), size):
+            for combo in product(*(legs[r] for r in races)):
+                p = price = 1.0
+                for leg in combo:
+                    p *= leg[3]
+                    price *= leg[4]
+                if p < 0.25:
+                    continue
+                ev = p * price + 0.75 * (1 - p) - 1
+                if best is None or ev > best[0] + 1e-12:
+                    best = (ev, [leg[:3] for leg in combo], p, price)
+    return best
+
+
+def test_payback_multi_is_the_highest_ev_pointsbet_multi_with_chance_at_least_a_quarter():
+    from melbcup.bets.promos import PB_PAYBACK_BONUS, PB_PAYBACK_MAX, payback_multi
+
+    assert (PB_PAYBACK_MAX, PB_PAYBACK_BONUS) == (50.0, 0.75)
+    models = pb_models()
+    m, ev = payback_multi(models)
+    want = brute_payback(models)
+    assert m.prob >= 0.25 and 2 <= len(m.legs) <= 3
+    assert len({leg.race for leg in m.legs}) == len(m.legs)
+    assert ev == pytest.approx(want[0]) and m.prob == pytest.approx(want[2])
+    assert m.price == pytest.approx(want[3])
+    by_race = {x.race.number: x.race for x in models}
+    for leg in m.legs:  # PointsBet's prices, not Sportsbet's
+        pr = by_race[leg.race].prices[leg.number]
+        assert leg.price == (pr.pointsbet_place if leg.kind == "place" else pr.pointsbet_win)
+    assert ev == pytest.approx(m.prob * m.price + 0.75 * (1 - m.prob) - 1)
+
+
+def test_payback_card_is_on_the_day_page_and_takes_no_stake():
+    from melbcup.bets.promos import payback_multi
+
+    models = pb_models()
+    m, ev = payback_multi(models)
+    page = pb_views({"POINTSBET": "1", "PROMOS": "1"}).page("/", QUERY, {})
+    assert page.count("PointsBet Pay Back multi") >= 1 and "up to $50 on PointsBet" in page
+    assert page.index("Multi picks for the day") < page.index("PointsBet Pay Back multi")
+    assert f"{ev:+.2f} per $1 with the pay back" in page
+    on = pb_card(models, 50.0, True)
+    off = pb_card(models, 50.0, False)
+    assert on.payback.stake == 0 and on.total == off.total  # no money taken from the day
+
+
+def test_payback_multi_is_fast_on_a_ten_race_card():
+    import time
+
+    from melbcup.bets.promos import payback_multi
+
+    models = [race_model(n) for n in range(1, 11)]
+    for m in models:
+        for a in m.runners.values():
+            a.place = min(0.95, 2.4 * a.win)
+        for p in m.race.prices.values():
+            p.pointsbet_place = round(1 + (p.pointsbet_win - 1) / 3.5, 2)
+    t = time.perf_counter()
+    assert payback_multi(models) is not None
+    assert time.perf_counter() - t < 0.2
