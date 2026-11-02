@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 15,
+  "rev": 16,
   "review": {
     "advice": [],
     "config": {
@@ -260,6 +260,149 @@
         "severity": "low",
         "status": "candidate",
         "symbol": "cadence_divisor",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:23+00:00",
+        "category": "safety",
+        "claim": "The betting endpoints (/api/betting, /api/betting/auto, /api/betting/bet) have no require_login dependency. The 4-digit-class BET_PIN is the only guard, and the deployed app also sets PUBLIC_ACCESS=1, which switches off the password on e...",
+        "confidence": 0.8,
+        "evidence": "@app.post(\"/api/betting/bet\")",
+        "file": "melbcup/web/app.py",
+        "fingerprint": "5b6e2843b027",
+        "flags": [
+          "vs D24",
+          "vs D6"
+        ],
+        "found_by": [
+          "critic-b"
+        ],
+        "id": "r7",
+        "line": 142,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "Unauthenticated GET https://cup.asynym.dev/api/betting returns mode, armed races, limits, spent and the last 50 bets (runner, stake, price). Unauthenticated POST /api/betting/bet with {race, runner, stake, pin} guesses the PIN, 5 tries per 15 minutes, about 480 a day. If BET_MODE=live, a correct guess places Betfair bets up to $500 each. Even without PUBLIC_ACCESS the APP_PASSWORD is never chec...",
+        "severity": "high",
+        "status": "candidate",
+        "symbol": "betting_bet",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:23+00:00",
+        "category": "safety",
+        "claim": "The code places real-money Betfair back bets, by hand and automatically, using the owner's Betfair username and password. This contradicts D12 (never places bets) and D7 (no Betfair). A later owner decision (the docstring cites 2026-11-0...",
+        "confidence": 0.6,
+        "evidence": "order = self.board.bf.place(market, sel, price, stake, ref, tag)",
+        "file": "melbcup/autobet.py",
+        "fingerprint": "e63981159cec",
+        "flags": [
+          "vs D12",
+          "vs D11"
+        ],
+        "found_by": [
+          "critic-b"
+        ],
+        "id": "r8",
+        "line": 260,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "With BET_MODE=live and a live app key, tick() places LIMIT back bets 60 seconds before each armed race, and /api/betting/bet places hand bets. The recorded decisions say the app never places bets and does not use Betfair.",
+        "severity": "high",
+        "status": "candidate",
+        "symbol": "Betting._order",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:23+00:00",
+        "category": "safety",
+        "claim": "The default poster _httpx_post lets httpx exceptions through (ConnectError, ReadTimeout), and httpx.TransportError is not an OSError. _rpc and _login catch only OSError, so a timeout after Betfair accepted placeOrders escapes as a raw ex...",
+        "confidence": 0.6,
+        "evidence": "except OSError as exc:",
+        "file": "melbcup/sources/betfair.py",
+        "fingerprint": "fb1cd7f3d53b",
+        "flags": [
+          "vs D6",
+          "vs D36"
+        ],
+        "found_by": [
+          "critic-b"
+        ],
+        "id": "r9",
+        "line": 135,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "A hand bet is sent, Betfair accepts it, and the read times out. The user gets an HTTP 500, no ledger row appears, and the user presses Bet again. The customerRef includes the time to the second, so the retry gets a new ref and a second real bet is placed, doubling the stake. In tick(), the exception aborts the rest of the race's lines with the race already in _done.",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "BetfairClient._rpc",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:23+00:00",
+        "category": "safety",
+        "claim": "The customerRef is built from the wall-clock time to the second, so it cannot make a retry or double-click idempotent as the place() docstring claims. Hand bets have no per-race or per-day cap and no duplicate guard, only a $500 per-bet ...",
+        "confidence": 0.5,
+        "evidence": "ref = f\"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}\"",
+        "file": "melbcup/autobet.py",
+        "fingerprint": "5a30529dca41",
+        "flags": [
+          "vs D44"
+        ],
+        "found_by": [
+          "critic-b"
+        ],
+        "id": "r10",
+        "line": 257,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "The owner double-taps Bet for race 7, runner 3, $100 win. The two requests land in different seconds and get different refs, so Betfair places two $100 bets. A retry after a 500 or timeout does the same.",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "Betting._order",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:23+00:00",
+        "category": "safety",
+        "claim": "The PIN lockout is global and counts failures from unauthenticated callers. Anyone who sends 5 wrong PINs locks the owner out of every betting action, including switching auto off, for 15 minutes. The attacker can repeat this indefinitely.",
+        "confidence": 0.55,
+        "evidence": "if len(self._fails) >= MAX_PIN_FAILS:",
+        "file": "melbcup/autobet.py",
+        "fingerprint": "761b3abffc57",
+        "flags": [
+          "vs D45"
+        ],
+        "found_by": [
+          "critic-b"
+        ],
+        "id": "r11",
+        "line": 100,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "A bot posts 5 wrong PINs to /api/betting/auto every 15 minutes. The owner cannot disarm auto or place a hand bet around a race. Armed auto races still fire, because tick() does not check the PIN, but the owner cannot cancel them.",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "Betting.check_pin",
         "ticket": ""
       }
     ],
@@ -4579,9 +4722,18 @@
           },
           {
             "at": "2026-11-02T14:04:06+00:00",
-            "found": null,
+            "found": 5,
             "model": "sonnet",
-            "role": "critic-b"
+            "role": "critic-b",
+            "tokens": {
+              "cache_read": 358496,
+              "cache_write": 57529,
+              "calls": 11,
+              "input": 22,
+              "output": 8323,
+              "total": 424370,
+              "transcript": "agent-aeae886c748fc4965.jsonl"
+            }
           },
           {
             "at": "2026-11-02T14:04:06+00:00",
