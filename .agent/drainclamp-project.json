@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 42,
+  "rev": 43,
   "review": {
     "advice": [],
     "config": {
@@ -161,6 +161,8 @@
         "category": "conformance",
         "claim": "milestone goal not met by this diff: publish_pending still commits to the GitHub live branch via commit_github_file; the goal requires Blob-only publishing with no live branch",
         "confidence": 0.4,
+        "decided_at": "2026-11-02T22:00:01+00:00",
+        "decided_by": "user",
         "evidence": "commit_github_file(",
         "file": "azure/function/collector_runtime.py",
         "fingerprint": "b6ff8255a423",
@@ -180,7 +182,7 @@
         "round": "R1",
         "scenario": "After this change the collector still writes to the live branch, so the no-live-branch end state is not delivered",
         "severity": "medium",
-        "status": "open",
+        "status": "fixing",
         "symbol": "publish_pending",
         "ticket": ""
       },

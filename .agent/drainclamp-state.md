@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=90 -->
+<!-- drainclamp-build: state; schema=1; generation=91 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -51,7 +51,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Azure auth? -> Azure CLI device-code login by the owner, CLI config in session scratch only; no credentials, tokens or secret values in the repo, chat or logs; secret and setting names only (source: user + repo decision)
 - Cutover? -> per service: verify, dry run, owner approves, then turn the Azure schedule on and disable the matching GitHub Actions workflow in the same step so nothing runs twice (source: repo decision)
 - MELBCUP timing? -> owner had no preference; Render, live-collector.yml and GCS archive keep running through Cup day (Tue 3 Nov) until the Azure copies are verified (source: repo decision)
-- Azure collector before Cup day? -> no: review found 3 blockers and the GitHub collector already works; Azure collector off through Cup week, fixed and committed to git after (source: repo decision, 2026-10-31)
+- Azure collector before Cup day? -> (SUPERSEDED 2026-11-02 by owner: build az4 now, during Cup week; was: collector off through Cup week, fixed after) (source: user, Gate 6 R1 r3)
 - Times shown to the owner? -> Melbourne time (AEDT/AEST) only, never UTC (source: user, 2026-10-31)
 - Where does data live? -> Azure Blob in the existing storage account (pennies a month); git keeps code only; OneDrive (owner's 1 TB) only for backups/archives because unattended jobs would need a rotating Microsoft login token (source: user "move everything possible, cheapest" + repo decision, 2026-10-31)
 - Site actions? -> no GitHub issues; on-site buttons via SWA API + owner-only login (source: user, 2026-10-31)
