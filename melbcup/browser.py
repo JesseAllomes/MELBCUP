@@ -130,6 +130,7 @@ def init(
             "FORMFAV_API_KEY": ff_key or "",
             "APP_PASSWORD": "browser",
             "PRICE_MODE": "manual",  # Auto is off each time the page opens
+            "POINTSBET": "1",  # PointsBet as a third account and the Cup Run 2nd note, as in prod
         }
     )
     reader = archive_reader or (xhr_text if requester is None else None)
