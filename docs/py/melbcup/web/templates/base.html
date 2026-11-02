@@ -54,8 +54,10 @@
     </footer>
   </main>
   <script>
-  // Placed ticks live in a cookie on this phone (no login, by design): tap to tick, tap again to
-  // untick, tap the other account to move it (a multi's slot is its legs, so several can share a race). Records for other days are dropped.
+  // Placed bets live in a cookie on this phone (no login, by design): [date, race, kind, runner,
+  // account, stake, price?]. Tap to tick (adds that record), tap again to untick (removes only that
+  // record), "Remove" deletes one recorded bet, and the "Record a bet I placed" form adds one.
+  // Records for other days are dropped. A repeat of race+kind+runner+account replaces the old one.
   (function () {
     function read() {
       var m = document.cookie.match(/(?:^|;\s*)placed=([^;]*)/);
@@ -64,14 +66,43 @@
     function write(list) {
       document.cookie = "placed=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
     }
+    // the same bet: date, race, kind, runner (a multi: its legs) and account
+    function same(r, rec) {
+      return Array.isArray(r) && r[0] === rec[0] && r[1] === rec[1] && r[2] === rec[2] && r[3] === rec[3] && r[4] === rec[4];
+    }
+    function others(rec) {
+      return read().filter(function (r) { return Array.isArray(r) && r[0] === rec[0] && !same(r, rec); });
+    }
+    document.addEventListener("submit", function (e) {
+      var f = e.target;
+      if (!f.classList || !f.classList.contains("record-bet")) return;
+      e.preventDefault();
+      var el = f.elements, kind = el["kind"].value;
+      var v = Math.round(parseFloat(el["stake"].value));
+      if (kind === "e") v = Math.max(2, Math.round(v / 2) * 2); // each way: the total of two equal halves
+      if (!(v > 0)) return;
+      var rec = [f.getAttribute("data-date"), parseInt(f.getAttribute("data-race"), 10), kind, parseInt(el["runner"].value, 10), el["acct"].value, v];
+      var price = parseFloat(el["price"].value);
+      if (price > 1) rec.push(Math.round(price * 100) / 100);
+      var list = others(rec);
+      list.push(rec);
+      write(list);
+      location.reload();
+    });
     document.addEventListener("click", function (e) {
+      var rm = e.target.closest && e.target.closest("button[data-remove]");
+      if (rm) {
+        var gone = JSON.parse(rm.getAttribute("data-remove"));
+        write(others(gone));
+        location.reload();
+        return;
+      }
       var b = e.target.closest && e.target.closest("button[data-rec]");
       if (b) {
         var rec = JSON.parse(b.getAttribute("data-rec")), acct = b.getAttribute("data-acct");
         var on = b.getAttribute("aria-pressed") === "true";
-        var list = read().filter(function (r) {
-          return Array.isArray(r) && r[0] === rec[0] && !(r[1] === rec[1] && r[2] === rec[2] && (rec[2] !== "m" || r[3] === rec[3]));
-        });
+        rec[4] = acct;
+        var list = others(rec);
         if (!on) {
           // the stake actually placed (whole dollars), pre-filled with the app's stake
           var ew = rec[2] === "e";
@@ -79,7 +110,7 @@
           if (s === null) return;
           var v = Math.round(parseFloat(s));
           if (!(v > 0)) return;
-          rec[5] = v; rec[4] = acct; list.push(rec);
+          rec[5] = v; list.push(rec);
         }
         write(list);
         location.reload();

@@ -35,7 +35,19 @@
   {% else %}
   <p class="note">No prices yet for this race.</p>
   {% endif %}
-</section>{% if cup_note %}
+</section>
+{% endif %}
+<section aria-labelledby="record-h">
+  <form class="record-bet" data-race="{{ race.number }}" data-date="{{ race_date_iso }}">
+    <h3 id="record-h">Record a bet I placed</h3>
+    <label>Runner <select name="runner" required>{% for r in race.starters %}<option value="{{ r.number }}">{{ r.number }} {{ r.name }}</option>{% endfor %}</select></label>
+    <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
+    <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+    <label>Stake ($, whole dollars; each way: the total of both halves) <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
+    <label>Price (optional, decimal) <input name="price" type="number" inputmode="decimal" min="1.01" step="any"></label>
+    <button type="submit">Record bet</button>
+  </form>
+</section>{% if rc.open or rc.board %}{% if cup_note %}
 <section aria-labelledby="runsecond-h">
   <h2 id="runsecond-h">PointsBet: Run 2nd, You Win</h2>
   <p class="split">A win bet on the Cup that also pays as a winner if the horse runs 2nd. Best value on the model's chances: <span class="cloth sm">{{ cup_note.number }}</span> <b>{{ cup_note.name }}</b>, top two {{ cup_note.top2 | one_in }} at PointsBet's win price {{ cup_note.price | price }}, worth <b>{{ '%+.2f' | format(cup_note.value) }} per $1</b>{{ '' if cup_note.value > 0 else ' (below break-even: no runner is worth it at these prices)' }}. A note only: no stake is set for it.</p>

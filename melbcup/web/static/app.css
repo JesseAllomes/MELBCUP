@@ -132,6 +132,13 @@ p { margin: 0 0 8px; }
 .placed button[data-acct="bf"][aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1A1300; }
 .placed button[data-acct="pb"][aria-pressed="true"] { background: var(--violet); border-color: var(--violet); color: var(--on-dark); }
 
+.placed button.remove { background: transparent; color: var(--muted); font-weight: 500; }
+.record-bet { display: grid; gap: 10px; margin: 14px 0 0; padding: 14px 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; }
+.record-bet h3 { margin: 0; font: 600 20px/1.1 var(--head); }
+.record-bet label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); min-width: 0; }
+.record-bet select, .record-bet input { font: 600 18px var(--head); padding: 8px 10px; min-height: var(--tap); border: 1px solid var(--rule); border-radius: 6px; background: var(--paper, var(--sheet)); color: var(--ink); min-width: 0; }
+.record-bet button { justify-self: start; min-height: var(--tap); padding: 0 16px; }
+
 /* Exotic cards */
 .bets { display: grid; gap: 10px; }
 .bet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }

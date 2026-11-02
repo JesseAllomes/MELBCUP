@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=100 -->
+<!-- drainclamp-build: state; schema=1; generation=101 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -100,7 +100,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T06:41:01+00:00 94aa7deb owner: practice auto/PIN pointless without live key; wants to see if last-minute rechecks would change/improve own bets. Plan: drop Auto card/PIN from UI (autobet backend stays dormant); Last-minute check card: save picks+stakes at T-30, again at last check before jump, show changes, after result show returns of both; running total on History. Prototype v11 has the card (3 example states). Build after BUILD
 - 2026-11-01T06:42:13+00:00 ae50d0ec owner: separate day amounts for Sportsbet and Betfair (Betfair holds $50). allocate_accounts: share both together, route to the better-paying account; Betfair only if stake >= $5 (EW >= $10) and Betfair money left, biggest price gain first; exotics Sportsbet; reshare so neither account goes over. 2 tests. Prototype v12 has the two amounts
 - 2026-11-01T06:45:33+00:00 0658b905 owner: two sticky bars at the very top (Sportsbet, Betfair: limit, left); each bet has 'Placed on Sportsbet/Betfair' tick that confirms and takes the stake off that account; exotics Sportsbet only. Plan for build: ticks kept in a cookie on the owner's phone (no login), placed stakes lock, remaining money reshared over unplaced bets. Last-minute check moved to bottom. Prototype v14
 - 2026-11-01T06:51:21+00:00 53aa297d owner: quinella + trifecta back on each race card with a stake from the day budget (by chance, likeliest structure) and advice 'worth a try only if the tote estimate is over the fair dividend' (combos/prob); still never a value BET; Sportsbet only. Exotics per race (First Four on its race, quaddie on its first race, legs noted on later races); day page loses quaddie/multi block. allocate.py + test; prototype v17
@@ -120,4 +119,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-02T23:39:55+00:00 ab489ce4 pb2+: Betfair Cash Back 2nd (cash, every race, valued after 8% commission, max $50 ASSUMED, Betfair $5 min) as a promo bet; promo checks limited to the places each promo needs (exact, no 200k simulation): cold day page 34 s -> 0.2 s
 - 2026-11-02T23:44:09+00:00 05c28075 placed tick asks for the stake actually placed (pre-filled with the app's stake); one record per race+kind slot still (Sportsbet and Betfair Win on one race cannot both be ticked)
 - 2026-11-02T23:46:55+00:00 29bc789f each-way stake now shown as the bookmaker's unit ('$2 EW', '$4 total' under it): owner bet $4 EW (= $8) off the old total-only display; placed prompt for EW asks for the total
+- 2026-11-02T23:52:43+00:00 3a7e6049 Record a bet I placed (Sonnet + fix): form on every race page (run races too) records runner, kind, bookmaker, actual stake, price; several records per race; Remove per record; wallets net of real stakes. Clicked through in Chromium: 3 R1 records -> SB 139, BF 45; Remove works
 <!-- /DC:LOG -->

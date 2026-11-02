@@ -104,6 +104,10 @@ class Placed:
     key: int
     account: str  # "sportsbet" | "betfair" | "pointsbet"
     stake: int
+    price: float | None = None  # the price the owner took, when they gave it
+
+    # Several records can share a race and kind (different runners, or the same runner with two
+    # bookmakers); a multi's slot is its legs.
 
 
 def _even(kind: str, dollars: float) -> int:
@@ -286,6 +290,7 @@ class Routed:
     account: str  # "sportsbet" | "betfair" | "pointsbet"
     price: float | None  # as that account shows it (Betfair before commission)
     placed: bool = False  # the owner ticked it as placed: stake and account are theirs
+    record: Placed | None = None  # the placed record this line stands for (placed lines only)
 
 
 def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
@@ -481,7 +486,8 @@ def allocate_accounts(
     held = []
     for p in placed:
         pick = placed_pick(day, p)
-        held.append(Routed(pick, p.account, account_price(day, pick, p.account), placed=True))
+        price = p.price or account_price(day, pick, p.account)
+        held.append(Routed(pick, p.account, price, placed=True, record=p))
     budget = sb_left + bf_left + pb_left
     cap_base = sportsbet_budget + betfair_budget + (pointsbet_budget if three else 0.0)
     routed: list[Routed] = []

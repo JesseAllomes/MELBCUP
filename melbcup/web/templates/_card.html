@@ -10,6 +10,7 @@
   {% set on = line.placed and line.acct == code %}
   <button type="button" data-acct="{{ code }}" data-rec="{{ line.record }}" aria-pressed="{{ 'true' if on else 'false' }}">{% if on %}✓ Placed ${{ line.stake }} on {{ name }}{% else %}Placed on {{ name }}{% endif %}</button>
   {% endfor %}
+  {% if line.placed and line.remove %}<button type="button" class="remove" data-remove="{{ line.remove }}" title="Remove this recorded bet">Remove</button>{% endif %}
 </div>
 {% endif %}{% endmacro %}
 

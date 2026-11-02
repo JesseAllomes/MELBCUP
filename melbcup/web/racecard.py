@@ -43,7 +43,8 @@ DEFAULT_POINTSBET = 0.0  # PointsBet (POINTSBET=1) takes nothing until the owner
 MAX_AMOUNT = 100_000
 SB_COOKIE, BF_COOKIE, PLACED_COOKIE = "sb_budget", "bf_budget", "placed"
 PB_COOKIE = "pb_budget"
-# Short codes keep the placed cookie small: [date, race, kind, runner or 0, account, stake].
+# Short codes keep the placed cookie small: [date, race, kind, runner or 0, account, stake] and
+# optionally the price taken.
 CODES = {
     "win": "w",
     "place": "p",
@@ -135,9 +136,10 @@ def pick_pointsbet(query: Mapping[str, str], cookies: Mapping[str, str] | None =
 def parse_placed(
     raw: str | None, race_date: date | None, pointsbet: bool = False
 ) -> list[Placed]:
-    """The placed cookie: a URL-encoded JSON list of [date, race, kind, runner, account, stake].
-    Records for another date, damaged records and repeats of a slot are ignored. A multi's slot
-    is its legs (the key); the other kinds' slot is their race and kind. ``pointsbet``
+    """The placed cookie: a URL-encoded JSON list of [date, race, kind, runner, account, stake]
+    with an optional 7th element, the price taken. Records for another date, damaged records and
+    repeats are ignored. Several records may share a race and kind: a record is a repeat of one
+    with the same race, kind, runner and account (a multi: the same legs). ``pointsbet``
     (POINTSBET=1) accepts account "pb"; otherwise such a record is ignored."""
     accounts = ACCOUNTS | POINTSBET_ACCOUNTS if pointsbet else ACCOUNTS
     if not raw or race_date is None:
@@ -149,26 +151,36 @@ def parse_placed(
     if not isinstance(data, list):
         return []
     out: list[Placed] = []
-    seen: set[tuple[int, str, int]] = set()
+    seen: set[tuple[int, str, int, str]] = set()
     for rec in data[:200]:
-        if not isinstance(rec, list) or len(rec) != 6:
+        if not isinstance(rec, list) or len(rec) not in (6, 7):
             continue
-        when, race, code, key, acct, stake = rec
+        when, race, code, key, acct, stake = rec[:6]
+        price = _price(rec[6]) if len(rec) == 7 else None
         kind, account = KIND_OF.get(code), accounts.get(acct)
         if when != race_date.isoformat() or kind is None or account is None:
             continue
         if not all(isinstance(x, int) and not isinstance(x, bool) for x in (race, key, stake)):
             continue
-        slot = (race, kind, key if kind == "multi" else 0)
         bad_multi = kind == "multi" and not key_legs(key)
-        if not (0 < stake <= MAX_AMOUNT) or slot in seen or bad_multi:
+        if not (0 < stake <= MAX_AMOUNT) or bad_multi:
             continue
         if kind in SPORTSBET_ONLY:
             account = "sportsbet"
             key = key if kind == "multi" else 0
-        seen.add(slot)
-        out.append(Placed(race, kind, key, account, stake))
+        ident = (race, kind, key, account)
+        if ident in seen:
+            continue
+        seen.add(ident)
+        out.append(Placed(race, kind, key, account, stake, price))
     return out
+
+
+def _price(x) -> float | None:
+    """The price taken (a decimal price, 1.01 to 1,001) or None when absent or not sensible."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return None
+    return float(x) if 1.01 <= x <= 1001 else None
 
 
 # -- formatting ---------------------------------------------------------------------------------
@@ -303,6 +315,8 @@ class Line:
     booster: str = ""  # PROMOS=1 + PointsBet: "PB booster: use here" on the one single to boost
     booster_note: str = ""
     value_note: str = ""  # the PointsBet Pay Back multi: its value per $1 line
+    taken: float | None = None  # a placed line: the price the owner took, when they gave it
+    remove: str = ""  # a placed line: its own record as JSON, for its Remove button
 
     @property
     def label(self) -> str:
@@ -331,14 +345,33 @@ def _record(race_date: date, line: Line) -> str:
     )
 
 
+def _mark_placed(line: Line, routed: Routed | None, race_date: date) -> None:
+    """A placed line carries its own record (with account and price) for the Remove button and
+    the price taken, which replaces the current price in its words."""
+    if routed is None or not routed.placed or routed.record is None:
+        return
+    line.taken = routed.record.price
+    rec = json.loads(line.record or _record(race_date, line))
+    rec[4] = line.acct or ""
+    if line.taken is not None:
+        rec.append(line.taken)
+    line.remove = json.dumps(rec, separators=(",", ":"))
+
+
 def _horse_line(
     rp, kind: str, routed: Routed | None, race_date: date, pointsbet: bool = False
 ) -> Line | None:
     race = rp.model.race
     single = routed.pick.single if routed else race_picks(rp).get(kind)
-    if single is None:
+    rec = routed.record if routed and routed.placed else None
+    if single is None and rec is None:
         return None
-    prices = race.prices.get(single.number)
+    if single is not None:
+        number, name, chance = single.number, single.name, single.prob
+    else:  # a bet the owner placed on a runner the card has no line for
+        runner = race.runner(rec.key)
+        number, name, chance = rec.key, runner.name if runner else str(rec.key), None
+    prices = race.prices.get(number)
     stake = routed.pick.stake if routed else 0
     account = routed.account if routed else None
     line = Line(
@@ -348,13 +381,14 @@ def _horse_line(
         account,
         bool(routed and routed.placed),
         routed.pick.good_price if routed else (rp.best.get(kind) is single and bool(single.stake)),
-        single.number,
-        single.name,
-        single.prob,
+        number,
+        name,
+        chance,
         pills(prices, kind, pointsbet),
         sportsbet_only=False,
         pointsbet=pointsbet,
     )
+    _mark_placed(line, routed, race_date)
     _horse_words(line, prices)
     if (bet := getattr(single, "promo", None)) is not None and line.account == bet.account:
         line.promo, line.promo_note = bet.pill, bet.note
@@ -372,6 +406,8 @@ def _horse_words(line: Line, prices) -> None:
     on_pb = line.account == "pointsbet"
 
     def at(win: bool) -> float | None:
+        if line.taken is not None:  # the price the owner took, when they gave it
+            return line.taken
         if prices is None:
             return None
         if on_pb:
@@ -381,22 +417,25 @@ def _horse_words(line: Line, prices) -> None:
         return prices.sportsbet_win if win else prices.sportsbet_place
 
     s = line.stake
+    chance = None if line.chance is None else one_in(line.chance)
     if line.kind == "win":
-        line.say = f"Wins {one_in(line.chance)}."
+        line.say = f"Wins {chance}." if chance else ""
         if s and (p := at(True)):
             line.bold = f"${s} returns {dollars(s * p)}."
     elif line.kind == "place":
-        line.say = f"Places {one_in(line.chance)}."
+        line.say = f"Places {chance}." if chance else ""
         if s and (p := at(False)):
             line.bold = f"${s} returns {dollars(s * p)}."
     else:
-        line.say = f"Places {one_in(line.chance)}."
+        line.say = f"Places {chance}." if chance else ""
         if s:
             half = s / 2
             line.say = f"{dollars(half)} win + {dollars(half)} place."
             w, pl = at(True), at(False)
-            if w and pl:
+            if w and pl and line.taken is None:
                 line.bold = f"Wins: {dollars(half * (w + pl))}. Only places: {dollars(half * pl)}."
+    if line.taken is not None:
+        line.say = f"{line.say} Price taken {price_text(line.taken)}.".strip()
 
 
 def _multi_line(
@@ -425,6 +464,10 @@ def _multi_line(
     if stake:
         line.bold = f"${stake} returns {dollars(stake * m.price)}."
     line.record = _record(race_date, line)
+    _mark_placed(line, routed, race_date)
+    if line.taken is not None:
+        line.bold = f"${stake} returns {dollars(stake * line.taken)}."
+        line.say += f" Price taken {price_text(line.taken)}."
     return line
 
 
@@ -480,6 +523,7 @@ def _exotic_line(
     else:
         line.title = LABELS[kind]
     line.record = _record(race_date, line)
+    _mark_placed(line, routed, race_date)
     return line
 
 
@@ -596,7 +640,13 @@ def build_day(
     routed = allocate_accounts(
         picks, sb, bf, placed, races=open_races, multis=day_list, pointsbet_budget=pb
     )
-    slot = {(r.pick.race, r.pick.kind): r for r in routed if r.pick.kind != "multi"}
+    slot = {
+        (r.pick.race, r.pick.kind): r for r in routed if r.pick.kind != "multi" and not r.placed
+    }
+    held: dict[tuple[int, str], list[Routed]] = {}  # placed bets: any number to a race and kind
+    for r in routed:
+        if r.placed and r.pick.kind != "multi":
+            held.setdefault((r.pick.race, r.pick.kind), []).append(r)
     by_multi = {r.pick.multi.key: r for r in routed if r.pick.multi is not None}
     quaddies = [q for q in picks.quaddies if q.recommended and q.races]
     races = []
@@ -606,6 +656,9 @@ def build_day(
         is_open = n in open_races
         board = []
         for kind in KINDS:
+            if mine_ := held.get((n, kind)):  # each placed bet is its own line; no new pick
+                board += [x for r in mine_ if (x := _horse_line(rp, kind, r, race_date, on))]
+                continue
             r = slot.get((n, kind))
             if is_open or r is not None:
                 if line := _horse_line(rp, kind, r, race_date, on):
@@ -619,6 +672,11 @@ def build_day(
             ("trifecta", max(rp.trifectas, key=lambda e: e.prob, default=None)),
         ]
         for kind, e in candidates:
+            if mine_ := held.get((n, kind)):
+                exotics += [
+                    x for r in mine_ if (x := _exotic_line(n, kind, e, r, race_date, on))
+                ]
+                continue
             r = slot.get((n, kind))
             if (is_open and e is not None) or r is not None:
                 if line := _exotic_line(n, kind, e, r, race_date, on):
