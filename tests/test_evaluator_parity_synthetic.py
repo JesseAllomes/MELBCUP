@@ -1,8 +1,12 @@
-"""Parity of point estimates: research/evaluator.py (standalone) against research/analysis/evaluate.py (v1)
-on random synthetic races with scratchings, dead heats, no-bet races and nominations. Intervals are not
+"""Parity of point estimates: research/evaluator.py (standalone) against
+research/analysis/evaluate.py (v1) on random synthetic races with scratchings, dead heats, no-bet races and nominations. Intervals are not
 compared: the two use different bootstrap populations and generators by design (EVALUATOR_COMPARISON.md).
-Run from the repository root: MELBCUP_DATA=x MELBCUP_RESULTS=<tmp> python3 tests/test_evaluator_parity_synthetic.py"""
+Run from the repository root:
+MELBCUP_DATA=x MELBCUP_RESULTS=<tmp> python3 tests/test_evaluator_parity_synthetic.py"""
 import math, os, random, sys
+if __name__ != "__main__" and not os.environ.get("MELBCUP_DATA"):
+    import pytest  # under pytest without the dataset: skip, not exit (the evaluator exits)
+    pytest.skip("needs MELBCUP_DATA; run as a script (see above)", allow_module_level=True)
 import numpy as np
 import pandas as pd
 sys.path[:0] = [os.path.join(os.path.dirname(__file__), "..", "research", "analysis"), os.path.join(os.path.dirname(__file__), "..")]

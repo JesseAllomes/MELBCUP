@@ -439,7 +439,10 @@ def test_meetings_page_and_switch(client):
     assert bad.headers["location"] == "/meetings"
 
 
-def test_results_button_hidden_before_race_day(client):
+def test_results_button_hidden_before_race_day(client, monkeypatch):
+    from melbcup.web import views
+
+    monkeypatch.setattr(views, "melbourne_today", lambda: RACE_DATE - timedelta(days=1))
     assert "Get results" not in client.get("/", auth=AUTH).text  # Cup day is still ahead
 
 

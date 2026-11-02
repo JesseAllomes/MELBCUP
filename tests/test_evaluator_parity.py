@@ -24,7 +24,9 @@ class ParityTests(unittest.TestCase):
                 screen = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(screen)
             with patch.dict(sys.modules, screen=screen):
-                spec = importlib.util.spec_from_file_location("parity_evaluate", root / "evaluate.py")
+                spec = importlib.util.spec_from_file_location(
+                    "parity_evaluate", root / "evaluate.py"
+                )
                 cls.legacy = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(cls.legacy)
             with patch.dict(sys.modules, evaluate=cls.legacy):
@@ -42,7 +44,8 @@ class ParityTests(unittest.TestCase):
         predictions, outcomes, frames = [], [], []
         for i, (probs, market, prices, winners, scratches, barriers) in enumerate(scenarios):
             rid, day = f"r{i}", f"2024-01-{i + 1:02d}"
-            for j, (p, m, q, barrier) in enumerate(zip(probs, market, prices, barriers, strict=True), 1):
+            rows = zip(probs, market, prices, barriers, strict=True)
+            for j, (p, m, q, barrier) in enumerate(rows, 1):
                 runner = str(j)
                 starter, won = runner not in scratches, runner in winners
                 predictions.append(dict(race_id=rid, runner_id=runner, day=day, block="train",
