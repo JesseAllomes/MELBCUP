@@ -151,3 +151,44 @@ def test_bet_by_hand_needs_pin_and_respects_practice():
         b.bet_by_hand("2468", 7, 99, "win", 10)
     small = b.bet_by_hand("2468", 7, 1, "place", 2)
     assert small.status == "skipped" and "minimum" in small.note
+
+
+class RefBf(FakeBf):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.refs = []
+
+    def place(self, market, sel, price, stake, ref, strategy):
+        self.refs.append(ref)
+        return super().place(market, sel, price, stake, ref, strategy)
+
+
+def test_hand_bet_twice_is_refused_and_refs_have_no_time():
+    bf = RefBf()
+    b, _ = betting(bf, live=True)
+    b.bet_by_hand("2468", 7, 1, "win", 10)
+    with pytest.raises(BetError, match="just sent"):
+        b.bet_by_hand("2468", 7, 1, "win", 10)
+    b.bet_by_hand("2468", 7, 1, "win", 20)
+    assert len(bf.refs) == 2
+    assert bf.refs[0].endswith("w1000") and bf.refs[1].endswith("w2000")
+    assert not any("035920" in ref for ref in bf.refs)  # the clock's HHMMSS
+
+
+def test_pin_lockout_is_per_caller():
+    b, _ = betting()
+    for _ in range(5):
+        with pytest.raises(PinError):
+            b.set_auto("0000", 7, True, 50, client="x")
+    with pytest.raises(PinError, match="locked"):
+        b.set_auto("2468", 7, True, 50, client="x")
+    b.set_auto("2468", 7, True, 50, client="y")
+
+
+def test_auto_waits_for_a_missing_market_inside_the_window():
+    b, board = betting()
+    b.set_auto("2468", 7, True, 50)
+    board.bf.meeting = lambda d, v: {}
+    assert b.tick() == []
+    board.bf.meeting = lambda d, v: {7: board.bf.ex}
+    assert b.tick() != []

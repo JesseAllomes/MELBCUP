@@ -136,3 +136,16 @@ def test_apply_exchange_sets_and_clears():
     assert race.prices[20].betfair_win == 7.2 and race.prices[20].betfair_place == 2.9
     apply_exchange(race, None)
     assert race.prices[20].betfair_win is None
+
+
+def test_httpx_post_turns_transport_errors_into_oserror(monkeypatch):
+    import httpx
+
+    import melbcup.sources.betfair
+
+    def slow(self, *args, **kwargs):
+        raise httpx.ReadTimeout("slow")
+
+    monkeypatch.setattr(httpx.Client, "post", slow)
+    with pytest.raises(OSError):
+        melbcup.sources.betfair._httpx_post("https://example.invalid", {}, {}, True)

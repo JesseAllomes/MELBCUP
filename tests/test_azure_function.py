@@ -659,3 +659,78 @@ def test_failed_attempts_count_against_the_hourly_cap(fa, net):
     for n in range(1, 7):
         assert hook(fa, issue_body(issue_id=n, number=n)).status_code == 502
     assert hook(fa, issue_body(issue_id=99, number=99)).status_code == 429
+
+
+def _commit_stub(patch_errors):
+    """A github_api stub for commit_github_file; `patch_errors` is a callable(call_no) that
+    raises or not."""
+    calls = {"patch": 0}
+
+    def fake(method, path, token, payload=None):
+        if path == "git/ref/heads/live":
+            return {"object": {"sha": "head"}}
+        if path.startswith("git/commits/"):
+            return {"tree": {"sha": "base"}}
+        if path == "git/blobs":
+            return {"sha": "b"}
+        if path == "git/trees":
+            return {"sha": "t"}
+        if path == "git/commits":
+            return {"sha": "c"}
+        if path == "git/refs/heads/live":
+            calls["patch"] += 1
+            patch_errors(calls["patch"], path)
+            return {}
+        raise AssertionError(path)
+
+    return fake, calls
+
+
+def test_commit_github_file_retries_a_moved_head(rt, monkeypatch):
+    monkeypatch.setattr(rt.time, "sleep", lambda s: None)
+
+    def errors(call_no, path):
+        if call_no == 1:
+            raise urllib.error.HTTPError(path, 409, "moved", {}, None)
+
+    fake, calls = _commit_stub(errors)
+    monkeypatch.setattr(rt, "github_api", fake)
+    assert rt.commit_github_file("d/f.json", b"x", "tok", "m") == "c"
+    assert calls["patch"] == 2
+
+
+def test_commit_github_file_gives_up_after_four_tries(rt, monkeypatch):
+    monkeypatch.setattr(rt.time, "sleep", lambda s: None)
+
+    def errors(call_no, path):
+        raise urllib.error.HTTPError(path, 422, "moved", {}, None)
+
+    fake, calls = _commit_stub(errors)
+    monkeypatch.setattr(rt, "github_api", fake)
+    with pytest.raises(urllib.error.HTTPError):
+        rt.commit_github_file("d/f.json", b"x", "tok", "m")
+    assert calls["patch"] == 4
+
+
+def test_github_path_exists_raises_errors_other_than_404(rt, monkeypatch):
+    def boom(method, path, token, payload=None):
+        raise urllib.error.HTTPError(path, 500, "boom", {}, None)
+
+    monkeypatch.setattr(rt, "github_api", boom)
+    with pytest.raises(urllib.error.HTTPError):
+        rt.github_path_exists("d/f.json", "tok")
+
+    def missing(method, path, token, payload=None):
+        raise urllib.error.HTTPError(path, 404, "missing", {}, None)
+
+    monkeypatch.setattr(rt, "github_api", missing)
+    assert rt.github_path_exists("d/f.json", "tok") is False
+
+
+def test_cadence_divisor_bands(rt):
+    assert rt.cadence_divisor([]) == 1
+    assert rt.cadence_divisor([4.0] * 60) == 1
+    assert rt.cadence_divisor([6.0] * 60) == 2
+    assert rt.cadence_divisor([8.0] * 60) == 2
+    assert rt.cadence_divisor([9.0] * 60) == 4
+    assert rt.cadence_divisor([1.0] * 100 + [6.0] * 60) == 2  # only the last 60 count

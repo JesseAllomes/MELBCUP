@@ -46,19 +46,32 @@ jobs:
     timeout-minutes: 10
     outputs:
       function: ${{ steps.changes.outputs.function }}
+      base: ${{ steps.base.outputs.ref }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install test tools
         run: pip install pytest==9.2.0 ruff==0.17.3 httpx==0.28.1
+      - name: Base of this push
+        id: base
+        # the commit before the whole push (a push can carry several commits), else the parent
+        run: |
+          before="${{ github.event.before }}"
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$before" ] \
+             && [ "$before" != "0000000000000000000000000000000000000000" ] \
+             && git cat-file -e "$before^{commit}" 2>/dev/null; then
+            echo "ref=$before" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=HEAD~1" >> "$GITHUB_OUTPUT"
+          fi
       - name: Cost guard
         env:
           LIMITS_APPROVED: ${{ inputs.limits_approved && '1' || '' }}
-        run: python3 tools/cost_guard.py --base-ref HEAD~1
+        run: python3 tools/cost_guard.py --base-ref ${{ steps.base.outputs.ref }}
       - name: Tests
         run: python3 -m pytest tests/test_azure_function.py tests/test_cost_guard.py
       - name: Ruff
@@ -67,7 +80,7 @@ jobs:
         id: changes
         # A redeploy restarts the collector, so app-only pushes (melbcup/**, Dockerfile) leave it alone.
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || git diff --name-only HEAD~1 HEAD | grep -qE '^(azure/function/|azure/limits.json|azure/inventory.json|tools/live_collector.py|tools/cost_guard|\.github/workflows/azure-)'; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || git diff --name-only ${{ steps.base.outputs.ref }} HEAD | grep -qE '^(azure/function/|azure/limits.json|azure/inventory.json|tools/live_collector.py|tools/cost_guard|\.github/workflows/azure-)'; then
             echo "function=true" >> "$GITHUB_OUTPUT"
           else
             echo "function=false" >> "$GITHUB_OUTPUT"
@@ -83,6 +96,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -99,7 +114,7 @@ jobs:
           az resource list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,type:type}" -o json > live/inventory.json
           az monitor log-analytics workspace list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,workspaceCapping:workspaceCapping}" -o json > live/workspaces.json
           python3 tools/cost_guard_inventory.py live/inventory.json live/workspaces.json
-          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
+          python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
       - name: Build package
         run: |
           rm -rf build/pkg
@@ -122,7 +137,7 @@ jobs:
           az resource list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,type:type}" -o json > live/inventory.json
           az monitor log-analytics workspace list --resource-group "$RESOURCE_GROUP" --query "[].{name:name,workspaceCapping:workspaceCapping}" -o json > live/workspaces.json
           python3 tools/cost_guard_inventory.py live/inventory.json live/workspaces.json
-          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
+          python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/functionapp.json --live live/appsettings.json --live live/inventory.json
 
   webapp:
     needs: guard
@@ -134,6 +149,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -203,4 +220,4 @@ jobs:
         run: |
           mkdir -p live
           az rest --method get --url "$WEBAPP_URL" -o json > live/containerapp.json
-          python3 tools/cost_guard.py --base-ref HEAD~1 --live live/containerapp.json
+          python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/containerapp.json

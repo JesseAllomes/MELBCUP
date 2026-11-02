@@ -585,3 +585,12 @@ def test_c10_tightening_passes_and_approval_overrides(tree, capsys, monkeypatch)
     expect(tree, capsys, "C10", "--base-file", str(tree / "base.json"))
     monkeypatch.setenv("LIMITS_APPROVED", "1")
     assert guard(tree, capsys, "--base-file", str(tree / "base.json"))[0] == 0
+
+
+def test_deploy_workflow_judges_the_whole_push():
+    text = (Path(__file__).resolve().parents[1] / ".github/workflows/azure-deploy.yml").read_text()
+    assert "HEAD~1 HEAD" not in text
+    assert "--base-ref HEAD~1" not in text
+    assert "github.event.before" in text
+    assert "fetch-depth: 2" not in text
+    assert "needs.guard.outputs.base" in text

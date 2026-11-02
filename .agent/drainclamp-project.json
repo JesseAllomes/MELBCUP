@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 29,
+  "rev": 34,
   "review": {
     "advice": [],
     "config": {
@@ -937,6 +937,7 @@
         ],
         "finished": null,
         "fix": {
+          "accepted_batches_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
           "allow": {
             "r10": [
               "melbcup/autobet.py",
@@ -970,6 +971,17 @@
             ]
           },
           "at": "2026-11-02T14:12:45+00:00",
+          "checked_at": "2026-11-02T21:49:34+00:00",
+          "checked_hashes": {
+            ".github/workflows/azure-deploy.yml": "6aca6ae61a40844f",
+            "melbcup/autobet.py": "32cfcde3d0ccf7c9",
+            "melbcup/sources/betfair.py": "3dd04390c9217b4a",
+            "melbcup/web/app.py": "e7025ebcf2643f36",
+            "tests/test_autobet.py": "7ba7fccefe387223",
+            "tests/test_azure_function.py": "36dda9945cd728ce",
+            "tests/test_betfair.py": "08a6e3be34667bae",
+            "tests/test_cost_guard.py": "79a6f93b6b621bc5"
+          },
           "files": {
             ".github/workflows/azure-deploy.yml": "bf5b95088eb7de51",
             "melbcup/autobet.py": "1b3e1c3c1f250601",
@@ -982,7 +994,16 @@
           },
           "guard": "d750309bc58ebace",
           "ignored": {},
-          "modified": [],
+          "modified": [
+            ".github/workflows/azure-deploy.yml",
+            "melbcup/autobet.py",
+            "melbcup/sources/betfair.py",
+            "melbcup/web/app.py",
+            "tests/test_autobet.py",
+            "tests/test_azure_function.py",
+            "tests/test_betfair.py",
+            "tests/test_cost_guard.py"
+          ],
           "records": {
             "tier:fast": "12367d00ab4bc7a0",
             "tier:final": "63391da3f6a9818e",
@@ -1011,7 +1032,7 @@
               "when": "2026-11-02T14:03:32+00:00"
             }
           },
-          "scope": null
+          "scope": "ok"
         },
         "gate3": "milestone PASS sha256:27df94865b63656a",
         "id": "R1",
@@ -4994,6 +5015,12 @@
             "found": null,
             "model": "sonnet",
             "role": "fixer"
+          },
+          {
+            "at": "2026-11-02T21:49:39+00:00",
+            "found": null,
+            "model": "sonnet",
+            "role": "recheck"
           }
         ],
         "stamp": null,

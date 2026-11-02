@@ -1,18 +1,34 @@
-# dc_verify milestone 2026-11-02T14:03:32+00:00
-# changed: 0 file(s) (DC:VERIFY)
+# dc_verify milestone 2026-11-02T21:49:33+00:00
+# changed: 11 file(s) (DC:VERIFY)
 
 == ruff [PASS] ['ruff', 'check', 'melbcup', 'tests'] (cwd .)
 All checks passed!
 
 
-== pytest [PASS] ['pytest'] (cwd .)
+== pytest [FAIL] ['pytest'] (cwd .)
+   E AssertionError: run: python tools/build_pages.py (['py/melbcup/autobet.py', 'py/melbcup/sources/betfair.py', 'py/manifest.json'])
 ........................................................................ [ 15%]
 ........................................................................ [ 31%]
-............................................................sss......... [ 47%]
-........................................................................ [ 63%]
-........................................................................ [ 79%]
-.................................ss..................................... [ 95%]
-......................                                                   [100%]
-449 passed, 6 skipped in 23.10s
+.....................................................................sss [ 46%]
+........................................................................ [ 62%]
+........................................................................ [ 77%]
+..F.......................................ss............................ [ 93%]
+...............................                                          [100%]
+=================================== FAILURES ===================================
+_________________________ test_docs_match_the_package __________________________
+
+    def test_docs_match_the_package():
+        stale = load_builder().stale()
+>       assert stale == [], f"run: python tools/build_pages.py ({stale[:5]})"
+E       AssertionError: run: python tools/build_pages.py (['py/melbcup/autobet.py', 'py/melbcup/sources/betfair.py', 'py/manifest.json'])
+E       assert ['py/melbcup/...anifest.json'] == []
+E
+E         Left contains 3 more items, first extra item: 'py/melbcup/autobet.py'
+E         Use -v to get more diff
+
+tests/test_pages.py:18: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_pages.py::test_docs_match_the_package - AssertionError: run...
+1 failed, 457 passed, 6 skipped in 29.35s
 
 

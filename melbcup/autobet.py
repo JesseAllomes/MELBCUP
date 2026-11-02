@@ -38,7 +38,9 @@ MIN_STAKE = 5.0  # Betfair Australia's smallest back bet; smaller stakes are ski
 MAX_HAND_STAKE = 500.0  # one bet by hand, a typo guard
 MAX_PIN_FAILS = 5
 PIN_LOCKOUT = timedelta(minutes=15)
+MAX_PIN_FAILS_ALL = 50  # wrong PINs from all callers together before everyone is locked out
 HAND = "melbcup-hand"
+DUPLICATE_GAP = timedelta(seconds=60)  # the same hand bet again inside this is refused
 MAX_RACE_LIMIT = 10_000.0
 
 
@@ -83,7 +85,7 @@ class Betting:
         self.clock = clock or board.clock
         self.ledger: list[Placed] = []
         self._done: set[tuple[date, int]] = set()
-        self._fails: list[datetime] = []
+        self._fails: dict[str, list[datetime]] = {}  # caller -> wrong PIN times
         self._lock = threading.Lock()
 
     @property
@@ -91,23 +93,30 @@ class Betting:
         return "live" if self.live else "practice"
 
     # -- PIN ----------------------------------------------------------------------------------
-    def check_pin(self, pin: str | None) -> None:
+    def check_pin(self, pin: str | None, client: str = "") -> None:
         now = self.clock()
         with self._lock:
-            self._fails = [t for t in self._fails if now - t < PIN_LOCKOUT]
+            for key in list(self._fails):
+                self._fails[key] = [t for t in self._fails[key] if now - t < PIN_LOCKOUT]
+                if not self._fails[key]:
+                    del self._fails[key]
             if self._pin is None:
                 raise PinError("Betting is off: no PIN is set in Key Vault.")
-            if len(self._fails) >= MAX_PIN_FAILS:
+            mine = self._fails.get(client, [])
+            everyone = sum(map(len, self._fails.values()))
+            if len(mine) >= MAX_PIN_FAILS or everyone >= MAX_PIN_FAILS_ALL:
                 raise PinError("Too many wrong PINs. Betting is locked for 15 minutes.")
             if not pin or not hmac.compare_digest(pin.encode(), self._pin.encode()):
-                self._fails.append(now)
+                self._fails.setdefault(client, []).append(now)
                 raise PinError("Wrong PIN.")
-            self._fails.clear()
+            self._fails.pop(client, None)
 
     # -- settings and status ------------------------------------------------------------------
-    def set_auto(self, pin: str | None, race: int, on: bool, limit: float | None = None) -> dict:
+    def set_auto(
+        self, pin: str | None, race: int, on: bool, limit: float | None = None, client: str = ""
+    ) -> dict:
         """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
-        self.check_pin(pin)
+        self.check_pin(pin, client)
         day = self._day(self.clock())
         key = (day, race)
         if not on:
@@ -254,7 +263,8 @@ class Betting:
                 "practice",
                 "place it yourself on Betfair now",
             )
-        ref = f"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}"
+        # no time in the ref: Betfair treats a repeat of the same bet as a no-op, not a second bet
+        ref = f"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{round(stake * 100)}"
         try:
             tag = auto_strategy(race.number) if source == "auto" else HAND
             order = self.board.bf.place(market, sel, price, stake, ref, tag)
@@ -293,9 +303,9 @@ class Betting:
         )
 
     def bet_by_hand(
-        self, pin: str | None, race_no: int, number: int, kind: str, stake: float
+        self, pin: str | None, race_no: int, number: int, kind: str, stake: float, client: str = ""
     ) -> Placed:
-        self.check_pin(pin)
+        self.check_pin(pin, client)
         if kind not in ("win", "place"):
             raise BetError("Choose win or place.")
         if not 0 < stake <= MAX_HAND_STAKE:
@@ -311,6 +321,12 @@ class Betting:
         if race.runner(number) is None:
             raise BetError(f"No runner {number} in race {race_no}.")
         now = self.clock()
+        if any(
+            p.source == "hand" and p.race == race_no and p.number == number and p.kind == kind
+            and p.stake == float(stake) and now - p.at < DUPLICATE_GAP
+            for p in self.ledger
+        ):
+            raise BetError("That bet was just sent. Check Betfair before sending it again.")
         exchange = self._fresh(snap.race_date, snap.venue).get(race_no)
         if exchange is None:
             raise BetError(f"Betfair has no market for race {race_no}.")
@@ -347,10 +363,10 @@ class Betting:
         models = {m.race.number: m for m in snap.models}
         out: list[Placed] = []
         for race in due:
-            self._done.add((day, race.number))
             exchange = fresh.get(race.number)
             if exchange is None or race.number not in models:
-                continue
+                continue  # tried again on the next tick, while the window lasts
+            self._done.add((day, race.number))
             limit = self.armed[(day, race.number)]
             for s in self.betfair_lines(models[race.number], exchange, limit):
                 parts = (

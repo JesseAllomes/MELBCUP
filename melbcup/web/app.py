@@ -128,6 +128,12 @@ def create_app(
         """Auto and betting status: mode, limit, spent today, recent bets. No secrets."""
         return _betting_answer(betting.status)
 
+    def _client(request: Request) -> str:
+        """The caller's address: the last X-Forwarded-For hop (added by the ingress), else
+        the socket peer."""
+        forwarded = request.headers.get("x-forwarded-for", "")
+        return forwarded.split(",")[-1].strip() or (request.client.host if request.client else "")
+
     @app.post("/api/betting/auto")
     async def betting_auto(request: Request):
         """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
@@ -137,7 +143,10 @@ def create_app(
             raise HTTPException(400, "race is required")
         on = str(data.get("on", "")).lower() in ("1", "true", "on", "yes")
         limit = _number(data, "limit")
-        return _betting_answer(lambda: betting.set_auto(data.get("pin"), race, on, limit))
+        client = _client(request)
+        return _betting_answer(
+            lambda: betting.set_auto(data.get("pin"), race, on, limit, client=client)
+        )
 
     @app.post("/api/betting/bet")
     async def betting_bet(request: Request):
@@ -149,7 +158,11 @@ def create_app(
             raise HTTPException(400, "race, runner and stake are required")
         kind = str(data.get("kind") or "win")
         return _betting_answer(
-            lambda: _placed(betting.bet_by_hand(data.get("pin"), race, runner, kind, stake))
+            lambda: _placed(
+                betting.bet_by_hand(
+                    data.get("pin"), race, runner, kind, stake, client=_client(request)
+                )
+            )
         )
 
     def _placed(p) -> dict:
