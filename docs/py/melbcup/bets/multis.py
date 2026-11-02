@@ -6,7 +6,9 @@ bet. Legs are treated as independent, which they are: different races.
 
 from __future__ import annotations
 
+import heapq
 import math
+from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import combinations, product
 
@@ -143,12 +145,32 @@ def build_multi(models: list[RaceModel], key: int) -> Multi | None:
 def day_multis(models: list[RaceModel], n: int = DAY_MULTIS) -> list[Multi]:
     """The ``n`` likeliest 2- and 3-leg Sportsbet multis over the races given (the ones still to
     run), likeliest first. Each leg is a win or a place bet (mixed is fine) in a different race;
-    every multi has its own legs."""
-    per_race = {m.race.number: c for m in models if (c := _candidates(m, ("win", "place")))}
-    found: dict[int, Multi] = {}
-    for size in (2, 3):
-        for races in combinations(sorted(per_race), size):
-            for legs in product(*(per_race[r] for r in races)):
-                m = _multi(list(legs))
-                found[m.key] = m
-    return sorted(found.values(), key=lambda m: (-m.prob, m.key))[:n]
+    every multi has its own legs.
+
+    Only each race's ``n`` likeliest legs (and any tied with the n-th) can be in the answer: a
+    multi using a leg with ``n`` strictly likelier legs in its race is beaten by the ``n``
+    multis that swap that leg for one of them. Pruning to those keeps a big card (ten open
+    races, win and place legs) to a few thousand multis instead of a few hundred thousand,
+    and only the winners are built."""
+    per_race: dict[int, list[Leg]] = {}
+    for m in models:
+        legs = sorted(_candidates(m, ("win", "place")), key=lambda g: -g.prob)
+        if legs:
+            floor = legs[min(n, len(legs)) - 1].prob
+            per_race[m.race.number] = [g for g in legs if g.prob >= floor]
+
+    def order(legs: tuple[Leg, ...]) -> tuple:
+        # the same order as (-prob, multi_key): a shorter key is a smaller int, and keys of one
+        # length compare as their (race, runner, kind digit) triples
+        return (
+            -math.prod(g.prob for g in legs),
+            len(legs),
+            tuple((g.race, g.number, KIND_DIGIT[g.kind]) for g in legs),
+        )
+
+    def every() -> Iterator[tuple[Leg, ...]]:
+        for size in (2, 3):
+            for races in combinations(sorted(per_race), size):
+                yield from product(*(per_race[r] for r in races))
+
+    return [_multi(list(legs)) for legs in heapq.nsmallest(n, every(), key=order)]

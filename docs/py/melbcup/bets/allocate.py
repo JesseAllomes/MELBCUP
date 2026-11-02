@@ -358,6 +358,7 @@ def allocate_accounts(
     betfair_budget: float,
     placed: list[Placed] | tuple = (),
     races: set[int] | None = None,
+    multis: list[Multi] | None = None,
 ) -> list[Routed]:
     """Share both accounts' money over the day, then route each bet to an account.
 
@@ -376,7 +377,8 @@ def allocate_accounts(
         held.append(Routed(pick, p.account, account_price(day, pick, p.account), placed=True))
     budget = sb_left + bf_left
     routed: list[Routed] = []
-    multis = day_multi_list(day, _open(day, races))
+    if multis is None:  # ``multis``: the day's multis, if the caller already worked them out
+        multis = day_multi_list(day, _open(day, races))
     for _ in range(40):
         picks, exotics = _plan(
             day, budget, placed, races, sportsbet_budget + betfair_budget, multis

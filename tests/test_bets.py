@@ -544,3 +544,36 @@ def test_multi_key_round_trips_and_rebuilds_the_multi():
     assert build_multi(models, multi_key([(1, 1, "win"), (2, 9, "win")])) is None  # no runner 9
     no_place = [make_model(1, [0.5, 0.5], [2.0, 2.0]), make_model(2, [0.5, 0.5], [2.0, 2.0])]
     assert build_multi(no_place, multi_key([(1, 1, "win"), (2, 1, "place")])) is None
+
+
+def test_day_multis_match_every_multi_sorted_on_big_cards():
+    """The pruned search gives exactly the brute-force answer (every 2- and 3-leg multi, sorted
+    by chance then key), ties included, on cards big enough for the pruning to matter."""
+    import random
+    from itertools import combinations, product
+
+    from melbcup.bets.multis import _candidates, _multi, day_multis
+
+    def brute(models, n):
+        per_race = {m.race.number: c for m in models if (c := _candidates(m, ("win", "place")))}
+        found = {}
+        for size in (2, 3):
+            for races in combinations(sorted(per_race), size):
+                for legs in product(*(per_race[r] for r in races)):
+                    m = _multi(list(legs))
+                    found[m.key] = m
+        return sorted(found.values(), key=lambda m: (-m.prob, m.key))[:n]
+
+    rng = random.Random(3)
+    for trial in range(12):
+        models = []
+        for number in range(1, rng.randint(3, 8) + 1):
+            size = rng.randint(4, 12)
+            # coarse chances so ties between legs (and so between multis) are common
+            raw = [rng.choice([1, 2, 2, 3, 4, 6]) for _ in range(size)]
+            win = [r / sum(raw) for r in raw]
+            prices = [round(0.85 / w, 2) for w in win]
+            models.append(make_model(number, win, prices, [max(1.01, p / 3) for p in prices]))
+        for n in (1, 5, 9):
+            got = [(m.key, m.prob) for m in day_multis(models, n)]
+            assert got == [(m.key, m.prob) for m in brute(models, n)], (trial, n)

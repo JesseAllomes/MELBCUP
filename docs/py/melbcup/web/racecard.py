@@ -491,7 +491,8 @@ def build_day(
     picks, sb: float, bf: float, placed: list[Placed], open_races: set[int], race_date: date
 ) -> DayCard:
     """Every race's lines with stakes from the two amounts and the owner's placed bets."""
-    routed = allocate_accounts(picks, sb, bf, placed, races=open_races)
+    day_list = day_multi_list(picks, open_races)  # worked out once: it is the costly part
+    routed = allocate_accounts(picks, sb, bf, placed, races=open_races, multis=day_list)
     slot = {(r.pick.race, r.pick.kind): r for r in routed if r.pick.kind != "multi"}
     by_multi = {r.pick.multi.key: r for r in routed if r.pick.multi is not None}
     quaddies = [q for q in picks.quaddies if q.recommended and q.races]
@@ -533,7 +534,6 @@ def build_day(
         mine = {x.number for x in board if x.number is not None}
         races.append(RaceCard(race, rp, is_open, board, exotics, legs, mine))
     # The day's likeliest multis (money or not), then any ticked as placed that have dropped out.
-    day_list = day_multi_list(picks, open_races)
     lines = [_multi_line(m, by_multi.get(m.key), race_date) for m in day_list]
     shown = {m.key for m in day_list}
     lines += [
