@@ -75,6 +75,7 @@ BOOKS = {
     "bt": ("BT", "bet365_au"),
 }
 SPORTSBET = "sportsbet"
+POINTSBET = "pointsbetau"
 PRICE_FIELDS = "oddsWin oddsPlace updated placeUpdated oddsIsFavouriteWin"
 PRICES = (
     "query($meetCode: ID!, $raceNumber: Int!) { GetBettingData(meetCode: $meetCode,"
@@ -332,6 +333,9 @@ def parse_market(race: dict[str, Any], data: dict[str, Any]) -> MarketSnapshot:
                 if key == SPORTSBET:
                     rp.sportsbet_win = win if win and win > 1.0 else None
                     rp.sportsbet_place = place if place and place > 1.0 else None
+                elif key == POINTSBET:
+                    rp.pointsbet_win = win if win and win > 1.0 else None
+                    rp.pointsbet_place = place if place and place > 1.0 else None
     field = len(prices)
     per_runner: dict[int, list[float]] = {}
     for quoted in book_win.values():

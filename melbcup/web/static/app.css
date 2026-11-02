@@ -1,10 +1,11 @@
 /* MELBCUP race card (owner BUILD, 2026-11-01; .grok/product-ui/race-card-prototype.html).
-   One phone column. White saddlecloths, navy = Sportsbet, amber = Betfair, rose = Good price
+   One phone column. White saddlecloths, navy = Sportsbet, amber = Betfair, violet = PointsBet (POINTSBET=1), rose = Good price
    and the silk sash. No green anywhere. */
 :root {
   --ground: #E9ECF1; --sheet: #FFFFFF; --ink: #131925; --muted: #5C6475; --rule: #D6DBE3;
   --rose: #B4294F; --rose-wash: #F7E3E9; --navy: #1E3687; --navy-wash: #E2E7F6; --on-dark: #FFFFFF;
   --cloth: #FFFFFF; --cloth-ink: #111111; --focus: #7A3FD0; --amber: #C98A00; --amber-ink: #7A5200;
+  --violet: #6D3CC4; --violet-wash: #EBE3F8;
   --head: "Barlow Condensed", "Arial Narrow", sans-serif;
   --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
   --tap: 44px;
@@ -12,11 +13,11 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --ground: #0C1017; --sheet: #151B26; --ink: #ECEFF4; --muted: #9AA3B4; --rule: #273041;
-  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A;
+  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45;
   --focus: #C49BFF; color-scheme: dark } }
 :root[data-theme="dark"] {
   --ground: #0C1017; --sheet: #151B26; --ink: #ECEFF4; --muted: #9AA3B4; --rule: #273041;
-  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A;
+  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45;
   --focus: #C49BFF; color-scheme: dark }
 
 * { box-sizing: border-box; }
@@ -52,6 +53,7 @@ p { margin: 0 0 8px; }
 .bar i { display: block; height: 100%; border-radius: 5px; }
 .bar.sb i { background: var(--navy); }
 .bar.bf i { background: var(--amber); }
+.bar.pb i { background: var(--violet); }
 
 /* Site links: a slim muted row */
 .topnav { display: flex; gap: 4px 14px; flex-wrap: wrap; align-items: center; font-size: 14px; margin-top: -8px; }
@@ -94,8 +96,10 @@ p { margin: 0 0 8px; }
 .pill small { font: 600 12px var(--body); }
 .pill.sb { border-color: var(--navy); color: var(--navy); }
 .pill.bf { border-color: var(--amber); color: var(--amber-ink); }
+.pill.pb { border-color: var(--violet); color: var(--violet); }
 .pill.sb.best { background: var(--navy); color: var(--on-dark); }
 .pill.bf.best { background: var(--amber); color: #1A1300; }
+.pill.pb.best { background: var(--violet); color: var(--on-dark); }
 .verdict { display: inline-block; padding: 2px 9px; border-radius: 999px; font: 600 13px var(--body); white-space: nowrap; }
 .verdict.short { border: 1px solid var(--muted); color: var(--muted); }
 .verdict.good { background: var(--rose); color: var(--on-dark); }
@@ -105,6 +109,7 @@ p { margin: 0 0 8px; }
 .board .pick { display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 14px 16px; }
 .board .pick + .pick { border-top: 1px solid var(--rule); }
 .board .pick.is-placed { background: var(--navy-wash); }
+.board .pick.is-placed:has(.stake.pb) { background: var(--violet-wash); }
 .board .type { font: 700 22px/1 var(--head); }
 .board .who { display: flex; gap: 8px; align-items: center; min-width: 0; }
 .board .who b { font-weight: 600; overflow-wrap: anywhere; }
@@ -112,6 +117,7 @@ p { margin: 0 0 8px; }
 .stake small { font: 600 12px var(--body); color: var(--muted); }
 .stake.sb { color: var(--navy); }
 .stake.bf { color: var(--amber-ink); }
+.stake.pb { color: var(--violet); }
 .stake.none { color: var(--muted); font-weight: 500; }
 .board .say { grid-column: 2 / 4; font-size: 15px; color: var(--muted); margin: 0; display: grid; gap: 6px; }
 .board .say b { color: var(--ink); font-weight: 600; }
@@ -124,6 +130,7 @@ p { margin: 0 0 8px; }
   background: var(--sheet); border: 1.5px solid var(--rule); color: var(--ink); }
 .placed button[data-acct="sb"][aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--on-dark); }
 .placed button[data-acct="bf"][aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1A1300; }
+.placed button[data-acct="pb"][aria-pressed="true"] { background: var(--violet); border-color: var(--violet); color: var(--on-dark); }
 
 /* Exotic cards */
 .bets { display: grid; gap: 10px; }

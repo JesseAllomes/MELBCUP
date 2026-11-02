@@ -21,7 +21,7 @@ from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
 from melbcup.web.offer_api import OfferNotFound, OfferRequestError, offer_response
-from melbcup.web.racecard import BF_COOKIE, SB_COOKIE, pick_amounts
+from melbcup.web.racecard import BF_COOKIE, PB_COOKIE, SB_COOKIE, parse_amount, pick_amounts
 from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
@@ -192,6 +192,12 @@ def create_app(
             else:
                 response.delete_cookie(SB_COOKIE)
                 response.delete_cookie(BF_COOKIE)
+        if settings.pointsbet and "pb" in query:  # POINTSBET=1: PointsBet's day amount
+            pb = parse_amount(query["pb"])
+            if pb is not None:
+                response.set_cookie(PB_COOKIE, f"{pb:g}", **keep)
+            else:
+                response.delete_cookie(PB_COOKIE)
         return response
 
     return app

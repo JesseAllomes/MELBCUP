@@ -20,6 +20,10 @@ They share the money by chance like the rest (never as a value BET) and always g
 With two accounts (allocate_accounts), bets the owner ticked as placed keep their stake and
 account, and only the money left in each account is shared over the unplaced picks in the races
 still to run.
+
+PointsBet (POINTSBET=1) is a third account: ``pointsbet_budget`` given to allocate_accounts turns
+it on. A single goes to whichever account pays most (PointsBet at its fixed odds, no commission and
+no minimum stake), within that account's money left; exotics and multis stay with Sportsbet.
 """
 
 from __future__ import annotations
@@ -28,6 +32,7 @@ from dataclasses import dataclass
 
 from melbcup.bets.multis import Multi, build_multi, day_multis
 from melbcup.bets.singles import MIN_WIN_PROB, Single
+from melbcup.domain import betfair_net
 
 RACE_CAP = 0.20
 EW_MIN_WIN_PRICE = 5.0
@@ -97,7 +102,7 @@ class Placed:
     race: int
     kind: str
     key: int
-    account: str  # "sportsbet" | "betfair"
+    account: str  # "sportsbet" | "betfair" | "pointsbet"
     stake: int
 
 
@@ -260,7 +265,7 @@ class Routed:
     """A pick with its stake and the account to place it with."""
 
     pick: Pick
-    account: str  # "sportsbet" | "betfair"
+    account: str  # "sportsbet" | "betfair" | "pointsbet"
     price: float | None  # as that account shows it (Betfair before commission)
     placed: bool = False  # the owner ticked it as placed: stake and account are theirs
 
@@ -300,6 +305,68 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     ]
 
 
+POINTSBET_JUDGED = "pointsbetau"  # Single.bookmaker when PointsBet pays most
+ACCOUNT_ORDER = {"sportsbet": 0, "pointsbet": 1, "betfair": 2}  # who keeps a tie on price
+
+
+def route_three(
+    day, picks: list[Pick], betfair_budget: float, pointsbet_budget: float
+) -> list[Routed]:
+    """``route`` with PointsBet as a third account (POINTSBET=1).
+
+    A single goes to the account that pays most: Sportsbet, PointsBet (fixed odds, no minimum)
+    or Betfair (after commission, $5 minimum as in ``route``), within the money that account has
+    left; when the best account's money is used up it takes the next best. A tie stays with
+    Sportsbet, then PointsBet. The biggest price gains get the Betfair and PointsBet money first.
+    Only a single judged at Betfair or PointsBet is moved off Sportsbet. Exotics and multis go to
+    Sportsbet."""
+    left = {"betfair": betfair_budget, "pointsbet": pointsbet_budget}
+
+    def offers(p: Pick) -> list[tuple[str, float]]:
+        out = []
+        for acct in ACCOUNT_ORDER:
+            price = account_price(day, p, acct)
+            if acct == "betfair":
+                price = betfair_net(price)
+            if price:
+                out.append((acct, price))
+        return sorted(out, key=lambda o: (-o[1], ACCOUNT_ORDER[o[0]]))
+
+    def gain(p: Pick) -> float:
+        s = p.single
+        return (s.price or 0) / s.sportsbet if s.sportsbet else float("inf")
+
+    moved = sorted(
+        (
+            p for p in picks
+            if p.single is not None and p.single.bookmaker in ("betfair", POINTSBET_JUDGED)
+        ),
+        key=gain,
+        reverse=True,
+    )
+    out: dict[int, Routed] = {}
+    for p in moved:
+        if p.stake <= 0:
+            continue
+        for acct, _ in offers(p):
+            if acct == "sportsbet":
+                break
+            if acct == "betfair":
+                minimum = 2 * BETFAIR_MIN if p.kind == "each_way" else BETFAIR_MIN
+                need = max(p.stake, minimum)  # raised to Betfair's minimum while money lasts
+            else:
+                need = p.stake  # PointsBet has no minimum
+            if need <= left[acct]:
+                p.stake = int(need)
+                out[id(p)] = Routed(p, acct, account_price(day, p, acct))
+                left[acct] -= need
+                break
+    return [
+        out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p))
+        for p in picks
+    ]
+
+
 def _sportsbet_price(pick: Pick) -> float | None:
     if pick.multi is not None:
         return pick.multi.price
@@ -320,6 +387,8 @@ def account_price(day, pick: Pick, account: str) -> float | None:
     prices = rp.model.race.prices.get(s.number) if rp else None
     if prices is None:
         return None
+    if account == "pointsbet":
+        return prices.pointsbet_place if s.kind == "place" else prices.pointsbet_win
     return prices.betfair_place if s.kind == "place" else prices.betfair_win
 
 
@@ -359,6 +428,7 @@ def allocate_accounts(
     placed: list[Placed] | tuple = (),
     races: set[int] | None = None,
     multis: list[Multi] | None = None,
+    pointsbet_budget: float | None = None,
 ) -> list[Routed]:
     """Share both accounts' money over the day, then route each bet to an account.
 
@@ -366,24 +436,34 @@ def allocate_accounts(
     the two accounts together is shared over the unplaced picks in the races still to run
     (``races``; default: those without a result), with the recommended First Four and quaddies
     at their outlay on Sportsbet. Bets that cannot go to Betfair fall back to Sportsbet; if that
-    would take Sportsbet past what it has left, the day is shared again with less, so neither
-    account ever goes over."""
+    would take Sportsbet past what it has left, the day is shared again with less, so no
+    account ever goes over.
+
+    ``pointsbet_budget`` (None: off, as before) adds PointsBet as a third account with its own
+    day amount: bets go to whichever of the three pays most, within that account's money left."""
     placed = list(placed)
     sb_left = max(0.0, sportsbet_budget - sum(p.stake for p in placed if p.account == "sportsbet"))
     bf_left = max(0.0, betfair_budget - sum(p.stake for p in placed if p.account == "betfair"))
+    three = pointsbet_budget is not None
+    pb_left = (
+        max(0.0, pointsbet_budget - sum(p.stake for p in placed if p.account == "pointsbet"))
+        if three
+        else 0.0
+    )
     held = []
     for p in placed:
         pick = placed_pick(day, p)
         held.append(Routed(pick, p.account, account_price(day, pick, p.account), placed=True))
-    budget = sb_left + bf_left
+    budget = sb_left + bf_left + pb_left
+    cap_base = sportsbet_budget + betfair_budget + (pointsbet_budget if three else 0.0)
     routed: list[Routed] = []
     if multis is None:  # ``multis``: the day's multis, if the caller already worked them out
         multis = day_multi_list(day, _open(day, races))
     for _ in range(40):
-        picks, exotics = _plan(
-            day, budget, placed, races, sportsbet_budget + betfair_budget, multis
-        )
-        routed = route(picks, bf_left) + [Routed(e, "sportsbet", None) for e in exotics]
+        picks, exotics = _plan(day, budget, placed, races, cap_base, multis)
+        routed = (
+            route_three(day, picks, bf_left, pb_left) if three else route(picks, bf_left)
+        ) + [Routed(e, "sportsbet", None) for e in exotics]
         on_sb = sum(r.pick.stake for r in routed if r.account == "sportsbet")
         over = on_sb - sb_left
         if over <= 0 or budget <= 0:

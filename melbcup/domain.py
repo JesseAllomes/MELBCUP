@@ -161,6 +161,8 @@ class RunnerPrices:
     sportsbet_place: float | None = None
     betfair_win: float | None = None  # best back price on the exchange, before commission
     betfair_place: float | None = None
+    pointsbet_win: float | None = None  # PointsBet fixed odds (racing.com), no commission
+    pointsbet_place: float | None = None
     consensus_prob: float | None = None
     books: int = 0
 

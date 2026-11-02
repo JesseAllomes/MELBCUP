@@ -25,7 +25,7 @@
   <h2 id="picks-h">{{ 'Win, place, each way' if rc.open else 'Your bets before the race' }}</h2>
   {% if rc.open %}
   {{ amounts(wallet, here) }}
-  <p class="split">Your <b>{{ wallet.total | dollars }}</b>{% if wallet.left < wallet.total %} (<b>{{ wallet.left | dollars }}</b> left){% endif %} is shared across {{ 'all ' ~ day.races | length if day.open_count == day.races | length else 'the ' ~ day.open_count }} races{{ ' still to run' if day.open_count != day.races | length }} by how likely each bet is to pay. This race gets <b>${{ rc.total }}</b>. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.</p>
+  <p class="split">Your <b>{{ wallet.total | dollars }}</b>{% if wallet.left < wallet.total %} (<b>{{ wallet.left | dollars }}</b> left){% endif %} is shared across {{ 'all ' ~ day.races | length if day.open_count == day.races | length else 'the ' ~ day.open_count }} races{{ ' still to run' if day.open_count != day.races | length }} by how likely each bet is to pay. This race gets <b>${{ rc.total }}</b>. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.{% if settings.pointsbet %} PointsBet takes a bet when it pays most and has money left, with no minimum stake; multis and exotics stay with Sportsbet.{% endif %}</p>
   {% endif %}
   {% if rc.board %}
   <div class="board">
@@ -35,7 +35,11 @@
   {% else %}
   <p class="note">No prices yet for this race.</p>
   {% endif %}
-</section>
+</section>{% if cup_note %}
+<section aria-labelledby="runsecond-h">
+  <h2 id="runsecond-h">PointsBet: Run 2nd, You Win</h2>
+  <p class="split">A win bet on the Cup that also pays as a winner if the horse runs 2nd. Best value on the model's chances: <span class="cloth sm">{{ cup_note.number }}</span> <b>{{ cup_note.name }}</b>, top two {{ cup_note.top2 | one_in }} at PointsBet's win price {{ cup_note.price | price }}, worth <b>{{ '%+.2f' | format(cup_note.value) }} per $1</b>{{ '' if cup_note.value > 0 else ' (below break-even: no runner is worth it at these prices)' }}. A note only: no stake is set for it.</p>
+</section>{% endif %}
 {% endif %}
 
 {% if rc.exotics or rc.quaddie_legs %}
@@ -60,7 +64,7 @@
     <li class="{{ 'mine' if a.number in rc.mine }}{{ ' extra' if loop.index > 6 }}"{% if loop.index > 6 %} hidden{% endif %}>
       <span class="cloth sm">{{ a.number }}</span>
       <span class="nm">{{ r.name }}{% if fin %} <span class="fin{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}</span>
-      {{ pillset(race.prices.get(a.number) | pills) }}
+      {{ pillset(race.prices.get(a.number) | pills(pointsbet=settings.pointsbet)) }}
       <span class="ch">Wins {{ a.win | one_in }} · places {{ a.place | one_in }}</span>
       <details class="form">
         <summary>Form</summary>
@@ -120,5 +124,5 @@
   <p class="fine">Saved at $150 Sportsbet and $50 Betfair, while the app is running. A restart loses them.</p>
 </section>
 
-<p class="help">Prices: Sportsbet and Betfair (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
+<p class="help">Prices: Sportsbet{{ ', Betfair and PointsBet' if settings.pointsbet else ' and Betfair' }} (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endblock %}

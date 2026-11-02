@@ -20,7 +20,15 @@ from melbcup.bets.grade import grade_day
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
-from melbcup.web.racecard import PLACED_COOKIE, build_day, parse_placed, pick_amounts, wallet
+from melbcup.web.racecard import (
+    PLACED_COOKIE,
+    build_day,
+    cup_note,
+    parse_placed,
+    pick_amounts,
+    pick_pointsbet,
+    wallet,
+)
 
 HERE = Path(__file__).parent
 BOOKMAKERS = {
@@ -296,15 +304,24 @@ class Views:
         snap = self.board.snapshot()
         cookies = cookies or {}
         sb, bf, chosen = pick_amounts(query, cookies)
-        placed = parse_placed(cookies.get(PLACED_COOKIE), snap.race_date)
-        day_total = sb + bf
-        picks = snap.picks(day_total or None) if snap.models else None
+        # PointsBet (POINTSBET=1): a third account, $0 until the owner sets an amount. It is
+        # judged in the picks only once it has money, so the switch alone changes no price.
+        pb = pick_pointsbet(query, cookies) if self.settings.pointsbet else None
+        placed = parse_placed(cookies.get(PLACED_COOKIE), snap.race_date, pb is not None)
+        day_total = sb + bf + (pb or 0.0)
+        picks = (
+            (snap.picks(day_total or None, bool(pb)) if pb else snap.picks(day_total or None))
+            if snap.models
+            else None
+        )
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
         )
         marks = {rg.race: {g.kind: g for g in rg.lines} for rg in (grade.races if grade else [])}
         card = (
-            build_day(picks, sb, bf, placed, open_races(picks), snap.race_date) if picks else None
+            build_day(picks, sb, bf, placed, open_races(picks), snap.race_date, pb)
+            if picks
+            else None
         )
         return {
             "settings": self.settings,
@@ -312,7 +329,7 @@ class Views:
             "snap": snap,
             "card": snap.card,
             "day": card,
-            "wallet": wallet(sb, bf, placed),
+            "wallet": wallet(sb, bf, placed, pb),
             "amounts_chosen": chosen,
             "race_date_iso": snap.race_date.isoformat() if snap.race_date else "",
             "budget": day_total,
@@ -375,6 +392,9 @@ class Views:
             ctx["race"] = rp.model.race
             ctx["rc"] = ctx["day"].race(number)
             ctx["check"] = ctx["checks"].get(number)
+            ctx["cup_note"] = (
+                cup_note(rp) if self.settings.pointsbet and ctx["rc"].open else None
+            )
             return self.env.get_template("race.html").render(ctx)
         raise NotFound(path)
 

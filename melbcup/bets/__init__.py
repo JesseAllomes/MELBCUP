@@ -106,10 +106,12 @@ def _size_exotic(e: Exotic, budget: float | None) -> None:
     e.outlay, e.flexi_pct = sized if sized else (None, None)
 
 
-def build_picks(models: list[RaceModel], budget: float | None = None) -> DayPicks:
+def build_picks(
+    models: list[RaceModel], budget: float | None = None, pointsbet: bool = False
+) -> DayPicks:
     races = []
     for m in sorted(models, key=lambda m: m.race.number):
-        sl = singles(m)
+        sl = singles(m, pointsbet)
         rp = RacePicks(
             model=m,
             best={k: best(sl, k) for k in KINDS},

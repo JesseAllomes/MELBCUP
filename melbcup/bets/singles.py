@@ -79,21 +79,37 @@ def _ev(prob: float, price: float | None) -> float | None:
     return None if price is None else prob * price - 1.0
 
 
-def _shown(quote: Quote | None, sportsbet: float | None, betfair: float | None) -> float | None:
+def _shown(
+    quote: Quote | None,
+    sportsbet: float | None,
+    betfair: float | None,
+    pointsbet: float | None = None,
+) -> float | None:
     if quote is None:
         return None
+    if quote.bookmaker == "pointsbetau":
+        return pointsbet
     return betfair if quote.bookmaker == "betfair" else sportsbet
 
 
-def _owner_quote(sportsbet: float | None, betfair: float | None) -> Quote | None:
-    """The better of the owner's two accounts. A Betfair price counts after commission."""
+def _owner_quote(
+    sportsbet: float | None, betfair: float | None, pointsbet: float | None = None
+) -> Quote | None:
+    """The best of the owner's accounts: Sportsbet, Betfair (after commission) and, when it is
+    switched on (POINTSBET=1), PointsBet at its fixed odds. A later account must beat the
+    earlier ones to win, so ties stay with Sportsbet."""
+    best_q = Quote(sportsbet, "sportsbet") if sportsbet is not None else None
+    if pointsbet is not None and (best_q is None or pointsbet > best_q.price):
+        best_q = Quote(pointsbet, "pointsbetau")
     bf = net(betfair)
-    if bf is not None and (sportsbet is None or bf > sportsbet):
-        return Quote(bf, "betfair")
-    return Quote(sportsbet, "sportsbet") if sportsbet is not None else None
+    if bf is not None and (best_q is None or bf > best_q.price):
+        best_q = Quote(bf, "betfair")
+    return best_q
 
 
-def singles(model: RaceModel) -> list[Single]:
+def singles(model: RaceModel, pointsbet: bool = False) -> list[Single]:
+    """Every win, place and each-way line of a race. ``pointsbet`` (the POINTSBET=1 switch)
+    adds PointsBet as a third account the lines are judged at; off, it is as it always was."""
     race = model.race
     out: list[Single] = []
     market_place: dict[int, float] = {}
@@ -118,13 +134,17 @@ def singles(model: RaceModel) -> list[Single]:
             # The owner bets only where they hold accounts, Sportsbet and Betfair (2026-11-01):
             # judge, rank and stake every win, place and each-way line at the better of
             # Sportsbet's price and Betfair's price after commission, never another bookie's.
-            win_q = _owner_quote(sb_win, prices.betfair_win if prices else None)
-            place_q = _owner_quote(sb_place, prices.betfair_place if prices else None)
+            pb_win = prices.pointsbet_win if pointsbet and prices else None
+            pb_place = prices.pointsbet_place if pointsbet and prices else None
+            win_q = _owner_quote(sb_win, prices.betfair_win if prices else None, pb_win)
+            place_q = _owner_quote(sb_place, prices.betfair_place if prices else None, pb_place)
             win_price = win_q.price if win_q else None
             place_price = place_q.price if place_q else None
             estimated = False
-            shown_win = _shown(win_q, sb_win, prices.betfair_win if prices else None)
-            shown_place = _shown(place_q, sb_place, prices.betfair_place if prices else None)
+            shown_win = _shown(win_q, sb_win, prices.betfair_win if prices else None, pb_win)
+            shown_place = _shown(
+                place_q, sb_place, prices.betfair_place if prices else None, pb_place
+            )
         else:
             shown_win = shown_place = None
 

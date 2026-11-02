@@ -55,6 +55,6 @@
     </div>
   </section>
   {% endif %}
-  <p class="help">Prices: Sportsbet and Betfair (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
+  <p class="help">Prices: Sportsbet{{ ', Betfair and PointsBet' if settings.pointsbet else ' and Betfair' }} (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endif %}
 {% endblock %}
