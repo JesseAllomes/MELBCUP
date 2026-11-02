@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 11,
+  "rev": 14,
   "review": {
     "advice": [],
     "config": {
@@ -4406,7 +4406,26 @@
             "        f\"sealed {len(cards)} meetings, {races} races, {len(record)} history entries, \""
           ]
         },
-        "runs": [],
+        "runs": [
+          {
+            "at": "2026-11-02T14:04:06+00:00",
+            "found": null,
+            "model": "sonnet",
+            "role": "critic-a"
+          },
+          {
+            "at": "2026-11-02T14:04:06+00:00",
+            "found": null,
+            "model": "sonnet",
+            "role": "critic-b"
+          },
+          {
+            "at": "2026-11-02T14:04:06+00:00",
+            "found": null,
+            "model": "haiku",
+            "role": "checker"
+          }
+        ],
         "stamp": null,
         "verdict": "RUNNING"
       }
