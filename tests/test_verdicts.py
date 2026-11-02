@@ -125,7 +125,11 @@ def stakes(html):
 @pytest.mark.parametrize("path", PAGES)
 def test_every_stake_shown_has_dollars(client, path):
     html = client.get(path, auth=AUTH).text
-    assert all(re.fullmatch(r"\$\d[\d,]*(<small>\w+</small>)?", x) for x in stakes(html)), path
+    # each way shows the bookmaker's unit ("$2 EW") with the total under it
+    assert all(
+        re.fullmatch(r"\$\d[\d,]*(<small>\w+</small>| EW<small>\$\d+ total · \w+</small>)?", x)
+        for x in stakes(html)
+    ), path
     # the old verdict words are gone from the race card
     for word in ("BET <b>", ">HOLD<", ">SKIP<", "For fun"):
         assert word not in html, word

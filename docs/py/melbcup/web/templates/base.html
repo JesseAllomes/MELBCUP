@@ -74,7 +74,8 @@
         });
         if (!on) {
           // the stake actually placed (whole dollars), pre-filled with the app's stake
-          var s = window.prompt("Stake placed ($)", rec[5]);
+          var ew = rec[2] === "e";
+          var s = window.prompt(ew ? "Total staked ($), win + place: $2 each way = $4" : "Stake placed ($)", rec[5]);
           if (s === null) return;
           var v = Math.round(parseFloat(s));
           if (!(v > 0)) return;
