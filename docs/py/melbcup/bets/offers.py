@@ -95,30 +95,33 @@ def position_probs(
     *,
     draws: int = MC_DRAWS,
     seed: int = MC_SEED,
+    places: int = PLACES,
 ) -> Positions:
     """Chance each runner finishes exactly 1st..5th, by the app's own discounted Harville.
 
     Place k is enumerated exactly (``order_probs``) when the number of finishing orders of that
     depth is within ``probability.EXACT_LIMIT``; otherwise all such places come from one seeded
-    simulation (``simulate_positions``) of at least 200,000 draws."""
+    simulation (``simulate_positions``) of at least 200,000 draws. ``places`` stops at that place
+    (the promos need only the first two or three, which are exact and cheap); later places are 0."""
     return _positions(
-        tuple(sorted(win.items())), tuple(discount), draws, seed, probability.EXACT_LIMIT
+        tuple(sorted(win.items())), tuple(discount), draws, seed, probability.EXACT_LIMIT, places
     )
 
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=256)
 def _positions(
     items: tuple[tuple[int, float], ...],
     discount: tuple[float, ...],
     draws: int,
     seed: int,
     limit: int,
+    places: int = PLACES,
 ) -> Positions:
     win = dict(items)
     live = {n: p for n, p in win.items() if p > 0}
     by_place = {k: dict.fromkeys(win, 0.0) for k in range(1, PLACES + 1)}
     simulated: list[int] = []
-    for k in range(1, min(PLACES, len(live)) + 1):
+    for k in range(1, min(PLACES, places, len(live)) + 1):
         if math.perm(len(live), k) <= limit:
             for combo, p in order_probs(live, k, discount).items():
                 by_place[k][combo[-1]] += p
@@ -565,7 +568,9 @@ def _hold(offer: Offer, runner: int, budget: float, reason: str) -> OfferCheck:
     )
 
 
-def check_offer(model: RaceModel, runner: int, offer: Offer, budget: float) -> OfferCheck:
+def check_offer(
+    model: RaceModel, runner: int, offer: Offer, budget: float, places: int = PLACES
+) -> OfferCheck:
     """Price ``offer`` on ``runner`` of ``model``'s race and say BET (with dollars) or HOLD.
 
     HOLD unless the runner has both a Sportsbet price and a consensus chance, every scenario
@@ -590,7 +595,7 @@ def check_offer(model: RaceModel, runner: int, offer: Offer, budget: float) -> O
             if case.win is None:
                 results.append(ScenarioResult(case.key, case.label, None, note=case.note))
                 continue
-            pos = position_probs(case.win, case.discount)
+            pos = position_probs(case.win, case.discount, places=places)
             c = leg_chances(offer, pos, runner, case.se_multiple)
             chances[case.key] = c
             results.append(
@@ -651,7 +656,7 @@ def check_offer(model: RaceModel, runner: int, offer: Offer, budget: float) -> O
                 f"you assumed {offer.bonus_value:.2f}."
             )
     used = next(c for c in cases if c.key == binding.key)
-    pos = position_probs(used.win, used.discount)
+    pos = position_probs(used.win, used.discount, places=places)
     positions_used = {
         "scenario": binding.key,
         "method": pos.method,

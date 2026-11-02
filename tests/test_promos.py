@@ -56,7 +56,11 @@ def day_models(**boost):
     ]
 
 
-def picks(promos=PROMOS, pointsbet=True, **boost):
+# the PointsBet and Sportsbet promos these tests were written for (Betfair's is tested below)
+BOOKIE_PROMOS = tuple(x for x in PROMOS if x.bookmaker != "betfair")
+
+
+def picks(promos=BOOKIE_PROMOS, pointsbet=True, **boost):
     return build_picks(day_models(**boost), 200, pointsbet, promos)
 
 
@@ -441,3 +445,21 @@ def test_payback_multi_is_fast_on_a_ten_race_card():
     t = time.perf_counter()
     assert payback_multi(models) is not None
     assert time.perf_counter() - t < 0.2
+
+
+def test_betfair_cash_back_2nd_is_a_betfair_promo_bet_at_betfairs_price():
+    """Betfair cash back if 2nd (cash, after commission): every race, placed on Betfair, at
+    least Betfair's $5 minimum, never above its money."""
+    from melbcup.bets.allocate import BETFAIR_MIN
+    from melbcup.bets.promos import BF_CASHBACK_MAX
+
+    bf_only = tuple(x for x in PROMOS if x.bookmaker == "betfair")
+    d = picks(promos=bf_only, pointsbet=False, r1={3: 7.5})
+    rp = d.races[0]
+    assert rp.promo is not None and rp.promo.promo.promo.key == "bf_cash_back_2nd"
+    r = wins(allocate_accounts(d, 100, 20))[1]
+    assert r.account == "betfair" and r.pick.single.promo is not None
+    assert r.price == rp.model.race.prices[r.pick.single.number].betfair_win
+    assert BETFAIR_MIN <= r.pick.stake <= min(BF_CASHBACK_MAX, 20)
+    none_left = wins(allocate_accounts(d, 100, 0))[1]
+    assert none_left.account != "betfair"

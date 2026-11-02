@@ -358,7 +358,7 @@ def _horse_line(
     _horse_words(line, prices)
     if (bet := getattr(single, "promo", None)) is not None and line.account == bet.account:
         line.promo, line.promo_note = bet.pill, bet.note
-        code = {"sportsbet": "sb", "pointsbet": "pb"}[bet.account]
+        code = {"sportsbet": "sb", "pointsbet": "pb", "betfair": "bf"}[bet.account]
         for pill in line.pills:  # the bet is at the promo bookmaker: that price is the filled one
             pill.best = pill.account == code
     line.record = _record(race_date, line)

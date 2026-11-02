@@ -28,6 +28,7 @@ from melbcup.bets.offers import (
     check_offer,
 )
 from melbcup.bets.singles import MIN_WIN_PROB, Single
+from melbcup.domain import betfair_net
 
 # Owner-editable. Both maximum stakes are ASSUMED (the terms were not given).
 PB_MAX_STAKE = 50.0
@@ -39,8 +40,13 @@ PB_PAYBACK_MAX = 50.0
 PB_PAYBACK_BONUS = 0.75  # the bonus bet is worth this much per $1 of stake
 PB_PAYBACK_MIN_PROB = 0.25
 
-ACCOUNT_OF = {"pointsbet": "pointsbet", "sportsbet": "sportsbet"}
-BOOKMAKER_OF = {"pointsbet": "pointsbetau", "sportsbet": "sportsbet"}  # Single.bookmaker
+# Betfair "Cash Back 2nd" (owner 2026-11-03: every race, cash; limit not known, so ASSUMED).
+BF_CASHBACK_MAX = 50.0
+
+ACCOUNT_OF = {"pointsbet": "pointsbet", "sportsbet": "sportsbet", "betfair": "betfair"}
+BOOKMAKER_OF = {  # Single.bookmaker
+    "pointsbet": "pointsbetau", "sportsbet": "sportsbet", "betfair": "betfair",
+}
 
 
 @dataclass(frozen=True)
@@ -53,6 +59,7 @@ class Promo:
     offer: Callable[[float], Offer]  # the offer at the bookmaker's win price
     races: tuple[int, ...] = ()  # race numbers it runs in ...
     race_name: str = ""  # ... or a word in the race name, any case (e.g. "melbourne cup")
+    depth: int = 3  # finishing places the offer looks at (2nd, 3rd...): keeps the check cheap
 
     def applies(self, race) -> bool:
         if race.race_date != self.day:
@@ -64,6 +71,8 @@ class Promo:
     def price(self, prices) -> float | None:
         if prices is None:
             return None
+        if self.bookmaker == "betfair":
+            return prices.betfair_win
         return prices.pointsbet_win if self.bookmaker == "pointsbet" else prices.sportsbet_win
 
 
@@ -79,6 +88,7 @@ PROMOS: tuple[Promo, ...] = (
         PB_MAX_STAKE,
         lambda price: PaysAsWinner(price, frozenset({1, 2})),
         race_name="melbourne cup",
+        depth=2,
     ),
     # Sportsbet: win bet, stake back as a bonus bet (worth 0.75 per $1) if 2nd or 3rd. Races 1-2.
     Promo(
@@ -89,6 +99,18 @@ PROMOS: tuple[Promo, ...] = (
         SB_MAX_STAKE,
         lambda price: MoneyBack(price, frozenset({2, 3}), SB_MAX_STAKE, SB_BONUS_VALUE),
         races=(1, 2),
+    ),
+    # Betfair "Cash Back 2nd": a back bet, stake back in cash if 2nd. Every race. Valued at the
+    # Betfair price after commission (betfair_net); the page shows Betfair's own price.
+    Promo(
+        "bf_cash_back_2nd",
+        "betfair",
+        "cash back 2nd",
+        CUP_DAY,
+        BF_CASHBACK_MAX,
+        lambda price: MoneyBack(betfair_net(price), frozenset({2}), BF_CASHBACK_MAX, 1.0),
+        races=tuple(range(1, 13)),
+        depth=2,
     ),
 )
 
@@ -117,7 +139,7 @@ class PromoBet:
         )
 
 def _bookie(bookmaker: str) -> str:
-    return "PointsBet" if bookmaker == "pointsbet" else "Sportsbet"
+    return {"pointsbet": "PointsBet", "betfair": "Betfair"}.get(bookmaker, "Sportsbet")
 
 
 def best_promo_bet(
@@ -136,7 +158,7 @@ def best_promo_bet(
             price = promo.price(race.prices.get(a.number))
             if not price or price <= 1.0 or a.win < MIN_WIN_PROB:
                 continue
-            chk = check_offer(model, a.number, promo.offer(price), budget)
+            chk = check_offer(model, a.number, promo.offer(price), budget, places=promo.depth)
             if chk.verdict != "bet" or chk.min_ev is None or chk.min_ev < MIN_EV_BUFFER:
                 continue
             stake = min(chk.stake, int(promo.max_stake))

@@ -177,6 +177,9 @@ def _plan(
         if room is not None and (promo := getattr(rp, "promo", None)) is not None:
             acct = promo.promo.account  # promo is a Single; its PromoBet is ``.promo``
             promo_stake = min(int(promo.stake or 0), int(room.get(acct, 0)))
+            if acct == "betfair":  # raised to Betfair's minimum while its money lasts
+                promo_stake = int(BETFAIR_MIN) if room.get(acct, 0) >= BETFAIR_MIN else 0
+                promo_stake = max(promo_stake, min(int(promo.stake or 0), int(room[acct])))
             if promo_stake > 0 and (n, "win") not in skip:
                 room[acct] -= promo_stake
                 chosen["win"] = promo
@@ -486,7 +489,7 @@ def allocate_accounts(
         multis = day_multi_list(day, _open(day, races))
     for _ in range(40):
         room = (
-            {"sportsbet": sb_left, "pointsbet": pb_left}
+            {"sportsbet": sb_left, "pointsbet": pb_left, "betfair": bf_left}
             if any(getattr(rp, "promo", None) for rp in day.races)
             else None
         )
