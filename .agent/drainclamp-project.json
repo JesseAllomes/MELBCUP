@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 14,
+  "rev": 15,
   "review": {
     "advice": [],
     "config": {
@@ -98,7 +98,171 @@
         "refuter": "sonnet/high"
       }
     },
-    "findings": [],
+    "findings": [
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "conformance",
+        "claim": "live-collector.yml has lost its schedule and is now workflow_dispatch only, so the GitHub collector no longer runs through Cup day; D35 says it keeps running until the Azure copies are verified",
+        "confidence": 0.7,
+        "evidence": "on:\n  workflow_dispatch:",
+        "file": ".github/workflows/live-collector.yml",
+        "fingerprint": "8011d5323e84",
+        "flags": [
+          "vs D35",
+          "vs D34"
+        ],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r1",
+        "line": 7,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "On 3 Nov nothing runs on GitHub; collection depends entirely on the Azure timer, which D35 says must not be the sole collector yet",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "on",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "conformance",
+        "claim": "the Azure collector is on by default: the window defaults to 2026-10-30 to 2026-11-07 and only COLLECTOR_DISABLED=1 stops it; the diff does not set that switch, so the collector runs through Cup week, which D36 forbids",
+        "confidence": 0.55,
+        "evidence": "if os.environ.get(\"COLLECTOR_DISABLED\") == \"1\":",
+        "file": "azure/function/function_app.py",
+        "fingerprint": "8db3c92c56fe",
+        "flags": [
+          "vs D36"
+        ],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r2",
+        "line": 63,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "If the Function app has no COLLECTOR_DISABLED=1 when this deploys, the timer collects and commits to live during Cup week",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "window_open",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "conformance",
+        "claim": "milestone goal not met by this diff: publish_pending still commits to the GitHub live branch via commit_github_file; the goal requires Blob-only publishing with no live branch",
+        "confidence": 0.4,
+        "evidence": "commit_github_file(",
+        "file": "azure/function/collector_runtime.py",
+        "fingerprint": "b6ff8255a423",
+        "flags": [
+          "vs D36"
+        ],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r3",
+        "line": 316,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "After this change the collector still writes to the live branch, so the no-live-branch end state is not delivered",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "publish_pending",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "test-gap",
+        "claim": "the 409/422 retry path and the attempt==3 re-raise have no test; the fake GitHub never fails the ref PATCH and never returns 409/422",
+        "confidence": 0.8,
+        "evidence": "if exc.code not in (409, 422) or attempt == 3:",
+        "file": "azure/function/collector_runtime.py",
+        "fingerprint": "100849798e2d",
+        "flags": [],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r4",
+        "line": 255,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "A moved branch head on git/refs/heads/live raises HTTPError 409; no test reaches the retry loop or the give-up raise",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "commit_github_file",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "test-gap",
+        "claim": "the non-404 HTTPError re-raise has no test; the fake only ever raises 404 from git/trees",
+        "confidence": 0.75,
+        "evidence": "if exc.code == 404:",
+        "file": "azure/function/collector_runtime.py",
+        "fingerprint": "c0b43a1aaab0",
+        "flags": [],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r5",
+        "line": 214,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "A 500 or 403 from the trees API takes the raise at line 216; no test reaches it",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "github_path_exists",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:05:08+00:00",
+        "category": "test-gap",
+        "claim": "the divisor-2 branch has no test; test_d3 uses 30 s durations, which only reach the divisor-4 return",
+        "confidence": 0.6,
+        "evidence": "if average > 4.0:",
+        "file": "azure/function/collector_runtime.py",
+        "fingerprint": "1a7ce703525b",
+        "flags": [],
+        "found_by": [
+          "checker"
+        ],
+        "id": "r6",
+        "line": 57,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "An average between 4 and 8 seconds returns 2 at line 58; no test reaches it",
+        "severity": "low",
+        "status": "candidate",
+        "symbol": "cadence_divisor",
+        "ticket": ""
+      }
+    ],
     "ideas": [],
     "rounds": [
       {
@@ -4421,9 +4585,18 @@
           },
           {
             "at": "2026-11-02T14:04:06+00:00",
-            "found": null,
+            "found": 6,
             "model": "haiku",
-            "role": "checker"
+            "role": "checker",
+            "tokens": {
+              "cache_read": 260894,
+              "cache_write": 37692,
+              "calls": 12,
+              "input": 24,
+              "output": 10237,
+              "total": 308847,
+              "transcript": "agent-a1c35727d68b9a9a5.jsonl"
+            }
           }
         ],
         "stamp": null,
