@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 34,
+  "rev": 42,
   "review": {
     "advice": [],
     "config": {
@@ -194,6 +194,7 @@
         "evidence": "if exc.code not in (409, 422) or attempt == 3:",
         "file": "azure/function/collector_runtime.py",
         "fingerprint": "100849798e2d",
+        "fix_note": "retry and give-up tests added",
         "flags": [],
         "found_by": [
           "checker"
@@ -204,11 +205,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "the fake GitHub at tests/test_azure_function.py:236-240 always accepts the git/refs PATCH and no test anywhere raises 409/422, so the retry loop and the attempt==3 re-raise at azure/function/collector_runtime.py:255-257 are untested.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:32+00:00",
         "round": "R1",
         "scenario": "A moved branch head on git/refs/heads/live raises HTTPError 409; no test reaches the retry loop or the give-up raise",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "commit_github_file",
         "ticket": "TICKET r4  (severity medium)\nFILES:     tests/test_azure_function.py (append only)\nDEFECT:    commit_github_file's 409/422 retry and the attempt==3 re-raise (azure/function/collector_runtime.py:254-257) have no test\nCHANGE:    append two tests at the end of tests/test_azure_function.py, using the existing `rt` fixture and pytest's `monkeypatch`:\n           1. test_commit_github_file_retries_a_moved_head: monkeypatch rt.time.sleep to a no-op; monkeypatch rt.github_api with a stub\n              that returns {\"object\": {\"sha\": \"head\"}} for \"git/ref/heads/live\", {\"tree\": {\"sha\": \"base\"}} for paths starting\n              \"git/commits/\", {\"sha\": \"b\"} for \"git/blobs\", {\"sha\": \"t\"} for \"git/trees\", {\"sha\": \"c\"} for \"git/commits\",\n              and for \"git/refs/heads/live\" raises urllib.error.HTTPError(path, 409, \"moved\", {}, None) on its first call and returns {} after.\n              Assert rt.commit_github_file(\"d/f.json\", b\"x\", \"tok\", \"m\") == \"c\" and the PATCH was called exactly twice.\n           2. test_commit_github_file_gives_up_after_four_tries: same stub, but the PATCH always raises HTTPError 422.\n              Assert pytest.raises(urllib.error.HTTPError) and the PATCH was called exactly 4 times.\n           Stub signature: def fake(method, path, token, payload=None). Import urllib.error at the test if not already imported in the file.\nTEST:      the two tests above; both pass against the current code\nDO NOT:    touch other files, edit existing tests or fixtures, rename, refactor, reformat\nDONE WHEN: both new tests pass and the retry and give-up lines are exercised\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r4: <reason>\"",
         "ticket_round": "R1"
@@ -223,6 +224,7 @@
         "evidence": "if exc.code == 404:",
         "file": "azure/function/collector_runtime.py",
         "fingerprint": "c0b43a1aaab0",
+        "fix_note": "non-404 re-raise test added",
         "flags": [],
         "found_by": [
           "checker"
@@ -233,11 +235,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "the fake only raises 404 from git/trees (tests/test_azure_function.py:218), and a repo-wide grep finds no test that sends a non-404 error there, so the re-raise at azure/function/collector_runtime.py:216 is never reached.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:32+00:00",
         "round": "R1",
         "scenario": "A 500 or 403 from the trees API takes the raise at line 216; no test reaches it",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "github_path_exists",
         "ticket": "TICKET r5  (severity medium)\nFILES:     tests/test_azure_function.py (append only)\nDEFECT:    github_path_exists' non-404 re-raise (azure/function/collector_runtime.py:214-216) has no test\nCHANGE:    append test_github_path_exists_raises_errors_other_than_404 at the end of tests/test_azure_function.py: with `rt` and\n           monkeypatch, set rt.github_api to a stub (method, path, token, payload=None) that raises\n           urllib.error.HTTPError(path, 500, \"boom\", {}, None). Assert pytest.raises(urllib.error.HTTPError) around\n           rt.github_path_exists(\"d/f.json\", \"tok\"). Then a stub raising code 404 -> assert the call returns False.\nTEST:      the test above; passes against the current code\nDO NOT:    touch other files, edit existing tests, rename, refactor, reformat\nDONE WHEN: the new test passes and line 216's raise is exercised\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r5: <reason>\"",
         "ticket_round": "R1"
@@ -252,6 +254,7 @@
         "evidence": "if average > 4.0:",
         "file": "azure/function/collector_runtime.py",
         "fingerprint": "1a7ce703525b",
+        "fix_note": "cadence band test added",
         "flags": [],
         "found_by": [
           "checker"
@@ -262,11 +265,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "the only throttle test, test_d3 (tests/test_azure_function.py:395-402), uses 30 s durations, which reach only the divisor-4 return; nothing exercises the divisor-2 branch at azure/function/collector_runtime.py:57-58.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:32+00:00",
         "round": "R1",
         "scenario": "An average between 4 and 8 seconds returns 2 at line 58; no test reaches it",
         "severity": "low",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "cadence_divisor",
         "ticket": "TICKET r6  (severity low)\nFILES:     tests/test_azure_function.py (append only)\nDEFECT:    cadence_divisor's divisor-2 branch (azure/function/collector_runtime.py:57-58) has no test\nCHANGE:    append test_cadence_divisor_bands at the end of tests/test_azure_function.py using `rt`:\n           assert rt.cadence_divisor([]) == 1; rt.cadence_divisor([4.0] * 60) == 1; rt.cadence_divisor([6.0] * 60) == 2;\n           rt.cadence_divisor([8.0] * 60) == 2; rt.cadence_divisor([9.0] * 60) == 4;\n           rt.cadence_divisor([1.0] * 100 + [6.0] * 60) == 2  (only the last 60 count)\nTEST:      the test above; passes against the current code\nDO NOT:    touch other files, edit existing tests, rename, refactor, reformat\nDONE WHEN: the new test passes\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r6: <reason>\"",
         "ticket_round": "R1"
@@ -339,6 +342,7 @@
         "evidence": "except OSError as exc:",
         "file": "melbcup/sources/betfair.py",
         "fingerprint": "fb1cd7f3d53b",
+        "fix_note": "httpx TransportError raised as OSError",
         "flags": [
           "vs D6",
           "vs D36"
@@ -352,11 +356,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "_httpx_post (melbcup/sources/betfair.py:40-47) lets httpx errors through, httpx.HTTPError is not an OSError, and _rpc/_login catch only OSError (betfair.py:106, 135), so a read timeout after placeOrders escapes _order (melbcup/autobet.py:258-274) with no ledger row; live mode only.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:32+00:00",
         "round": "R1",
         "scenario": "A hand bet is sent, Betfair accepts it, and the read times out. The user gets an HTTP 500, no ledger row appears, and the user presses Bet again. The customerRef includes the time to the second, so the retry gets a new ref and a second real bet is placed, doubling the stake. In tick(), the exception aborts the rest of the race's lines with the race already in _done.",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "BetfairClient._rpc",
         "ticket": "TICKET r9  (severity medium)\nFILES:     melbcup/sources/betfair.py lines 40-51 (_httpx_post); tests/test_betfair.py (append only)\nDEFECT:    httpx transport errors (ConnectError, ReadTimeout) are not OSError, so they escape _login/_rpc's `except OSError` as raw\n           exceptions; the Poster contract (line 36) says the poster raises OSError when unreachable\nCHANGE:    1. lines 43-47: wrap the `with httpx.Client(...)` block in\n                  try:\n                      <the existing with-block, unchanged>\n                  except httpx.TransportError as exc:\n                      raise OSError(f\"Betfair unreachable: {exc}\") from exc\n           Nothing else in the function changes.\nTEST:      append test_httpx_post_turns_transport_errors_into_oserror to tests/test_betfair.py: monkeypatch httpx.Client.post to raise\n           httpx.ReadTimeout(\"slow\"); assert pytest.raises(OSError) around\n           melbcup.sources.betfair._httpx_post(\"https://example.invalid\", {}, {}, True). Fails before CHANGE.\nDO NOT:    touch other files or other functions, rename, refactor, reformat\nDONE WHEN: the new test passes and the rest of tests/test_betfair.py still passes\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r9: <reason>\"",
         "ticket_round": "R1"
@@ -371,6 +375,7 @@
         "evidence": "ref = f\"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}\"",
         "file": "melbcup/autobet.py",
         "fingerprint": "5a30529dca41",
+        "fix_note": "ref without time, 60 s duplicate guard",
         "flags": [
           "vs D44"
         ],
@@ -383,11 +388,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "melbcup/autobet.py:257 builds the customerRef with %H%M%S and bet_by_hand (autobet.py:295-319) has no duplicate guard, so a retry or double-tap in a later second gets a new ref and a second bet, contradicting the idempotency claim in the place() docstring (betfair.py:244); live mode only.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:33+00:00",
         "round": "R1",
         "scenario": "The owner double-taps Bet for race 7, runner 3, $100 win. The two requests land in different seconds and get different refs, so Betfair places two $100 bets. A retry after a 500 or timeout does the same.",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "Betting._order",
         "ticket": "TICKET r10  (severity medium)\nFILES:     melbcup/autobet.py line 41 (constants), line 257 (_order's ref), lines 313-318 (bet_by_hand); tests/test_autobet.py (append only)\nDEFECT:    customerRef carries the time to the second, so a retry or double-tap in a later second is a new ref and a second real bet;\n           bet_by_hand has no duplicate guard\nCHANGE:    Match by the quoted text (line numbers may have moved).\n           1. after the line `HAND = \"melbcup-hand\"` add:\n                  DUPLICATE_GAP = timedelta(seconds=60)  # the same hand bet again inside this is refused\n           2. replace\n                  ref = f\"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{now:%H%M%S}\"\n              with\n                  # no time in the ref: Betfair treats a repeat of the same bet as a no-op, not a second bet\n                  ref = f\"{source[0]}{now:%y%m%d}r{race.number}n{number}{kind[0]}{round(stake * 100)}\"\n           3. in bet_by_hand, directly after the line `now = self.clock()` add:\n                  if any(\n                      p.source == \"hand\" and p.race == race_no and p.number == number and p.kind == kind\n                      and p.stake == float(stake) and now - p.at < DUPLICATE_GAP\n                      for p in self.ledger\n                  ):\n                      raise BetError(\"That bet was just sent. Check Betfair before sending it again.\")\nTEST:      append test_hand_bet_twice_is_refused_and_refs_have_no_time: b, board = betting(bf=None-default, live=True) i.e.\n           `bf = RefBf(); b, _ = betting(bf, live=True)` where RefBf (defined in the test file, appended) subclasses FakeBf and records\n           `ref` in self.refs inside place(). First b.bet_by_hand(\"2468\", 7, 1, \"win\", 10) succeeds; a second identical call raises\n           BetError matching \"just sent\"; b.bet_by_hand(\"2468\", 7, 1, \"win\", 20) succeeds; assert no ref in bf.refs contains a\n           6-digit time (the two refs end in \"w1000\" and \"w2000\"). Fails before CHANGE.\nDO NOT:    touch other files or other lines, rename, refactor, reformat\nDONE WHEN: the new test passes and the rest of tests/test_autobet.py still passes\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r10: <reason>\"",
         "ticket_round": "R1"
@@ -402,6 +407,7 @@
         "evidence": "if len(self._fails) >= MAX_PIN_FAILS:",
         "file": "melbcup/autobet.py",
         "fingerprint": "761b3abffc57",
+        "fix_note": "per-caller PIN lockout with a global cap",
         "flags": [
           "vs D45"
         ],
@@ -414,11 +420,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "_fails in melbcup/autobet.py:86, 97-104 is one global list fed by the unauthenticated endpoints at melbcup/web/app.py:131-153, so five wrong PINs from anyone lock out the owner's set_auto/bet_by_hand for 15 minutes; the effect is limited because betting is dormant (practice mode).",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:33+00:00",
         "round": "R1",
         "scenario": "A bot posts 5 wrong PINs to /api/betting/auto every 15 minutes. The owner cannot disarm auto or place a hand bet around a race. Armed auto races still fire, because tick() does not check the PIN, but the owner cannot cancel them.",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "Betting.check_pin",
         "ticket": "TICKET r11  (severity medium)\nFILES:     melbcup/autobet.py constants (after `PIN_LOCKOUT = ...`), line 86 (__init__), lines 94-105 (check_pin), set_auto and\n           bet_by_hand signatures and their check_pin calls; melbcup/web/app.py lines 132-153 (betting_auto, betting_bet);\n           tests/test_autobet.py (append only)\nDEFECT:    the PIN lockout is one global counter fed by unauthenticated callers, so anyone can lock the owner out of every\n           betting action for 15 minutes, indefinitely\nCHANGE:    Match by the quoted text (line numbers may have moved).\n           1. after `PIN_LOCKOUT = timedelta(minutes=15)` add:\n                  MAX_PIN_FAILS_ALL = 50  # wrong PINs from all callers together before everyone is locked out\n           2. `self._fails: list[datetime] = []` -> `self._fails: dict[str, list[datetime]] = {}  # caller -> wrong PIN times`\n           3. check_pin becomes (signature `def check_pin(self, pin: str | None, client: str = \"\") -> None:`):\n                  now = self.clock()\n                  with self._lock:\n                      for key in list(self._fails):\n                          self._fails[key] = [t for t in self._fails[key] if now - t < PIN_LOCKOUT]\n                          if not self._fails[key]:\n                              del self._fails[key]\n                      if self._pin is None:\n                          raise PinError(\"Betting is off: no PIN is set in Key Vault.\")\n                      mine = self._fails.get(client, [])\n                      if len(mine) >= MAX_PIN_FAILS or sum(map(len, self._fails.values())) >= MAX_PIN_FAILS_ALL:\n                          raise PinError(\"Too many wrong PINs. Betting is locked for 15 minutes.\")\n                      if not pin or not hmac.compare_digest(pin.encode(), self._pin.encode()):\n                          self._fails.setdefault(client, []).append(now)\n                          raise PinError(\"Wrong PIN.\")\n                      self._fails.pop(client, None)\n           4. set_auto: add parameter `client: str = \"\"` after `limit`; its `self.check_pin(pin)` -> `self.check_pin(pin, client)`.\n              bet_by_hand: add parameter `client: str = \"\"` after `stake`; its `self.check_pin(pin)` -> `self.check_pin(pin, client)`.\n           5. app.py: above `@app.post(\"/api/betting/auto\")` add\n                  def _client(request: Request) -> str:\n                      \"\"\"The caller's address: the last X-Forwarded-For hop (added by the ingress), else the socket peer.\"\"\"\n                      forwarded = request.headers.get(\"x-forwarded-for\", \"\")\n                      return forwarded.split(\",\")[-1].strip() or (request.client.host if request.client else \"\")\n              and pass `client=_client(request)` as the last argument of betting.set_auto(...) and betting.bet_by_hand(...).\nTEST:      append test_pin_lockout_is_per_caller: b, _ = betting(); five b.set_auto(\"0000\", 7, True, 50, client=\"x\") raise PinError;\n           a sixth with the right PIN and client=\"x\" raises PinError matching \"locked\"; b.set_auto(\"2468\", 7, True, 50, client=\"y\")\n           succeeds. Fails before CHANGE. The existing test_pin_is_required_and_locks_after_five_misses must still pass.\nDO NOT:    touch other files or other lines, rename, refactor, reformat\nDONE WHEN: the new test and all of tests/test_autobet.py and tests/test_live_web.py pass\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r11: <reason>\"",
         "ticket_round": "R1"
@@ -462,6 +468,7 @@
         "evidence": "if [ \"${{ github.event_name }}\" = \"workflow_dispatch\" ] || git diff --name-only HEAD~1 HEAD | grep -qE '^(azure/function/|azure/limits.json|azure/inventory.json|tools/live_collector.py|tools/cost_guard|\\.github/workflows/azure-)'; then",
         "file": ".github/workflows/azure-deploy.yml",
         "fingerprint": "a13812c68ace",
+        "fix_note": "deploy diffs from github.event.before",
         "flags": [
           "vs D36"
         ],
@@ -474,11 +481,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": ".github/workflows/azure-deploy.yml:52, 61, 70 use fetch-depth 2 and compare only HEAD~1..HEAD, so in a multi-commit push to main the redeploy check and the cost-guard diff judge the last commit only, and an earlier azure/function change is never redeployed.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:33+00:00",
         "round": "R1",
         "scenario": "Push two commits: A changes azure/function/collector_runtime.py, B changes only README.md. The push event runs with fetch-depth 2, `git diff --name-only HEAD~1 HEAD` lists only B's files, the grep fails, and function=false. The Function is never redeployed with A's fix. Likewise, if A raises a ceiling in azure/limits.json, `cost_guard.py --base-ref HEAD~1` diffs B against A and sees no loosening.",
         "severity": "medium",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "guard/changes",
         "ticket": "TICKET r13  (severity medium)\nFILES:     .github/workflows/azure-deploy.yml lines 44-75 (guard), 85 (deploy checkout), 102, 125, 136 (webapp checkout), 206;\n           tests/test_cost_guard.py (append only)\nDEFECT:    the redeploy check and the cost guard compare only HEAD~1..HEAD, so a multi-commit push is judged on its last commit\nCHANGE:    1. guard `outputs:` add a line `      base: ${{ steps.base.outputs.ref }}` under `function: ...`.\n           2. guard checkout (line 52): `fetch-depth: 2` -> `fetch-depth: 0`.\n           3. insert a step before `- name: Cost guard`:\n                    - name: Base of this push\n                      id: base\n                      # the commit before the whole push (a push can carry several commits), else the parent\n                      run: |\n                        before=\"${{ github.event.before }}\"\n                        if [ \"${{ github.event_name }}\" = \"push\" ] && [ -n \"$before\" ] \\\n                           && [ \"$before\" != \"0000000000000000000000000000000000000000\" ] \\\n                           && git cat-file -e \"$before^{commit}\" 2>/dev/null; then\n                          echo \"ref=$before\" >> \"$GITHUB_OUTPUT\"\n                        else\n                          echo \"ref=HEAD~1\" >> \"$GITHUB_OUTPUT\"\n                        fi\n           4. line 61: `--base-ref HEAD~1` -> `--base-ref ${{ steps.base.outputs.ref }}`.\n           5. line 70: `git diff --name-only HEAD~1 HEAD` -> `git diff --name-only ${{ steps.base.outputs.ref }} HEAD`.\n           6. deploy job (line 85) and webapp job (line 136): `- uses: actions/checkout@v4` gets\n                        with:\n                          fetch-depth: 0\n           7. lines 102, 125, 206: `--base-ref HEAD~1` -> `--base-ref ${{ needs.guard.outputs.base }}`.\n           Keep indentation consistent with the surrounding YAML.\nTEST:      append test_deploy_workflow_judges_the_whole_push to tests/test_cost_guard.py: read .github/workflows/azure-deploy.yml as\n           text (path from the repo root via Path(__file__).resolve().parents[1]); assert \"HEAD~1 HEAD\" not in it,\n           \"--base-ref HEAD~1\" not in it, \"github.event.before\" in it, \"fetch-depth: 2\" not in it, and\n           \"needs.guard.outputs.base\" in it. Fails before CHANGE.\nDO NOT:    touch other files or other workflow lines, rename jobs, reformat\nDONE WHEN: the new test passes, tests/test_cost_guard.py passes, and the YAML still parses (python -c \"import yaml\" is not\n           required; keep valid indentation)\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r13: <reason>\"",
         "ticket_round": "R1"
@@ -493,6 +500,7 @@
         "evidence": "self._done.add((day, race.number))\n            exchange = fresh.get(race.number)\n            if exchange is None or race.number not in models:\n                continue",
         "file": "melbcup/autobet.py",
         "fingerprint": "7d6ce31d4200",
+        "fix_note": "race marked done only after market found",
         "flags": [
           "vs D28",
           "vs D44"
@@ -506,11 +514,11 @@
         "reason": "",
         "refuter": "CONFIRMED",
         "refuter_note": "melbcup/autobet.py:350-353 adds the race to _done before the exchange/model check and then continues without writing any Placed row, so a race with no Betfair market in its first tick is silently consumed and set_auto (autobet.py:124) refuses to re-arm it; low severity.",
-        "resolved_at": null,
+        "resolved_at": "2026-11-02T21:50:33+00:00",
         "round": "R1",
         "scenario": "Race 9 is armed and enters the 60-second window. fresh.get(9) is None, for example because the market is not yet listed or has been suspended, or models lacks race 9. The code adds (day, 9) to _done and continues. No Placed record is appended to the ledger, so the owner sees no 'skipped' reason. Later ticks skip race 9 even if its market returns inside the window.",
         "severity": "low",
-        "status": "fixing",
+        "status": "fixed",
         "symbol": "Betting.tick",
         "ticket": "TICKET r14  (severity low)\nFILES:     melbcup/autobet.py lines 350-353 (Betting.tick); tests/test_autobet.py (append only)\nDEFECT:    a due race is added to self._done before its Betfair market and model are checked, so a race whose market is missing on\n           its first tick in the window is consumed silently and can never be bet or re-armed\nCHANGE:    1. lines 350-353 now read:\n                  self._done.add((day, race.number))\n                  exchange = fresh.get(race.number)\n                  if exchange is None or race.number not in models:\n                      continue\n              change them to:\n                  exchange = fresh.get(race.number)\n                  if exchange is None or race.number not in models:\n                      continue  # tried again on the next tick, while the window lasts\n                  self._done.add((day, race.number))\nTEST:      append test_auto_waits_for_a_missing_market_inside_the_window: b, board = betting(); b.set_auto(\"2468\", 7, True, 50);\n           set board.bf.meeting to return {} (e.g. board.bf.meeting = lambda d, v: {}); assert b.tick() == [];\n           restore board.bf.meeting = lambda d, v: {7: board.bf.ex}; assert b.tick() != [] (the race is bet on the later tick).\n           Fails before CHANGE.\nDO NOT:    touch other files or other lines, rename, refactor, reformat\nDONE WHEN: the new test passes and the rest of tests/test_autobet.py still passes\nIF BLOCKED: stop, leave the ticket's files untouched, return \"BLOCKED r14: <reason>\"",
         "ticket_round": "R1"

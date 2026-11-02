@@ -40,11 +40,14 @@ Poster = Callable[[str, dict[str, str], Any, bool], tuple[int, Any]]
 def _httpx_post(url: str, headers: dict[str, str], body: Any, is_json: bool) -> tuple[int, Any]:
     import httpx
 
-    with httpx.Client(timeout=20.0) as client:
-        if is_json:
-            resp = client.post(url, headers=headers, content=json.dumps(body))
-        else:
-            resp = client.post(url, headers=headers, data=body)
+    try:
+        with httpx.Client(timeout=20.0) as client:
+            if is_json:
+                resp = client.post(url, headers=headers, content=json.dumps(body))
+            else:
+                resp = client.post(url, headers=headers, data=body)
+    except httpx.TransportError as exc:
+        raise OSError(f"Betfair unreachable: {exc}") from exc
     try:
         return resp.status_code, resp.json()
     except ValueError:
