@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 16,
+  "rev": 18,
   "review": {
     "advice": [],
     "config": {
@@ -403,6 +403,121 @@
         "severity": "medium",
         "status": "candidate",
         "symbol": "Betting.check_pin",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:06:12+00:00",
+        "category": "correctness",
+        "claim": "The web app scales to zero, but auto-betting runs in an in-process background thread and keeps its armed switches only in memory. When the replica is evicted, armed races are silently lost and auto never bets.",
+        "confidence": 0.5,
+        "evidence": "\"minReplicas\": 0,",
+        "file": "azure/webapp/melbcup-web.json",
+        "fingerprint": "e02bb69ec542",
+        "flags": [
+          "vs D10",
+          "vs D21"
+        ],
+        "found_by": [
+          "critic-a"
+        ],
+        "id": "r12",
+        "line": 101,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "The owner arms auto on race 7 with a limit, then locks the phone. After about 5 minutes with no HTTP request, Container Apps scales to 0 replicas. The auto-bet thread (start_loop) dies and Betting.armed, _done and ledger vanish. The next replica starts with armed empty, so tick() returns [] at the 'not self.armed' check and race 7 gets no bet. Nothing tells the owner. The hand-bet ledger is los...",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "template.scale",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:06:12+00:00",
+        "category": "correctness",
+        "claim": "The redeploy check and the cost guard compare only HEAD~1..HEAD. A push of several commits to main (the documented 'git push origin build/cup-day:main') is judged on its last commit alone. An earlier commit that touched azure/function is...",
+        "confidence": 0.5,
+        "evidence": "if [ \"${{ github.event_name }}\" = \"workflow_dispatch\" ] || git diff --name-only HEAD~1 HEAD | grep -qE '^(azure/function/|azure/limits.json|azure/inventory.json|tools/live_collector.py|tools/cost_guard|\\.github/workflows/azure-)'; then",
+        "file": ".github/workflows/azure-deploy.yml",
+        "fingerprint": "a13812c68ace",
+        "flags": [
+          "vs D36"
+        ],
+        "found_by": [
+          "critic-a"
+        ],
+        "id": "r13",
+        "line": 70,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "Push two commits: A changes azure/function/collector_runtime.py, B changes only README.md. The push event runs with fetch-depth 2, `git diff --name-only HEAD~1 HEAD` lists only B's files, the grep fails, and function=false. The Function is never redeployed with A's fix. Likewise, if A raises a ceiling in azure/limits.json, `cost_guard.py --base-ref HEAD~1` diffs B against A and sees no loosening.",
+        "severity": "medium",
+        "status": "candidate",
+        "symbol": "guard/changes",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:06:12+00:00",
+        "category": "correctness",
+        "claim": "A due race is marked done before its exchange market or model is checked. If Betfair has no market for the race or the model is missing, the race is silently consumed. It shows as done with $0 spent, and set_auto then refuses to re-arm i...",
+        "confidence": 0.4,
+        "evidence": "self._done.add((day, race.number))\n            exchange = fresh.get(race.number)\n            if exchange is None or race.number not in models:\n                continue",
+        "file": "melbcup/autobet.py",
+        "fingerprint": "7d6ce31d4200",
+        "flags": [
+          "vs D28",
+          "vs D44"
+        ],
+        "found_by": [
+          "critic-a"
+        ],
+        "id": "r14",
+        "line": 350,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "Race 9 is armed and enters the 60-second window. fresh.get(9) is None, for example because the market is not yet listed or has been suspended, or models lacks race 9. The code adds (day, 9) to _done and continues. No Placed record is appended to the ledger, so the owner sees no 'skipped' reason. Later ticks skip race 9 even if its market returns inside the window.",
+        "severity": "low",
+        "status": "candidate",
+        "symbol": "Betting.tick",
+        "ticket": ""
+      },
+      {
+        "at": "2026-11-02T14:06:12+00:00",
+        "category": "correctness",
+        "claim": "Each-way auto bets are split into win and place halves, each sized with min(stake, left). When the race limit is nearly used, the win half can consume the remaining limit and the place half is skipped. The result is an unbalanced each-wa...",
+        "confidence": 0.3,
+        "evidence": "[(\"win\", s.stake / 2), (\"place\", s.stake / 2)]",
+        "file": "melbcup/autobet.py",
+        "fingerprint": "4495da1f32b6",
+        "flags": [
+          "vs D44",
+          "vs D45"
+        ],
+        "found_by": [
+          "critic-a"
+        ],
+        "id": "r15",
+        "line": 357,
+        "milestone": "az4",
+        "reason": "",
+        "refuter": null,
+        "refuter_note": "",
+        "resolved_at": null,
+        "round": "R1",
+        "scenario": "Limit $100, with $93 already spent. An each-way line has stake $10, so win $5 and place $5. For the win half left = 7, so $5 is placed. For the place half left = 2, which is under MIN_STAKE, so it is skipped with 'race limit reached'. The owner holds a $5 win bet where the model recommended an each-way bet.",
+        "severity": "low",
+        "status": "candidate",
+        "symbol": "Betting.tick",
         "ticket": ""
       }
     ],
@@ -4716,9 +4831,18 @@
         "runs": [
           {
             "at": "2026-11-02T14:04:06+00:00",
-            "found": null,
+            "found": 4,
             "model": "sonnet",
-            "role": "critic-a"
+            "role": "critic-a",
+            "tokens": {
+              "cache_read": 737750,
+              "cache_write": 85966,
+              "calls": 15,
+              "input": 30,
+              "output": 14602,
+              "total": 838348,
+              "transcript": "agent-ae49bdf83ae6b0c0b.jsonl"
+            }
           },
           {
             "at": "2026-11-02T14:04:06+00:00",
@@ -4749,6 +4873,12 @@
               "total": 308847,
               "transcript": "agent-a1c35727d68b9a9a5.jsonl"
             }
+          },
+          {
+            "at": "2026-11-02T14:06:12+00:00",
+            "found": null,
+            "model": "sonnet",
+            "role": "refuter"
           }
         ],
         "stamp": null,
