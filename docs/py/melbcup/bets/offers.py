@@ -301,6 +301,40 @@ class MoneyBack(Offer):
 
 
 @dataclass(frozen=True)
+class PaysAsWinner(Offer):
+    """Run 2nd, You Win: a win bet at ``price`` that also pays as a winner if the runner finishes
+    in any of ``positions`` (default 1st or 2nd).
+
+    The bet returns ``price`` per $1 of stake on any of those finishes, so per $1:
+    EV = P(positions) x price - 1, with P(positions) = P(1st) + P(2nd). Rule 4 and dead heats as
+    for ``EachWay``. A maximum stake is the bookmaker's, applied by the caller."""
+
+    price: float
+    positions: frozenset[int] = frozenset({1, 2})
+    kind = "pays_as_winner"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "positions", frozenset(self.positions))
+        _check_price(self.price)
+        if 1 not in self.positions or not all(
+            isinstance(k, int) and 1 <= k <= PLACES for k in self.positions
+        ):
+            raise ValueError(f"positions must include 1st and be places 1 to {PLACES}")
+
+    def legs(self) -> list[Leg]:
+        def net(s: float) -> float:
+            return s * (self.price - 1.0)
+
+        out = [Leg("win", frozenset({1}), net)]
+        if extra := self.positions - {1}:
+            out.append(Leg("also_paid", frozenset(extra), net))
+        return out
+
+    def describe(self) -> dict:
+        return {"type": self.kind, "price": self.price, "positions": sorted(self.positions)}
+
+
+@dataclass(frozen=True)
 class OddsBoost(Offer):
     """Odds boost: a plain win bet at the boosted price. Per $1:  EV = p1 x boosted_price - 1.
 
@@ -651,6 +685,7 @@ __all__ = [
     "OddsBoost",
     "Offer",
     "OfferCheck",
+    "PaysAsWinner",
     "PlaceOnly",
     "Positions",
     "break_even_c",

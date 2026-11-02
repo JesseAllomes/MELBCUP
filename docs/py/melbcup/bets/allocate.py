@@ -157,10 +157,12 @@ def allocate(
 
 
 def _plan(
-    day, budget, placed, races, cap_base, multis: list[Multi] | None = None
+    day, budget, placed, races, cap_base, multis: list[Multi] | None = None,
+    room: dict[str, float] | None = None,
 ) -> tuple[list[Pick], list[Pick]]:
     """(horse, quinella, trifecta and multi picks with a stake; fixed First Fours and quaddies).
-    ``multis`` are the day's multis if already worked out."""
+    ``multis`` are the day's multis if already worked out. ``room`` (PROMOS=1) is the money left in
+    each account: a race's promo Win bet takes its stake from it, capped, else it is not used."""
     races = _open(day, races)
     skip = {(p.race, p.kind) for p in placed if p.kind != "multi"}
     placed_multis = {p.key for p in placed if p.kind == "multi"}
@@ -170,8 +172,21 @@ def _plan(
         n = rp.model.race.number
         if n not in races:
             continue
-        for kind, s in race_picks(rp).items():
+        chosen = race_picks(rp)
+        promo_stake = 0
+        if room is not None and (promo := getattr(rp, "promo", None)) is not None:
+            acct = promo.promo.account  # promo is a Single; its PromoBet is ``.promo``
+            promo_stake = min(int(promo.stake or 0), int(room.get(acct, 0)))
+            if promo_stake > 0 and (n, "win") not in skip:
+                room[acct] -= promo_stake
+                chosen["win"] = promo
+            else:
+                promo_stake = 0
+        for kind, s in chosen.items():
             if s is None or (n, kind) in skip:
+                continue
+            if promo_stake and kind == "win":  # the promo bet: a value bet at its own stake
+                picks.append(Pick(n, kind, s, True, promo_stake))
                 continue
             value = rp.best.get(kind)
             good = value is not None and value is s and bool(s.stake)
@@ -348,6 +363,12 @@ def route_three(
     for p in moved:
         if p.stake <= 0:
             continue
+        if getattr(p.single, "promo", None) is not None:  # a promo bet stays at its bookmaker
+            acct = p.single.promo.account
+            p.stake = int(min(p.stake, left.get(acct, 0)))
+            out[id(p)] = Routed(p, acct, account_price(day, p, acct))
+            left[acct] = left.get(acct, 0) - p.stake
+            continue
         for acct, _ in offers(p):
             if acct == "sportsbet":
                 break
@@ -414,10 +435,14 @@ def placed_pick(day, p: Placed) -> Pick:
              if q.kind == p.kind and q.recommended and q.races and q.races[0] == p.race),
             None,
         )
+    promo = getattr(rp, "promo", None)
+    if promo is not None and p.kind == "win" and promo.number == p.key:
+        if promo.promo.account == p.account:  # placed as the promo bet, at the promo bookmaker
+            single = promo
     good = (
         rp is not None and single is not None and rp.best.get(p.kind) is single
         and bool(single.stake)
-    )
+    ) or (single is not None and single is promo)
     return Pick(p.race, p.kind, single, good, p.stake, exotic, multi)
 
 
@@ -460,7 +485,12 @@ def allocate_accounts(
     if multis is None:  # ``multis``: the day's multis, if the caller already worked them out
         multis = day_multi_list(day, _open(day, races))
     for _ in range(40):
-        picks, exotics = _plan(day, budget, placed, races, cap_base, multis)
+        room = (
+            {"sportsbet": sb_left, "pointsbet": pb_left}
+            if any(getattr(rp, "promo", None) for rp in day.races)
+            else None
+        )
+        picks, exotics = _plan(day, budget, placed, races, cap_base, multis, room)
         routed = (
             route_three(day, picks, bf_left, pb_left) if three else route(picks, bf_left)
         ) + [Routed(e, "sportsbet", None) for e in exotics]

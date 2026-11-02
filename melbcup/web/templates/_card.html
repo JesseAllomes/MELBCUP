@@ -19,7 +19,7 @@
   <span class="who"><span class="cloth sm">{{ line.number }}</span><b>{{ line.name }}</b></span>
   {% if line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
   <span class="fun">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}</span>
-  <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>
+  <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}
   {{ placed(line) }}
 </div>
 {% endmacro %}

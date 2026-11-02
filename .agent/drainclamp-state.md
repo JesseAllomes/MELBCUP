@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=94 -->
+<!-- drainclamp-build: state; schema=1; generation=95 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -100,7 +100,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T05:59:07+00:00 bd4afe2f owner HAS a Betfair account (supersedes 'no Betfair account'); Key Vault: betfair-username, betfair-password (no app key). Built read-only Betfair prices: app logs in, fetches/creates the free delayed key, reads win+place back prices each price check; singles judged at better of Sportsbet and Betfair after 8% commission; page shows Betfair status. Unverified live: login from here is geo-blocked (403). Session branch only; main push awaits approval
 - 2026-11-01T06:05:49+00:00 ecc03ecc bf2 backend built (practice mode): melbcup/autobet.py (PIN from Key Vault melbcup-bet-pin, 5 misses = 15 min lock; auto off after restart; own daily limit = max(app record, Betfair record); last 60 s before jump; Betfair-only recheck; $5 Betfair minimum, smaller skipped; each way = two bets), Betfair placeOrders/staked_today, /api/betting endpoints; 8 tests. Auto panel added to prototype (UI awaits BUILD). Owner chose exotics too: impossible on Betfair (tote), listed for manual Sportsbet. Blockers: owner adds melbcup-bet-pin to Key Vault before main push; live key application; app scales to zero so auto runs only while awake
 - 2026-11-01T06:07:17+00:00 cd23a376 owner: auto is per race. Switched on per race with that race's own limit (PIN), runs once in the last minute, then done; Betfair tag melbcup-auto<race> so each race's spend counts Betfair's record; no day-wide auto. Tests updated, suite passes
 - 2026-11-01T06:21:51+00:00 190fd86c owner: no Betfair live key (A$590 fee). Option 1: free delayed key for prices; auto stays practice and tells the owner what to bet in the last minute; owner places bets by hand. Owner approved push to main of trifecta odds-only, owner-accounts pricing, Betfair prices, practice auto per race. PIN in Key Vault (melbcup-bet-pin)
@@ -120,4 +119,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-01T10:51:46+00:00 3cb0b219 ui4: Multi picks for the day on the day page; day_multis (top 5 by chance) in multis.py, kind multi in allocate (Sportsbet only, keyed by legs), placed cookie code m; tests green, docs rebuilt
 - 2026-11-01T11:52:39+00:00 7950f21f owner approved push: m7 alpha 1.14 (d8360e10) + ui4 multis win/place (28c0aa55, d97d8382) to main
 - 2026-11-02T22:25:27+00:00 96a2ea3d pb1 built (Sonnet): PointsBet third account behind POINTSBET=1 (off = pages byte-identical to baseline, verified); PB prices, wallet bar, ?pb= amount (default $0), PB pill, placed tick, best-of-three routing, Cup Run 2nd note; on in prod via azure/webapp env. Not wired: autobet, last-minute check, browser build
+- 2026-11-02T22:41:13+00:00 1f40e8af pb2 built (Sonnet): promos are bets behind PROMOS=1 (off = byte-identical, PB off and on, verified). PointsBet Run 2nd You Win (Cup, PaysAsWinner) and Sportsbet R1-2 bonus back 2nd/3rd (MoneyBack c=0.75); promo replaces the Win pick when its worst-case EV beats it; max stakes $50 assumed (melbcup/bets/promos.py). On in prod
 <!-- /DC:LOG -->

@@ -17,6 +17,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from melbcup import history
 from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
+from melbcup.bets.promos import PROMOS
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
@@ -309,11 +310,12 @@ class Views:
         pb = pick_pointsbet(query, cookies) if self.settings.pointsbet else None
         placed = parse_placed(cookies.get(PLACED_COOKIE), snap.race_date, pb is not None)
         day_total = sb + bf + (pb or 0.0)
-        picks = (
-            (snap.picks(day_total or None, bool(pb)) if pb else snap.picks(day_total or None))
-            if snap.models
-            else None
-        )
+        if snap.models and self.settings.promos:  # PROMOS=1: promos that beat the Win pick
+            picks = snap.picks(day_total or None, bool(pb), PROMOS)
+        elif snap.models:
+            picks = snap.picks(day_total or None, True) if pb else snap.picks(day_total or None)
+        else:
+            picks = None
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
         )
@@ -395,6 +397,8 @@ class Views:
             ctx["cup_note"] = (
                 cup_note(rp) if self.settings.pointsbet and ctx["rc"].open else None
             )
+            if ctx["cup_note"] and any(x.promo for x in ctx["rc"].board):
+                ctx["cup_note"] = None  # the Win bet already is the promo bet, shown on its line
             return self.env.get_template("race.html").render(ctx)
         raise NotFound(path)
 

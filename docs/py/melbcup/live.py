@@ -220,8 +220,8 @@ class Snapshot:
     betfair: str | None = None  # None: no Betfair login set; else a short status line
     checks: dict[int, RaceCheck] = field(default_factory=dict)  # last-minute check per race
 
-    def picks(self, budget: float | None, pointsbet: bool = False) -> DayPicks:
-        return build_picks(self.models, budget, pointsbet)
+    def picks(self, budget: float | None, pointsbet: bool = False, promos=None) -> DayPicks:
+        return build_picks(self.models, budget, pointsbet, promos)
 
 
 class LiveBoard:

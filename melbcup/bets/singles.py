@@ -73,6 +73,7 @@ class Single:
     win_price: float | None = None
     estimated: bool = False  # the place price is estimated from the starting price
     shown: float | None = None  # price as the owner sees it at ``bookmaker`` (before commission)
+    promo: object | None = None  # PROMOS=1: the PromoBet this win bet is (melbcup.bets.promos)
 
 
 def _ev(prob: float, price: float | None) -> float | None:

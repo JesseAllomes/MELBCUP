@@ -291,6 +291,8 @@ class Line:
     multi_legs: list[tuple[int, int, str, str]] = field(default_factory=list)
     price: float | None = None  # a multi's Sportsbet price
     pointsbet: bool = False  # POINTSBET=1: the Placed buttons offer PointsBet too
+    promo: str = ""  # PROMOS=1: "Promo: Run 2nd, You Win" on a promo Win bet
+    promo_note: str = ""  # its one-line value note
 
     @property
     def label(self) -> str:
@@ -344,6 +346,11 @@ def _horse_line(
         pointsbet=pointsbet,
     )
     _horse_words(line, prices)
+    if (bet := getattr(single, "promo", None)) is not None and line.account == bet.account:
+        line.promo, line.promo_note = bet.pill, bet.note
+        code = {"sportsbet": "sb", "pointsbet": "pb"}[bet.account]
+        for pill in line.pills:  # the bet is at the promo bookmaker: that price is the filled one
+            pill.best = pill.account == code
     line.record = _record(race_date, line)
     return line
 

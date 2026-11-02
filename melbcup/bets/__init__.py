@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from melbcup.bets.exotics import Exotic, first_fours, quaddies, quinellas, recommend, trifectas
 from melbcup.bets.multis import Multi, multis
+from melbcup.bets.promos import promo_win
 from melbcup.bets.singles import Single, best, singles
 from melbcup.bets.staking import each_way_stake, exotic_stake, scale_to_budget, stake
 from melbcup.model.probability import Assessment, RaceModel
@@ -83,6 +84,7 @@ class RacePicks:
     quinellas: list[Exotic]
     trifectas: list[Exotic]
     first_fours: list[Exotic]
+    promo: Single | None = None  # PROMOS=1: a promo bet that is this race's Win bet
 
 
 @dataclass
@@ -107,7 +109,10 @@ def _size_exotic(e: Exotic, budget: float | None) -> None:
 
 
 def build_picks(
-    models: list[RaceModel], budget: float | None = None, pointsbet: bool = False
+    models: list[RaceModel],
+    budget: float | None = None,
+    pointsbet: bool = False,
+    promos=None,
 ) -> DayPicks:
     races = []
     for m in sorted(models, key=lambda m: m.race.number):
@@ -123,6 +128,8 @@ def build_picks(
         for s in rp.best.values():
             if s is not None:
                 s.stake = _single_stake(s, budget)
+        if promos:  # PROMOS=1: a promo that beats the plain Win pick is the race's Win bet
+            rp.promo = promo_win(rp, promos, pointsbet, budget)
         for group in (rp.first_fours,):
             if chosen := recommend(group, MIN_HIT[group[0].kind] if group else 0):
                 _size_exotic(chosen, budget)
