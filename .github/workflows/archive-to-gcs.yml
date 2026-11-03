@@ -1,7 +1,7 @@
 # Private durable copies in Google Cloud Storage, verified after upload.
 #   raw-archive  (run by hand): the raw racing.com / Betfair files from the `data` branch, checked against
 #                research/archive/MANIFEST.sha256, bundled, uploaded, downloaded back and fully restored.
-#   live-mirror  (daily, or by hand): new files from the `live` branch, uploaded and checksum-verified;
+#   live-mirror  (by hand): new files from the `live` branch, uploaded and checksum-verified;
 #                nothing in the bucket is ever deleted or overwritten.
 # Needs repository secrets GCP_SA_KEY (a service-account JSON key) and GCS_BUCKET (bucket name).
 name: archive-to-gcs
@@ -12,8 +12,8 @@ on:
         description: "raw-archive or live-mirror"
         required: true
         default: raw-archive
-  schedule:
-    - cron: "17 14 * * *"     # daily live mirror, 01:17 Melbourne summer time
+  # The daily schedule is off (owner, 2026-11-04): it failed every night (the GCP_SA_KEY and
+  # GCS_BUCKET secrets were never set) and the data now lives in Azure Blob. Run by hand if needed.
 permissions:
   contents: read
 jobs:
