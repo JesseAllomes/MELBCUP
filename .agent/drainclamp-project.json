@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 43,
+  "rev": 44,
   "review": {
     "advice": [],
     "config": {
@@ -5048,6 +5048,15 @@
       "start": "2026-11-01T08:07:17+00:00"
     }
   ],
-  "todos": [],
+  "todos": [
+    {
+      "at": "2026-11-03T07:27:55+00:00",
+      "done": false,
+      "done_at": null,
+      "id": "t1",
+      "milestone": "",
+      "text": "Owner (2026-11-03, for later): compare a mate's racing app (Damian, https://damians-mac-mini.taile9e615.ts.net/, password with the owner, not stored) against MELBCUP and find where each has an edge. Tailscale host: may need the owner's network or a script run on their machine."
+    }
+  ],
   "tokens": null
 }
