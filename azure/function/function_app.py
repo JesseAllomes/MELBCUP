@@ -19,8 +19,8 @@ from azure.storage.blob import BlobServiceClient, ContentSettings
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-import nba_history  # noqa: E402
 import nba_probe  # noqa: E402
+import nba_props  # noqa: E402
 import racelens  # noqa: E402
 from collector_runtime import (  # noqa: E402
     CollectorSession,
@@ -192,30 +192,21 @@ def nba_probe_run(timer: func.TimerRequest) -> None:
         container.get_blob_client(name).upload_blob(body, overwrite=True)
 
 
-NBA_HISTORY_UNTIL = dt.datetime(2026, 11, 12, tzinfo=dt.UTC)  # stops by itself
-
-
 @app.timer_trigger(
-    schedule="0 */15 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+    schedule="0 */20 20-23,0-4 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
 )
-def nba_history_run(timer: func.TimerRequest) -> None:
-    """Past NBA box scores for the props backtest, a batch per run until done (owner)."""
-    if now_utc() >= NBA_HISTORY_UNTIL or os.environ.get("NBA_HISTORY") == "0":
+def nba_props_run(timer: func.TimerRequest) -> None:
+    """NBA player-prop prices from PointsBet, 7am to 3:40pm AEDT (owner, 2026-11-03)."""
+    if os.environ.get("NBA_PROPS") == "0":
         return
-    container = blobs().get_container_client("nba-history")
+    moment = now_utc()
+    container = blobs().get_container_client("nba-props")
     try:
         container.create_container()
     except ResourceExistsError:
         pass
-    try:
-        if json.loads(container.get_blob_client("progress.json").download_blob().readall()).get(
-            "finished"
-        ):
-            return
-    except ResourceNotFoundError:
-        pass
-    progress = nba_history.run_batch(container)
-    logging.info("nba history: %d saved, next %d", progress["saved"], progress["next"])
+    games, written = nba_props.collect(container, moment)
+    logging.info("nba props: %d games, %d snapshots", games, written)
 
 
 def take_start_slot(moment: dt.datetime) -> bool:

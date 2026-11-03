@@ -119,7 +119,7 @@ jobs:
         run: |
           rm -rf build/pkg
           mkdir -p build/pkg/tools
-          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_history.py azure/function/host.json azure/function/requirements.txt build/pkg/
+          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_props.py azure/function/host.json azure/function/requirements.txt build/pkg/
           cp tools/live_collector.py build/pkg/tools/live_collector.py
           touch build/pkg/tools/__init__.py
           pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages
