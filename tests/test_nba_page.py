@@ -144,3 +144,15 @@ def test_offline_copy_without_the_nba_code_explains(monkeypatch):
     with make(ON) as c:
         r = c.get("/nba")
         assert r.status_code == 200 and "needs the live site" in r.text
+
+
+def test_times_carry_their_day(monkeypatch):
+    from datetime import date
+
+    from melbcup.web import views
+
+    monkeypatch.setattr(views, "melbourne_today", lambda: date(2026, 11, 4))
+    assert views.when("2026-11-05T00:00:00Z") == "Tomorrow 11:00am"  # 11am Thursday in Melbourne
+    assert views.when("2026-11-04T01:30:00Z") == "Today 12:30pm"
+    assert views.when("2026-11-07T08:00:00Z") == "Sat 7 Nov 7:00pm"
+    assert views.when(None) == "–"

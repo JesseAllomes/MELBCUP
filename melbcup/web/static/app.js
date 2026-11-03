@@ -96,6 +96,11 @@
     var h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
     return (h ? h + ":" + (m < 10 ? "0" : "") + m : m) + ":" + (s < 10 ? "0" : "") + s;
   }
+  function melb(at) {  // a far-off time: its Melbourne day and time, not a 29-hour countdown
+    try {
+      return new Date(at).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+    } catch (e) { return new Date(at).toLocaleString(); }
+  }
   function beep() {
     try {
       var C = window.AudioContext || window.webkitAudioContext;
@@ -127,7 +132,8 @@
     var at = next.alert != null ? next.alert : ALERT_AT;
     var secs = Math.ceil((next.at - now) / 1000), hot = secs <= at;
     var what = next.label || ("R" + next.n + " jumps");
-    msg.textContent = hot && !next.label ? "BET NOW · R" + next.n + " in " + clock(secs) : what + " in " + clock(secs);
+    var far = secs > 6 * 3600 ? what + " · " + melb(next.at) : what + " in " + clock(secs);
+    msg.textContent = hot && !next.label ? "BET NOW · R" + next.n + " in " + clock(secs) : far;
     msg.setAttribute("href", next.href || "/race/" + next.n);
     bar.classList.toggle("hot", hot);
     if (hot) fire(next);

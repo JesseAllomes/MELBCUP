@@ -103,6 +103,24 @@ def local_time(dt: datetime | None) -> str:
     return f"{t.hour % 12 or 12}:{t.minute:02d}{'am' if t.hour < 12 else 'pm'}"
 
 
+def when(value) -> str:
+    """A Melbourne day and time: "Today 11:00am", "Tomorrow 11:00am" or "Thu 6 Nov 11:00am".
+    Takes a datetime or an ISO string (as PointsBet and ESPN send them)."""
+    if not value:
+        return "–"
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return value
+    t = value.astimezone(MELBOURNE)
+    days = (t.date() - melbourne_today()).days
+    lead = {0: "Today", 1: "Tomorrow", -1: "Yesterday"}.get(days)
+    if lead is None:
+        lead = f"{t.strftime('%a')} {t.day} {t.strftime('%b')}"
+    return f"{lead} {local_time(t)}"
+
+
 # Dates without strftime's "%-d", which the browser build's C library does not support.
 def day(d: date) -> str:
     return f"{d:%a} {d.day} {d:%b}"
@@ -311,9 +329,8 @@ def make_env(new_ui: bool = False) -> Environment:
         price=racecard.price_text,
         jump=racecard.jump,
         pills=racecard.pills,
-        iso_time=lambda text: (
-            local_time(datetime.fromisoformat(text.replace("Z", "+00:00"))) if text else ""
-        ),
+        iso_time=when,
+        when=when,
         before=lambda dt, minutes: local_time(dt - timedelta(minutes=minutes)) if dt else "",
     )
     return env

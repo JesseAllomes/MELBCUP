@@ -6,10 +6,10 @@
 {% set v = nba %}{% set rep = nba_rep %}
 <section class="card nba-head">
   <h2>NBA player props</h2>
-  <small>{% if v.board %}{{ v.board.games | length }} games tonight (US) · {{ v.games or 0 }} with PointsBet lines · {% endif %}{% if v.priced_at %}prices {{ v.priced_at | local_time }}{% endif %}</small>
+  <small>{% if v.board %}{{ v.board.games | length }} games, first tip-off {{ (v.board.games | map(attribute='when') | select | min) | when }} · {{ v.games or 0 }} with PointsBet lines · {% endif %}{% if v.priced_at %}prices {{ v.priced_at | when }}{% endif %}</small>
   {% if v.error %}<p class="note warn">{{ v.error }}</p>{% endif %}
   {% if v.stale %}<p class="note warn">The model's board is from {{ v.board.day }}: today's has not been built yet, so no game matches.</p>{% endif %}
-  {% if v.source == 'bundled' %}<p class="note">Model board built in advance and shipped with the app; the daily Azure job takes over once it is switched on.</p>{% endif %}
+  {% if v.source == 'bundled' %}<p class="note">Using the model board shipped with the app: Azure's daily board could not be read just now.</p>{% endif %}
 </section>
 
 {% if rep %}
@@ -92,7 +92,7 @@
     <button type="submit" name="ch" value="won" class="won">Won</button>
     <button type="submit" name="ch" value="lost" class="lost">Lost</button>
   </form>
-  {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | local_time }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
+  {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | when }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
   <p class="note">A win pays back into {{ ag.name }}; a loss ends the run.{% if ch.get('keep', True) and not ch.steps %} After this win ${{ '%.0f' % ch.start }} goes back to your pool and the rest rolls on.{% endif %}</p>
   {% elif ch_step %}{% set m = ch_step %}
   <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b><span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>
@@ -113,7 +113,7 @@
   {% endif %}{% endfor %}
   {% endif %}
   {% elif ch_wait %}
-  <p class="say">Next stage: {% if ch_wait.night %}the next game day (after this night's {{ ch.get('per_night', 1) }} stage{{ 's' if ch.get('per_night', 1) != 1 }}). PointsBet posts its lines that morning{% else %}a game tipping off after <b>{{ ch_wait.after | local_time }}</b>, so this result is in and there is time to place it. None on tonight's card pays {{ '%.1f' % ch_x }}x yet{% endif %}.</p>
+  <p class="say">Next stage: {% if ch_wait.night %}the next game day (after this night's {{ ch.get('per_night', 1) }} stage{{ 's' if ch.get('per_night', 1) != 1 }}). PointsBet posts its lines that morning{% else %}a game tipping off after <b>{{ ch_wait.after | when }}</b>, so this result is in and there is time to place it. None on tonight's card pays {{ '%.1f' % ch_x }}x yet{% endif %}.</p>
   {% else %}
   <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': PointsBet needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
   {% endif %}

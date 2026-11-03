@@ -34,7 +34,7 @@
   {% if countdown %}
   {% set first = countdown[0] %}
   <div class="alertbar" id="alertbar" role="status">
-    <a class="ab-msg" href="{{ first.href or '/race/' ~ first.n }}">{{ first.label or 'R' ~ first.n ~ ' jumps' }} in {{ '%d:%02d' % (first.left // 60, first.left % 60) if first.left < 3600 else '%d:%02d:%02d' % (first.left // 3600, first.left % 3600 // 60, first.left % 60) }}</a>
+    <a class="ab-msg" href="{{ first.href or '/race/' ~ first.n }}">{{ first.label or 'R' ~ first.n ~ ' jumps' }}{% if first.left > 21600 %} · {{ first.t | when }}{% else %} in {{ '%d:%02d' % (first.left // 60, first.left % 60) if first.left < 3600 else '%d:%02d:%02d' % (first.left // 3600, first.left % 3600 // 60, first.left % 60) }}{% endif %}</a>
     <button type="button" class="ab-alerts" hidden>Alerts</button>
   </div>
   <script type="application/json" id="alert-data">{{ countdown | tojson }}</script>
