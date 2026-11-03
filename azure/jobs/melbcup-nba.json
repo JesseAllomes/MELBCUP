@@ -1,0 +1,52 @@
+{
+  "name": "melbcup-nba",
+  "location": "Australia East",
+  "identity": {
+    "type": "UserAssigned",
+    "userAssignedIdentities": {
+      "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourcegroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq": {}
+    }
+  },
+  "properties": {
+    "environmentId": "ENVIRONMENT_ID",
+    "workloadProfileName": "Consumption",
+    "configuration": {
+      "triggerType": "Schedule",
+      "replicaTimeout": 300,
+      "replicaRetryLimit": 0,
+      "scheduleTriggerConfig": {
+        "cronExpression": "30 22 * * *",
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "registries": [
+        {
+          "identity": "",
+          "passwordSecretRef": "ghcr-token",
+          "server": "ghcr.io",
+          "username": "JesseAllomes"
+        }
+      ],
+      "secrets": [
+        {
+          "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq",
+          "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/ghcr-publish-token",
+          "name": "ghcr-token"
+        }
+      ]
+    },
+    "template": {
+      "containers": [
+        {
+          "name": "nba",
+          "image": "IMAGE",
+          "env": [
+            {"name": "AZURE_CLIENT_ID", "value": "519729c8-1505-4e6b-b7cc-85c29cfc38d5"},
+            {"name": "NBA_ACCOUNT", "value": "stpersonalv5ethud2i3cfq"}
+          ],
+          "resources": {"cpu": 1.0, "memory": "2Gi"}
+        }
+      ]
+    }
+  }
+}

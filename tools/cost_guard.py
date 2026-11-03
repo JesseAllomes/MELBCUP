@@ -16,10 +16,14 @@ Rules (function checks only; the limits file is owner-approved, see C10):
   C10  ratchet: no limit may be loosened against the base ref (unless LIMITS_APPROVED=1)
   C11  web container app (azure/webapp/melbcup-web.json): scale to zero, one replica, 0.25 vCPU /
        0.5 GiB, Consumption profile only, no plain-HTTP external ingress, single revision
+  C12  Container Apps jobs (azure/jobs/*.json): only the allowed jobs, scheduled, runs per day,
+       replica timeout, cpu / memory, no retries or parallel replicas, no secrets but the
+       registry token; worst case (every run uses its whole timeout) is added to the C3 total
 
 --live takes the exports written by the deploy workflow, told apart by file name:
   *functionapp* (az functionapp show), *appsettings* (names, maybe values), *inventory*
-  (az resource list), *containerapp* (GET of the Microsoft.App/containerApps resource: C11).
+  (az resource list), *containerapp* (GET of the Microsoft.App/containerApps resource: C11),
+  *job-* (GET of a Microsoft.App/jobs resource: C12).
 """
 
 from __future__ import annotations
@@ -269,6 +273,78 @@ def check_container_app(rep: Report, limits: dict, doc, where: str) -> tuple[flo
     cpu = min(cpu, cfg["max_cpu"]) if cpu else cfg["max_cpu"]
     memory = min(memory, cfg["max_memory_gib"]) if memory else cfg["max_memory_gib"]
     return cpu, memory, high
+
+
+# ---------------------------------------------------------------- C12
+
+
+def check_job(rep: Report, limits: dict, doc, where: str) -> float:
+    """C12 on a job spec or live export. Returns the job's worst-case month (USD, no free grant)."""
+    jobs = limits.get("jobs") or {}
+    allowed = jobs.get("allowed") or {}
+    name = doc.get("name")
+    cfg = allowed.get(name)
+    if cfg is None:
+        rep.fail("C12", where, f"job {name!r} is not in jobs.allowed")
+        return 0.0
+    props = doc.get("properties", doc)
+    conf = props.get("configuration") or {}
+    if conf.get("triggerType") != "Schedule":
+        rep.fail("C12", where, f"triggerType {conf.get('triggerType')!r} must be Schedule")
+    sched = conf.get("scheduleTriggerConfig") or {}
+    try:
+        runs = fires_per_day(sched.get("cronExpression") or "")
+    except ConfigError as exc:
+        rep.fail("C12", where, str(exc))
+        runs = cfg["max_runs_per_day"]
+    if runs > cfg["max_runs_per_day"]:
+        rep.fail("C12", where, f"cron fires {runs}/day > {cfg['max_runs_per_day']}")
+    for key in ("parallelism", "replicaCompletionCount"):
+        if sched.get(key, 1) != 1:
+            rep.fail("C12", where, f"{key} {sched.get(key)!r} must be 1")
+    if conf.get("replicaRetryLimit", 1) != 0:
+        rep.fail("C12", where, "replicaRetryLimit must be 0 (a retry doubles the run)")
+    timeout = conf.get("replicaTimeout")
+    if not isinstance(timeout, int) or timeout > cfg["max_replica_timeout_s"]:
+        rep.fail(
+            "C12", where, f"replicaTimeout {timeout!r} must be <= {cfg['max_replica_timeout_s']}"
+        )
+        timeout = cfg["max_replica_timeout_s"]
+    secrets = [x.get("name") for x in conf.get("secrets") or []]
+    if [x for x in secrets if x != "ghcr-token"]:
+        rep.fail(
+            "C12", where, f"secrets {secrets!r}: only the registry token ghcr-token is allowed"
+        )
+    containers = (props.get("template") or {}).get("containers") or []
+    if not containers:
+        rep.fail("C12", where, "template.containers is empty or missing")
+    cpu = sum(parse_cpu((c.get("resources") or {}).get("cpu")) or 99 for c in containers)
+    mem = sum(parse_gib((c.get("resources") or {}).get("memory")) or 99 for c in containers)
+    if cpu > cfg["max_cpu"]:
+        rep.fail("C12", where, f"cpu {cpu:g} must be <= {cfg['max_cpu']:g}")
+    if mem > cfg["max_memory_gi"]:
+        rep.fail("C12", where, f"memory {mem:g}Gi must be <= {cfg['max_memory_gi']:g}Gi")
+    for c in containers:
+        for env in c.get("env") or []:
+            if "secretRef" in env:
+                rep.fail("C12", where, f"env {env.get('name')!r} reads a secret")
+    prices = limits["prices"]
+    seconds = runs * 30 * timeout
+    cpu, mem = min(cpu, cfg["max_cpu"]), min(mem, cfg["max_memory_gi"])
+    return seconds * (cpu * prices["aca_vcpu_s"] + mem * prices["aca_gib_s"])
+
+
+def check_jobs(rep: Report, limits: dict, root: Path) -> float:
+    total = 0.0
+    seen = set()
+    for path in sorted((root / "azure" / "jobs").glob("*.json")):
+        doc = load_json(path)
+        seen.add(doc.get("name"))
+        total += check_job(rep, limits, doc, str(path.relative_to(root)))
+    for name in (limits.get("jobs") or {}).get("allowed") or {}:
+        if name not in seen:
+            rep.info.append(f"allowed job {name} has no spec in azure/jobs/")
+    return total
 
 
 # ---------------------------------------------------------------- C3, C4 checks
@@ -758,7 +834,8 @@ def check_workflows(rep: Report, limits: dict, root: Path) -> None:
 # ---------------------------------------------------------------- C10
 
 
-GRANT_PATHS = ("function.allowed_functions", "workflows.workflow_run_allowed")
+GRANT_PATHS = ("function.allowed_functions", "workflows.workflow_run_allowed", "jobs.allowed")
+TOP_GRANTS = ("jobs",)  # a new top-level section that grants spending
 
 
 def loosened(old, new, path: str = "") -> list[str]:
@@ -769,7 +846,7 @@ def loosened(old, new, path: str = "") -> list[str]:
         for key, value in new.items():
             sub = f"{path}.{key}" if path else key
             if key not in old:
-                if path in GRANT_PATHS:
+                if path in GRANT_PATHS or (not path and key in TOP_GRANTS):
                     out.append(f"{sub} was added")
                 continue
             out.extend(loosened(old[key], value, sub))
@@ -807,6 +884,8 @@ def check_live(rep: Report, limits: dict, files: list[str], now: dt.datetime) ->
         lowered = path.name.lower()
         if "containerapp" in lowered:
             check_container_app(rep, limits, doc, name)
+        elif lowered.startswith("job-"):
+            check_job(rep, limits, doc, name)
         elif "appsettings" in lowered or "settings" in lowered:
             entries = doc if isinstance(doc, list) else doc.get("value", [])
             names = [e["name"] if isinstance(e, dict) else str(e) for e in entries]
@@ -869,9 +948,13 @@ def run(args) -> Report:
         container_cost(limits, cpu, memory_gib, replicas), 2
     )
 
+    rep.costs["jobs_worst_case_month"] = round(check_jobs(rep, limits, root), 2)
     budget = limits["budget_usd_month"]
     total = round(
-        rep.costs["function_window_worst_case"] + rep.costs["container_app_worst_case_month"], 2
+        rep.costs["function_window_worst_case"]
+        + rep.costs["container_app_worst_case_month"]
+        + rep.costs["jobs_worst_case_month"],
+        2,
     )
     rep.costs["total_worst_case"] = total
     if total > budget["total"]:
@@ -880,7 +963,8 @@ def run(args) -> Report:
             "azure/limits.json",
             f"worst-case total ${total} (function window "
             f"${rep.costs['function_window_worst_case']} + container app "
-            f"${rep.costs['container_app_worst_case_month']}) > budget ${budget['total']}",
+            f"${rep.costs['container_app_worst_case_month']} + jobs "
+            f"${rep.costs['jobs_worst_case_month']}) > budget ${budget['total']}",
         )
     if rep.costs["function_full_scale_month"] > budget["hard_cap_function"]:
         rep.fail(

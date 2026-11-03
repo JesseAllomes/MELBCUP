@@ -6,6 +6,8 @@
 #            azure/webapp/melbcup-web.json (scale to zero after 3 h idle, 1 replica max, 0.25 vCPU / 0.5 GiB).
 #            It skips the PUT until the owner's keys are in Key Vault: while the app does not exist yet,
 #            the PUT only runs once the file azure/webapp/ENABLED is committed.
+# nbajob  -> builds the NBA job image (Dockerfile.nba) into ghcr.io, then PUTs azure/jobs/melbcup-nba.json
+#            (one run a day, 300 s cap, 1 vCPU / 2 GiB; checked by cost_guard C12 before and after).
 # This workflow never touches COLLECTOR_DISABLED: the owner flips that switch by hand.
 name: azure-deploy
 on:
@@ -17,6 +19,8 @@ on:
       - "melbcup/**"
       - "pyproject.toml"
       - "Dockerfile"
+      - "Dockerfile.nba"
+      - "tools/nba/**"
       - "azure/webapp/**"
       - "tools/cost_guard.py"
       - "tools/cost_guard_inventory.py"
@@ -41,6 +45,8 @@ env:
   WEBAPP: melbcup-web
   WEBAPP_ENVIRONMENT: cae-personal-v5ethud2i3cfq
   WEBAPP_IMAGE: ghcr.io/jesseallomes/melbcup-web
+  NBA_IMAGE: ghcr.io/jesseallomes/melbcup-nba
+  NBA_JOB_URL: https://management.azure.com/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/jobs/melbcup-nba?api-version=2025-01-01
   WEBAPP_URL: https://management.azure.com/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/containerApps/melbcup-web?api-version=2025-01-01
 jobs:
   guard:
@@ -119,7 +125,7 @@ jobs:
         run: |
           rm -rf build/pkg
           mkdir -p build/pkg/tools
-          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_props.py azure/function/host.json azure/function/requirements.txt build/pkg/
+          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_props.py azure/function/nba_legs.py azure/function/host.json azure/function/requirements.txt build/pkg/
           cp tools/live_collector.py build/pkg/tools/live_collector.py
           touch build/pkg/tools/__init__.py
           pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages
@@ -221,3 +227,69 @@ jobs:
           mkdir -p live
           az rest --method get --url "$WEBAPP_URL" -o json > live/containerapp.json
           python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/containerapp.json
+
+  nbajob:
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the NBA image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.nba
+          push: true
+          provenance: false
+          tags: |
+            ${{ env.NBA_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.NBA_IMAGE }}:latest
+      - uses: azure/login@v2
+        with:
+          client-id: 7ab2c182-e73b-4027-b30b-9cb9ddc841f7
+          tenant-id: f1575bc8-e389-49bf-8ab0-31155227f4c3
+          subscription-id: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
+      - name: Put the NBA job
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          test -n "$DIGEST"
+          ENVIRONMENT_ID=$(az resource show --resource-group "$RESOURCE_GROUP" --resource-type Microsoft.App/managedEnvironments --name "$WEBAPP_ENVIRONMENT" --query id -o tsv)
+          test -n "$ENVIRONMENT_ID"
+          mkdir -p build
+          jq --arg image "$NBA_IMAGE@$DIGEST" --arg env "$ENVIRONMENT_ID" '
+            walk(if . == "IMAGE" then $image elif . == "ENVIRONMENT_ID" then $env else . end) | del(.name)
+          ' azure/jobs/melbcup-nba.json > build/melbcup-nba.put.json
+          if grep -Eq '"(IMAGE|ENVIRONMENT_ID)"' build/melbcup-nba.put.json; then echo "unsubstituted placeholder"; exit 1; fi
+          az rest --method put --url "$NBA_JOB_URL" --headers "Content-Type=application/json" --body @build/melbcup-nba.put.json -o none
+          for attempt in $(seq 1 30); do
+            state=$(az rest --method get --url "$NBA_JOB_URL" --query properties.provisioningState -o tsv)
+            echo "provisioningState: $state"
+            case "$state" in
+              Succeeded) break ;;
+              Failed|Canceled) exit 1 ;;
+            esac
+            sleep 10
+          done
+          test "$state" = "Succeeded"
+      - name: Live check of the NBA job
+        run: |
+          mkdir -p live
+          az rest --method get --url "$NBA_JOB_URL" -o json > live/job-melbcup-nba.json
+          python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/job-melbcup-nba.json

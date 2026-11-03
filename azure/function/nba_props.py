@@ -15,7 +15,11 @@ import json
 import time
 import urllib.parse
 import urllib.request
+from zoneinfo import ZoneInfo
 
+import nba_legs
+
+NY = ZoneInfo("America/New_York")
 PB = "https://api.au.pointsbet.com/api/mes/v3"
 NBA = "7176"
 UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"
@@ -36,15 +40,21 @@ def slim_market(m: dict) -> dict:
         "class": m.get("eventClass"),
         "group": m.get("groupName"),
         "outcomes": [
-            {k: o.get(k) for k in ("name", "price", "points", "playerId", "side", "teamId")}
+            {
+                k: o.get(k)
+                for k in ("name", "price", "points", "playerId", "side", "teamId", "unitType")
+            }
             for o in m.get("outcomes") or []
             if o.get("isOpenForBetting", True)
         ],
     }
 
 
-def collect(container, now: dt.datetime, budget_s: float = 45.0) -> tuple[int, int]:
-    """Save changed game snapshots. Returns (games seen, snapshots written)."""
+def collect(
+    container, now: dt.datetime, budget_s: float = 45.0, keep: list | None = None
+) -> tuple[int, int]:
+    """Save changed game snapshots. Returns (games seen, snapshots written); every snapshot fetched
+    (changed or not) is appended to `keep` when given, for the legs step."""
     deadline = time.monotonic() + budget_s
     listing = get(f"{PB}/events/featured/competition/{NBA}?page=1")
     events = [e for e in listing.get("events", []) if not e.get("isLive")][:MAX_GAMES]
@@ -61,6 +71,8 @@ def collect(container, now: dt.datetime, budget_s: float = 45.0) -> tuple[int, i
             "startsAt": e.get("startsAt"),
             "markets": [slim_market(m) for m in markets],
         }
+        if keep is not None:
+            keep.append(snap)
         digest = hashlib.sha256(json.dumps(snap, sort_keys=True).encode()).hexdigest()
         base = f"{now:%Y-%m-%d}/{key}"
         last = container.get_blob_client(f"{base}/last.sha")
@@ -74,3 +86,44 @@ def collect(container, now: dt.datetime, budget_s: float = 45.0) -> tuple[int, i
         last.upload_blob(digest.encode(), overwrite=True)
         written += 1
     return len(events), written
+
+
+def price_legs(nba, snaps: list[dict], now: dt.datetime) -> str:
+    """Turn this run's prices into legs and multis with the day's board (written each morning by the
+    melbcup-nba job). Games that have started drop out of PointsBet's list, so their legs from the
+    last run before tip-off are carried forward: settling needs every leg that was offered."""
+    try:
+        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
+    except Exception:  # no board yet
+        return "no board"
+    day = now.astimezone(NY).strftime("%Y%m%d")
+    if board.get("day") != day:
+        return f"board is for {board.get('day')}, not {day}"
+    events = [
+        {
+            "event": s["event"],
+            "name": s["name"],
+            "startsAt": s.get("startsAt"),
+            "markets": [
+                {"group": m.get("group"), "outcomes": m.get("outcomes") or []} for m in s["markets"]
+            ],
+        }
+        for s in snaps
+    ]
+    res = nba_legs.report(board, events)
+    try:
+        prior = json.loads(nba.get_blob_client(f"{day}/legs.json").download_blob().readall())
+    except Exception:  # first run of the day
+        prior = {}
+    now_events = {e["event"] for e in events}
+    res["all_legs"] += [g for g in prior.get("all_legs", []) if g["event"] not in now_events]
+    res["closed_value_legs"] = [
+        g
+        for g in prior.get("value_legs", []) + prior.get("closed_value_legs", [])
+        if g["event"] not in now_events
+    ]
+    res["pricedAt"] = now.isoformat()
+    body = json.dumps(res).encode()
+    nba.get_blob_client(f"{day}/legs.json").upload_blob(body, overwrite=True)
+    nba.get_blob_client("legs-latest.json").upload_blob(body, overwrite=True)
+    return f"{day}: {res['legs_seen']} legs, {len(res['value_legs'])} value, {res['verdict']}"

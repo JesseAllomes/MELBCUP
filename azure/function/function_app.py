@@ -205,8 +205,15 @@ def nba_props_run(timer: func.TimerRequest) -> None:
         container.create_container()
     except ResourceExistsError:
         pass
-    games, written = nba_props.collect(container, moment)
-    logging.info("nba props: %d games, %d snapshots", games, written)
+    snaps: list[dict] = []
+    games, written = nba_props.collect(container, moment, keep=snaps)
+    nba = blobs().get_container_client("nba")
+    try:
+        nba.create_container()
+    except ResourceExistsError:
+        pass
+    legs = nba_props.price_legs(nba, snaps, moment)
+    logging.info("nba props: %d games, %d snapshots; legs %s", games, written, legs)
 
 
 def take_start_slot(moment: dt.datetime) -> bool:

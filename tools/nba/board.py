@@ -34,21 +34,18 @@ def chance(mu, phi, ca, cb, k):
     return float(1 / (1 + np.exp(-(ca * np.log(p / (1 - p)) + cb))))
 
 
-def main():
-    boxdir, day, out = sys.argv[1], sys.argv[2], sys.argv[3]
-    games = load(boxdir)
-    names = {}
+def make_board(games, day, scoreboard, injuries, v3):
+    """Price the day's fixtures. games: history from tune.load (or an equivalent list), oldest first."""
+    names, team_now = {}, {}
     recent = defaultdict(list)  # team -> list of (when, players) oldest first
     for when, _season, players in games:
         for t in {p["team"] for p in players}:
             recent[t].append((when, [p for p in players if p["team"] == t]))
         for p in players:
-            names[p["id"]] = p.get("name")
-    board = get(f"{API}/scoreboard?dates={day}")
-    inj = get(f"{API}/injuries")
-    out_names = {i["athlete"]["displayName"] for t in inj.get("injuries", []) for i in t.get("injuries", []) if str(i.get("status", "")).lower() == "out"}
+            names[p["id"]] = p.get("name"); team_now[p["id"]] = p["team"]  # a traded player counts for his latest team only
+    out_names = {i["athlete"]["displayName"] for t in injuries.get("injuries", []) for i in t.get("injuries", []) if str(i.get("status", "")).lower() == "out"}
     fixtures = []
-    for ev in board.get("events", []):
+    for ev in scoreboard.get("events", []):
         comp = ev["competitions"][0]
         teams = {c["homeAway"]: c["team"]["abbreviation"] for c in comp["competitors"]}
         players = []
@@ -60,14 +57,14 @@ def main():
                     seen[p["id"]] += 1
             starters = {p["id"] for p in (last5[-1][1] if last5 else []) if p.get("starter")}
             for pid, cnt in seen.items():
-                if cnt >= 2 and names.get(pid) not in out_names:
+                if cnt >= 2 and team_now.get(pid) == t and names.get(pid) not in out_names:
                     players.append({"id": pid, "team": t, "starter": pid in starters, "name": names.get(pid)})
         fixtures.append((ev["date"], "upcoming", players, ev["name"], teams))
-    allg = games + [(w, s, p) for w, s, p, _, _ in fixtures]
-    R = build(allg)
-    v3 = json.load(open(os.path.join(os.path.dirname(__file__), "model_v3.json")))
-    up = np.where(R["season"] == "upcoming")[0]
     res = {"day": day, "games": [{"name": n, "teams": t, "when": w} for w, _, _, n, t in fixtures], "params": {}, "players": []}
+    if not fixtures:
+        return res
+    R = build(games + [(w, s, p) for w, s, p, _, _ in fixtures])
+    up = np.where(R["season"] == "upcoming")[0]
     rows = {}
     for s in STATS:
         prm = v3[s]; hm, hr = prm["hl_minutes"], prm["hl_rate"]
@@ -84,8 +81,18 @@ def main():
                                                "starter": bool(R["starter"][ix]), "minutes": round(float(mins[i]), 1), "mu": {}})
             r["mu"][s] = round(float(mu[i]), 3)
     res["players"] = sorted(rows.values(), key=lambda r: (r["team"], -r["minutes"]))
+    return res
+
+
+def load_v3():
+    return json.load(open(os.path.join(os.path.dirname(__file__), "model_v3.json")))
+
+
+def main():
+    boxdir, day, out = sys.argv[1], sys.argv[2], sys.argv[3]
+    res = make_board(load(boxdir), day, get(f"{API}/scoreboard?dates={day}"), get(f"{API}/injuries"), load_v3())
     json.dump(res, open(out, "w"), indent=1)
-    print(f"{day}: {len(fixtures)} games, {len(rows)} players priced")
+    print(f"{day}: {len(res['games'])} games, {len(res['players'])} players priced")
     for r in res["players"][:6]:
         p = res["params"]["points"]
         print(f"  {r['team']} {r['name']:24} min {r['minutes']:5.1f} pts mu {r['mu']['points']:5.1f}  P(20+) {chance(r['mu']['points'], p['phi'], p['ca'], p['cb'], 20):.0%}")

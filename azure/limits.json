@@ -45,6 +45,13 @@
     "workload_profile": "Consumption",
     "assumed_requests_month": 100000
   },
+  "jobs": {
+    "_comment": "C12. Container Apps jobs for MELBCUP (azure/jobs/*.json). Worst case = runs/day x 30 x replicaTimeout x (cpu x aca_vcpu_s + memory x aca_gib_s), without the free grant, added to the C3 total. Adding a job or raising a number needs the owner (C10).",
+    "image_repository": "ghcr.io/jesseallomes/melbcup-nba",
+    "allowed": {
+      "melbcup-nba": {"max_runs_per_day": 1, "max_replica_timeout_s": 300, "max_cpu": 1.0, "max_memory_gi": 2}
+    }
+  },
   "allowed_resource_types": [
     "Microsoft.App/managedEnvironments/managedCertificates",
     "Microsoft.OperationalInsights/workspaces",
