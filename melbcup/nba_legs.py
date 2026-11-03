@@ -237,6 +237,16 @@ def by_game(legs, n=6):
     return sorted(out, key=lambda x: (x["startsAt"] or "", x["game"]))
 
 
+def stack_for(legs, target, stake=10.0, floor=0.5):
+    """The likeliest one-leg-per-game stack paying at least `target` times the stake (or None)."""
+    by_game = {}
+    for g in legs:
+        if g["chance"] >= floor and g["price"] > 1.0:
+            by_game.setdefault(g["event"], []).append(g)
+    picks = best_stack([frontier(gs) for gs in by_game.values()], target)
+    return ({"target": target} | multi(picks, stake)) if picks else None
+
+
 def stacks(legs, stake=10.0, floor=0.5):
     """For each payout target, the most likely stack: across games (one leg per game, a normal
     multi) and inside one game (one leg per player, a same-game multi)."""

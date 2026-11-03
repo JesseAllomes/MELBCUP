@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
+from melbcup import nba_challenge
 from melbcup.archive import Archive
 from melbcup.autobet import BetError, Betting, PinError, start_loop
 from melbcup.config import Settings, load_settings
@@ -199,6 +200,14 @@ def create_app(
                 response.set_cookie(PB_COOKIE, f"{pb:g}", **keep)
             else:
                 response.delete_cookie(PB_COOKIE)
+        if settings.asynym and path == "nba" and "ch" in query:  # the $10 -> $1000 challenge
+            state = nba_challenge.apply(
+                nba_challenge.parse(request.cookies.get(nba_challenge.COOKIE)), query
+            )
+            if state is None:
+                response.delete_cookie(nba_challenge.COOKIE)
+            else:
+                response.set_cookie(nba_challenge.COOKIE, nba_challenge.dump(state), **keep)
         if settings.asynym:  # ASYNYM=1: which agencies are ON, and TAB, Ladbrokes, Neds money
             for name, value in asynym.cookie_changes(query).items():
                 if value is None:

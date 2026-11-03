@@ -352,6 +352,22 @@ class Views:
         self.env = make_env(settings.asynym)
         self._nba = None  # NbaFeed, made on the first visit to /nba
 
+    @staticmethod
+    def _challenge(query: Mapping[str, str], ctx: dict) -> dict:
+        """The $10 -> $1000 challenge (cookie on the phone; app.py saves the change)."""
+        try:
+            from melbcup import nba_challenge, nba_legs
+        except ImportError:  # the phone's offline copy leaves the NBA code out
+            return {"ch": None, "ch_step": None}
+        state = nba_challenge.apply(
+            nba_challenge.parse(ctx["cookies"].get(nba_challenge.COOKIE)), query
+        )
+        step = None
+        if state is not None:
+            legs = (ctx["nba_rep"] or {}).get("all_legs") or []
+            step = nba_legs.stack_for(legs, nba_challenge.next_x(state), stake=state["bank"])
+        return {"ch": state, "ch_step": step}
+
     def _nba_view(self, query: Mapping[str, str]) -> dict:
         try:
             from melbcup.nba_feed import NbaFeed
@@ -363,7 +379,7 @@ class Views:
             self._nba = NbaFeed()
         v = self._nba.view()
         tab = query.get("tab")
-        tab = tab if tab in ("stacks", "games", "same", "all") else "stacks"
+        tab = tab if tab in ("stacks", "challenge", "games", "same", "all") else "stacks"
         rep = v.get("report") or {}
         games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
         return {"nba": v, "nba_tab": tab, "nba_rep": rep, "nba_games": games}
@@ -462,6 +478,7 @@ class Views:
     ) -> str:
         """HTML for a page path; raises NotFound. ``cookies`` carries the remembered budget."""
         ctx = self._context(path, query, cookies)
+        ctx["cookies"] = cookies or {}
         if self.settings.asynym and path != "/history":
             return self._asynym_page(path, query, ctx)
         if path == "/":
@@ -515,6 +532,7 @@ class Views:
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
             ctx.update(self._nba_view(query))
+            ctx.update(self._challenge(query, ctx))
             return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))

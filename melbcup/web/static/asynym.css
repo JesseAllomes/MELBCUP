@@ -369,3 +369,10 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .note.warn { color: var(--warn, #fbbf24); }
 .nba-head h2 { margin: 0 0 2px; font-size: 18px; }
 .nba-head > small { color: var(--muted); font-size: 12px; }
+.ch-bar { height: 8px; border-radius: 999px; background: var(--chip); overflow: hidden; margin: 6px 0 10px; }
+.ch-bar i { display: block; height: 100%; background: var(--good); }
+.ch-start, .ch-act { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.ch-start input, .ch-act input { width: 84px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--chip); color: inherit; font: inherit; }
+.ch-start button, .ch-act button { padding: 8px 14px; border-radius: 10px; border: 0; font-weight: 700; background: var(--brand); color: #fff; }
+.ch-act .won { background: var(--good); color: #0b1a12; }
+.ch-act .lost { background: var(--bad); color: #fff; }

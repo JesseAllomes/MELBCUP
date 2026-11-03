@@ -28,8 +28,8 @@
 {% endif %}
 
 <nav class="rtabs" aria-label="NBA tabs">
-  {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('games', 'By game', (rep.by_game or []) | length), ('same', 'Same game', rep.stacks_same | length), ('all', 'All lines', rep.all_legs | length)] %}
-  <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}<small>{{ n }}</small></a>
+  {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('challenge', 'Challenge', None), ('games', 'Games', (rep.by_game or []) | length), ('same', 'SGM', rep.stacks_same | length), ('all', 'All', rep.all_legs | length)] %}
+  <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}{% if n is not none %}<small>{{ n }}</small>{% endif %}</a>
   {% endfor %}
 </nav>
 
@@ -54,6 +54,40 @@
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
   <p class="note">Same-game multi: PointsBet prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
+</section>
+{% elif nba_tab == 'challenge' %}
+<section class="card nba-ch">
+  {% if not ch %}
+  <div class="vlabel">$10 → $1000 challenge</div>
+  <p class="say">Roll the whole bank into one multi a step, about 5x each time: three wins in a row turns $10 into $1000. One loss ends the run.</p>
+  <form method="get" action="/nba" class="ch-start">
+    <input type="hidden" name="tab" value="challenge"><input type="hidden" name="ch" value="start">
+    <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
+    <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
+    <button type="submit">Start</button>
+  </form>
+  {% else %}
+  {% set pct_done = ((ch.bank / ch.goal) * 100) | round(1) %}
+  <div class="vlabel">Step {{ ch.steps | length + 1 }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}</div>
+  <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [pct_done, 100] | min }}%"></i></div>
+  {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
+  {% if ch_step %}{% set m = ch_step %}
+  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b><span>{{ m.legs }}-leg multi · ${{ '%.2f' % m.price }} · one leg per game</span></div></div>
+  <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
+  <form method="get" action="/nba" class="ch-act">
+    <input type="hidden" name="tab" value="challenge"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+    <label>It paid $<input name="chr" inputmode="decimal" value="{{ '%.2f' % m.returns }}"></label>
+    <button type="submit" name="ch" value="won" class="won">Won</button>
+    <button type="submit" name="ch" value="lost" class="lost">Lost</button>
+  </form>
+  {% else %}
+  <p class="say">No stack reaches about {{ '%.0f' % (ch.goal / ch.bank if ch.goal / ch.bank < 5 else 5) }}x yet: PointsBet needs lines in at least 3 games. Check back closer to tip-off.</p>
+  {% endif %}
+  {% for st in ch.steps %}<p class="note">Step {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
+  <p class="note"><a href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a></p>
+  {% endif %}
+  {% if ch and ch.past %}<p class="note">Earlier runs: {% for r in ch.past[-8:] %}{{ '✓ $%.0f' % r.best if r.made_it else '✗ at step %d' % (r.steps + 1) }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+  <p class="note">Every step uses the multi most likely to pay about 5x, from the model's chances. Only stake what you are happy to lose.</p>
 </section>
 {% elif nba_tab == 'games' %}
 {% for gm in rep.by_game or [] %}
