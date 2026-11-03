@@ -72,3 +72,4 @@ resume uses `.agent/drainclamp-state.md` alone. This file is for forensics.
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 - 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
+- 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.

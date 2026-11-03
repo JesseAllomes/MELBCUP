@@ -17,7 +17,11 @@ on:
         description: "Race day to snapshot (YYYY-MM-DD), 'clear', or blank = unchanged"
         required: false
       check:
-        description: "List the saved snapshots"
+        description: "List the saved RaceLens snapshots"
+        type: boolean
+        default: false
+      probe:
+        description: "Print the latest NBA feed probe report"
         type: boolean
         default: false
 concurrency:
@@ -63,14 +67,38 @@ jobs:
           fi
           az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
             --query "[?starts_with(name, 'RACELENS')].{name:name, value:(name=='RACELENS_PASSWORD' && '***' || value)}" -o tsv
-      - name: Saved snapshots
-        if: inputs.check
+      - name: Read access to the stored data (owner approved 2026-11-03)
+        # Storage Blob Data Reader for this deploy login on the Function's storage account, once.
+        if: inputs.check || inputs.probe
+        id: sa
         run: |
           acct=$(az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
             --query "[?name=='AzureWebJobsStorage__accountName' || name=='AZURE_STORAGE_ACCOUNT_URL'].value | [0]" -o tsv)
           acct=${acct#https://}; acct=${acct%%.*}
-          echo "storage account: $acct"
-          az storage blob list --account-name "$acct" --container-name racelens --auth-mode login \
-            --query "[].{name:name, size:properties.contentLength, at:properties.lastModified}" -o table --num-results 60 \
-          || az storage blob list --account-name "$acct" --container-name racelens \
-            --query "[].{name:name, size:properties.contentLength, at:properties.lastModified}" -o table --num-results 60
+          echo "acct=$acct" >> "$GITHUB_OUTPUT"
+          scope=$(az storage account show --name "$acct" --query id -o tsv)
+          oid=$(az account get-access-token --query accessToken -o tsv | python3 -c "import sys,json,base64;p=sys.stdin.read().split('.')[1];print(json.loads(base64.urlsafe_b64decode(p+'='*(-len(p)%4)))['oid'])")
+          if [ -z "$(az role assignment list --assignee "$oid" --scope "$scope" --role 'Storage Blob Data Reader' --query '[0].id' -o tsv)" ]; then
+            az role assignment create --assignee-object-id "$oid" --assignee-principal-type ServicePrincipal \
+              --role "Storage Blob Data Reader" --scope "$scope" -o none
+            echo "granted Storage Blob Data Reader on $acct; waiting for it to take effect"
+            sleep 90
+          fi
+      - name: Saved snapshots
+        if: inputs.check
+        run: |
+          for i in 1 2 3 4; do
+            az storage blob list --account-name "${{ steps.sa.outputs.acct }}" --container-name racelens --auth-mode login \
+              --query "[].{name:name, size:properties.contentLength, at:properties.lastModified}" -o table --num-results 80 && break
+            sleep 30
+          done
+      - name: NBA probe report
+        if: inputs.probe
+        run: |
+          for i in 1 2 3 4; do
+            az storage blob download --account-name "${{ steps.sa.outputs.acct }}" --container-name nba-probe --name latest.json \
+              --auth-mode login --file probe.json -o none && break
+            sleep 30
+          done
+          python3 -c "import json;d=json.load(open('probe.json'));print(d['at']);[print(k, {x:v.get(x) for x in ('status','bytes','ms','error','words')}) for k,v in d['probes'].items()]"
+          python3 -c "import json;d=json.load(open('probe.json'));[print('---',k,(v.get('head') or '')[:300]) for k,v in d['probes'].items()]"
