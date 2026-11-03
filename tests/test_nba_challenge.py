@@ -83,6 +83,7 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         assert "$10 → $1000 challenge" in html and 'name="chkeep"' in html
         html = c.get("/nba?tab=challenge&ch=start&chmode=multi").text
         assert "Stage 1 of 3 · bank $10.00 of $1000" in html and "Mark as placed · $10.00" in html
+        assert 'name="chtip" value="2026-11-05T00:00:00Z"' in html  # the stage's tip-off travels with it
         html = c.get("/nba?tab=challenge&ch=place&chs=0&chag=pb&chp=5.36&chl=x").text
         assert "Placed: $10.00 at PointsBet" in html and 'value="53.60"' in html
         assert "$90" in html  # $100 at PointsBet, $10 out
@@ -105,3 +106,27 @@ def test_stages_set_the_payout_per_stage_and_rebalance():
     assert s["bank"] == 30.0 and C.remaining(s) == 4
     assert round(C.next_x(s), 2) == round((1000 / 30) ** 0.25, 2)  # the rest re-balance
     assert C.apply(None, {"ch": "start", "chn": "99"}, DAY)["stages"] == 3  # only 2-8
+
+
+def test_two_a_night_spaces_games_and_then_waits_for_the_next_night():
+    s = C.apply(None, {"ch": "start", "chpn": "2"}, DAY)
+    assert s["per_night"] == 2 and C.allowed(s, "2026-11-05T00:00:00Z")  # nothing played: anything
+    s = C.apply(C.apply(s, {"ch": "place", "chs": "0", "chp": "5", "chtip": "2026-11-05T00:00:00Z"}, DAY),
+                {"ch": "won", "chs": "0", "chr": "50"}, DAY)
+    assert not C.allowed(s, "2026-11-05T01:30:00Z")  # overlaps the first game
+    assert C.allowed(s, "2026-11-05T03:00:00Z")  # 3 h later: result in, time to place
+    s = C.apply(C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-05T03:00:00Z"}, DAY),
+                {"ch": "won", "chs": "1", "chr": "200"}, DAY)
+    assert not C.allowed(s, "2026-11-05T07:00:00Z")  # two done this night
+    assert C.allowed(s, "2026-11-06T00:00:00Z")  # the next game day
+
+
+def test_one_a_night_waits_and_the_chance_to_finish_grows_with_each_win():
+    s = C.apply(None, {"ch": "start"}, DAY)
+    assert round(C.finish_chance(0.34, s), 3) == round(0.34 ** 3, 3)
+    s = C.apply(C.apply(s, {"ch": "place", "chs": "0", "chp": "5", "chtip": "2026-11-05T00:00:00Z"}, DAY),
+                {"ch": "won", "chs": "0", "chr": "50"}, DAY)
+    assert round(C.finish_chance(0.34, s), 3) == round(0.34 ** 2, 3)
+    assert not C.allowed(s, "2026-11-05T05:00:00Z") and C.allowed(s, "2026-11-06T00:30:00Z")
+    placed = C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-06T00:30:00Z"}, DAY)
+    assert C.result_due(placed).isoformat() == "2026-11-06T03:00:00+00:00"

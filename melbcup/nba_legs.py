@@ -207,7 +207,10 @@ def multi(legs, stake):
         "ev": round(c * price - 1, 4),
         "returns": round(stake * price, 2),
         "picks": [g["label"] for g in legs],
-        "detail": [{k: g[k] for k in ("label", "chance", "price", "game", "team")} for g in legs],
+        "detail": [
+            {k: g.get(k) for k in ("label", "chance", "price", "game", "team", "startsAt")} for g in legs
+        ],
+        "tip": max((g.get("startsAt") or "" for g in legs), default=""),  # when the last leg tips off
     }
 
 

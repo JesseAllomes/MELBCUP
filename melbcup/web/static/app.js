@@ -106,17 +106,17 @@
     } catch (e) { /* no sound */ }
   }
   function fire(r) {
-    var key = "betnow:" + r.t + ":" + r.n;
+    var key = "betnow:" + r.t + ":" + (r.label || r.n);
     if (store("get", key)) return;
     store("set", key, "1");
     try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* no vibration */ }
     beep();
     try {
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("Bet now: R" + r.n + " jumps in 3 min");
+        new Notification(r.label ? r.label + (r.alert ? " in " + Math.round(r.alert / 60) + " min" : " now") : "Bet now: R" + r.n + " jumps in 3 min");
       }
     } catch (e) { /* no notifications */ }
-    var rk = "betnow-reload:" + r.t + ":" + r.n;
+    var rk = "betnow-reload:" + r.t + ":" + (r.label || r.n);
     if (!store("get", rk)) { store("set", rk, "1"); window.location.reload(); }
   }
   function tick() {
@@ -124,9 +124,11 @@
     for (var i = 0; i < races.length; i++) { if (races[i].at > now) { next = races[i]; break; } }
     if (!next) { bar.hidden = true; return; }
     bar.hidden = false;
-    var secs = Math.ceil((next.at - now) / 1000), hot = secs <= ALERT_AT;
-    msg.textContent = hot ? "BET NOW · R" + next.n + " in " + clock(secs) : "R" + next.n + " jumps in " + clock(secs);
-    msg.setAttribute("href", "/race/" + next.n);
+    var at = next.alert != null ? next.alert : ALERT_AT;
+    var secs = Math.ceil((next.at - now) / 1000), hot = secs <= at;
+    var what = next.label || ("R" + next.n + " jumps");
+    msg.textContent = hot && !next.label ? "BET NOW · R" + next.n + " in " + clock(secs) : what + " in " + clock(secs);
+    msg.setAttribute("href", next.href || "/race/" + next.n);
     bar.classList.toggle("hot", hot);
     if (hot) fire(next);
   }

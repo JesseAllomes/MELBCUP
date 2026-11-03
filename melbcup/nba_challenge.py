@@ -19,11 +19,17 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 COOKIE = "nba_challenge"
 MIN_X = 1.2
 STAGES = (2, 3, 4, 5, 6, 7, 8)
 DEFAULT_STAGES = 3
+PER_NIGHT = (1, 2)  # stages a night: 1 (one a game day) or 2 (an early game, then a later one)
+GAP = timedelta(hours=3)  # tip to tip on one night: ~2.5 h of game, ~30 min to settle and place
+GAME = timedelta(hours=2, minutes=30)  # a game's usual length, for "result due about"
+MELBOURNE = ZoneInfo("Australia/Melbourne")
 MAX_HISTORY = 20
 MAX_BETS = 40
 MODES = ("game", "multi")  # one game per stage (a same-game multi), or one leg per game
@@ -51,15 +57,16 @@ def _money(text: str | None) -> float | None:
     return v if 0 < v < 1_000_000 else None
 
 
-def fresh(start=10.0, goal=1000.0, past=None, mode="game", keep=True, bets=None, stages=DEFAULT_STAGES) -> dict:
+def fresh(start=10.0, goal=1000.0, past=None, mode="game", keep=True, bets=None, stages=DEFAULT_STAGES, per_night=1) -> dict:
     return {"start": start, "goal": goal, "bank": start, "steps": [], "past": past or [], "mode": mode,
-            "keep": keep, "kept": 0.0, "placed": None, "bets": bets or [], "stages": stages}
+            "keep": keep, "kept": 0.0, "placed": None, "bets": bets or [], "stages": stages, "per_night": per_night}
 
 
 def _again(state: dict, **extra) -> dict:
     """A new run with the same settings, history and bet log."""
     return fresh(state["start"], state["goal"], state.get("past", []), state.get("mode", "game"),
-                 state.get("keep", True), state.get("bets", []), state.get("stages", DEFAULT_STAGES)) | extra
+                 state.get("keep", True), state.get("bets", []), state.get("stages", DEFAULT_STAGES),
+                 state.get("per_night", 1)) | extra
 
 
 def _settle(state: dict, result: str, returned: float = 0.0) -> list:
@@ -85,10 +92,11 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         except ValueError:
             stages = DEFAULT_STAGES
         stages = stages if stages in STAGES else DEFAULT_STAGES
+        per_night = 2 if query.get("chpn") == "2" else 1
         old = state or {}
         if old.get("placed"):
             return state  # a placed stage settles first
-        return fresh(start, max(goal, start * 2), old.get("past", []), mode, keep, old.get("bets", []), stages)
+        return fresh(start, max(goal, start * 2), old.get("past", []), mode, keep, old.get("bets", []), stages, per_night)
     if state is None or act not in ("place", "won", "lost", "reset"):
         return state
     if query.get("chs") != str(len(state["steps"])):
@@ -100,7 +108,8 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             return state
         bet = {"id": max([b.get("id", 0) for b in state.get("bets", [])], default=0) + 1, "day": today,
                "ag": query.get("chag") or "sb", "stake": state["bank"], "price": _money(query.get("chp")),
-               "label": (query.get("chl") or "")[:120], "state": "placed", "ret": 0.0}
+               "label": (query.get("chl") or "")[:120], "state": "placed", "ret": 0.0,
+               "tip": (query.get("chtip") or "")[:32]}
         return state | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first
@@ -111,7 +120,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     if returned is None or returned <= state["placed"]["stake"]:
         return state
     bets = _settle(state, "won", returned)
-    steps = state["steps"] + [{"from": state["bank"], "to": returned}]
+    steps = state["steps"] + [{"from": state["bank"], "to": returned, "tip": state["placed"].get("tip", "")}]
     kept, bank = state.get("kept", 0.0), returned
     if state.get("keep", True) and not state["steps"]:  # first win: the starting stake goes back
         kept, bank = state["start"], round(returned - state["start"], 2)
@@ -134,6 +143,53 @@ def today_money(state: dict | None, today: str) -> tuple[dict[str, float], float
         elif b["state"] == "lost":
             profit -= b["stake"]
     return used, round(profit, 2)
+
+
+def _when(iso: str | None) -> datetime | None:
+    try:
+        return datetime.fromisoformat(str(iso).replace("Z", "+00:00")) if iso else None
+    except ValueError:
+        return None
+
+
+def night(when: datetime) -> str:
+    """A game's night: its Melbourne date (NBA games tip off in the Melbourne morning)."""
+    return when.astimezone(MELBOURNE).date().isoformat()
+
+
+def next_window(state: dict) -> tuple[datetime | None, str | None]:
+    """When the next stage's game may tip off: (no earlier than, and not on this night).
+    Two a night: the second game tips at least GAP after the first. Once a night's stages are
+    used, the next stage waits for a later night. Nothing played yet: no limit."""
+    tips = [_when(s.get("tip")) for s in state["steps"]]
+    tips = [t for t in tips if t]
+    if not tips:
+        return None, None
+    last = tips[-1]
+    same_night = sum(1 for t in tips if night(t) == night(last))
+    if state.get("mode", "game") == "game" and same_night < state.get("per_night", 1):
+        return last + GAP, None
+    return last + GAP, night(last)
+
+
+def allowed(state: dict, tip_iso: str | None) -> bool:
+    """May a game tipping at `tip_iso` be this stage's game?"""
+    earliest, not_night = next_window(state)
+    when = _when(tip_iso)
+    if when is None:
+        return earliest is None
+    return (earliest is None or when >= earliest) and (not_night is None or night(when) > not_night)
+
+
+def result_due(state: dict) -> datetime | None:
+    """About when the placed stage's game ends (tip + GAME)."""
+    tip = _when((state.get("placed") or {}).get("tip"))
+    return tip + GAME if tip else None
+
+
+def finish_chance(stage_chance: float | None, state: dict) -> float | None:
+    """The chance of winning every stage still to play, if each is about as likely as this one."""
+    return None if stage_chance is None else stage_chance ** remaining(state)
 
 
 def stage_x(start: float, goal: float, stages: int, keep: bool) -> float:

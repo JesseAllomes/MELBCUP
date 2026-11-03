@@ -311,9 +311,9 @@ def make_env(new_ui: bool = False) -> Environment:
         price=racecard.price_text,
         jump=racecard.jump,
         pills=racecard.pills,
-        iso_time=lambda text: local_time(datetime.fromisoformat(text.replace("Z", "+00:00")))
-        if text
-        else "",
+        iso_time=lambda text: (
+            local_time(datetime.fromisoformat(text.replace("Z", "+00:00"))) if text else ""
+        ),
         before=lambda dt, minutes: local_time(dt - timedelta(minutes=minutes)) if dt else "",
     )
     return env
@@ -388,18 +388,63 @@ class Views:
         preview = (
             [] if state is not None else self._stage_preview(legs_now, nba_challenge, nba_legs)
         )
-        step, games = None, []
+        step, games, wait = None, [], None
         if state is not None:
-            legs = (ctx["nba_rep"] or {}).get("all_legs") or []
             x = nba_challenge.next_x(state)
+            # only games this stage may use: spaced from tonight's earlier stage, or a later night
+            legs = [g for g in legs_now if nba_challenge.allowed(state, g.get("startsAt"))]
             if state.get("mode", "game") == "game":
                 games = nba_legs.same_game_for(legs, x, stake=state["bank"])
                 step = max(games, key=lambda m: m["chance"]) if games else None
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"])
-        return {"ch": state, "ch_step": step, "ch_games": games, "ch_preview": preview,
-                "ch_x": nba_challenge.next_x(state) if state else None,
-                "ch_left": nba_challenge.remaining(state) if state else None}
+            earliest, not_night = nba_challenge.next_window(state)
+            if not step and (earliest or not_night):
+                wait = {"after": earliest, "night": not_night}
+            n = len(state["steps"]) + 1
+            due = nba_challenge.result_due(state)
+            alerts = []
+            if due:
+                alerts.append(
+                    {
+                        "n": n,
+                        "t": due.isoformat(),
+                        "label": f"Stage {n} result due",
+                        "href": "/nba?tab=challenge",
+                        "alert": 0,
+                    }
+                )
+            elif step and step.get("startsAt"):
+                alerts.append(
+                    {
+                        "n": n,
+                        "t": step["startsAt"],
+                        "label": f"Stage {n} tips off",
+                        "href": "/nba?tab=challenge",
+                        "alert": 900,
+                    }
+                )
+            now = datetime.now(UTC)
+            for a in alerts:
+                when = datetime.fromisoformat(a["t"].replace("Z", "+00:00"))
+                if when > now:
+                    ctx["countdown"] = sorted(
+                        ctx["countdown"] + [a | {"left": int((when - now).total_seconds())}],
+                        key=lambda r: r["t"],
+                    )
+        return {
+            "ch": state,
+            "ch_step": step,
+            "ch_games": games,
+            "ch_preview": preview,
+            "ch_wait": wait,
+            "ch_finish": nba_challenge.finish_chance(step["chance"], state)
+            if (state and step)
+            else None,
+            "ch_due": nba_challenge.result_due(state) if state else None,
+            "ch_x": nba_challenge.next_x(state) if state else None,
+            "ch_left": nba_challenge.remaining(state) if state else None,
+        }
 
     def _stage_preview(self, legs, nba_challenge, nba_legs) -> list[dict]:
         """For each number of stages: the payout per stage ($10 -> $1000, start kept) and, on
@@ -422,8 +467,14 @@ class Views:
         try:
             from melbcup.nba_feed import NbaFeed
         except ImportError:  # the phone's offline copy (GitHub Pages) leaves the live NBA code out
-            v = {"board": None, "source": "", "stale": False, "games": 0, "priced_at": None,
-                 "error": "The NBA page needs the live site: open bet.asynym.dev."}
+            v = {
+                "board": None,
+                "source": "",
+                "stale": False,
+                "games": 0,
+                "priced_at": None,
+                "error": "The NBA page needs the live site: open bet.asynym.dev.",
+            }
             return {"nba": v, "nba_tab": "legs", "nba_rep": {}, "nba_games": {}}
         if self._nba is None:
             self._nba = NbaFeed()
@@ -485,9 +536,7 @@ class Views:
         kids_by_race: dict[int, list] = {}
         for k in kids:
             kids_by_race.setdefault(k.bet.race, []).append(k)
-        wal = wallet(
-            sb, bf, placed + [k.bet for k in kids] + [x.settled.bet for x in extras], pb
-        )
+        wal = wallet(sb, bf, placed + [k.bet for k in kids] + [x.settled.bet for x in extras], pb)
         if az is not None:
             az.apply_wallet(wal)
         # The header's "Today": only today's bets. A meeting from another day (yesterday's card
@@ -637,7 +686,8 @@ class Views:
             ctx["multi"] = asynym.race_multi(day, ctx["race"].number) if ctx["rc"].open else None
             ctx["rows"] = asynym.race_rows(day, race_call, snap.race_date)
             ctx["race_extras"] = [
-                x for x in ctx["extras"]
+                x
+                for x in ctx["extras"]
                 if x.bet.kind == "multi" and any(leg[0] == ctx["race"].number for leg in x.bet.legs)
             ]
             ctx["my_lines"] = self._my_lines(day, ctx["race"].number)
