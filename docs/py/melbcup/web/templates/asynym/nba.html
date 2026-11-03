@@ -93,7 +93,7 @@
   <form method="get" action="/nba" class="ch-act">
     <input type="hidden" name="tab" value="challenge"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <input type="hidden" name="chl" value="{{ (m.game ~ ': ' if one_game else '') ~ (m.picks | join(', ')) }}">
-    <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == 'pb' }}>{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
+    <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == ('sb' if 'sb' in az.codes_on else 'pb') }}>{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
   </form>

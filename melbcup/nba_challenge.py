@@ -92,7 +92,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         if state.get("placed"):
             return state
         bet = {"id": max([b.get("id", 0) for b in state.get("bets", [])], default=0) + 1, "day": today,
-               "ag": query.get("chag") or "pb", "stake": state["bank"], "price": _money(query.get("chp")),
+               "ag": query.get("chag") or "sb", "stake": state["bank"], "price": _money(query.get("chp")),
                "label": (query.get("chl") or "")[:120], "state": "placed", "ret": 0.0}
         return state | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):

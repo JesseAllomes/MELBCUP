@@ -11,20 +11,8 @@
 # This workflow never touches COLLECTOR_DISABLED: the owner flips that switch by hand.
 name: azure-deploy
 on:
-  push:
-    branches: [main]
-    paths:
-      - "azure/**"
-      - "tools/live_collector.py"
-      - "melbcup/**"
-      - "pyproject.toml"
-      - "Dockerfile"
-      - "Dockerfile.nba"
-      - "tools/nba/**"
-      - "azure/webapp/**"
-      - "tools/cost_guard.py"
-      - "tools/cost_guard_inventory.py"
-      - ".github/workflows/azure-*.yml"
+  # No push trigger (owner, 2026-11-04): deploys go straight to Azure with tools/deploy_azure.py.
+  # Started by hand only when an image needs a full rebuild (a dependency or Dockerfile change).
   workflow_dispatch:
     inputs:
       limits_approved:
