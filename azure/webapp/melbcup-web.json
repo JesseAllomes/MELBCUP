@@ -14,6 +14,11 @@
           "name": "cup.asynym.dev",
           "bindingType": "SniEnabled",
           "certificateId": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/managedEnvironments/cae-personal-v5ethud2i3cfq/managedCertificates/mc-cae-personal-v-cup-asynym-dev-7522"
+        },
+        {
+          "name": "bet.asynym.dev",
+          "bindingType": "SniEnabled",
+          "certificateId": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/managedEnvironments/cae-personal-v5ethud2i3cfq/managedCertificates/mc-bet-asynym-dev"
         }
       ]
     },
