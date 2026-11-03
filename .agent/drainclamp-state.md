@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=116 -->
+<!-- drainclamp-build: state; schema=1; generation=119 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -87,6 +87,10 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | pb1 | PointsBet as a third account (owner 2026-11-02): keep PointsBet win/place prices per runner, PB price pill, PointsBet day amount + wallet bar + placed tick, route each single to whichever of Sportsbet/Betfair/PointsBet pays most; Cup "Run 2nd, You Win" flagged. Behind POINTSBET=1 switch: off = app exactly as before | melbcup/;tests/ | done | ui3 |
 | pb2 | Promos are bets (owner 2026-11-02): PointsBet Run 2nd You Win (Cup) and Sportsbet R1-2 bonus back on 2nd/3rd valued robustly (offers.py scenarios); where a promo bet beats the race's normal win pick it becomes the Win bet, staked (capped at promo max stake) and routed to that bookmaker; behind PROMOS=1, off = as before | melbcup/;tests/ | pending | pb1 |
 | ui5 | Race-day layout (owner 2026-11-03): the app's final picks stay on each race after the jump, under the owner's own bets, settled WON/LOST; side-by-side layout per .grok/product-ui lock (wallets in one row, pick rows single-line where they fit) | melbcup/web/;tests/ | pending | ui3 |
+| st1 | Stable and fast (owner 2026-11-03): no crash or blank page when the browser is closed and reopened (reproduce first); page loads fast cold and warm (measured before/after, budgets set from the baseline) | melbcup/web/;melbcup/live.py;Dockerfile;azure/webapp/;tests/ | pending |  |
+| rl2 | Model inputs from RaceLens (owner 2026-11-03): add TAB fixed, Ladbrokes/Neds prices and cross-source scratchings to the consensus and routing; keep a source only if the head-to-head (tools/racelens/score.py) shows no loss in nats and a measurable price uplift | melbcup/sources/;melbcup/model/;tools/racelens/;tests/ | pending |  |
+| bl1 | Race verdict (owner 2026-11-03, replaces 'three picks whatever the price'): each race says TAKE THIS BET (named bet, positive edge under the robust offers check) or NOTHING WORTH TRYING HERE, which points to the open race with the best bet in its place | melbcup/bets/;melbcup/web/;tests/ | pending | rl2 |
+| ui6 | Redesign (owner 2026-11-03): product-ui pass with RaceLens' UI as the starting point; new lock in .grok/product-ui, then rebuild race and day pages on it; owner signs off the prototype before the build | .grok/product-ui/;melbcup/web/;tests/ | pending | bl1;st1 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -101,8 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-02T23:11:54+00:00 66667dc1 owner confirmed promo max stakes $50 (PointsBet Run 2nd, Sportsbet bonus back); no code change
-- 2026-11-02T23:23:58+00:00 576b918a pb2+: PointsBet Daily Booster (racing single: max stake x chance x (price-1) PB line marked) and Daily Pay Back any multi ($50, bonus 0.75, criteria ASSUMED 'multi loses'; best EV 2-3 leg PB multi, P>=0.25) shown when PROMOS+POINTSBET on and PB amount > 0; off path byte-identical (verified)
 - 2026-11-02T23:39:55+00:00 ab489ce4 pb2+: Betfair Cash Back 2nd (cash, every race, valued after 8% commission, max $50 ASSUMED, Betfair $5 min) as a promo bet; promo checks limited to the places each promo needs (exact, no 200k simulation): cold day page 34 s -> 0.2 s
 - 2026-11-02T23:44:09+00:00 05c28075 placed tick asks for the stake actually placed (pre-filled with the app's stake); one record per race+kind slot still (Sportsbet and Betfair Win on one race cannot both be ticked)
 - 2026-11-02T23:46:55+00:00 29bc789f each-way stake now shown as the bookmaker's unit ('$2 EW', '$4 total' under it): owner bet $4 EW (= $8) off the old total-only display; placed prompt for EW asks for the total
@@ -121,4 +123,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 - 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
 - 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.
+- 2026-11-03T08:42:50+00:00 d605d410 Owner 2026-11-03: st1 stability/speed, rl2 RaceLens inputs, bl1 take-this-bet verdict (supersedes three-picks rule), ui6 redesign from RaceLens UI. st1 first: it hurts today.
+- 2026-11-03T08:59:38+00:00 7fc89699 st1 part 1: web app stays up 3 h after the last request (cooldownPeriod 10800, ARM api 2025-01-01). Cold start 22 s remains only for the first open after 3 h idle. Warm render ~0.5 s server-side.
 <!-- /DC:LOG -->

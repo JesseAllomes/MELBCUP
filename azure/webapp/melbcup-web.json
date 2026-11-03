@@ -101,6 +101,7 @@
     ],
     "scale": {
       "minReplicas": 0,
+      "cooldownPeriod": 10800,
       "maxReplicas": 1,
       "rules": [
         {"name": "http", "http": {"metadata": {"concurrentRequests": "50"}}}

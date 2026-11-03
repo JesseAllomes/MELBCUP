@@ -3,7 +3,7 @@
 # deploy  -> builds one package (the repo's collector is copied in, so Azure and GitHub run the same file),
 #            checks the live app against azure/limits.json before and after, then publishes.
 # webapp  -> builds the FastAPI app image (Dockerfile) into ghcr.io, then PUTs the Container App spec in
-#            azure/webapp/melbcup-web.json (scale to zero, 1 replica max, 0.25 vCPU / 0.5 GiB).
+#            azure/webapp/melbcup-web.json (scale to zero after 3 h idle, 1 replica max, 0.25 vCPU / 0.5 GiB).
 #            It skips the PUT until the owner's keys are in Key Vault: while the app does not exist yet,
 #            the PUT only runs once the file azure/webapp/ENABLED is committed.
 # This workflow never touches COLLECTOR_DISABLED: the owner flips that switch by hand.
@@ -39,7 +39,7 @@ env:
   WEBAPP: melbcup-web
   WEBAPP_ENVIRONMENT: cae-personal-v5ethud2i3cfq
   WEBAPP_IMAGE: ghcr.io/jesseallomes/melbcup-web
-  WEBAPP_URL: https://management.azure.com/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/containerApps/melbcup-web?api-version=2024-03-01
+  WEBAPP_URL: https://management.azure.com/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.App/containerApps/melbcup-web?api-version=2025-01-01
 jobs:
   guard:
     runs-on: ubuntu-latest
