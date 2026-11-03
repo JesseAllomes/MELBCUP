@@ -36,10 +36,19 @@ def minutes(text: str | None) -> float:
 
 
 def load(boxdir: str):
+    """Games from <season>/<id>.json.gz: ESPN compact files (tools/nba/espn_history.py) or NBA CDN box scores."""
     games = []
     for f in glob.glob(os.path.join(boxdir, "*", "*.json.gz")):
-        g = json.loads(gzip.decompress(open(f, "rb").read()))["game"]
+        d = json.loads(gzip.decompress(open(f, "rb").read()))
+        season = os.path.basename(os.path.dirname(f))
         rows = []
+        if "players" in d:  # ESPN compact
+            for p in d["players"]:
+                if p["min"] > 0:
+                    rows.append((p["id"], p["min"], {k: p[k] for k in LINES}))
+            games.append((d["gameTimeUTC"], season, rows))
+            continue
+        g = d["game"]
         for side in ("homeTeam", "awayTeam"):
             for p in g[side]["players"]:
                 s = p.get("statistics") or {}
@@ -47,7 +56,7 @@ def load(boxdir: str):
                 if p.get("played") != "1" or mins <= 0:
                     continue
                 rows.append((p["personId"], mins, {k: s.get(k, 0) for k in LINES}))
-        games.append((g["gameTimeUTC"], os.path.basename(os.path.dirname(f)), rows))
+        games.append((g["gameTimeUTC"], season, rows))
     games.sort()
     return games
 
