@@ -16,6 +16,7 @@ fair by at least --min-ev (default +3%: a smaller gap is inside the model's own 
                 itself, so the fair price is what to compare its quote against.
 No qualifying legs means "nothing worth taking today", said plainly in OUT.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,17 +30,33 @@ import unicodedata
 import urllib.request
 
 PB = "https://api.au.pointsbet.com/api/mes/v3"
-UA = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148", "Accept": "application/json"}
-LEG = re.compile(r"^(?P<who>.+?) To (?:Score|Get|Have|Record|Make|Hit) (?P<k>\d+)\+ (?P<what>.+)$", re.I)
+UA = {
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+    "Accept": "application/json",
+}
+LEG = re.compile(
+    r"^(?P<who>.+?) To (?:Score|Get|Have|Record|Make|Hit) (?P<k>\d+)\+ (?P<what>.+)$", re.I
+)
 
 
 def chance(mu: float, phi: float, ca: float, cb: float, k: int) -> float:
     """Model chance of k or more: negative-binomial tail (mean mu, variance phi x mu), then the
     logistic calibration. Pure Python, equal to tools/nba/board.chance (scipy), so it runs in the
     Azure Function without numpy."""
-    mu = max(mu, 1e-6); phi = max(phi, 1.0001)
-    r = mu / (phi - 1); p = 1 / phi
-    below = sum(math.exp(math.lgamma(j + r) - math.lgamma(r) - math.lgamma(j + 1) + r * math.log(p) + j * math.log1p(-p)) for j in range(max(k, 0)))
+    mu = max(mu, 1e-6)
+    phi = max(phi, 1.0001)
+    r = mu / (phi - 1)
+    p = 1 / phi
+    below = sum(
+        math.exp(
+            math.lgamma(j + r)
+            - math.lgamma(r)
+            - math.lgamma(j + 1)
+            + r * math.log(p)
+            + j * math.log1p(-p)
+        )
+        for j in range(max(k, 0))
+    )
     t = min(max(1 - below, 1e-5), 1 - 1e-5)
     return 1 / (1 + math.exp(-(ca * math.log(t / (1 - t)) + cb)))
 
@@ -74,13 +91,23 @@ def live_events():
     parallel (a handful of calls), so the page waits for one round trip, not six."""
     from concurrent.futures import ThreadPoolExecutor
 
-    listing = [e for e in get(f"{PB}/events/featured/competition/7176?page=1").get("events", []) if not e.get("isLive")]
+    listing = [
+        e
+        for e in get(f"{PB}/events/featured/competition/7176?page=1").get("events", [])
+        if not e.get("isLive")
+    ]
 
     def one(e):
         f = get(f"{PB}/events/{e['key']}")
         ms = (f.get("fixedOddsMarkets") or []) + (f.get("specialFixedOddsMarkets") or [])
-        return {"event": str(e["key"]), "name": e.get("name"), "startsAt": e.get("startsAt"),
-                "markets": [{"group": m.get("groupName"), "outcomes": m.get("outcomes") or []} for m in ms]}
+        return {
+            "event": str(e["key"]),
+            "name": e.get("name"),
+            "startsAt": e.get("startsAt"),
+            "markets": [
+                {"group": m.get("groupName"), "outcomes": m.get("outcomes") or []} for m in ms
+            ],
+        }
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         return list(pool.map(one, listing[:20]))
@@ -108,7 +135,11 @@ def find(players, who, teams):
         return hit
     parts = n.split()
     if len(parts) >= 2:
-        cands = [p for k, p in players.items() if k.split()[-1] == parts[-1] and k[0] == parts[0][0] and p["team"] in teams]
+        cands = [
+            p
+            for k, p in players.items()
+            if k.split()[-1] == parts[-1] and k[0] == parts[0][0] and p["team"] in teams
+        ]
         if len(cands) == 1:
             return cands[0]
     return None
@@ -135,23 +166,49 @@ def legs_from(events, board):
                 if s is None:
                     continue
                 if p is None or s not in p["mu"]:
-                    unmatched.add(hit["who"]); continue
-                k = int(hit["k"]); q = prm[s]
+                    unmatched.add(hit["who"])
+                    continue
+                k = int(hit["k"])
+                q = prm[s]
                 c = chance(p["mu"][s], q["phi"], q["ca"], q["cb"], k)
                 price = float(o["price"])
-                legs.append({"game": ev["name"], "event": ev["event"], "startsAt": ev.get("startsAt"), "player": p["name"], "team": p["team"],
-                             "stat": s, "line": k, "label": o["name"], "price": price, "chance": round(c, 4),
-                             "fair": round(1 / c, 2), "ev": round(c * price - 1, 4), "expected": p["mu"][s], "minutes": p["minutes"]})
+                legs.append(
+                    {
+                        "game": ev["name"],
+                        "event": ev["event"],
+                        "startsAt": ev.get("startsAt"),
+                        "player": p["name"],
+                        "team": p["team"],
+                        "stat": s,
+                        "line": k,
+                        "label": o["name"],
+                        "price": price,
+                        "chance": round(c, 4),
+                        "fair": round(1 / c, 2),
+                        "ev": round(c * price - 1, 4),
+                        "expected": p["mu"][s],
+                        "minutes": p["minutes"],
+                    }
+                )
     return legs, sorted(unmatched)
 
 
 def multi(legs, stake):
-    c = 1.0; price = 1.0
+    c = 1.0
+    price = 1.0
     for g in legs:
-        c *= g["chance"]; price *= g["price"]
-    return {"legs": len(legs), "chance": round(c, 4), "price": round(price, 2), "fair": round(1 / c, 2),
-            "ev": round(c * price - 1, 4), "returns": round(stake * price, 2), "picks": [g["label"] for g in legs],
-            "detail": [{k: g[k] for k in ("label", "chance", "price", "game", "team")} for g in legs]}
+        c *= g["chance"]
+        price *= g["price"]
+    return {
+        "legs": len(legs),
+        "chance": round(c, 4),
+        "price": round(price, 2),
+        "fair": round(1 / c, 2),
+        "ev": round(c * price - 1, 4),
+        "returns": round(stake * price, 2),
+        "picks": [g["label"] for g in legs],
+        "detail": [{k: g[k] for k in ("label", "chance", "price", "game", "team")} for g in legs],
+    }
 
 
 def build(legs, min_chance, stake, min_ev=0.03):
@@ -184,7 +241,8 @@ def frontier(legs):
     out, best = [], -1.0
     for g in sorted(legs, key=lambda g: (-g["price"], -g["chance"])):
         if g["chance"] > best:
-            out.append(g); best = g["chance"]
+            out.append(g)
+            best = g["chance"]
     return out
 
 
@@ -202,7 +260,9 @@ def best_stack(groups, target, min_legs=3, max_legs=10):
     chance and price, so it is exact and a day's board takes milliseconds."""
     goal = math.log(target) - 1e-9
     top = math.ceil(goal / STEP)
-    states = [dict() for _ in range(max_legs + 1)]  # k legs -> {bucket: [(log chance, log price, picks)]}
+    states = [
+        dict() for _ in range(max_legs + 1)
+    ]  # k legs -> {bucket: [(log chance, log price, picks)]}
     states[0][0] = [(0.0, 0.0, ())]
     for group in groups:
         for k in range(max_legs - 1, -1, -1):  # downwards: one leg per group
@@ -214,7 +274,10 @@ def best_stack(groups, target, min_legs=3, max_legs=10):
                         if lp2 >= goal:
                             b2 = top + 1  # reached: price no longer matters, only the chance
                             lp2 = goal
-                        states[k + 1][b2] = _keep(states[k + 1].get(b2, []), (lc + math.log(g["chance"]), lp2, picks + (g,)))
+                        states[k + 1][b2] = _keep(
+                            states[k + 1].get(b2, []),
+                            (lc + math.log(g["chance"]), lp2, picks + (g,)),
+                        )
     done = [c for k in range(min_legs, max_legs + 1) for c in states[k].get(top + 1, [])]
     return list(max(done, key=lambda c: c[0])[2]) if done else None
 
@@ -247,6 +310,29 @@ def stack_for(legs, target, stake=10.0, floor=0.5):
     return ({"target": target} | multi(picks, stake)) if picks else None
 
 
+def same_game_for(legs, target, stake=10.0):
+    """For each game, the likeliest same-game stack (one leg per player) whose legs multiply to at
+    least `target`; soonest tip-off first."""
+    by_game = {}
+    for g in legs:
+        by_game.setdefault(g["event"], []).append(g)
+    out = []
+    for gs in by_game.values():
+        by_player = {}
+        for g in gs:
+            if g["chance"] >= SAME_FLOOR and g["price"] > 1.0:
+                by_player.setdefault(g["player"], []).append(g)
+        picks = best_stack(
+            [frontier(x) for x in by_player.values()], target, max_legs=SAME_MAX_LEGS
+        )
+        if picks:
+            out.append(
+                {"target": target, "game": gs[0]["game"], "startsAt": gs[0].get("startsAt")}
+                | multi(picks, stake)
+            )
+    return sorted(out, key=lambda m: (m["startsAt"] or "", -m["chance"]))
+
+
 def stacks(legs, stake=10.0, floor=0.5):
     """For each payout target, the most likely stack: across games (one leg per game, a normal
     multi) and inside one game (one leg per player, a same-game multi)."""
@@ -265,7 +351,9 @@ def stacks(legs, stake=10.0, floor=0.5):
         by_player = {}
         for g in gs:
             by_player.setdefault(g["player"], []).append(g)
-        pgroups = [frontier([g for g in x if g["chance"] >= SAME_FLOOR]) for x in by_player.values()]
+        pgroups = [
+            frontier([g for g in x if g["chance"] >= SAME_FLOOR]) for x in by_player.values()
+        ]
         pgroups = [x for x in pgroups if x]
         for t in TARGETS:
             picks = best_stack(pgroups, t, max_legs=SAME_MAX_LEGS)
@@ -282,27 +370,49 @@ def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03):
     legs, unmatched = legs_from(events, board)
     ok, cross, same = build(legs, min_chance, stake, min_ev)
     stack_cross, stack_same = stacks(legs, stake)
-    return {"stacks": stack_cross, "stacks_same": stack_same, "by_game": by_game(legs),"day": board["day"], "verdict": "take" if ok else "nothing worth taking today", "min_chance": min_chance, "min_ev": min_ev,
-            "stake": stake, "games_priced": len({g["event"] for g in legs}), "legs_seen": len(legs),
-            "value_legs": sorted(ok, key=lambda g: -g["chance"]), "all_legs": legs, "cross_game": cross, "same_game": same,
-            "unmatched_players": unmatched}
+    return {
+        "stacks": stack_cross,
+        "stacks_same": stack_same,
+        "by_game": by_game(legs),
+        "day": board["day"],
+        "verdict": "take" if ok else "nothing worth taking today",
+        "min_chance": min_chance,
+        "min_ev": min_ev,
+        "stake": stake,
+        "games_priced": len({g["event"] for g in legs}),
+        "legs_seen": len(legs),
+        "value_legs": sorted(ok, key=lambda g: -g["chance"]),
+        "all_legs": legs,
+        "cross_game": cross,
+        "same_game": same,
+        "unmatched_players": unmatched,
+    }
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("board"); ap.add_argument("out")
-    ap.add_argument("--snapdir"); ap.add_argument("--min-chance", type=float, default=0.75); ap.add_argument("--stake", type=float, default=10.0)
+    ap.add_argument("board")
+    ap.add_argument("out")
+    ap.add_argument("--snapdir")
+    ap.add_argument("--min-chance", type=float, default=0.75)
+    ap.add_argument("--stake", type=float, default=10.0)
     ap.add_argument("--min-ev", type=float, default=0.03)
     a = ap.parse_args()
     board = json.load(open(a.board))
     events = saved_events(a.snapdir) if a.snapdir else live_events()
     res = report(board, events, a.min_chance, a.stake, a.min_ev)
     json.dump(res, open(a.out, "w"), indent=1)
-    print(f"{board['day']}: {res['games_priced']} games, {res['legs_seen']} legs priced, {len(res['value_legs'])} likely AND above fair; unmatched names {len(res['unmatched_players'])}")
+    print(
+        f"{board['day']}: {res['games_priced']} games, {res['legs_seen']} legs priced, {len(res['value_legs'])} likely AND above fair; unmatched names {len(res['unmatched_players'])}"
+    )
     for g in res["value_legs"][:12]:
-        print(f"  {g['chance']:.0%} ${g['price']:.2f} (fair ${g['fair']:.2f}, EV {g['ev']:+.0%})  {g['label']}")
+        print(
+            f"  {g['chance']:.0%} ${g['price']:.2f} (fair ${g['fair']:.2f}, EV {g['ev']:+.0%})  {g['label']}"
+        )
     for m in res["cross_game"]:
-        print(f"  cross {m['legs']} legs: chance {m['chance']:.0%}  ${m['price']:.2f}  ${a.stake:.0f} returns ${m['returns']:.2f}  EV {m['ev']:+.0%}")
+        print(
+            f"  cross {m['legs']} legs: chance {m['chance']:.0%}  ${m['price']:.2f}  ${a.stake:.0f} returns ${m['returns']:.2f}  EV {m['ev']:+.0%}"
+        )
     if not res["value_legs"]:
         print("  nothing worth taking today")
 

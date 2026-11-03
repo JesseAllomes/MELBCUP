@@ -1,10 +1,11 @@
 """The $10 -> $1000 challenge on the NBA page (owner, 2026-11-04).
 
-Start with a stake, roll the whole bank into the next multi each step, stop at the goal or the
-first loss. The next step aims for about STEP_X times the bank (less near the goal) and uses the
-app's likeliest stack for that payout. The state lives in one cookie on the phone, like the
-agencies and amounts. Every action carries the step number it was made on, so reloading a page
-never counts a win or a loss twice.
+Start with a stake, roll the whole bank into the next multi each stage, stop at the goal or the
+first loss. A stage is one game (a same-game multi: the owner's way, so a night can hold several
+stages, early game into later game) or, if chosen, one leg per game across the night. The next
+stage aims for about STEP_X times the bank (less near the goal) with the app's likeliest stack.
+The state lives in one cookie on the phone, like the agencies and amounts. Every action carries
+the stage number it was made on, so reloading a page never counts a win or a loss twice.
 """
 
 from __future__ import annotations
@@ -40,8 +41,20 @@ def _money(text: str | None) -> float | None:
     return v if 0 < v < 1_000_000 else None
 
 
-def fresh(start: float = 10.0, goal: float = 1000.0, past: list | None = None) -> dict:
-    return {"start": start, "goal": goal, "bank": start, "steps": [], "past": past or []}
+MODES = ("game", "multi")  # one game per stage (a same-game multi), or one leg per game
+
+
+def fresh(
+    start: float = 10.0, goal: float = 1000.0, past: list | None = None, mode: str = "game"
+) -> dict:
+    return {
+        "start": start,
+        "goal": goal,
+        "bank": start,
+        "steps": [],
+        "past": past or [],
+        "mode": mode,
+    }
 
 
 def apply(state: dict | None, query: Mapping[str, str]) -> dict | None:
@@ -50,26 +63,28 @@ def apply(state: dict | None, query: Mapping[str, str]) -> dict | None:
     if act == "start" or (act and state is None):
         start = _money(query.get("chstart")) or 10.0
         goal = _money(query.get("chgoal")) or 1000.0
-        return fresh(start, max(goal, start * MIN_X), (state or {}).get("past", []))
+        mode = query.get("chmode") if query.get("chmode") in MODES else "game"
+        return fresh(start, max(goal, start * MIN_X), (state or {}).get("past", []), mode)
     if state is None or act not in ("won", "lost", "reset"):
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
     past = state.get("past", [])
+    mode = state.get("mode", "game")
     if act == "reset":
-        return fresh(state["start"], state["goal"], past)
+        return fresh(state["start"], state["goal"], past, mode)
     if act == "lost":
         past = (past + [{"steps": len(state["steps"]), "best": state["bank"], "made_it": False}])[
             -MAX_HISTORY:
         ]
-        return fresh(state["start"], state["goal"], past)
+        return fresh(state["start"], state["goal"], past, mode)
     returned = _money(query.get("chr"))
     if returned is None or returned <= state["bank"]:
         return state
     steps = state["steps"] + [{"from": state["bank"], "to": returned}]
     if returned >= state["goal"]:
         past = (past + [{"steps": len(steps), "best": returned, "made_it": True}])[-MAX_HISTORY:]
-        return fresh(state["start"], state["goal"], past) | {"last_win": returned}
+        return fresh(state["start"], state["goal"], past, mode) | {"last_win": returned}
     return state | {"bank": returned, "steps": steps}
 
 

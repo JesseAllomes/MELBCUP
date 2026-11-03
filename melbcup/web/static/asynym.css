@@ -376,3 +376,5 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .ch-start button, .ch-act button { padding: 8px 14px; border-radius: 10px; border: 0; font-weight: 700; background: var(--brand); color: #fff; }
 .ch-act .won { background: var(--good); color: #0b1a12; }
 .ch-act .lost { background: var(--bad); color: #fff; }
+.ch-mode { display: flex; gap: 6px; align-items: center; width: 100%; font-size: 13px; }
+.ch-mode input { width: auto; }

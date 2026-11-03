@@ -362,11 +362,16 @@ class Views:
         state = nba_challenge.apply(
             nba_challenge.parse(ctx["cookies"].get(nba_challenge.COOKIE)), query
         )
-        step = None
+        step, games = None, []
         if state is not None:
             legs = (ctx["nba_rep"] or {}).get("all_legs") or []
-            step = nba_legs.stack_for(legs, nba_challenge.next_x(state), stake=state["bank"])
-        return {"ch": state, "ch_step": step}
+            x = nba_challenge.next_x(state)
+            if state.get("mode", "game") == "game":
+                games = nba_legs.same_game_for(legs, x, stake=state["bank"])
+                step = max(games, key=lambda m: m["chance"]) if games else None
+            else:
+                step = nba_legs.stack_for(legs, x, stake=state["bank"])
+        return {"ch": state, "ch_step": step, "ch_games": games}
 
     def _nba_view(self, query: Mapping[str, str]) -> dict:
         try:

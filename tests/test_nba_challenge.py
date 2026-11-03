@@ -6,7 +6,7 @@ from melbcup import nba_challenge as C
 
 def test_a_run_rolls_the_bank_and_ends_at_the_goal():
     s = C.apply(None, {"ch": "start"})
-    assert (s["bank"], s["goal"], s["steps"]) == (10.0, 1000.0, [])
+    assert (s["bank"], s["goal"], s["steps"], s["mode"]) == (10.0, 1000.0, [], "game")
     assert C.next_x(s) == 5.0
     s = C.apply(s, {"ch": "won", "chs": "0", "chr": "52.40"})
     assert s["bank"] == 52.4 and len(s["steps"]) == 1
@@ -50,10 +50,24 @@ def test_the_challenge_tab_keeps_its_state_in_a_cookie(monkeypatch, tmp_path):
         r = c.get("/nba?tab=challenge&ch=start")
         assert C.COOKIE in r.cookies or C.COOKIE in c.cookies
         html = r.text
-        assert "Step 1 · bank $10.00 of $1000" in html and "3-leg multi" in html
+        assert "Stage 1 · bank $10.00 of $1000" in html and "No game reaches" in html  # one line a game
+        r = c.get("/nba?tab=challenge&ch=start&chmode=multi")
+        assert "Stage 1 · bank $10.00" in r.text and "3-leg multi" in r.text
         r = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.59")
-        assert "Step 2 · bank $53.59" in r.text
+        assert "Stage 2 · bank $53.59" in r.text
         r = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.59")  # reload
-        assert "Step 2 · bank $53.59" in r.text
+        assert "Stage 2 · bank $53.59" in r.text
         r = c.get("/nba?tab=challenge&ch=lost&chs=1")
-        assert "Step 1 · bank $10.00" in r.text and "✗ at step 2" in r.text
+        assert "Stage 1 · bank $10.00" in r.text and "✗ at stage 2" in r.text
+
+
+def test_one_game_per_stage_picks_the_likeliest_same_game_multi():
+    from melbcup import nba_legs as L
+
+    legs = [{"event": e, "game": f"G{e}", "startsAt": f"2026-11-05T0{e}:00:00Z", "player": f"{e}{i}", "label": f"{e}{i}",
+             "team": "T", "chance": c, "price": p}
+            for e, c, p in (("1", 0.8, 1.8), ("2", 0.7, 1.8)) for i in range(3)]
+    games = L.same_game_for(legs, 5.0)
+    assert [g["game"] for g in games] == ["G1", "G2"]  # soonest tip-off first
+    assert all(g["legs"] == 3 and g["price"] >= 5.0 for g in games)
+    assert max(games, key=lambda g: g["chance"])["game"] == "G1"
