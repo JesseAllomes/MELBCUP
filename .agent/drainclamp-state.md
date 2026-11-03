@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=125 -->
+<!-- drainclamp-build: state; schema=1; generation=126 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T00:23:48+00:00 2fbf4701 countdown strip (next jump, ticking) + BET NOW at <=3:00 (amber, vibrate, beep, notification if allowed, one reload per race)
 - 2026-11-03T00:29:15+00:00 0fc2a36c slim pass 2 (placed chips SB/BF/PB, EW shows only its account's pill, record form folded, smaller rows); fix: promo bets routed first in race order (R2 Betfair promo showed '-' because later races' bigger gains spent Betfair's money first)
 - 2026-11-03T00:41:17+00:00 83517491 ui5 built (Sonnet): app's final picks kept on the phone (picks cookie, saved on each race-page load while open) and settled under own bets; side-by-side per product-ui lock (wallet columns, podium result, pick row line 1 kind|runner|pills|stake, line 2 text|chips). Checked 390 light/dark, 360
 - 2026-11-03T00:59:54+00:00 1403b1cc kids' bets card (kids cookie, #kids= import link, names, settle, off PointsBet money, in Today), BACK badge red/green, picks JSON on every page so final picks save from any page
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T09:16:16+00:00 f1855db6 st1 part 1 verified: /healthz 0.98 s after 8 min idle (was 22 s cold). Page-speed work still open.
 - 2026-11-03T09:24:11+00:00 78cf54d6 ui6 round 2 (owner: modular + tabbed, no long scroll): one-screen shells. A Tabs LzRVheREuhFyVsfcjjpbDx, B Segments HuNiJy6QiCHPKT9DWXa4w9, C Bento ArRfRT7i6G7NdSxHgvn8gv, D Pager 1TeWtWyVeQuSujLUcUx5s3. Source .grok/product-ui/v3/build.py. Round 1 (v2) rejected: long scroll.
 - 2026-11-03T09:35:01+00:00 0ffc3e42 Owner 2026-11-03: AsynymBet covers ALL meetings, not just the Cup (answers t3 scope). ui6 round 3 on RaceLens nav (Day > Meeting > Race > race tabs; real meeting lists, sample picks): A Race days GEJ8cNhcdSUZjzoVi9sCXq, B Next up MfcgMbumxLaU6ypaopJdje, C Three tier 3DBHx7KqR99bRyycy3PJcZ, D Hub HPKgsrD5e4fEaGEFzeHV8i. Source .grok/product-ui/v4/.
+- 2026-11-03T09:37:22+00:00 875caf16 Owner 2026-11-03 design rules: (1) agencies + day P&L fixed at the top of every screen; (2) Agencies panel lists every agency we pull prices from (Sportsbet, Betfair, PointsBet, TAB, Ladbrokes, Neds), on/off per agency for money tracking + balance, model always uses all prices; (3) theme dark purples/blacks, no bookie-brand colours. Applied to round 3 A-D (same URLs, v2).
 <!-- /DC:LOG -->
