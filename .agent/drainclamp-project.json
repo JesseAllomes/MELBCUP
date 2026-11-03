@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 46,
+  "rev": 47,
   "review": {
     "advice": [],
     "config": {
@@ -5059,8 +5059,8 @@
     },
     {
       "at": "2026-11-03T07:29:04+00:00",
-      "done": false,
-      "done_at": null,
+      "done": true,
+      "done_at": "2026-11-03T08:10:35+00:00",
       "id": "t2",
       "milestone": "",
       "text": "NEXT AFTER COMPACT (owner 2026-11-03): spawn ONE Sonnet agent (not Fable) to compare Damian's racing app with MELBCUP and report where each has an edge (picks, prices/books used, bet types, staking, promos, results/P&L, UI). App is reachable from the cloud session (HTTP 200). URL + password in the session scratchpad file mate-app.env (/tmp/claude-0/-home-user/418442d0-6a93-5b3f-a291-37c2b3744726/scratchpad/mate-app.env), never in the repo. Read-only: browse, do not submit forms or place bets."
