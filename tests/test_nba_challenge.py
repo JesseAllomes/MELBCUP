@@ -86,6 +86,9 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         assert 'name="chtip" value="2026-11-05T00:00:00Z"' in html  # the stage's tip-off travels with it
         html = c.get("/nba?tab=challenge&ch=place&chs=0&chag=pb&chp=5.36&chl=x").text
         assert "Placed: $10.00 at PointsBet" in html and 'value="53.60"' in html
+        for tab in ("stacks", "games", "same", "all"):  # the challenge stays on its own tab
+            other = c.get(f"/nba?tab={tab}").text
+            assert "Stage 1" not in other and "result due" not in other and "Mark as placed" not in other
         assert "$90" in html  # $100 at PointsBet, $10 out
         html = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.60").text
         assert "Stage 2 of 3 · bank $43.60" in html and "$10 kept" in html

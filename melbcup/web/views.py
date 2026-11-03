@@ -663,7 +663,8 @@ class Views:
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
             ctx.update(self._nba_view(query))
-            ctx.update(self._challenge(query, ctx))
+            if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
+                ctx.update(self._challenge(query, ctx))
             return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))

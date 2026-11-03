@@ -115,7 +115,8 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
     with make(ON) as c:
         html = c.get("/nba").text
         assert 'class="hd"' in html and ">NBA<" in html and 'aria-current="page">NBA' in html
-        assert "Most likely to get up" in html and "3-leg multi" in html
+        assert "Most likely to get up" not in html and "3 legs" in html  # Multis first, picks only
+        assert "Stage 1" not in html and "result due" not in html  # nothing of the challenge here
         for tab, text in (("stacks", "$10 → $"), ("games", "Joel Embiid To Score 10+ Points"),
                           ("same", "No game has enough lines"), ("all", "LaMelo Ball To Score 10+ Points")):
             r = c.get(f"/nba?tab={tab}")

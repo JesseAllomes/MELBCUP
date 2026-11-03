@@ -13,20 +13,6 @@
 </section>
 
 {% if rep %}
-{% set pick = (rep.stacks | selectattr('target', 'equalto', 3.0) | list or rep.stacks)[:1] %}
-{% if pick %}{% set m = pick[0] %}
-<section class="card take" aria-label="Best stack">
-  <div class="vlabel">Most likely to get up · $10 → ${{ '%.0f' % m.returns }}</div>
-  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>{{ m.legs }}-leg multi · ${{ '%.2f' % m.price }}</b><span>One leg per game · our chance {{ (m.chance * 100) | round | int }}% · price says {{ (100 / m.price) | round | int }}%</span></div></div>
-  <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
-</section>
-{% else %}
-<section class="card none" aria-label="Best stack">
-  <div class="vlabel">No stack yet</div>
-  <p class="say">A multi needs lines in at least 3 games{{ ': PointsBet has ' ~ (v.games or 0) ~ ' so far' }}. More are posted closer to tip-off.</p>
-</section>
-{% endif %}
-
 <nav class="rtabs" aria-label="NBA tabs">
   {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('challenge', 'Challenge', None), ('games', 'Games', (rep.by_game or []) | length), ('same', 'SGM', rep.stacks_same | length), ('all', 'All', rep.all_legs | length)] %}
   <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}{% if n is not none %}<small>{{ n }}</small>{% endif %}</a>
