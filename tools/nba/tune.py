@@ -46,7 +46,11 @@ def load(boxdir):
 
 
 def build(games):
-    """One row per player-game with >= MIN_HISTORY prior games. Returns dict of numpy arrays."""
+    """One row per player-game with >= MIN_HISTORY prior games. Returns dict of numpy arrays.
+
+    Entries with season "upcoming" are fixtures to price: their players carry only id, team and
+    starter; they get rows (y = nan) from the state built so far and change no state. Put them
+    last, in time order."""
     decay = {h: 0.5 ** (1 / h) for h in HLS}
     P = {}  # player state
     team_last = {}  # team -> date of last game
@@ -88,6 +92,7 @@ def build(games):
                 st = P.get(p["id"])
                 if st and st["n"] >= MIN_HISTORY:
                     rows["season"].append(season); rows["miss"].append(miss[t]); rows["b2b"].append(b2b[t]); rows["n"].append(st["n"])
+                    rows["pid"].append(p["id"]); rows["team"].append(t); rows["opp"].append(opp); rows["when"].append(when)
                     for h in HLS:
                         rows[f"m{h}"].append(st["m"][h] / st["w"][h])
                     rows["starter"].append(1.0 if p.get("starter") else 0.0)
@@ -103,8 +108,10 @@ def build(games):
                         rows[f"opp_{s}"].append((oa[0] / oa[1]) / (lg[0] / lg[1]) if oa[1] > 0 and lg[1] > 0 and lg[0] > 0 else 1.0)
                         rows[f"var_{s}"].append(st["sq"][s] / st["n"] - (st["sum"][s] / st["n"]) ** 2)
                         rows[f"mean_{s}"].append(st["sum"][s] / st["n"])
-                        rows[f"y_{s}"].append(p[s])
+                        rows[f"y_{s}"].append(p.get(s, np.nan))
                         rows[f"use_{s}"].append(miss_use[t][s])
+        if season == "upcoming":  # a fixture to price: no result yet, so no state update
+            continue
         # update states after the game
         for t in teams:
             opp = teams[1] if t == teams[0] else teams[0]

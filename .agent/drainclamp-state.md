@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=159 -->
+<!-- drainclamp-build: state; schema=1; generation=160 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T10:30:45+00:00 e7f86a32 nba1 step 0: nba_probe_run timer (hourly, self-stops 2026-11-10) probes TAB/Sportsbet/PointsBet/Ladbrokes/Neds/NBA CDN/stats from Azure AU into blob nba-probe/latest.json. From the US container all blocked (403/500/blank). Reading the report needs Storage Blob Data Reader for the deploy app: self-grant blocked by the safety check, needs owner approval.
 - 2026-11-03T10:39:12+00:00 9b7969d2 nba_probe_run deployed (run 41620571627 OK); first probe 11:13Z (10:13pm AEDT). Report unreadable until owner approves Storage Blob Data Reader for the deploy app.
 - 2026-11-03T10:42:52+00:00 714161fa Owner approved (2026-11-03 'Grant it'): Storage Blob Data Reader for the deploy app on the Function storage account, via azure-racelens-settings check/probe.
 - 2026-11-03T10:45:30+00:00 087efbdf Owner 2026-11-03: push AsynymBet live at bet.asynym.dev. E locked (.grok/product-ui/LOCK-asynymbet.md). Build ui6 now on the current single-meeting board behind ASYNYM=1; multi-meeting board (Home best bets across all meetings) is the next milestone mm1. DNS (Cloudflare) needs owner: CNAME bet + TXT asuid.bet.
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T12:50:02+00:00 465b6464 mkt1 v1 football (286 league-seasons, 2012-25): favourites under ~1.50 happen more than margin-free price says (home 1.20-1.35: 78.7% vs 74.1%; away 1.20-1.35: 78.3% vs 73.9%) and paid at the BEST price in both halves (+2 to +6%). Caveats: best price = max across many books (some offshore/exchange), ~40 bands tested so some positives are chance. research/markets/football_scan_v1.txt
 - 2026-11-03T12:52:38+00:00 565cd2fd Owner: hold mkt1 except data-pull scripts; finish NBA. nba1: PointsBet prop price collector on Azure (nba_props_run every 20 min 7am-3:40pm AEDT, changed snapshots to blob nba-props); props not posted 37 h before tip, captured when they appear. nba_history timer removed (ESPN replaces it). Worst case $24.27.
 - 2026-11-03T12:54:49+00:00 ac4d7204 NBA v3 rolling validation (folds 2021-22, 2022-23, 2023-24; each tuned on earlier seasons): beats v2 in 12/12 fold-stat pairs. Check 2024-25 log loss v1/v2/v3: points .3475/.3409/.3341, rebounds .3687/.3616/.3547, assists .3236/.3167/.3117, threes .4684/.4575/.4538. Role minutes weight g ~0.8, usage share 0.5-1.0, blowout ~0. v3 frozen in tools/nba/model_v3.json. 2025-26 still sealed.
+- 2026-11-03T13:00:18+00:00 cbab9663 nba2 live: tools/nba/board.py prices a day's games with v3 through the backtest feature code (build() now takes 'upcoming' fixtures). Dry run 2026-11-04: 14 games, 336 players. Expected line-up = 2 of last 5 games, starters = last game's, ESPN injury Out removed. Current season 00226 pulled (107 games). PointsBet props collector live in Azure (deploy 41639467183). NEXT CHUNK: parse PointsBet prop outcomes (posted game day) -> legs with chance + EV; nba3 multi builder (3-10 legs, likely AND >= fair, cross-game, same-game penalty); nightly ESPN settle + forward log; then Azure board timer + AsynymBet NBA tab.
 <!-- /DC:LOG -->
