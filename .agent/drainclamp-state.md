@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=139 -->
+<!-- drainclamp-build: state; schema=1; generation=140 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T08:42:50+00:00 d605d410 Owner 2026-11-03: st1 stability/speed, rl2 RaceLens inputs, bl1 take-this-bet verdict (supersedes three-picks rule), ui6 redesign from RaceLens UI. st1 first: it hurts today.
 - 2026-11-03T08:59:38+00:00 7fc89699 st1 part 1: web app stays up 3 h after the last request (cooldownPeriod 10800, ARM api 2025-01-01). Cold start 22 s remains only for the first open after 3 h idle. Warm render ~0.5 s server-side.
 - 2026-11-03T09:10:06+00:00 0b60e95e ui6 started: prototype v1 (RaceLens layout + take-this-bet verdict) https://claude.ai/artifact/SFMukYyWGnT5632F9HwaEi, copy in .grok/product-ui/v2/. Awaiting owner sign-off before lock + build.
 - 2026-11-03T09:10:28+00:00 6372a056 Owner 2026-11-03: new name AsynymBet (prototype v2). App rename goes into the ui6 build; repo, domain and Azure names unchanged unless the owner asks.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:30:45+00:00 e7f86a32 nba1 step 0: nba_probe_run timer (hourly, self-stops 2026-11-10) probes TAB/Sportsbet/PointsBet/Ladbrokes/Neds/NBA CDN/stats from Azure AU into blob nba-probe/latest.json. From the US container all blocked (403/500/blank). Reading the report needs Storage Blob Data Reader for the deploy app: self-grant blocked by the safety check, needs owner approval.
 - 2026-11-03T10:39:12+00:00 9b7969d2 nba_probe_run deployed (run 41620571627 OK); first probe 11:13Z (10:13pm AEDT). Report unreadable until owner approves Storage Blob Data Reader for the deploy app.
 - 2026-11-03T10:42:52+00:00 714161fa Owner approved (2026-11-03 'Grant it'): Storage Blob Data Reader for the deploy app on the Function storage account, via azure-racelens-settings check/probe.
+- 2026-11-03T10:45:30+00:00 087efbdf Owner 2026-11-03: push AsynymBet live at bet.asynym.dev. E locked (.grok/product-ui/LOCK-asynymbet.md). Build ui6 now on the current single-meeting board behind ASYNYM=1; multi-meeting board (Home best bets across all meetings) is the next milestone mm1. DNS (Cloudflare) needs owner: CNAME bet + TXT asuid.bet.
 <!-- /DC:LOG -->
