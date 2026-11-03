@@ -379,3 +379,6 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .ch-mode { display: flex; gap: 6px; align-items: center; width: 100%; font-size: 13px; }
 .ch-mode input { width: auto; }
 .ch-act select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--chip); color: inherit; font: inherit; }
+.ch-preview { display: grid; gap: 4px; margin: 8px 0; font-size: 13px; }
+.ch-preview div { display: grid; grid-template-columns: 28px 1fr 1.4fr 1.4fr; gap: 6px; padding: 4px 8px; border-radius: 8px; background: var(--chip); }
+.ch-preview b { color: var(--brand); }

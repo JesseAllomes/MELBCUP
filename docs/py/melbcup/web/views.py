@@ -377,14 +377,17 @@ class Views:
         self.env = make_env(settings.asynym)
         self._nba = None  # NbaFeed, made on the first visit to /nba
 
-    @staticmethod
-    def _challenge(query: Mapping[str, str], ctx: dict) -> dict:
+    def _challenge(self, query: Mapping[str, str], ctx: dict) -> dict:
         """The $10 -> $1000 challenge (cookie on the phone; app.py saves the change)."""
         try:
             from melbcup import nba_challenge, nba_legs
         except ImportError:  # the phone's offline copy leaves the NBA code out
             return {"ch": None, "ch_step": None}
         state = ctx.get("ch_state")
+        legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
+        preview = (
+            [] if state is not None else self._stage_preview(legs_now, nba_challenge, nba_legs)
+        )
         step, games = None, []
         if state is not None:
             legs = (ctx["nba_rep"] or {}).get("all_legs") or []
@@ -394,7 +397,26 @@ class Views:
                 step = max(games, key=lambda m: m["chance"]) if games else None
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"])
-        return {"ch": state, "ch_step": step, "ch_games": games}
+        return {"ch": state, "ch_step": step, "ch_games": games, "ch_preview": preview,
+                "ch_x": nba_challenge.next_x(state) if state else None,
+                "ch_left": nba_challenge.remaining(state) if state else None}
+
+    def _stage_preview(self, legs, nba_challenge, nba_legs) -> list[dict]:
+        """For each number of stages: the payout per stage ($10 -> $1000, start kept) and, on
+        tonight's lines, the best one-game stage's chance and the whole run's (that chance to the
+        power of the stages). Kept per pricing, so the page stays fast."""
+        key = (id(legs), len(legs))
+        cached = getattr(self, "_preview_cache", None)
+        if cached and cached[0] == key:
+            return cached[1]
+        out = []
+        for n in nba_challenge.STAGES:
+            x = nba_challenge.stage_x(10.0, 1000.0, n, True)
+            games = nba_legs.same_game_for(legs, x)
+            p = max((g["chance"] for g in games), default=None)
+            out.append({"n": n, "x": x, "stage": p, "run": p**n if p else None})
+        self._preview_cache = (key, out)
+        return out
 
     def _nba_view(self, query: Mapping[str, str]) -> dict:
         try:

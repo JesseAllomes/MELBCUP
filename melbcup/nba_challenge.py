@@ -3,8 +3,9 @@
 
 Start with a stake, roll the bank into the next multi each stage, stop at the goal or the first
 loss. A stage is one game (a same-game multi: the owner's way, so a night can hold several stages,
-early game into later game) or, if chosen, one leg per game across the night. The next stage aims
-for about STEP_X times the bank (less near the goal) with the app's likeliest stack.
+early game into later game) or, if chosen, one leg per game across the night. The owner picks how
+many stages (2-8); each stage aims for an even share of what is left to the goal, with the app's
+likeliest stack for that payout ($10 -> $1000 in 3 stages, start kept: 5x each).
 
 Money: a stage is first marked as placed at one agency, which takes the stake off that agency's
 balance; its result then pays back into it (a win returns what it paid, a loss nothing). With
@@ -20,8 +21,9 @@ import json
 from collections.abc import Mapping
 
 COOKIE = "nba_challenge"
-STEP_X = 5.0
-MIN_X = 2.0
+MIN_X = 1.2
+STAGES = (2, 3, 4, 5, 6, 7, 8)
+DEFAULT_STAGES = 3
 MAX_HISTORY = 20
 MAX_BETS = 40
 MODES = ("game", "multi")  # one game per stage (a same-game multi), or one leg per game
@@ -49,15 +51,15 @@ def _money(text: str | None) -> float | None:
     return v if 0 < v < 1_000_000 else None
 
 
-def fresh(start=10.0, goal=1000.0, past=None, mode="game", keep=True, bets=None) -> dict:
-    return {"start": start, "goal": goal, "bank": start, "steps": [], "past": past or [],
-            "mode": mode, "keep": keep, "kept": 0.0, "placed": None, "bets": bets or []}
+def fresh(start=10.0, goal=1000.0, past=None, mode="game", keep=True, bets=None, stages=DEFAULT_STAGES) -> dict:
+    return {"start": start, "goal": goal, "bank": start, "steps": [], "past": past or [], "mode": mode,
+            "keep": keep, "kept": 0.0, "placed": None, "bets": bets or [], "stages": stages}
 
 
 def _again(state: dict, **extra) -> dict:
     """A new run with the same settings, history and bet log."""
     return fresh(state["start"], state["goal"], state.get("past", []), state.get("mode", "game"),
-                 state.get("keep", True), state.get("bets", [])) | extra
+                 state.get("keep", True), state.get("bets", []), state.get("stages", DEFAULT_STAGES)) | extra
 
 
 def _settle(state: dict, result: str, returned: float = 0.0) -> list:
@@ -78,10 +80,15 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         goal = _money(query.get("chgoal")) or 1000.0
         mode = query.get("chmode") if query.get("chmode") in MODES else "game"
         keep = query.get("chkeep", "1") == "1"
+        try:
+            stages = int(query.get("chn") or DEFAULT_STAGES)
+        except ValueError:
+            stages = DEFAULT_STAGES
+        stages = stages if stages in STAGES else DEFAULT_STAGES
         old = state or {}
         if old.get("placed"):
             return state  # a placed stage settles first
-        return fresh(start, max(goal, start * MIN_X), old.get("past", []), mode, keep, old.get("bets", []))
+        return fresh(start, max(goal, start * 2), old.get("past", []), mode, keep, old.get("bets", []), stages)
     if state is None or act not in ("place", "won", "lost", "reset"):
         return state
     if query.get("chs") != str(len(state["steps"])):
@@ -129,7 +136,25 @@ def today_money(state: dict | None, today: str) -> tuple[dict[str, float], float
     return used, round(profit, 2)
 
 
+def stage_x(start: float, goal: float, stages: int, keep: bool) -> float:
+    """The even payout per stage that turns `start` into `goal` in `stages` wins; with keep the
+    first win also hands the start back: start * (x - 1) * x ** (stages - 1) = goal."""
+    if not keep:
+        return (goal / start) ** (1 / stages)
+    lo, hi = 1.0, goal / start + 1
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if start * (mid - 1) * mid ** (stages - 1) < goal else (lo, mid)
+    return hi
+
+
+def remaining(state: dict) -> int:
+    return max(1, state.get("stages", DEFAULT_STAGES) - len(state["steps"]))
+
+
 def next_x(state: dict) -> float:
-    """The payout multiple to aim for on the next stage: ~5x, or just what is left to the goal."""
-    left = state["goal"] / state["bank"]
-    return max(MIN_X, min(STEP_X, left))
+    """The payout to aim for on the next stage: what is left to the goal spread evenly over the
+    stages left (so a stage that paid more or less than planned re-balances the rest)."""
+    keep_now = state.get("keep", True) and not state["steps"]
+    x = stage_x(state["bank"], state["goal"], remaining(state), keep_now)
+    return max(MIN_X, x)

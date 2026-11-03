@@ -59,11 +59,16 @@
 <section class="card nba-ch">
   {% if not ch %}
   <div class="vlabel">$10 → $1000 challenge</div>
-  <p class="say">Roll the bank into one multi a stage, about 5x each time. One loss ends the run.</p>
+  <p class="say">Roll the bank into one multi a stage; pick how many stages. Fewer stages pay more each and are harder to win; more stages are easier each but you need more wins in a row. One loss ends the run.</p>
+  {% if ch_preview and ch_preview[0].stage is not none %}
+  <div class="ch-preview">{% for o in ch_preview %}<div><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.stage * 100) if o.stage else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>
+  <p class="note">On tonight's lines: the likeliest one-game multi for each stage size, and the chance of winning every stage if later games are like tonight's.</p>
+  {% endif %}
   <form method="get" action="/nba" class="ch-start">
     <input type="hidden" name="tab" value="challenge"><input type="hidden" name="ch" value="start">
     <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
     <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
+    <label class="ch-mode">Stages <select name="chn">{% for o in ch_preview or [] %}<option value="{{ o.n }}"{{ ' selected' if o.n == 3 }}>{{ o.n }} · about {{ '%.1f' % o.x }}x each{% if o.run %} · {{ '%.1f' % (o.run * 100) }}% to finish{% endif %}</option>{% else %}{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}{% endfor %}</select></label>
     <label class="ch-mode"><input type="radio" name="chmode" value="game" checked> One game per stage</label>
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
     <input type="hidden" name="chkeep" value="0">
@@ -73,7 +78,7 @@
   {% else %}
   {% set one_game = ch.get('mode', 'game') == 'game' %}
   {% set placed = ch.get('placed') %}
-  <div class="vlabel">Stage {{ ch.steps | length + 1 }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
+  <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>
   {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
   {% if placed %}
@@ -104,13 +109,13 @@
   {% endif %}{% endfor %}
   {% endif %}
   {% else %}
-  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches about {{ '%.0f' % (ch.goal / ch.bank if ch.goal / ch.bank < 5 else 5) }}x yet{{ '' if one_game else ': PointsBet needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
+  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': PointsBet needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
   {% if not placed %}<p class="note"><a href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a></p>{% endif %}
   {% endif %}
   {% if ch and ch.past %}<p class="note">Earlier runs: {% for r in ch.past[-8:] %}{{ '✓ $%.0f' % r.best if r.made_it else '✗ at stage %d' % (r.steps + 1) }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
-  <p class="note">Each stage uses the multi most likely to pay about 5x, from the model's chances; legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
+  <p class="note">Each stage uses the multi most likely to pay that stage's share of the goal, from the model's chances; legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
 </section>
 {% elif nba_tab == 'games' %}
 {% for gm in rep.by_game or [] %}
