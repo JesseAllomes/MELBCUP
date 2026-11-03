@@ -218,7 +218,7 @@ def test_off_page_is_unchanged_by_pointsbet_prices_cookies_and_query():
 def test_on_page_shows_pill_wallet_bar_and_amount_box():
     html = views(True).page("/race/1", {"pb": "60"}, {})
     assert html.count('class="acct"') == 3 and 'data-acct="pb"' in html
-    assert "PointsBet</b>" in html and "left of $60" in html
+    assert "PointsBet</b>" in html and "/ $60" in html
     assert 'name="pb"' in html and 'value="$60"' in html
     assert 'class="pill pb' in html and "<small>PB</small>$4.38" in html  # 3.5 * 1.25
     assert "Placed on PointsBet" in html
@@ -231,7 +231,7 @@ def test_on_pointsbet_amount_is_zero_until_set_and_lives_in_the_cookie():
     assert pick_pointsbet({"pb": "45"}, {PB_COOKIE: "10"}) == 45.0
     assert pick_pointsbet({}, {PB_COOKIE: "10"}) == 10.0
     assert pick_pointsbet({"pb": "junk"}, {PB_COOKIE: "10"}) == 0.0
-    assert "left of $25" in v.page("/", {}, {PB_COOKIE: "25"})
+    assert "/ $25" in v.page("/", {}, {PB_COOKIE: "25"})
 
 
 def test_on_with_no_pointsbet_amount_bets_match_the_switched_off_page():
@@ -254,7 +254,7 @@ def test_ticking_placed_on_pointsbet():
     cookies = {"placed": quote(f"[{rec}]"), PB_COOKIE: "60"}
     html = v.page("/race/1", {}, cookies)
     assert "Placed $12 on PointsBet" in html and "✓ PB $12" in html
-    assert '<b class="left">$48</b> left of $60' in html
+    assert '<b class="left">$48</b> / $60' in html
     placed = parse_placed(cookies["placed"], RACE_DATE, True)
     assert [(p.account, p.stake) for p in placed] == [("pointsbet", 12)]
     # an exotic ticked on PointsBet is still a Sportsbet bet
@@ -297,7 +297,7 @@ def test_pb_query_sets_the_cookie_only_when_on():
     with client_for(True) as c:
         assert c.get("/?sb=100&bf=20&pb=35", auth=AUTH).status_code == 200
         assert c.cookies.get(PB_COOKIE) == "35" and c.cookies.get("sb_budget") == "100"
-        assert "left of $35" in c.get("/", auth=AUTH).text  # remembered
+        assert "/ $35" in c.get("/", auth=AUTH).text  # remembered
         c.get("/?pb=", auth=AUTH)  # blank puts it back to $0
         assert c.cookies.get(PB_COOKIE) is None
     with client_for(False) as c:

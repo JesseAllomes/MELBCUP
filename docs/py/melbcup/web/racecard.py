@@ -11,6 +11,7 @@ design): they keep their stake and account, and the wallet bars count them.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
@@ -44,6 +45,7 @@ DEFAULT_POINTSBET = 0.0  # PointsBet (POINTSBET=1) takes nothing until the owner
 MAX_AMOUNT = 100_000
 SB_COOKIE, BF_COOKIE, PLACED_COOKIE = "sb_budget", "bf_budget", "placed"
 PB_COOKIE = "pb_budget"
+PICKS_COOKIE = "picks"  # the app's own last suggested lines per race, kept on the phone
 # Short codes keep the placed cookie small: [date, race, kind, runner or 0, account, stake] and
 # optionally the price taken.
 CODES = {
@@ -178,6 +180,59 @@ def parse_placed(
             Placed(race, kind, key, account, stake, price,
                    place_price if kind == "each_way" else None)
         )
+    return out
+
+
+@dataclass
+class FinalPick:
+    """One of the app's final suggested lines for a race that has run, with how it settled."""
+
+    race: int
+    kind: str
+    number: int
+    name: str
+    stake: int
+    account: str
+    price: float | None
+    settled: object
+
+    @property
+    def label(self) -> str:
+        return LABELS[self.kind]
+
+    @property
+    def acct(self) -> str:
+        return {"sportsbet": "sb", "betfair": "bf", "pointsbet": "pb"}.get(self.account, "")
+
+    @property
+    def account_name(self) -> str:
+        return ACCOUNT_NAMES.get(self.account, "")
+
+
+def final_picks(
+    raw: str | None, race_date: date | None, pointsbet: bool, races: dict
+) -> dict[int, tuple[list[FinalPick], float]]:
+    """The app's final picks (the picks cookie, same shape as the placed cookie) for each race
+    that has a result: race -> (lines, profit). Win, place and each way only. The phone saves them
+    while a race is open, since the server forgets everything on a restart."""
+    out: dict[int, tuple[list[FinalPick], float]] = {}
+    for p in parse_placed(raw, race_date, pointsbet):
+        race = races.get(p.race)
+        if p.kind not in ("win", "place", "each_way") or race is None:
+            continue
+        if race.result is None or not race.result.finish:
+            continue
+        runner = race.runner(p.key)
+        out.setdefault(p.race, ([], 0.0))[0].append(
+            FinalPick(
+                p.race, p.kind, p.key, runner.name if runner else str(p.key), p.stake,
+                p.account, p.price, settle_bet(p, races),
+            )
+        )
+    order = {k: i for i, k in enumerate(("win", "place", "each_way"))}
+    for n, (lines, _) in list(out.items()):
+        lines.sort(key=lambda x: (order[x.kind], x.number))
+        out[n] = (lines, round(sum(x.settled.profit for x in lines), 2))
     return out
 
 
@@ -327,6 +382,29 @@ class Line:
     @property
     def label(self) -> str:
         return LABELS[self.kind]
+
+    @property
+    def code(self) -> str:
+        return CODES.get(self.kind, "")
+
+    @property
+    def pick_record(self) -> str:
+        """The suggested line for the picks cookie: [date, race, kind, runner, account, stake,
+        price], price being the one shown at that account (win price; place price for place).
+        Empty for anything but a win, place or each way line."""
+        if self.kind not in ("win", "place", "each_way") or not self.record or self.number is None:
+            return ""
+        rec = json.loads(self.record)
+        rec[4] = self.acct or ""
+        pill = next((p for p in self.pills if p.account == self.acct), None)
+        if pill is not None:
+            m = re.match(r"\$([\d,.]+)", pill.text)
+            if m:
+                try:
+                    rec.append(float(m.group(1).replace(",", "")))
+                except ValueError:
+                    pass
+        return json.dumps(rec, separators=(",", ":"))
 
     @property
     def caveat(self) -> str:

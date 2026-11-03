@@ -89,8 +89,8 @@ def test_race_page_has_the_locked_sections_in_order(views):
 def test_wallet_bars_on_every_page(views):
     for path in ("/", "/race/1", "/history"):
         html = page(views, path)
-        assert "Sportsbet</b><span><b class=\"left\">$150</b> left of $150" in html, path
-        assert "Betfair</b><span><b class=\"left\">$50</b> left of $50" in html, path
+        assert "<b class=\"left\">$150</b> / $150" in html, path
+        assert "<b class=\"left\">$50</b> / $50" in html, path
 
 
 def test_price_pills_sportsbet_and_betfair_with_the_better_one_filled(views):
@@ -176,9 +176,9 @@ def test_placed_tick_shows_and_counts_against_its_account(views):
     jar = {"placed": quote(json.dumps([rec]))}
     html = page(views, "/race/1", cookies=jar)
     assert "Placed $9 on Betfair" in html and "✓ BF $9" in html
-    assert "$41</b> left of $50" in html and "$150</b> left of $150" in html
+    assert "$41</b> / $50" in html and "$150</b> / $150" in html
     day = page(views, "/", cookies=jar)
-    assert "1 placed" in day and "$41</b> left of $50" in day
+    assert "1 placed" in day and "$41</b> / $50" in day
 
 
 def test_placed_records_for_other_dates_and_junk_are_ignored():
@@ -250,5 +250,5 @@ def test_day_page_shows_multi_picks_and_a_ticked_multi_drops_the_wallet(views):
     jar = {"placed": quote(json.dumps(recs[:2]))}
     day = page(views, "/", cookies=jar)
     spent = sum(t["s"] for t in ticked)
-    assert f"${150 - spent}</b> left of $150" in day
+    assert f"${150 - spent}</b> / $150" in day
     assert day.count("aria-label=\"Placed $") == 2

@@ -61,7 +61,10 @@ p { margin: 0 0 6px; }
 /* Wallet bars at the very top */
 .wallet { display: grid; gap: 4px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
   background: var(--ground); padding-block: 4px; margin-top: -4px; }
-.acct { display: grid; gap: 1px; }
+.accts { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 0 10px; }
+.acct { display: grid; gap: 1px; min-width: 0; }
+.accts .acct-top { flex-direction: column; align-items: flex-start; gap: 0; }
+.accts .acct-top > * { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acct-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: var(--muted); line-height: 1.25; }
 .acct-top b { color: var(--ink); font-family: var(--head); font-size: 14px; }
 .bar { height: 5px; border-radius: 3px; background: var(--rule); overflow: hidden; }
@@ -139,34 +142,43 @@ p { margin: 0 0 6px; }
 
 /* Tote board of picks */
 .board { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; margin-top: 6px; }
-.board .pick { display: grid; grid-template-columns: minmax(3.4em, auto) minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 7px 10px; }
+.board .pick { display: grid; grid-template-columns: 3.7em minmax(0, 1fr) auto auto; gap: 3px 8px; align-items: center; padding: 7px 10px; }
 .board .pick + .pick { border-top: 1px solid var(--rule); }
 .board .pick.is-placed { background: var(--navy-wash); }
 .board .pick.is-placed:has(.stake.pb) { background: var(--violet-wash); }
-.board .type { font: 700 15px/1 var(--head); }
+.board .type { font: 700 15px/1 var(--head); white-space: nowrap; }
 .board .who { display: flex; gap: 6px; align-items: center; min-width: 0; }
-.board .who b { font-weight: 600; font-size: 15px; overflow-wrap: break-word; }
+.board .who b { font-weight: 600; font-size: 15px; line-height: 1.1; overflow-wrap: anywhere; }
+.board .px .pills { flex-direction: column; align-items: flex-end; gap: 2px; flex-wrap: nowrap; }
 .stake { font: 700 18px/1.1 var(--head); display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 1px 6px; white-space: nowrap; max-width: 140px; }
 .stake small { flex-basis: 100%; text-align: right; font: 600 10px/1.1 var(--body); color: var(--muted); }
+.board .stake { flex-direction: column; flex-wrap: nowrap; align-items: flex-end; gap: 1px; }
 .stake.sb { color: var(--navy); }
 .stake.bf { color: var(--amber-ink); }
 .stake.pb { color: var(--violet); }
 .stake.none { color: var(--muted); font-weight: 500; }
-.board .say { grid-column: 2 / 4; font-size: 13px; line-height: 1.3; color: var(--muted); margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+/* second line: explanation left, Placed chips right */
+.board .sub { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; }
+.board .sub:not(:has(.placed)) { grid-template-columns: minmax(0, 1fr); }
+.board .says { display: grid; gap: 3px; min-width: 0; }
+.board .say { font-size: 13px; line-height: 1.3; color: var(--muted); margin: 0; display: block; }
+.board .say .verdict { margin-right: 6px; vertical-align: 1px; }
 .board .say b { color: var(--ink); font-weight: 600; }
-.fun { grid-column: 1; grid-row: 2; align-self: center; font-size: 11px; color: var(--muted); }
+.board .sub .placed { grid-column: auto; margin: 0; max-width: 186px; justify-content: flex-end; }
+.board .is-placed .pl-label { display: none; }
+.board .pick.final { padding-block: 6px; }
 .board-foot { margin: 0; padding: 5px 10px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--rule); }
 
 /* Placed buttons */
 .placed { grid-column: 1 / -1; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
 .pl-label { font-size: 12px; color: var(--muted); margin-right: 2px; }
-.placed button.chip { min-height: 28px; min-width: 34px; padding: 0 9px; border-radius: 999px; font: 600 12px/1 var(--body); cursor: pointer;
+.placed button.chip { min-height: 30px; min-width: 34px; padding: 0 9px; border-radius: 999px; font: 600 12px/1 var(--body); cursor: pointer;
   background: var(--sheet); border: 1.5px solid var(--rule); color: var(--ink);
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
 .placed button[data-acct="sb"][aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--on-dark); }
 .placed button[data-acct="bf"][aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1A1300; }
 .placed button[data-acct="pb"][aria-pressed="true"] { background: var(--violet); border-color: var(--violet); color: var(--on-dark); }
-.placed button.remove { margin-left: auto; min-height: 28px; padding: 0 4px; border: 0; background: none; color: var(--muted);
+.placed button.remove { margin-left: auto; min-height: 30px; padding: 0 4px; border: 0; background: none; color: var(--muted);
   font: 500 12px var(--body); text-decoration: underline; text-underline-offset: 2px; }
 .placed button.remove:hover { color: var(--ink); }
 
@@ -208,16 +220,20 @@ p { margin: 0 0 6px; }
 
 /* Field */
 .field { list-style: none; margin: 0; padding: 0; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
-.field li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 0 9px; align-items: center; padding: 5px 10px; }
+.field li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; grid-template-areas: "c nm px" "c ch fm"; gap: 0 9px; align-items: center; padding: 5px 10px; }
+.field li > .cloth { grid-area: c; align-self: start; margin-top: 2px; }
 .field li + li { border-top: 1px solid var(--rule); }
 .field li[hidden] { display: none; }
-.field .nm { font-weight: 500; overflow-wrap: anywhere; }
-.field .ch { grid-column: 2 / 4; font-size: 13px; color: var(--muted); }
+.field .nm { grid-area: nm; font-weight: 500; overflow-wrap: anywhere; line-height: 1.2; }
+.field .pills { grid-area: px; }
+.field .ch { grid-area: ch; font-size: 13px; color: var(--muted); line-height: 1.25; }
 .field .fin { font: 700 14px var(--head); color: var(--muted); margin-left: 4px; }
 .field .fin.placed { color: var(--rose); }
 .field li.mine { background: var(--navy-wash); }
-.field .form { grid-column: 2 / 4; font-size: 13px; }
-.field .form summary { color: var(--muted); cursor: pointer; min-height: 20px; display: inline-flex; align-items: center; }
+.field .form { grid-area: fm; justify-self: end; font-size: 13px; }
+.field .form[open] { grid-area: 3 / 2 / 4 / 4; justify-self: stretch; }
+.field .form summary { color: var(--muted); cursor: pointer; min-height: 28px; padding: 0 2px 0 10px; display: inline-flex; align-items: center; }
+.field .form[open] summary { padding-left: 0; }
 .more { margin-top: 6px; min-height: var(--tap); background: none; border: 0; color: var(--navy); font: 600 14px var(--body); cursor: pointer; padding: 0; }
 .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 10px; margin: 4px 0; font-size: 13px; }
 .facts dt { color: var(--muted); }
@@ -274,6 +290,12 @@ a.textlink { display: inline-flex; align-items: center; min-height: var(--tap); 
 .block h2 { margin-top: 6px; }
 
 /* Results and history */
+.podium { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.podium .place { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 8px; display: grid; gap: 3px; align-content: start; min-width: 0; }
+.podium .ph { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.podium .ph b { color: var(--muted); font: 600 14px var(--head); }
+.podium .ph i { margin-left: auto; color: var(--muted); font-style: normal; font-size: 13px; }
+.podium .pn { font-size: 13px; line-height: 1.2; font-weight: 500; overflow-wrap: anywhere; }
 .placings { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 13px; margin: 0; }
 .placings > span { display: inline-flex; align-items: center; gap: 6px; }
 .placings b { color: var(--muted); font: 600 14px var(--head); }

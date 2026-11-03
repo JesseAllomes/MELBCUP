@@ -29,15 +29,31 @@
   <div class="outcome-note">{% if s.bonus %}bonus bet {{ s.bonus | dollars }}{% endif %}{% if s.bonus and note %} · {% endif %}{{ note }}</div>
 {% endif %}{% endif %}{% endmacro %}
 
-{% macro pick_row(line) %}
-<div class="pick{{ ' is-placed' if line.placed }}">
+{# One pick on one line where it fits: kind | runner | price pills | stake + badge. A second line
+   puts the explanation (left) beside the Placed chips (right). ``open`` marks a suggested line of a
+   race still to run: the phone saves it (data-pick) as the app's pick. #}
+{% macro pick_row(line, open=false) %}
+<div class="pick{{ ' is-placed' if line.placed }}"{% if open and line.code %} data-race="{{ line.race }}" data-k="{{ line.code }}"{% if not line.placed and line.pick_record %} data-pick="{{ line.pick_record }}"{% endif %}{% endif %}>
   <span class="type">{{ line.label }}</span>
   <span class="who"><span class="cloth sm">{{ line.number }}</span><b>{{ line.name }}</b></span>
-  {% if line.stake and line.kind == "each_way" %}<span class="stake {{ line.acct }}">{{ badge(line) }}${{ (line.stake // 2) }} EW<small>${{ line.stake }} total · {{ line.account_name }}</small></span>{% elif line.stake %}<span class="stake {{ line.acct }}">{{ badge(line) }}${{ line.stake }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
-  <span class="fun">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}</span>
-  <div class="say">{{ pillset(line.pills | selectattr('account', 'equalto', line.acct) | list if line.kind == 'each_way' and line.acct and (line.pills | selectattr('account', 'equalto', line.acct) | list) else line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}{% if line.booster %}<div class="say"><span class="verdict good">{{ line.booster }}</span><span>{{ line.booster_note }}</span></div>{% endif %}
+  <span class="px">{{ pillset(line.pills | selectattr('account', 'equalto', line.acct) | list if line.kind == 'each_way' and line.acct and (line.pills | selectattr('account', 'equalto', line.acct) | list) else line.pills) }}</span>
+  {% if line.stake and line.kind == "each_way" %}<span class="stake {{ line.acct }}">${{ (line.stake // 2) }} EW{{ badge(line) }}<small>${{ line.stake }} total · {{ line.acct | upper }}</small></span>{% elif line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}{{ badge(line) }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
+  <div class="sub">
+    <div class="says"><div class="say">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}{% if line.booster %}<div class="say"><span class="verdict good">{{ line.booster }}</span><span>{{ line.booster_note }}</span></div>{% endif %}</div>
+    {{ placed(line) }}
+  </div>
   {{ outcome(line) }}
-  {{ placed(line) }}
+</div>
+{% endmacro %}
+
+{# The app's final pick for a race that has run (from the phone's picks cookie): the same compact
+   row as a recorded bet, one line, with its WON / LOST / BACK badge. #}
+{% macro final_row(p) %}
+<div class="pick final">
+  <span class="type">{{ p.label }}</span>
+  <span class="who"><span class="cloth sm">{{ p.number }}</span><b>{{ p.name }}</b></span>
+  <span class="px">{% if p.price %}<span class="pills"><span class="pill {{ p.acct }} best"><small>{{ p.acct | upper }}</small>{{ p.price | price }}</span></span>{% endif %}</span>
+  {% if p.kind == "each_way" %}<span class="stake {{ p.acct }}">${{ (p.stake // 2) }} EW{{ badge(p) }}<small>${{ p.stake }} total</small></span>{% else %}<span class="stake {{ p.acct }}">${{ p.stake }}{{ badge(p) }}</span>{% endif %}
 </div>
 {% endmacro %}
 

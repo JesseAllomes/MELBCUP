@@ -168,7 +168,7 @@ def test_default_amounts_are_150_sportsbet_and_50_betfair(client):
     assert (DEFAULT_SPORTSBET, DEFAULT_BETFAIR) == (150, 50)
     html = client.get("/", auth=AUTH).text
     assert 'value="$150"' in html and 'value="$50"' in html
-    assert "$150</b> left of $150" in html and "$50</b> left of $50" in html
+    assert "$150</b> / $150" in html and "$50</b> / $50" in html
     assert "budget=" not in html.split("<main")[1]
 
 

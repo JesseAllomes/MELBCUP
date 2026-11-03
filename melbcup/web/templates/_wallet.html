@@ -7,11 +7,13 @@
     <div class="pnl-track" role="meter" aria-label="Today's profit or loss" aria-valuemin="{{ 0 - wallet.total | round | int }}" aria-valuemax="{{ wallet.total | round | int }}" aria-valuenow="{{ pnl.profit }}"><i class="pnl-fill {{ 'neg' if pnl.profit < 0 else 'pos' }}" style="width:{{ (fill / 2) | round(1) }}%"></i></div>
   </div>
   {% endif %}
+  <div class="accts" style="--n:{{ wallet.accounts() | length }}">
   {% for code, name, amount, used in wallet.accounts() %}
   {% set left = [amount - used, 0] | max %}
   <div class="acct" data-acct="{{ code }}">
-    <div class="acct-top"><b>{{ name }}</b><span><b class="left">{{ left | dollars }}</b> left of {{ amount | dollars }}</span></div>
+    <div class="acct-top"><b>{{ name }}</b><span title="{{ left | dollars }} left of {{ amount | dollars }}"><b class="left">{{ left | dollars }}</b> / {{ amount | dollars }}</span></div>
     <div class="bar {{ code }}" role="meter" aria-label="{{ name }} spent" aria-valuemin="0" aria-valuemax="{{ amount | round | int }}" aria-valuenow="{{ used }}"><i style="width:{{ ([100 * used / amount, 100] | min) | round(1) if amount else (100 if used else 0) }}%"></i></div>
   </div>
   {% endfor %}
+  </div>
 </section>

@@ -64,8 +64,8 @@ def test_two_win_records_in_one_race_both_count_and_both_show(views):
     assert "Price taken $3.10" in html
     assert "$8 returns $24.80" in html
     # each account's money left is its amount less its own placed stakes
-    assert '<b class="left">$140</b> left of $150' in html
-    assert '<b class="left">$42</b> left of $50' in html
+    assert '<b class="left">$140</b> / $150' in html
+    assert '<b class="left">$42</b> / $50' in html
 
 
 def test_money_left_per_account_is_amount_less_that_accounts_stakes():

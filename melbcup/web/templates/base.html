@@ -69,12 +69,12 @@
   // record), "Remove" deletes one recorded bet, and the "Record a bet I placed" form adds one.
   // Records for other days are dropped. A repeat of race+kind+runner+account replaces the old one.
   (function () {
-    function read() {
-      var m = document.cookie.match(/(?:^|;\s*)placed=([^;]*)/);
+    function read(name) {
+      var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + (name || "placed") + "=([^;]*)"));
       try { var v = m ? JSON.parse(decodeURIComponent(m[1])) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
     }
-    function write(list) {
-      document.cookie = "placed=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
+    function write(list, name) {
+      document.cookie = (name || "placed") + "=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
     }
     // the same bet: date, race, kind, runner (a multi: its legs) and account
     function same(r, rec) {
@@ -83,6 +83,30 @@
     function others(rec) {
       return read().filter(function (r) { return Array.isArray(r) && r[0] === rec[0] && !same(r, rec); });
     }
+    // The app's own suggested lines are kept on this phone too (the server forgets them on every
+    // restart), as the cookie "picks": [date, race, kind, runner, account, stake, price]. On every
+    // page load while a race is open, that race's current suggested lines (only those with a
+    // stake) replace what was saved for it, so the last suggestion before the jump is the one that
+    // stays. A kind the owner has since placed keeps its saved pick. Other days are dropped.
+    function savePicks() {
+      var date = null, fresh = [], live = {}, held = {};
+      document.querySelectorAll("#main .pick[data-race]").forEach(function (row) {
+        var n = parseInt(row.getAttribute("data-race"), 10), raw = row.getAttribute("data-pick");
+        if (!raw) { held[n + "|" + row.getAttribute("data-k")] = true; return; }
+        var rec;
+        try { rec = JSON.parse(raw); } catch (e) { return; }
+        if (!Array.isArray(rec) || rec.length < 6) return;
+        date = rec[0]; live[n] = true;
+        if (rec[5] > 0 && rec[4]) fresh.push(rec);
+      });
+      if (!date) return;
+      var keep = read("picks").filter(function (r) {
+        return Array.isArray(r) && r[0] === date && !(live[r[1]] && !held[r[1] + "|" + r[2]]);
+      });
+      write(keep.concat(fresh), "picks");
+    }
+    savePicks();
+    document.addEventListener("melb:data", savePicks);
     document.addEventListener("submit", function (e) {
       var f = e.target;
       if (!f.classList || !f.classList.contains("record-bet")) return;

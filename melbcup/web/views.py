@@ -24,9 +24,11 @@ from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
 from melbcup.web.racecard import (
+    PICKS_COOKIE,
     PLACED_COOKIE,
     build_day,
     cup_note,
+    final_picks,
     parse_placed,
     pick_amounts,
     pick_pointsbet,
@@ -377,6 +379,7 @@ class Views:
             "day": card,
             "wallet": wallet(sb, bf, placed, pb),
             "pnl": settle_all(placed, races),
+            "finals": final_picks(cookies.get(PICKS_COOKIE), snap.race_date, pb is not None, races),
             "amounts_chosen": chosen,
             "race_date_iso": snap.race_date.isoformat() if snap.race_date else "",
             "budget": day_total,

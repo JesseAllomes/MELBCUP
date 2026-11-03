@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}R{{ race.number }} · MELBCUP{% endblock %}
-{% from "_card.html" import pick_row, exotic_card, amounts, pillset %}
+{% from "_card.html" import pick_row, final_row, exotic_card, amounts, pillset %}
 {% block top %}{% include "_racestrip.html" %}{% endblock %}
 {% block content %}
 {% set runners = race.starters | length %}
@@ -34,12 +34,22 @@
   {% endif %}
   {% if rc.board %}
   <div class="board">
-    {% for line in rc.board %}{{ pick_row(line) }}{% endfor %}
+    {% for line in rc.board %}{{ pick_row(line, rc.open) }}{% endfor %}
     <p class="board-foot">Short price: pays a bit less than its chance deserves. Good price: pays more, and gets the model's own stake first.</p>
   </div>
   {% else %}
   <p class="note">No prices yet for this race.</p>
   {% endif %}
+</section>
+{% endif %}
+{% set fp = finals.get(race.number) if rg and finals else none %}
+{% if fp %}
+<section aria-labelledby="final-h">
+  <h2 id="final-h">App's final picks</h2>
+  <div class="board">
+    {% for p in fp[0] %}{{ final_row(p) }}{% endfor %}
+  </div>
+  <p class="race-pnl">App's picks this race: <b class="{{ 'pos' if fp[1] > 0 else 'neg' if fp[1] < 0 }}">{{ fp[1] | signed }}</b></p>
 </section>
 {% endif %}
 <section class="record" aria-label="Record a bet I placed">

@@ -180,3 +180,16 @@ def test_each_way_uses_the_place_price_taken():
     assert recs and recs[0].price == 4.6 and recs[0].place_price == 1.62
     six = parse_placed('[["2026-11-03",1,"w",2,"sb",3]]', date(2026, 11, 3))
     assert six and six[0].place_price is None
+
+
+def test_final_picks_from_the_picks_cookie_show_after_the_result():
+    views = views_with({3: 1, 1: 2, 2: 3})
+    saved = [[D, 1, "w", 3, "sb", 10, 3.0], [D, 1, "w", 1, "sb", 4, 2.0]]
+    picks = {"picks": quote(json.dumps(saved))}
+    html = views.page("/race/1", {}, picks)
+    assert "App's final picks" in html and "WON +$20.00" in html and "LOST −$4.00" in html
+    assert "App's picks this race: <b class=\"pos\">+$16.00</b>" in html
+    assert "App's final picks" not in views.page("/race/1", {}, {})  # nothing saved: nothing shown
+    open_ = views_with()  # no result yet: not shown
+    assert "App's final picks" not in open_.page("/race/1", {}, picks)
+    assert 'data-pick="' in open_.page("/race/1", {}, {})  # the open card carries what to save

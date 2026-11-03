@@ -1,6 +1,6 @@
-{# Official placings. Needs: rg (RaceGrade) #}
-<p class="placings">
+{# Official placings in one row: 1st, 2nd, 3rd side by side. Needs: rg (RaceGrade) #}
+<div class="podium">
   {% for pos, num, name, sp in rg.placings if pos <= 3 %}
-  <span><b>{{ ['', '1st', '2nd', '3rd'][pos] }}</b> <span class="cloth">{{ num }}</span> {{ name }}{% if sp %} <i>{{ sp | money }}</i>{% endif %}</span>
+  <div class="place"><span class="ph"><b>{{ ['', '1st', '2nd', '3rd'][pos] }}</b> <span class="cloth">{{ num }}</span>{% if sp %} <i>{{ sp | money }}</i>{% endif %}</span><span class="pn">{{ name }}</span></div>
   {% endfor %}
-</p>
+</div>
