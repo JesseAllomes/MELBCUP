@@ -47,7 +47,7 @@ def test_old_six_element_and_new_seven_element_records_parse():
     raw = cookie([DATE, 1, "w", 2, "sb", 10], [DATE, 2, "p", 4, "bf", 6, 2.35])["placed"]
     old, new = parse_placed(raw, race_date())
     assert old.price is None and new.price == 2.35 and new.stake == 6
-    bad = cookie([DATE, 1, "w", 2, "sb", 10, "x"], [DATE, 1, "w", 3, "sb", 10, 1, 2])["placed"]
+    bad = cookie([DATE, 1, "w", 2, "sb", 10, "x"], [DATE, 1, "w", 3, "sb", 10, 1, 2, 3])["placed"]
     assert [p.price for p in parse_placed(bad, race_date())] == [None]
 
 

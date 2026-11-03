@@ -33,6 +33,7 @@ from melbcup.bets.promos import (
     booster_gain,
     payback_multi,
 )
+from melbcup.bets.settle import settle_bet
 from melbcup.config import MELBOURNE
 from melbcup.domain import betfair_net
 from melbcup.model.probability import top_k_probs
@@ -153,10 +154,11 @@ def parse_placed(
     out: list[Placed] = []
     seen: set[tuple[int, str, int, str]] = set()
     for rec in data[:200]:
-        if not isinstance(rec, list) or len(rec) not in (6, 7):
+        if not isinstance(rec, list) or len(rec) not in (6, 7, 8):
             continue
         when, race, code, key, acct, stake = rec[:6]
-        price = _price(rec[6]) if len(rec) == 7 else None
+        price = _price(rec[6]) if len(rec) >= 7 else None
+        place_price = _price(rec[7]) if len(rec) == 8 else None  # each way's place price
         kind, account = KIND_OF.get(code), accounts.get(acct)
         if when != race_date.isoformat() or kind is None or account is None:
             continue
@@ -172,7 +174,10 @@ def parse_placed(
         if ident in seen:
             continue
         seen.add(ident)
-        out.append(Placed(race, kind, key, account, stake, price))
+        out.append(
+            Placed(race, kind, key, account, stake, price,
+                   place_price if kind == "each_way" else None)
+        )
     return out
 
 
@@ -317,6 +322,7 @@ class Line:
     value_note: str = ""  # the PointsBet Pay Back multi: its value per $1 line
     taken: float | None = None  # a placed line: the price the owner took, when they gave it
     remove: str = ""  # a placed line: its own record as JSON, for its Remove button
+    settled: object | None = None  # a placed line: its settle.Settled, once worked out
 
     @property
     def label(self) -> str:
@@ -706,7 +712,21 @@ def build_day(
     if promos and pb and pb > 0:
         _mark_booster(races)
         payback = _payback_line(picks, open_races, race_date)
+    _mark_settled(
+        [x for rc in races for x in rc.board + rc.exotics] + lines,
+        placed,
+        {rp.model.race.number: rp.model.race for rp in picks.races},
+    )
     return DayCard(races, len(open_races), lines, payback)
+
+
+def _mark_settled(lines: list[Line], placed: list[Placed], races: dict) -> None:
+    """Each placed line carries how its recorded bet settled (melbcup.bets.settle)."""
+    done = {(p.race, p.kind, p.key, p.account): settle_bet(p, races) for p in placed}
+    for line in lines:
+        if line.placed:
+            key = line.key if line.kind == "multi" else (line.number or 0)
+            line.settled = done.get((line.race, line.kind, key, line.account))
 
 
 def _mark_booster(races: list) -> None:

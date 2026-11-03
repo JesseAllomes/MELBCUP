@@ -83,7 +83,9 @@
       if (!(v > 0)) return;
       var rec = [f.getAttribute("data-date"), parseInt(f.getAttribute("data-race"), 10), kind, parseInt(el["runner"].value, 10), el["acct"].value, v];
       var price = parseFloat(el["price"].value);
-      if (price > 1) rec.push(Math.round(price * 100) / 100);
+      var place = el["place_price"] ? parseFloat(el["place_price"].value) : NaN;
+      if (price > 1 || (kind === "e" && place > 1)) rec.push(price > 1 ? Math.round(price * 100) / 100 : null);
+      if (kind === "e" && place > 1) rec.push(Math.round(place * 100) / 100);
       var list = others(rec);
       list.push(rec);
       write(list);

@@ -18,6 +18,7 @@ from melbcup import history
 from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.bets.promos import PROMOS
+from melbcup.bets.settle import settle_all, signed
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
@@ -258,6 +259,7 @@ def make_env() -> Environment:
     env.globals["shown"] = history.shown
     env.filters.update(
         one_in=racecard.one_in,
+        signed=signed,
         dollars=racecard.dollars,
         price=racecard.price_text,
         jump=racecard.jump,
@@ -319,6 +321,11 @@ class Views:
         grade = (
             grade_day(picks) if picks and any(rp.model.race.result for rp in picks.races) else None
         )
+        races = (
+            {rp.model.race.number: rp.model.race for rp in picks.races}
+            if picks
+            else {r.number: r for r in (snap.card.races if snap.card else [])}
+        )
         marks = {rg.race: {g.kind: g for g in rg.lines} for rg in (grade.races if grade else [])}
         card = (
             build_day(
@@ -334,6 +341,7 @@ class Views:
             "card": snap.card,
             "day": card,
             "wallet": wallet(sb, bf, placed, pb),
+            "pnl": settle_all(placed, races),
             "amounts_chosen": chosen,
             "race_date_iso": snap.race_date.isoformat() if snap.race_date else "",
             "budget": day_total,

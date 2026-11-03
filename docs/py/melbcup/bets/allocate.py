@@ -105,6 +105,7 @@ class Placed:
     account: str  # "sportsbet" | "betfair" | "pointsbet"
     stake: int
     price: float | None = None  # the price the owner took, when they gave it
+    place_price: float | None = None  # each way: the place price taken, when given
 
     # Several records can share a race and kind (different runners, or the same runner with two
     # bookmakers); a multi's slot is its legs.

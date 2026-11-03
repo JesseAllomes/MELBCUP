@@ -20,6 +20,11 @@
 </section>
 {% endif %}
 
+{% set rp_pnl = pnl.race(race.number) if pnl else none %}
+{% if rp_pnl and rp_pnl.settled %}
+<p class="race-pnl">Your bets this race: <b class="{{ 'pos' if rp_pnl.profit > 0 else 'neg' if rp_pnl.profit < 0 }}">{{ rp_pnl.profit | signed }}</b>{% if rp_pnl.bonus %} · bonus bet {{ rp_pnl.bonus | dollars }}{% endif %}</p>
+{% endif %}
+
 {% if rc.open or rc.board %}
 <section aria-labelledby="picks-h">
   <h2 id="picks-h">{{ 'Win, place, each way' if rc.open else 'Your bets before the race' }}</h2>
@@ -44,7 +49,8 @@
     <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
     <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
     <label>Stake ($, whole dollars; each way: the total of both halves) <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
-    <label>Price (optional, decimal) <input name="price" type="number" inputmode="decimal" min="1.01" step="any"></label>
+    <label>Price (optional, decimal; each way: the win price) <input name="price" type="number" inputmode="decimal" min="1.01" step="any"></label>
+    <label>Place price (each way only, optional) <input name="place_price" type="number" inputmode="decimal" min="1.01" step="any"></label>
     <button type="submit">Record bet</button>
   </form>
 </section>{% if rc.open or rc.board %}{% if cup_note %}

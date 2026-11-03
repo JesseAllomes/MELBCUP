@@ -1,11 +1,11 @@
 /* MELBCUP race card (owner BUILD, 2026-11-01; .grok/product-ui/race-card-prototype.html).
    One phone column. White saddlecloths, navy = Sportsbet, amber = Betfair, violet = PointsBet (POINTSBET=1), rose = Good price
-   and the silk sash. No green anywhere. */
+   and the silk sash. Green and red only for profit and loss. */
 :root {
   --ground: #E9ECF1; --sheet: #FFFFFF; --ink: #131925; --muted: #5C6475; --rule: #D6DBE3;
   --rose: #B4294F; --rose-wash: #F7E3E9; --navy: #1E3687; --navy-wash: #E2E7F6; --on-dark: #FFFFFF;
   --cloth: #FFFFFF; --cloth-ink: #111111; --focus: #7A3FD0; --amber: #C98A00; --amber-ink: #7A5200;
-  --violet: #6D3CC4; --violet-wash: #EBE3F8;
+  --violet: #6D3CC4; --violet-wash: #EBE3F8; --pos: #1E7A46; --neg: #C62828;
   --head: "Barlow Condensed", "Arial Narrow", sans-serif;
   --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
   --tap: 44px;
@@ -13,11 +13,11 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --ground: #0C1017; --sheet: #151B26; --ink: #ECEFF4; --muted: #9AA3B4; --rule: #273041;
-  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45;
+  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45; --pos: #5FD08A; --neg: #FF7A7A;
   --focus: #C49BFF; color-scheme: dark } }
 :root[data-theme="dark"] {
   --ground: #0C1017; --sheet: #151B26; --ink: #ECEFF4; --muted: #9AA3B4; --rule: #273041;
-  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45;
+  --rose: #F0789A; --rose-wash: #3A1A26; --navy: #93A9FF; --navy-wash: #1B2442; --on-dark: #0C1017; --amber: #F2B53A; --amber-ink: #F2B53A; --violet: #B79CFF; --violet-wash: #261B45; --pos: #5FD08A; --neg: #FF7A7A;
   --focus: #C49BFF; color-scheme: dark }
 
 * { box-sizing: border-box; }
@@ -54,6 +54,20 @@ p { margin: 0 0 8px; }
 .bar.sb i { background: var(--navy); }
 .bar.bf i { background: var(--amber); }
 .bar.pb i { background: var(--violet); }
+/* Day profit/loss: 0 in the centre, red fills left for a loss, green right for a profit */
+.pnl { display: grid; gap: 4px; }
+.pnl .pos, .outcome .pos, .race-pnl .pos { color: var(--pos); }
+.pnl .neg, .outcome .neg, .race-pnl .neg { color: var(--neg); }
+.pnl-track { position: relative; height: 10px; border-radius: 5px; background: var(--rule); overflow: hidden; }
+.pnl-track::after { content: ""; position: absolute; left: calc(50% - 1px); top: 0; bottom: 0; width: 2px; background: var(--muted); }
+.pnl-fill { position: absolute; top: 0; bottom: 0; }
+.pnl-fill.pos { left: 50%; background: var(--pos); }
+.pnl-fill.neg { right: 50%; background: var(--neg); }
+.outcome { grid-column: 1 / -1; font-size: 15px; color: var(--muted); }
+.outcome b { font: 700 18px var(--head); }
+.outcome .bonus { margin-left: 6px; font-weight: 600; color: var(--ink); }
+.race-pnl { margin: 8px 0; font-size: 16px; color: var(--muted); }
+.race-pnl b { font: 700 20px var(--head); }
 
 /* Site links: a slim muted row */
 .topnav { display: flex; gap: 4px 14px; flex-wrap: wrap; align-items: center; font-size: 14px; margin-top: -8px; }

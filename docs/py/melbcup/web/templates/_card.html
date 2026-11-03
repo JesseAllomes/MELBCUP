@@ -14,6 +14,17 @@
 </div>
 {% endif %}{% endmacro %}
 
+{# How a placed bet settled: Won / Lost / Back / Returned, a bonus bet, or a note. Needs: line.settled #}
+{% macro outcome(line) %}{% set s = line.settled %}{% if s %}{% if s.status == 'settled' %}
+  <div class="outcome">
+    {% if s.profit > 0 %}<b class="pos">Won {{ s.profit | dollars }}</b>
+    {% elif s.returns > 0 and s.profit < 0 %}<b class="neg">Back {{ s.returns | dollars }}</b> <span>({{ s.profit | signed }})</span>
+    {% elif s.returns > 0 %}<b>Returned {{ s.returns | dollars }}</b>
+    {% else %}<b class="neg">Lost {{ (0 - s.profit) | dollars }}</b>{% endif %}
+    {% if s.bonus %}<span class="bonus">bonus bet {{ s.bonus | dollars }}</span>{% endif %}
+  </div>
+{% elif s.note %}<div class="outcome"><small>{{ s.note }}</small></div>{% endif %}{% endif %}{% endmacro %}
+
 {% macro pick_row(line) %}
 <div class="pick{{ ' is-placed' if line.placed }}">
   <span class="type">{{ line.label }}</span>
@@ -21,6 +32,7 @@
   {% if line.stake and line.kind == "each_way" %}<span class="stake {{ line.acct }}">${{ (line.stake // 2) }} EW<small>${{ line.stake }} total · {{ line.account_name }}</small></span>{% elif line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
   <span class="fun">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}</span>
   <div class="say">{{ pillset(line.pills, true) }}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}{% if line.booster %}<div class="say"><span class="verdict good">{{ line.booster }}</span><span>{{ line.booster_note }}</span></div>{% endif %}
+  {{ outcome(line) }}
   {{ placed(line) }}
 </div>
 {% endmacro %}
@@ -36,6 +48,7 @@
   </dl>
   {% endif %}
   {% if line.say or line.bold %}<p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}{% if line.caveat %} {{ line.caveat }}{% endif %}</p>{% endif %}
+  {{ outcome(line) }}
   {{ placed(line) }}
 </article>
 {% endmacro %}
@@ -54,6 +67,7 @@
     {% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}
   </div>
   <p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</p>
+  {{ outcome(line) }}
   {{ placed(line) }}
 </article>
 {% endmacro %}
