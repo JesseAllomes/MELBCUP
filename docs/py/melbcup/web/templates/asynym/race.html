@@ -1,0 +1,212 @@
+{% extends "asynym/base.html" %}
+{% from "asynym/_parts.html" import ring, buttons, bet_row, kid_rows, extra_rows, record_form %}
+{% from "_card.html" import badge %}
+{% block title %}R{{ race.number }} · AsynymBet{% endblock %}
+{% block content %}
+{% set n = race.number %}
+<nav class="strip" aria-label="Races">
+  {% for row in rows %}
+  {% set rn = row.rc.race.number %}
+  <a href="/race/{{ rn }}" class="{{ 'on' if rn == n }}{{ ' done' if row.state == 'done' }}"{% if rn == n %} aria-current="page"{% endif %}><b>R{{ rn }}</b>{{ row.rc.race.start_time | local_time }}<i class="i-{{ row.state }}"></i></a>
+  {% endfor %}
+</nav>
+
+<section class="card head">
+  <div class="rh">
+    <b class="rno">R{{ n }}</b>
+    <div class="mh"><h2>{{ race.name | racename or 'Race ' ~ n }}</h2>
+      <small>{{ race.start_time | jump }}{% if race.distance_m %} · {{ race.distance_m }}m{% endif %} · {{ race.starters | length }} runners{% if race.condition or card.condition %} · {{ race.condition or card.condition }}{% endif %}</small></div>
+    <span class="clock{{ ' now' if rc.open and race.start_time and race.start_time | until == 'jumping' }}">{{ race.start_time | until if rc.open else 'run' }}</span>
+  </div>
+  {% if (not race.result or race.result.status != 'final') and not betting_open(race) %}
+  <form class="check-results" method="post" action="/actions/results?next={{ (here ~ ('?tab=' ~ tab if tab_q else '')) | urlencode }}"><button type="submit">Check results</button><span>{{ 'Interim result: placings may change' if race.result else 'Waiting for the result' }}</span></form>
+  {% endif %}
+</section>
+
+<nav class="rtabs" aria-label="Race tabs">
+  {% for key, label in [('bet', 'Bet'), ('field', 'Field'), ('result', 'Result'), ('mine', 'Mine')] %}
+  <a href="/race/{{ n }}?tab={{ key }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}{% if key == 'field' %}<small>{{ race.starters | length }}</small>{% elif key == 'mine' and (my_lines or kids.get(n) or race_extras) %}<small>{{ (my_lines | length) + ((kids.get(n) or []) | length) + (race_extras | length) }}</small>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if tab == 'bet' %}
+  {% if not rc.open %}
+  <section class="card none">
+    <div class="vlabel">Betting is closed</div>
+    <p class="say">{{ 'This race has run.' if race.result else 'This race has jumped.' }} See the <a href="/race/{{ n }}?tab=result">Result</a> tab.</p>
+  </section>
+  {% elif verdict_take %}
+  {% set t = takes[0] %}
+  {% set bc, bp = t.best(az.codes_on) %}
+  <section class="card take" aria-label="Verdict">
+    <div class="vlabel">Take this bet</div>
+    <div class="vrow">
+      {{ ring(t.chance, 60, 'chance') }}
+      <span class="cloth lg">{{ t.number }}</span>
+      <div class="nm"><b>{{ t.name }}</b><span>{{ t.label }}{% if bc %} · best at {{ az.get(bc).name }}{% endif %}</span></div>
+      <span class="st">${{ t.stake }}</span>
+    </div>
+    <div class="nums"><div>Chance<b>{{ t.chance | one_in }}</b></div><div>Fair<b>{{ t.fair | price }}</b></div><div>Best<b>{{ t.shown(bc) if bc else '–' }}</b></div></div>
+    <div class="floor">Only worth it at {{ t.fair | price }} or better</div>
+    {{ buttons(t, az) }}
+    {% if t.line and t.line.bold %}<p class="say">{{ t.line.say }} <b>{{ t.line.bold }}</b></p>{% endif %}
+  </section>
+  {% for t in takes[1:] %}
+  <section class="card take also" aria-label="Also worth taking">
+    <div class="vlabel">Also worth taking</div>
+    <div class="vrow"><span class="cloth">{{ t.number }}</span><div class="nm"><b>{{ t.name }}</b><span>{{ t.label }} · fair {{ t.fair | price }}</span></div><span class="st sm">${{ t.stake }}</span></div>
+    {{ buttons(t, az) }}
+  </section>
+  {% endfor %}
+  {% else %}
+  <section class="card none" aria-label="Verdict">
+    <div class="vlabel">Nothing worth trying here</div>
+    <p class="say">No bet in this race pays more than its chance deserves.{{ ' Best bet still open on this card:' if elsewhere else '' }}</p>
+    {% if elsewhere %}
+    {% set e = elsewhere %}
+    <a class="goto" href="/race/{{ e.race }}"><span class="rn">R{{ e.race }}</span><span><b>{{ e.number }} {{ e.name }} · {{ e.label }} ${{ e.stake }}</b><small>{{ e.start | local_time }} · fair {{ e.fair | price }} · edge {{ e.edge | edge }}</small></span><i>›</i></a>
+    {% else %}<p class="note">No TAKE bet is left on this card.</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if rc.open %}
+  <section class="card picks" aria-labelledby="picks-h">
+    <div class="lbl" id="picks-h">Top picks worth a shot</div>
+    {% if top_picks %}
+    <div class="rows">
+      {% for p in top_picks %}
+      <div class="r"><span class="k">{{ p.label }}</span><span class="t"><span class="cloth sm">{{ p.number }}</span> {{ p.name }}<span class="edge">{{ p.edge | edge }}</span><small>{{ p.price }} · fair {{ p.fair | price }}</small></span><span class="a">{{ '$' ~ p.stake if p.stake else '–' }}</span></div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No pick here pays more than its chance.</p>
+    {% endif %}
+  </section>
+  {% if multi %}
+  <section class="card srm" aria-labelledby="multi-h">
+    <div class="ringrow">
+      {{ ring(multi.chance, 58, 'gets up') }}
+      <div class="mb">
+        <div class="lbl" id="multi-h">Multi worth a shot</div>
+        <div class="legs">{% for r, num, name, kind in multi.multi_legs %}<span><b class="rno2">R{{ r }}</b><span class="cloth sm">{{ num }}</span>{{ name }} <small>· {{ kind }}</small></span>{% endfor %}</div>
+        <div class="mf"><span>Sportsbet <b>{{ multi.price | price }}</b> · fair {{ (1 / multi.chance) | price }}</span><b class="st sm">{{ '$' ~ multi.stake if multi.stake else '–' }}</b></div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  {% endif %}
+
+{% elif tab == 'field' %}
+{% set ranked = rp.model.ranked() %}
+<section class="card" aria-label="The field">
+  <ul class="rows field" id="field">
+    {% for a in ranked %}
+    {% set r = race.runner(a.number) %}
+    {% set fin = race.result.finish.get(a.number) if race.result else none %}
+    <li class="r{{ ' mine' if a.number in rc.mine }}">
+      <span class="cloth">{{ a.number }}</span>
+      <span class="t"><b>{{ r.name }}</b>{% if fin %} <span class="fin{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}
+        <small>Wins {{ a.win | one_in }} · places {{ a.place | one_in }}</small>
+        <span class="bar2"><i><span style="width:{{ [a.win * 400, 100] | min | round }}%"></span></i><i><span class="pl" style="width:{{ [a.place * 200, 100] | min | round }}%"></span></i></span>
+        <details class="form"><summary>Form</summary>
+          <dl class="facts">
+            <dt>Rider, trainer</dt><dd>{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %} · barrier {{ r.barrier or '?' }}</dd>
+            {% if a.reasons_for %}<dt>For</dt><dd>{{ a.reasons_for | join(', ') }}</dd>{% endif %}
+            {% if a.reasons_against %}<dt>Against</dt><dd>{{ a.reasons_against | join(', ') }}</dd>{% endif %}
+            <dt>Last 10</dt><dd>{{ r.last10 or '–' }}{% if r.hcp_rating %} · rating {{ r.hcp_rating }}{% endif %}</dd>
+            <dt>Career, track, distance, going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
+            {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
+            {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
+            {% if r.last_start_note %}<dt>Last start</dt><dd>{{ r.last_start_note | truncate(140) }}</dd>{% endif %}
+          </dl>
+        </details></span>
+      <span class="px">{% for p in race.prices.get(a.number) | pills(pointsbet=pb_on) %}<span class="pill{{ ' best' if p.best }}"><small>{{ p.account | upper }}</small>{{ p.text }}</span>{% endfor %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% set gone = race.runners | selectattr('scratched') | list %}
+  {% if gone %}<p class="note">Scratched: {% for r in gone %}{{ r.number }} {{ r.name }}{{ ', ' if not loop.last }}{% endfor %}.</p>{% endif %}
+</section>
+
+{% elif tab == 'result' %}
+{% set rg = grade.races | selectattr('race', 'equalto', n) | first if grade else none %}
+{% set rp_pnl = pnl_own.race(n) if pnl_own else none %}
+{% if rg %}
+<section class="card" aria-labelledby="result-h">
+  <div class="lbl" id="result-h">Result</div>
+  <div class="podium">
+    {% for pos, num, name, sp in rg.placings if pos <= 3 %}
+    <div class="place"><b>{{ ['', '1st', '2nd', '3rd'][pos] }}</b><span class="cloth">{{ num }}</span><span class="pn">{{ name }}</span>{% if sp %}<i>{{ sp | money }}</i>{% endif %}</div>
+    {% endfor %}
+  </div>
+  {% if rp_pnl and rp_pnl.settled %}<p class="say">Your bets this race: <b class="{{ 'pos' if rp_pnl.profit > 0 else 'neg' if rp_pnl.profit < 0 }}">{{ rp_pnl.profit | signed | replace('-', '−') }}</b>{% if rp_pnl.bonus %} · bonus bet {{ rp_pnl.bonus | dollars }}{% endif %}</p>{% endif %}
+</section>
+{% else %}
+<section class="card"><p class="empty">{{ 'Result shows here a minute after the jump.' if rc.open or not race.result else 'Waiting for the result.' }}</p></section>
+{% endif %}
+{% set fp = finals.get(n) if rg and finals else none %}
+{% if fp %}
+<section class="card" aria-labelledby="final-h">
+  <div class="lbl" id="final-h">App's final picks</div>
+  <div class="rows">
+    {% for p in fp[0] %}
+    <div class="r"><span class="k">{{ p.label }}</span><span class="t"><span class="cloth sm">{{ p.number }}</span> {{ p.name }}<small>{{ p.account_name }}{% if p.price %} · {{ p.price | price }}{% endif %}</small></span><span class="a">${{ p.stake }}</span>{{ badge(p) }}</div>
+    {% endfor %}
+  </div>
+  <p class="say">App's picks this race: <b class="{{ 'pos' if fp[1] > 0 else 'neg' if fp[1] < 0 }}">{{ fp[1] | signed | replace('-', '−') }}</b></p>
+</section>
+{% endif %}
+{% set c = check %}
+<section class="card" aria-labelledby="auto-h">
+  <div class="lbl" id="auto-h">Last-minute check <span class="tag">Records only</span></div>
+  {% macro desc(x, account=false) %}{% if x.exotic is not none %}{{ x.key }}{% else %}{{ x.key }} {{ x.name }}{% if x.price and x.kind != 'each_way' %} {{ x.price | price }}{% endif %}{% endif %}{% if account and x.account == 'betfair' %} Betfair{% endif %}{% endmacro %}
+  {% if race.result and c and (c.early_back is not none or c.late_back is not none) %}
+    <p class="say"><b>Result: {{ c.winner or 'in' }}{{ ' won' if c.winner }}.</b></p>
+    <dl class="facts">
+      {% if c.early_back is not none %}<dt>{{ c.early_at | local_time }} picks</dt><dd><b>{{ c.early_back | dollars }}</b> back from ${{ c.staked(c.early) }}</dd>{% endif %}
+      {% if c.late_back is not none %}<dt>Last minute</dt><dd><b>{{ c.late_back | dollars }}</b> back from ${{ c.staked(c.late) }}</dd>{% endif %}
+    </dl>
+    {% if c.unknown %}<p class="note">Some dividends were not known yet; those bets are left out.</p>{% endif %}
+    <p class="note">Running total on the <a href="/history">History page</a>.</p>
+  {% elif c and c.late is not none %}
+    {% set k = c.changed %}
+    <p class="say"><b>{{ 'No changes' if k == 0 else (k ~ ' change' ~ ('' if k == 1 else 's')) }} at {{ c.late_at | local_time }}.</b></p>
+    <dl class="facts">
+      {% for kind, now, was in c.changes() %}
+      <dt>{{ {'win': 'Win', 'place': 'Place', 'each_way': 'Each way', 'quinella': 'Quinella', 'trifecta': 'Trifecta', 'first_four': 'First Four'}[kind] }}</dt>
+      <dd>{% if now and now.same(was) %}same: {{ desc(now) }}{% elif now %}now <b>{{ desc(now, true) }}</b>, was {{ desc(was) if was else 'no bet' }}{% else %}now no bet, was {{ desc(was) }}{% endif %}</dd>
+      {% endfor %}
+    </dl>
+  {% elif c and c.early is not none %}
+    <p class="say"><b>Picks saved at {{ c.early_at | local_time }}.</b> At about {{ race.start_time | before(1) }} it checks again at the latest prices and shows what changed here.</p>
+  {% elif race.result %}
+    <p class="note">No saved picks for this race: the app was not running before the jump, or it has restarted since.</p>
+  {% elif race.start_time %}
+    <p class="note"><b>Waiting.</b> At {{ race.start_time | before(30) }} the app saves its picks. At about {{ race.start_time | before(1) }} it checks again at the latest prices.</p>
+  {% endif %}
+</section>
+
+{% else %}
+<section class="card" aria-labelledby="mine-h">
+  <div class="lbl" id="mine-h">Your bets</div>
+  {% if my_lines %}<div class="rows">{% for line in my_lines %}{{ bet_row(line) }}{% endfor %}</div>
+  {% else %}<p class="empty">No bet recorded for this race.</p>{% endif %}
+  {{ record_form(race, race_date_iso, az) }}
+</section>
+{% set kr = kids.get(n) if kids else none %}
+{% if kr %}
+{% set ks = kr | selectattr('settled.status', 'equalto', 'settled') | list %}
+{% set kp = (ks | sum(attribute='settled.profit')) %}
+<section class="card" aria-labelledby="kids-h">
+  <div class="lbl" id="kids-h">Kids' bets{% if ks %} <span class="kids-total">Kids: <b class="{{ 'pos' if kp > 0 else 'neg' if kp < 0 }}">{{ kp | signed | replace('-', '−') }}</b>{% if ks | length < kr | length %} · {{ kr | length - ks | length }} pending{% endif %}</span>{% endif %}</div>
+  <div class="rows">{{ kid_rows(kr, {n: race}) }}</div>
+</section>
+{% endif %}
+{% if race_extras %}
+<section class="card" aria-labelledby="xb-h">
+  <div class="lbl" id="xb-h">Other bets with a leg here</div>
+  <div class="rows">{{ extra_rows(race_extras) }}</div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

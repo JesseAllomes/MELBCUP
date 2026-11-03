@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0E0B15">
+  <title>{% block title %}AsynymBet{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/static/asynym.css?v={{ asset_v }}">
+  <script src="/static/app.js?v={{ asset_v }}" defer></script>
+  <script src="/static/asynym.js?v={{ asset_v }}" defer></script>
+</head>
+<body class="az">
+  <main id="main" class="app" data-refresh="{% block refresh %}30{% endblock %}">
+    {% include "asynym/_header.html" %}
+    <div class="scr">
+    {% block content %}{% endblock %}
+    {% if can_fetch and not snap.saved %}
+    <div class="status">
+      <p class="src">{{ [('Live' if snap.auto else ''), ('prices ' ~ (snap.priced_at | local_time) if snap.priced_at else ''), ('results ' ~ (snap.results_at | local_time) if snap.results_at else ''), ('loading card…' if snap.loading or (not card and not snap.field_due) else '')] | select | join(' · ') }}</p>
+      {% if not snap.auto %}
+      <div class="btns">
+        {% if card and snap.can_price %}<form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices</button></form>{% endif %}
+        {% if card and snap.race_date <= today %}<form method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Get results</button></form>{% endif %}
+        {% if not snap.field_due %}<form method="post" action="/actions/load?next={{ here | urlencode }}"><button type="submit" {{ 'disabled' if snap.loading }}>{{ 'Reload card' if card else 'Load card' }}</button></form>{% endif %}
+        <form method="post" action="/actions/auto?on=1&next={{ here | urlencode }}"><button type="submit">Auto on</button></form>
+      </div>
+      {% else %}
+      <div class="btns"><form method="post" action="/actions/auto?on=0&next={{ here | urlencode }}"><button type="submit">Auto off</button></form></div>
+      {% endif %}
+    </div>
+    {% endif %}
+    <footer class="foot">
+      <p>Estimates from form and market data. They improve the odds of a good decision; they do not
+        guarantee a result. Bet only what you can afford to lose.</p>
+      <p class="help">Gambling Help Online <a href="tel:1800858858">1800 858 858</a> <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
+    </footer>
+    </div>
+    <script type="application/json" id="picks-data">{{ picks_data | tojson }}</script>
+  </main>
+{% include "_bets_js.html" %}
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "asynym/base.html" %}
+{% from "asynym/_parts.html" import take_row %}
+{% from "asynym/_meetpick.html" import carnival_block, others with context %}
+{% block content %}
+<section class="card head">
+  <div class="mh"><h2>{{ snap.venue }}</h2><small>{{ snap.race_date | day }}{% if picks %} · {{ picks.races | length }} races{% endif %}{% if card and card.condition %} · {{ card.condition }}{% endif %}</small></div>
+  <a class="go-all" href="/meeting">Races ›</a>
+</section>
+
+<section class="card" aria-labelledby="take-h">
+  <div class="sec"><span id="take-h">Bets to take · races still to run</span><span>{{ takes | length }}</span></div>
+  {% if not picks %}
+  <p class="empty">{{ 'Loading the card…' if snap.loading else 'No card loaded yet. Choose a meeting below.' }}</p>
+  {% elif takes %}
+  <div class="rows">{% for t in takes %}{{ take_row(t, az) }}{% endfor %}</div>
+  {% else %}
+  <p class="empty">Nothing worth trying in the races still to run.</p>
+  {% endif %}
+</section>
+
+<section class="card" aria-labelledby="meet-h">
+  <div class="sec"><span id="meet-h">Choose a meeting</span><a href="/meetings">Race days ›</a></div>
+  {{ carnival_block(carnival) }}
+  {{ others(pick, found) }}
+</section>
+{% endblock %}

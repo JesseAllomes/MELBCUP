@@ -1,0 +1,95 @@
+{# Pieces of the AsynymBet pages. #}
+{% from "_card.html" import badge %}
+
+{# The ring meter: an SVG ring showing the chance (0 to 1). Green 60%+, purple 30 to 59%, amber
+   under 30%. #}
+{% macro ring(chance, size=52, label='chance') %}{% set pct = chance | ring_pct %}{% set r = (size - 8) / 2 %}{% set c = 2 * 3.14159265 * r %}
+<span class="ring {{ pct | ring_tone }}" style="width:{{ size }}px;height:{{ size }}px" role="img" aria-label="{{ pct }}% {{ label }}"><svg width="{{ size }}" height="{{ size }}" viewBox="0 0 {{ size }} {{ size }}" aria-hidden="true"><circle class="trk" cx="{{ size / 2 }}" cy="{{ size / 2 }}" r="{{ r }}"/><circle class="arc" cx="{{ size / 2 }}" cy="{{ size / 2 }}" r="{{ r }}" stroke-dasharray="{{ (c * pct / 100) | round(1) }} {{ c | round(1) }}"/></svg><b>{{ pct }}%<small>{{ label }}</small></b></span>
+{% endmacro %}
+
+{# One button per agency that is ON, with its price for this bet. A routed account (Sportsbet,
+   Betfair, PointsBet) records the bet as placed: the page script asks for the stake, as it does
+   today. TAB, Ladbrokes and Neds have no prices here yet and no recording: display only. #}
+{% macro buttons(t, az) %}
+{% set best_code, best_price = t.best(az.codes_on) %}
+<div class="books" role="group" aria-label="Placed on">
+  {% for a in az.on %}
+  {% if a.routed %}
+  {% set mine = t.placed_at == a.code %}
+  <button type="button" class="bk {{ a.code }}{{ ' best' if a.code == best_code }}{{ ' ok' if mine }}" data-acct="{{ a.code }}" data-rec="{{ t.record }}" aria-pressed="{{ 'true' if mine else 'false' }}" aria-label="{{ 'Placed on ' if mine else 'Place on ' }}{{ a.name }}"><span>{{ '✓ ' if mine }}{{ a.name }}</span><b>{{ t.shown(a.code) }}</b></button>
+  {% else %}
+  <span class="bk off" title="{{ a.name }} prices are not read yet"><span>{{ a.name }}</span><b>–</b></span>
+  {% endif %}
+  {% else %}
+  <p class="note">No agency is on. Switch one on under Agencies to place this bet.</p>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{# A recorded bet as a row: kind, runner, price taken, stake, WON/LOST, remove. Needs: a card Line #}
+{% macro bet_row(line) %}
+<div class="r">
+  <span class="k">{{ line.label }}</span>
+  <span class="t">{% if line.kind == 'multi' %}{{ line.title }}<small>{% for r, n, nm, k in line.multi_legs %}R{{ r }} {{ n }} {{ k[0] }}{{ ' · ' if not loop.last }}{% endfor %}{% if line.taken %} · taken {{ line.taken | price }}{% endif %} · {{ line.account_name }}</small>
+    {%- elif line.number is not none %}<span class="cloth sm">{{ line.number }}</span> {{ line.name }}<small>R{{ line.race }}{% if line.taken %} · taken {{ line.taken | price }}{% endif %} · {{ line.account_name }}</small>
+    {%- else %}{{ line.title }}<small>R{{ line.race }} · {{ line.account_name }}</small>{% endif %}</span>
+  <span class="a">${{ line.stake }}</span>
+  {{ badge(line) }}
+  {% if line.remove %}<button type="button" class="remove" data-remove="{{ line.remove }}" title="Remove this recorded bet">remove</button>{% endif %}
+</div>
+{% endmacro %}
+
+{# The kids' bets, the same markup the page script renames and removes by. #}
+{% macro kid_rows(list, races) %}
+{% for k in list %}
+{% set race = races.get(k.bet.race) %}
+{% set r = race.runner(k.bet.key) if race else none %}
+<div class="r kid" data-kid="{{ k.record }}">
+  <span class="k">Kids</span>
+  <span class="t"><span class="cloth sm">{{ k.bet.key }}</span> {{ r.name if r else '' }} <small>R{{ k.bet.race }} · {{ k.detail }}</small>
+    <input class="kid-name" type="text" maxlength="40" placeholder="Name" aria-label="Kid's name" value="{{ k.name }}"></span>
+  {{ badge(k) }}
+  <button type="button" class="remove" data-kid-remove title="Remove this kid's bet">remove</button>
+</div>
+{% endfor %}
+{% endmacro %}
+
+{# Other bets (multis and the like) recorded by hand, with their WON/LOST and a remove button. #}
+{% macro extra_rows(list) %}
+{% for x in list %}{% set s = x.settled %}
+<div class="r xbet" data-xrec="{{ x.record }}">
+  <span class="k">{{ 'Multi' if x.bet.kind == 'multi' else 'Other' }}</span>
+  <span class="t">{% if x.bet.kind == 'multi' %}{% for r, n, k in x.bet.legs %}<span>R{{ r }} <span class="cloth sm">{{ n }}</span>{{ k[0] | upper }}</span> {% endfor %}{% else %}{{ x.chips }}{% endif %}<small>{{ x.detail }}</small>
+    {% if x.bet.kind == 'other' %}<label class="xret">returned $<input type="number" inputmode="decimal" min="0" step="any" class="xret-in" aria-label="Amount returned" value="{{ '' if x.bet.result is none else x.bet.result }}"></label>{% endif %}</span>
+  {% if s.status == 'settled' %}{% if s.profit > 0 %}<span class="outcome pos">WON {{ s.profit | signed }}</span>{% else %}<span class="outcome neg">LOST {{ s.profit | signed | replace('-', '−') }}</span>{% endif %}{% else %}<span class="outcome part">PENDING</span>{% endif %}
+  <button type="button" class="remove" data-xremove title="Remove this recorded bet">remove</button>
+</div>
+{% endfor %}
+{% endmacro %}
+
+{# "Record a bet I placed": the form the page script turns into a placed record. #}
+{% macro record_form(race, race_date_iso, az) %}
+<details class="rec">
+  <summary>+ Record a bet</summary>
+  <form class="record-bet" data-race="{{ race.number }}" data-date="{{ race_date_iso }}">
+    <label class="wide">Runner <select name="runner" required>{% for r in race.starters %}<option value="{{ r.number }}">{{ r.number }} {{ r.name }}</option>{% endfor %}</select></label>
+    <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
+    <label>Agency <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if az.get('pb').on %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+    <label>Stake $ <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
+    <label>Price <input name="price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="optional"></label>
+    <label>Place price <input name="place_price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="each way"></label>
+    <button type="submit">Record bet</button>
+    <p class="hint wide">Whole dollars; each way: the total of both halves, with the win price.</p>
+  </form>
+</details>
+{% endmacro %}
+
+{# One TAKE bet as a row: time, race, runner, type, agency, price, fair, stake. #}
+{% macro take_row(t, az) %}
+{% set code, price = t.best(az.codes_on) %}
+<a class="brow" href="/race/{{ t.race }}">
+  <span class="tm">{{ t.start | local_time }}<small>R{{ t.race }}</small></span>
+  <span class="v"><b><span class="cloth sm">{{ t.number }}</span> {{ t.name }}</b><small>{{ t.label }} · {% if code %}{{ az.get(code).name }} {{ t.shown(code) }}{% else %}no price at your agencies{% endif %} · fair {{ t.fair | price }}</small></span>
+  <span class="a">${{ t.stake }}</span>
+</a>
+{% endmacro %}

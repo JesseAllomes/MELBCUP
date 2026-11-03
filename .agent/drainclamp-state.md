@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=141 -->
+<!-- drainclamp-build: state; schema=1; generation=142 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T09:10:06+00:00 0b60e95e ui6 started: prototype v1 (RaceLens layout + take-this-bet verdict) https://claude.ai/artifact/SFMukYyWGnT5632F9HwaEi, copy in .grok/product-ui/v2/. Awaiting owner sign-off before lock + build.
 - 2026-11-03T09:10:28+00:00 6372a056 Owner 2026-11-03: new name AsynymBet (prototype v2). App rename goes into the ui6 build; repo, domain and Azure names unchanged unless the owner asks.
 - 2026-11-03T09:15:37+00:00 8789fedc ui6 product-ui: 4 prototypes. A Classic SFMukYyWGnT5632F9HwaEi, B Slip W9RecNEEMpM8ipY3GcdDis, C Board F6sLhPyb79odhEvhirVAgh, D Glance Tm4B5DianMEjYhVt28ozLW (claude.ai/artifact/). Copies in .grok/product-ui/v2/. Owner picks or mixes, then lock.
 - 2026-11-03T09:16:16+00:00 f1855db6 st1 part 1 verified: /healthz 0.98 s after 8 min idle (was 22 s cold). Page-speed work still open.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:42:52+00:00 714161fa Owner approved (2026-11-03 'Grant it'): Storage Blob Data Reader for the deploy app on the Function storage account, via azure-racelens-settings check/probe.
 - 2026-11-03T10:45:30+00:00 087efbdf Owner 2026-11-03: push AsynymBet live at bet.asynym.dev. E locked (.grok/product-ui/LOCK-asynymbet.md). Build ui6 now on the current single-meeting board behind ASYNYM=1; multi-meeting board (Home best bets across all meetings) is the next milestone mm1. DNS (Cloudflare) needs owner: CNAME bet + TXT asuid.bet.
 - 2026-11-03T10:48:50+00:00 9ecdda4b Grant attempt failed (run 41621566777): deploy app (client 7ab2c182, object 1219dd34-...) lacks Microsoft.Authorization/roleAssignments/write on stpersonalv5ethud2i3cfq, so it is not Owner there. Owner must add Storage Blob Data Reader in the portal.
+- 2026-11-03T11:00:29+00:00 83249137 ui6 built (Sonnet) and verified: full pytest + 18 new, ruff clean, golden identical vs origin/main with ASYNYM unset, screenshots OK. Live with ASYNYM=1 in melbcup-web.json (rollback = 0). TAB/Ladbrokes/Neds chips display-only (no per-agency prices yet); /history stays old UI.
 <!-- /DC:LOG -->

@@ -20,6 +20,7 @@ from melbcup.autobet import BetError, Betting, PinError, start_loop
 from melbcup.config import Settings, load_settings
 from melbcup.live import LiveBoard
 from melbcup.sources.racingcom import RacingComClient
+from melbcup.web import asynym
 from melbcup.web.offer_api import OfferNotFound, OfferRequestError, offer_response
 from melbcup.web.racecard import BF_COOKIE, PB_COOKIE, SB_COOKIE, parse_amount, pick_amounts
 from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
@@ -192,12 +193,18 @@ def create_app(
             else:
                 response.delete_cookie(SB_COOKIE)
                 response.delete_cookie(BF_COOKIE)
-        if settings.pointsbet and "pb" in query:  # POINTSBET=1: PointsBet's day amount
+        if (settings.pointsbet or settings.asynym) and "pb" in query:  # PointsBet's day amount
             pb = parse_amount(query["pb"])
             if pb is not None:
                 response.set_cookie(PB_COOKIE, f"{pb:g}", **keep)
             else:
                 response.delete_cookie(PB_COOKIE)
+        if settings.asynym:  # ASYNYM=1: which agencies are ON, and TAB, Ladbrokes, Neds money
+            for name, value in asynym.cookie_changes(query).items():
+                if value is None:
+                    response.delete_cookie(name)
+                else:
+                    response.set_cookie(name, value, **keep)
         return response
 
     return app

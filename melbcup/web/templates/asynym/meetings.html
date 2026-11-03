@@ -1,0 +1,23 @@
+{% extends "asynym/base.html" %}
+{% from "asynym/_meetpick.html" import meeting_btn, others with context %}
+{% block title %}Race days · AsynymBet{% endblock %}
+{% block refresh %}0{% endblock %}
+{% block content %}
+<nav class="daychips scroll" aria-label="Race days">
+  {% for d in chips %}
+  <a href="/meetings?date={{ d.isoformat() }}" class="{{ 'on' if d == pick }}">{{ 'Today' if d == today else 'Tomorrow' if (d - today).days == 1 else carnival_names.get(d, d.strftime('%a')) }}<small>{{ d | day }}</small></a>
+  {% endfor %}
+</nav>
+<form method="get" action="/meetings" class="datepick">
+  <label for="date">Any other day</label>
+  <input id="date" name="date" type="date" value="{{ pick.isoformat() }}">
+  <button type="submit">Show</button>
+</form>
+<section class="card">
+  {% if pick in carnival_names %}
+  <div class="sec"><span>Flemington, {{ carnival_names[pick] }}</span></div>
+  <div class="mlist">{{ meeting_btn(pick, 'Flemington', 'Flemington', 'Melbourne Cup Carnival') }}</div>
+  {% endif %}
+  {{ others(pick, found) }}
+</section>
+{% endblock %}

@@ -22,7 +22,7 @@ from melbcup.bets.promos import PROMOS
 from melbcup.bets.settle import DayResult, settle_all, settle_bet, settle_extra, signed
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
-from melbcup.web import racecard
+from melbcup.web import asynym, racecard
 from melbcup.web.racecard import (
     EXTRA_COOKIE,
     KIDS_COOKIE,
@@ -256,16 +256,20 @@ def betting_open(race) -> bool:
     return race.result is None and (race.start_time is None or until(race.start_time) != "run")
 
 
-def asset_version() -> str:
+def asset_version(new_ui: bool = False) -> str:
     """Cache-buster for /static: the first 10 hex chars of the sha256 over the static assets, so a
-    phone re-fetches app.css and app.js the moment either changes. Computed once per env."""
+    phone re-fetches app.css and app.js the moment either changes. Computed once per env. With
+    the AsynymBet pages (ASYNYM=1) asynym.css and asynym.js count too."""
     digest = hashlib.sha256()
-    for path in sorted((HERE / "static").glob("app.*")):
+    names = sorted((HERE / "static").glob("app.*"))
+    if new_ui:
+        names += sorted((HERE / "static").glob("asynym.*"))
+    for path in names:
         digest.update(path.read_bytes())
     return digest.hexdigest()[:10]
 
 
-def make_env() -> Environment:
+def make_env(new_ui: bool = False) -> Environment:
     env = Environment(
         loader=FileSystemLoader(str(HERE / "templates")), autoescape=select_autoescape(["html"])
     )
@@ -285,6 +289,8 @@ def make_env() -> Environment:
         confidence=confidence,
         verdict=price_verdict,
     )
+    if new_ui:
+        env.filters.update(ring_tone=asynym.tone, ring_pct=asynym.pct_of)
     env.globals.update(
         LABELS=LABELS,
         Call=Call,
@@ -297,7 +303,7 @@ def make_env() -> Environment:
         open_races=open_races,
     )
     env.globals["shown"] = history.shown
-    env.globals["asset_v"] = asset_version()
+    env.globals["asset_v"] = asset_version(new_ui)
     env.filters.update(
         one_in=racecard.one_in,
         signed=signed,
@@ -340,7 +346,7 @@ class Views:
         self.settings = settings
         self.board = board
         self.browser = browser  # no threads: loads run to completion before the page renders
-        self.env = make_env()
+        self.env = make_env(settings.asynym)
 
     def _context(
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
@@ -352,6 +358,11 @@ class Views:
         # PointsBet (POINTSBET=1): a third account, $0 until the owner sets an amount. It is
         # judged in the picks only once it has money, so the switch alone changes no price.
         pb = pick_pointsbet(query, cookies) if self.settings.pointsbet else None
+        az = None
+        if self.settings.asynym:  # ASYNYM=1: an OFF account gets $0, so nothing routes there
+            az = asynym.choose(query, cookies, self.settings)
+            sb, bf, pb = az.routed()
+            chosen = True
         placed = parse_placed(cookies.get(PLACED_COOKIE), snap.race_date, pb is not None)
         day_total = sb + bf + (pb or 0.0)
         if snap.models and self.settings.promos:  # PROMOS=1: promos that beat the Win pick
@@ -388,15 +399,19 @@ class Views:
         kids_by_race: dict[int, list] = {}
         for k in kids:
             kids_by_race.setdefault(k.bet.race, []).append(k)
+        wal = wallet(
+            sb, bf, placed + [k.bet for k in kids] + [x.settled.bet for x in extras], pb
+        )
+        if az is not None:
+            az.apply_wallet(wal)
         return {
+            "az": az,
             "settings": self.settings,
             "browser": self.browser,
             "snap": snap,
             "card": snap.card,
             "day": card,
-            "wallet": wallet(
-                sb, bf, placed + [k.bet for k in kids] + [x.settled.bet for x in extras], pb
-            ),
+            "wallet": wal,
             "pnl": DayResult(mine.bets + [k.settled for k in kids] + [x.settled for x in extras]),
             "extras": extras,
             "extra_races": {
@@ -427,6 +442,8 @@ class Views:
     ) -> str:
         """HTML for a page path; raises NotFound. ``cookies`` carries the remembered budget."""
         ctx = self._context(path, query, cookies)
+        if self.settings.asynym and path != "/history":
+            return self._asynym_page(path, query, ctx)
         if path == "/":
             return self.env.get_template("day.html").render(ctx)
         if path == "/history":
@@ -444,37 +461,111 @@ class Views:
             )
             return self.env.get_template("history.html").render(ctx)
         if path == "/meetings":
-            pick = _date(query.get("date")) or ctx["snap"].race_date
-            archive = self.board.archive
-            saved = archive.venues(pick) if archive and pick < ctx["today"] else []
-            ctx.update(
-                pick=pick,
-                found=saved or ctx["snap"].meetings.get(pick),
-                carnival=CARNIVAL,
-                here=f"/meetings?date={pick.isoformat()}",
-            )
+            ctx.update(self._meetings(ctx, query))
             return self.env.get_template("meetings.html").render(ctx)
         if path.startswith("/race/"):
-            try:
-                number = int(path.removeprefix("/race/"))
-            except ValueError as exc:
-                raise NotFound(path) from exc
-            rp = (
-                next((r for r in ctx["picks"].races if r.model.race.number == number), None)
-                if ctx["picks"]
-                else None
-            )
-            if rp is None:
-                raise NotFound(f"Race {number} is not on the card yet")
-            ctx["rp"] = rp
-            ctx["race"] = rp.model.race
-            ctx["rc"] = ctx["day"].race(number)
-            ctx["check"] = ctx["checks"].get(number)
+            self._race_context(path, ctx)
+            rp = ctx["rp"]
             ctx["cup_note"] = cup_note(rp) if self.settings.pointsbet and ctx["rc"].open else None
             if ctx["cup_note"] and any(x.promo for x in ctx["rc"].board):
                 ctx["cup_note"] = None  # the Win bet already is the promo bet, shown on its line
             return self.env.get_template("race.html").render(ctx)
         raise NotFound(path)
+
+    def _meetings(self, ctx: dict, query: Mapping[str, str]) -> dict:
+        """The meeting lists for a date (?date=, else the loaded meeting's): the meetings found
+        for it and the Cup Carnival days."""
+        pick = _date(query.get("date")) or ctx["snap"].race_date
+        archive = self.board.archive
+        saved = archive.venues(pick) if archive and pick < ctx["today"] else []
+        return dict(
+            pick=pick,
+            found=saved or ctx["snap"].meetings.get(pick),
+            carnival=CARNIVAL,
+            here=f"/meetings?date={pick.isoformat()}",
+        )
+
+    def _asynym_page(self, path: str, query: Mapping[str, str], ctx: dict) -> str:
+        """The AsynymBet pages (ASYNYM=1): Home, Race days, a meeting's races, a race, Mine."""
+        day, snap = ctx["day"], ctx["snap"]
+        ctx["pb_on"] = ctx["az"].get("pb").on
+        ctx["tab_q"] = query.get("tab", "")
+        ctx["path"] = path
+        ctx["keep"] = {k: query[k] for k in ("tab", "date") if k in query}
+        ctx["nav"] = {"/": "home", "/mine": "mine"}.get(path, "days")
+        if path == "/":
+            ctx.update(self._meetings(ctx, {}))
+            ctx["takes"] = asynym.home_takes(day, race_call, snap.race_date) if day else []
+            return self.env.get_template("asynym/home.html").render(ctx)
+        if path == "/meetings":
+            ctx.update(self._meetings(ctx, query))
+            today = ctx["today"]
+            dates = {today, today + timedelta(days=1), ctx["pick"]}
+            dates |= {d for _label, d in CARNIVAL if d >= today}
+            ctx["chips"] = sorted(dates)
+            ctx["carnival_names"] = {d: label for label, d in CARNIVAL}
+            return self.env.get_template("asynym/meetings.html").render(ctx)
+        if path == "/meeting":
+            ctx["rows"] = asynym.race_rows(day, race_call, snap.race_date) if day else []
+            return self.env.get_template("asynym/meeting.html").render(ctx)
+        if path == "/mine":
+            ctx["mine_lines"] = self._my_lines(day)
+            ctx["race_objs"] = (
+                {rp.model.race.number: rp.model.race for rp in ctx["picks"].races}
+                if ctx["picks"]
+                else {}
+            )
+            ctx["kids_all"] = [k for _n, ks in sorted(ctx["kids"].items()) for k in ks]
+            ctx["editing"] = query.get("edit") == "1"
+            return self.env.get_template("asynym/mine.html").render(ctx)
+        if path.startswith("/race/"):
+            self._race_context(path, ctx)
+            ctx["tab"] = asynym.race_tab(query.get("tab"), ctx["rc"].open)
+            takes = asynym.takes(ctx["rc"], snap.race_date) if ctx["rc"].open else []
+            ctx["verdict_take"] = bool(takes) and race_call(ctx["rp"]).kind == "bet"
+            ctx["takes"] = takes if ctx["verdict_take"] else []
+            ctx["elsewhere"] = (
+                None
+                if ctx["verdict_take"]
+                else asynym.best_elsewhere(day, ctx["race"].number, race_call, snap.race_date)
+            )
+            ctx["top_picks"] = asynym.top_picks(ctx["rc"]) if ctx["rc"].open else []
+            ctx["multi"] = asynym.race_multi(day, ctx["race"].number) if ctx["rc"].open else None
+            ctx["rows"] = asynym.race_rows(day, race_call, snap.race_date)
+            ctx["race_extras"] = [
+                x for x in ctx["extras"]
+                if x.bet.kind == "multi" and any(leg[0] == ctx["race"].number for leg in x.bet.legs)
+            ]
+            ctx["my_lines"] = self._my_lines(day, ctx["race"].number)
+            return self.env.get_template("asynym/race.html").render(ctx)
+        raise NotFound(path)
+
+    @staticmethod
+    def _my_lines(day, race: int | None = None) -> list:
+        """The owner's recorded bets (a race's, or the day's), as card lines."""
+        if day is None:
+            return []
+        lines = [x for rc in day.races for x in rc.board + rc.exotics if x.placed]
+        lines += [m for m in day.multis if m.placed]
+        return [x for x in lines if race is None or x.race == race]
+
+    def _race_context(self, path: str, ctx: dict) -> None:
+        """The race page's own pieces (raises NotFound): shared by the old and new pages."""
+        try:
+            number = int(path.removeprefix("/race/"))
+        except ValueError as exc:
+            raise NotFound(path) from exc
+        rp = (
+            next((r for r in ctx["picks"].races if r.model.race.number == number), None)
+            if ctx["picks"]
+            else None
+        )
+        if rp is None:
+            raise NotFound(f"Race {number} is not on the card yet")
+        ctx["rp"] = rp
+        ctx["race"] = rp.model.race
+        ctx["rc"] = ctx["day"].race(number)
+        ctx["check"] = ctx["checks"].get(number)
 
     def action(self, name: str, query: Mapping[str, str]) -> str:
         """Do what a button asks; return the path to show next."""
@@ -499,6 +590,8 @@ class Views:
         elif name == "meeting":
             pick = _date(query.get("date"))
             ok = pick is not None and board.set_meeting(pick, query.get("venue", ""))
+            if self.settings.asynym:  # on to the meeting's races
+                return "/meeting" if ok else "/meetings"
             return "/" if ok else "/meetings"
         else:
             raise NotFound(name)

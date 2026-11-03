@@ -86,5 +86,5 @@ def test_a_tote_other_bet_needs_no_odds_and_a_link_can_import_it():
     raw = '[["2026-11-03","other","","pb",10,0,"First Four R7",""]]'
     got = parse_extras(raw, date(2026, 11, 3), pointsbet=True)
     assert got and "@ tote" in got[0].detail
-    base = (Path(__file__).resolve().parents[1] / "melbcup/web/templates/base.html").read_text()
+    base = (Path(__file__).resolve().parents[1] / "melbcup/web/templates/_bets_js.html").read_text()
     assert '#extra=' in base and "importExtra" in base

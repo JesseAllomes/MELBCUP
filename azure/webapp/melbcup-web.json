@@ -67,6 +67,7 @@
           {"name": "PRICE_MODE", "value": "auto"},
           {"name": "POINTSBET", "value": "1"},
           {"name": "PROMOS", "value": "1"},
+          {"name": "ASYNYM", "value": "1"},
           {"name": "PUBLIC_ACCESS", "value": "1"},
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
           {"name": "APP_PASSWORD", "secretRef": "app-password"},
