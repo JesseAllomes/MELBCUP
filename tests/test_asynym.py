@@ -104,4 +104,4 @@ def test_no_kids_bets_card(on):
     """Removed at the owner's request (2026-11-04): Mine and the race page carry no kids' card."""
     for path in ("/mine", "/race/1?tab=mine"):
         html = on.get(path).text
-        assert 'id="kids-h"' not in html and "kid-name" not in html
+        assert 'id="kids-h"' not in html and 'class="r kid"' not in html
