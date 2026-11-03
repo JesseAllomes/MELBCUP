@@ -27,8 +27,9 @@ MIN_X = 1.2
 STAGES = (2, 3, 4, 5, 6, 7, 8)
 DEFAULT_STAGES = 3
 PER_NIGHT = (1, 2)  # stages a night: 1 (one a game day) or 2 (an early game, then a later one)
-GAP = timedelta(hours=3)  # tip to tip on one night: ~2.5 h of game, ~30 min to settle and place
 GAME = timedelta(hours=2, minutes=30)  # a game's usual length, for "result due about"
+BUFFER = timedelta(hours=1)  # after the result: time to be told, mark it and place the next (owner)
+GAP = GAME + BUFFER  # tip to tip for two stages on one night
 MELBOURNE = ZoneInfo("Australia/Melbourne")
 MAX_HISTORY = 20
 MAX_BETS = 40
@@ -79,7 +80,8 @@ def _settle(state: dict, result: str, returned: float = 0.0) -> list:
 
 
 def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict | None:
-    """The state after the action in `query` (?ch=start|place|won|lost|reset), or unchanged.
+    """The state after the action in `query` (?ch=start|place|won|lost|reset|new), or unchanged.
+    `new` ends the run (keeping the history and bet log) so a challenge can be set up afresh.
     `today` (Melbourne date, ISO) stamps a placed bet for the day's money."""
     act = query.get("ch")
     if act == "start" or (act and state is None):
@@ -94,15 +96,19 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         stages = stages if stages in STAGES else DEFAULT_STAGES
         per_night = 2 if query.get("chpn") == "2" else 1
         old = state or {}
-        if old.get("placed"):
+        if old.get("placed") and old.get("active", True):
             return state  # a placed stage settles first
         return fresh(start, max(goal, start * 2), old.get("past", []), mode, keep, old.get("bets", []), stages, per_night)
-    if state is None or act not in ("place", "won", "lost", "reset"):
+    if state is None or act not in ("place", "won", "lost", "reset", "new") or state.get("active") is False:
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
     if act == "reset":
         return state if state.get("placed") else _again(state)  # a placed stage settles first
+    if act == "new":
+        if state.get("placed"):
+            return state  # a placed stage settles first: its stake is real money
+        return _again(state) | {"active": False}
     if act == "place":
         if state.get("placed"):
             return state

@@ -384,6 +384,8 @@ class Views:
         except ImportError:  # the phone's offline copy leaves the NBA code out
             return {"ch": None, "ch_step": None}
         state = ctx.get("ch_state")
+        if state is not None and state.get("active") is False:
+            state = None  # no run on: the start screen (history and bets stay in the cookie)
         legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
         preview = (
             [] if state is not None else self._stage_preview(legs_now, nba_challenge, nba_legs)

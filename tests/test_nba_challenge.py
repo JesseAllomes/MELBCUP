@@ -94,6 +94,9 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         assert "$143.60" in html  # PointsBet: $100 - $10 stake + $53.60 back
         html = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.60").text  # reload
         assert "Stage 2 of 3 · bank $43.60" in html
+        assert "New challenge (change the settings)" in html
+        html = c.get("/nba?tab=challenge&ch=new&chs=1").text
+        assert 'name="chn"' in html and "Stage 2" not in html  # back to the set-up screen
 
 
 def test_stages_set_the_payout_per_stage_and_rebalance():
@@ -114,8 +117,9 @@ def test_two_a_night_spaces_games_and_then_waits_for_the_next_night():
     s = C.apply(C.apply(s, {"ch": "place", "chs": "0", "chp": "5", "chtip": "2026-11-05T00:00:00Z"}, DAY),
                 {"ch": "won", "chs": "0", "chr": "50"}, DAY)
     assert not C.allowed(s, "2026-11-05T01:30:00Z")  # overlaps the first game
-    assert C.allowed(s, "2026-11-05T03:00:00Z")  # 3 h later: result in, time to place
-    s = C.apply(C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-05T03:00:00Z"}, DAY),
+    assert not C.allowed(s, "2026-11-05T03:00:00Z")  # game over ~2:30, but no hour to place
+    assert C.allowed(s, "2026-11-05T03:30:00Z")  # 2.5 h of game + 1 h to see it and place
+    s = C.apply(C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-05T03:30:00Z"}, DAY),
                 {"ch": "won", "chs": "1", "chr": "200"}, DAY)
     assert not C.allowed(s, "2026-11-05T07:00:00Z")  # two done this night
     assert C.allowed(s, "2026-11-06T00:00:00Z")  # the next game day
@@ -130,3 +134,16 @@ def test_one_a_night_waits_and_the_chance_to_finish_grows_with_each_win():
     assert not C.allowed(s, "2026-11-05T05:00:00Z") and C.allowed(s, "2026-11-06T00:30:00Z")
     placed = C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-06T00:30:00Z"}, DAY)
     assert C.result_due(placed).isoformat() == "2026-11-06T03:00:00+00:00"
+
+
+def test_a_new_challenge_keeps_the_history_and_waits_for_a_placed_stage():
+    s = C.apply(place(C.apply(None, {"ch": "start", "chn": "4"}, DAY), 0), {"ch": "lost", "chs": "0"}, DAY)
+    s = place(s, 0)
+    assert C.apply(s, {"ch": "new", "chs": "0"}, DAY) == s  # placed: settle it first
+    s = C.apply(s, {"ch": "won", "chs": "0", "chr": "40"}, DAY)
+    ended = C.apply(s, {"ch": "new", "chs": "1"}, DAY)
+    assert ended["active"] is False and len(ended["bets"]) == 2 and ended["past"]
+    assert C.apply(ended, {"ch": "place", "chs": "0", "chp": "5"}, DAY) == ended  # no run, no bets
+    again = C.apply(ended, {"ch": "start", "chn": "2", "chpn": "2"}, DAY)
+    assert (again["stages"], again["per_night"], again.get("active", True)) == (2, 2, True)
+    assert len(again["bets"]) == 2  # today's money still counts the earlier stages
