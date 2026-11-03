@@ -102,5 +102,6 @@ def test_ring_colours(pct, name):
 
 def test_no_kids_bets_card(on):
     """Removed at the owner's request (2026-11-04): Mine and the race page carry no kids' card."""
-    assert "Kids' bets" not in on.get("/mine").text
-    assert "Kids' bets" not in on.get("/race/1?tab=mine").text
+    for path in ("/mine", "/race/1?tab=mine"):
+        html = on.get(path).text
+        assert 'id="kids-h"' not in html and "kid-name" not in html
