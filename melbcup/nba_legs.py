@@ -66,15 +66,20 @@ def get(url):
 
 
 def live_events():
-    out = []
-    for e in get(f"{PB}/events/featured/competition/7176?page=1").get("events", []):
-        if e.get("isLive"):
-            continue
+    """PointsBet's NBA games that have not started, each with its markets. Games are fetched in
+    parallel (a handful of calls), so the page waits for one round trip, not six."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    listing = [e for e in get(f"{PB}/events/featured/competition/7176?page=1").get("events", []) if not e.get("isLive")]
+
+    def one(e):
         f = get(f"{PB}/events/{e['key']}")
         ms = (f.get("fixedOddsMarkets") or []) + (f.get("specialFixedOddsMarkets") or [])
-        out.append({"event": str(e["key"]), "name": e.get("name"), "startsAt": e.get("startsAt"),
-                    "markets": [{"group": m.get("groupName"), "outcomes": m.get("outcomes") or []} for m in ms]})
-    return out
+        return {"event": str(e["key"]), "name": e.get("name"), "startsAt": e.get("startsAt"),
+                "markets": [{"group": m.get("groupName"), "outcomes": m.get("outcomes") or []} for m in ms]}
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(one, listing[:20]))
 
 
 def saved_events(snapdir):

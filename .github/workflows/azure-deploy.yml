@@ -125,8 +125,9 @@ jobs:
         run: |
           rm -rf build/pkg
           mkdir -p build/pkg/tools
-          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_props.py azure/function/nba_legs.py azure/function/host.json azure/function/requirements.txt build/pkg/
+          cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_probe.py azure/function/nba_props.py azure/function/host.json azure/function/requirements.txt build/pkg/
           cp tools/live_collector.py build/pkg/tools/live_collector.py
+          cp melbcup/nba_legs.py build/pkg/nba_legs.py
           touch build/pkg/tools/__init__.py
           pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages
       - uses: Azure/functions-action@v1
@@ -229,7 +230,10 @@ jobs:
           python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/containerapp.json
 
   nbajob:
+    # Waits for the owner: runs only once azure/jobs/melbcup-nba.json exists (moved there from
+    # azure/jobs-pending/ with the jobs section of azure/limits.json, under limits_approved).
     needs: guard
+    if: hashFiles('azure/jobs/melbcup-nba.json') != ''
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

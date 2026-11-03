@@ -450,9 +450,7 @@ def test_c11_spec_passes_and_is_priced(tree, capsys):
     costs = json.loads(out)["costs_usd"]
     # (0.25 * 2592000 - 180000) * 0.000024 + (0.5 * 2592000 - 360000) * 0.000003 = 11.232 + 2.808
     assert costs["container_app_worst_case_month"] == 14.04
-    assert costs["total_worst_case"] == round(
-        costs["function_window_worst_case"] + 14.04 + costs["jobs_worst_case_month"], 2
-    )
+    assert costs["total_worst_case"] == round(costs["function_window_worst_case"] + 14.04, 2)
 
 
 def test_c11_total_must_fit_the_budget(tree, capsys):
@@ -609,10 +607,25 @@ def test_deploy_workflow_judges_the_whole_push():
 
 
 def job(root: Path) -> Path:
-    return root / "azure" / "jobs" / "melbcup-nba.json"
+    """The NBA job as it will be once the owner approves it: the pending spec moved into
+    azure/jobs/ and the pending jobs section added to the limits (both in azure/jobs-pending/)."""
+    path = root / "azure" / "jobs" / "melbcup-nba.json"
+    if not path.exists():
+        path.parent.mkdir(exist_ok=True)
+        shutil.copy(root / "azure" / "jobs-pending" / "melbcup-nba.json", path)
+        extra = json.loads((root / "azure" / "jobs-pending" / "limits-jobs.json").read_text())
+        edit_json(root / "azure/limits.json", lambda d: d.update(extra))
+    return path
+
+
+def test_c12_pending_job_is_not_counted_until_approved(tree, capsys):
+    code, out = guard(tree, capsys, "--json")
+    assert code == 0, out
+    assert json.loads(out)["costs_usd"]["jobs_worst_case_month"] == 0
 
 
 def test_c12_job_passes_and_is_priced(tree, capsys):
+    job(tree)
     code, out = guard(tree, capsys, "--json")
     assert code == 0, out
     # 1 run a day x 30 days x 300 s x (1 vCPU x 0.000024 + 2 GiB x 0.000003)
@@ -644,6 +657,7 @@ def test_c12_job_limits(tree, capsys, change):
 
 
 def test_c12_job_counts_toward_the_budget(tree, capsys):
+    job(tree)
     edit_json(tree / "azure/limits.json", lambda d: d["budget_usd_month"].update(total=24.3))
     out = expect(tree, capsys, "C3")
     assert "jobs $0.27" in out
@@ -658,6 +672,7 @@ def test_c12_live_export(tree, capsys):
 
 
 def test_c10_adding_a_job_needs_the_owner(tree, capsys):
+    job(tree)
     base = json.loads((tree / "azure/limits.json").read_text())
     base.pop("jobs")
     (tree / "base.json").write_text(json.dumps(base))

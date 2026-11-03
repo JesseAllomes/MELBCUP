@@ -1,5 +1,5 @@
 {
- "build": "e6f471092bc6",
+ "build": "5747a38f63c2",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -44,6 +44,7 @@
   "melbcup/web/templates/asynym/meeting.html",
   "melbcup/web/templates/asynym/meetings.html",
   "melbcup/web/templates/asynym/mine.html",
+  "melbcup/web/templates/asynym/nba.html",
   "melbcup/web/templates/asynym/race.html",
   "melbcup/web/templates/base.html",
   "melbcup/web/templates/day.html",

@@ -17,6 +17,8 @@ RUN pip install --no-cache-dir .
 
 # The saved meetings and the model's record: the History page reads /app/docs/data.
 COPY docs/data ./docs/data
+# The NBA page's fallback board (melbcup/nba_feed.py), until the daily job writes one to Azure.
+COPY data/nba ./data/nba
 
 RUN useradd --system --create-home --uid 10001 app
 USER app

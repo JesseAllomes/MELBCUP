@@ -354,3 +354,18 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .mi { width: 74px; background: var(--brand-wash) !important; border-color: var(--brand) !important;
   font-weight: 800; text-align: right; padding: 2px 6px !important; }
 .pool-form { margin: 0; }
+
+/* NBA page */
+.nba-leg { align-items: center; gap: 8px; border-left-color: var(--rule); }
+.nba-leg .ring { flex: 0 0 auto; }
+.nba-leg .ring b { font-size: 11.5px; letter-spacing: -0.02em; }
+.nba-leg .ring b small { display: none; }
+.nba-leg .a { text-align: right; white-space: nowrap; }
+.nba-leg .a small { display: block; font-weight: 600; color: var(--muted); font-size: 10.5px; }
+.nba-leg.val { border-left-color: var(--good); }
+.nba-multi + .nba-multi { border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 10px; }
+.nba-picks { margin: 6px 0 0; padding-left: 20px; font-size: 13px; }
+.nba-picks li { margin: 2px 0; }
+.note.warn { color: var(--warn, #fbbf24); }
+.nba-head h2 { margin: 0 0 2px; font-size: 18px; }
+.nba-head > small { color: var(--muted); font-size: 12px; }

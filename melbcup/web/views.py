@@ -311,6 +311,9 @@ def make_env(new_ui: bool = False) -> Environment:
         price=racecard.price_text,
         jump=racecard.jump,
         pills=racecard.pills,
+        iso_time=lambda text: local_time(datetime.fromisoformat(text.replace("Z", "+00:00")))
+        if text
+        else "",
         before=lambda dt, minutes: local_time(dt - timedelta(minutes=minutes)) if dt else "",
     )
     return env
@@ -347,6 +350,24 @@ class Views:
         self.board = board
         self.browser = browser  # no threads: loads run to completion before the page renders
         self.env = make_env(settings.asynym)
+        self._nba = None  # NbaFeed, made on the first visit to /nba
+
+    def _nba_view(self, query: Mapping[str, str]) -> dict:
+        try:
+            from melbcup.nba_feed import NbaFeed
+        except ImportError:  # the phone's offline copy (GitHub Pages) leaves the live NBA code out
+            v = {"board": None, "source": "", "stale": False, "games": 0, "priced_at": None,
+                 "error": "The NBA page needs the live site: open cup.asynym.dev."}
+            return {"nba": v, "nba_tab": "legs", "nba_rep": {}, "nba_games": {}}
+        if self._nba is None:
+            self._nba = NbaFeed()
+        v = self._nba.view()
+        tab = query.get("tab") if query.get("tab") in ("multis", "legs", "same", "all") else None
+        rep = v.get("report") or {}
+        if tab is None:
+            tab = "multis" if rep.get("cross_game") else "legs"
+        games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
+        return {"nba": v, "nba_tab": tab, "nba_rep": rep, "nba_games": games}
 
     def _context(
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
@@ -492,7 +513,10 @@ class Views:
         ctx["tab_q"] = query.get("tab", "")
         ctx["path"] = path
         ctx["keep"] = {k: query[k] for k in ("tab", "date") if k in query}
-        ctx["nav"] = {"/": "home", "/mine": "mine"}.get(path, "days")
+        ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
+        if path == "/nba":
+            ctx.update(self._nba_view(query))
+            return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))
             ctx["takes"] = asynym.home_takes(day, race_call, snap.race_date) if day else []

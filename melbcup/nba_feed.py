@@ -1,0 +1,143 @@
+"""The NBA page's data (AsynymBet, ASYNYM=1): today's board, PointsBet's live props, the legs.
+
+The board (the model's expected counts per player) is built each morning by the melbcup-nba job
+and kept in the Blob container ``nba``. The page reads it with the container app's managed
+identity (NBA_ACCOUNT names the storage account; AZURE_CLIENT_ID picks the identity) over plain
+HTTP, so the web image needs no Azure libraries. Without that, or when the read fails, it uses the
+board shipped with the app (data/nba/board-latest.json), and says so.
+
+PointsBet is read live when the page opens (kept 90 seconds), and every leg is priced through
+melbcup/nba_legs.py: the same code the Azure Function and the tools run.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import threading
+import time
+from collections.abc import Callable
+from datetime import UTC, datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import httpx
+
+from melbcup import nba_legs
+
+NY = ZoneInfo("America/New_York")
+BUNDLED = Path(__file__).resolve().parents[1] / "data" / "nba" / "board-latest.json"
+PRICES_TTL_S = 90
+BOARD_TTL_S = 600
+TIMEOUT_S = 8
+
+
+def blob_reader(account: str, client_id: str | None) -> Callable[[str], bytes | None]:
+    """Read a blob of container `nba` with the app's managed identity (Container Apps endpoint)."""
+
+    def read(name: str) -> bytes | None:
+        endpoint, secret = os.environ.get("IDENTITY_ENDPOINT"), os.environ.get("IDENTITY_HEADER")
+        if not endpoint or not secret:
+            return None
+        params = {"resource": "https://storage.azure.com/", "api-version": "2019-08-01"}
+        if client_id:
+            params["client_id"] = client_id
+        tok = httpx.get(
+            endpoint, params=params, headers={"X-IDENTITY-HEADER": secret}, timeout=TIMEOUT_S
+        )
+        tok.raise_for_status()
+        resp = httpx.get(
+            f"https://{account}.blob.core.windows.net/nba/{name}",
+            headers={
+                "Authorization": f"Bearer {tok.json()['access_token']}",
+                "x-ms-version": "2021-08-06",
+            },
+            timeout=TIMEOUT_S,
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        return resp.content
+
+    return read
+
+
+def nearest(legs: list[dict], min_chance: float = 0.75, n: int = 5) -> list[dict]:
+    """When nothing is value: the likely legs whose price comes closest to fair."""
+    likely = [g for g in legs if g["chance"] >= min_chance]
+    return sorted(likely, key=lambda g: -g["ev"])[:n]
+
+
+class NbaFeed:
+    def __init__(
+        self,
+        read_blob: Callable[[str], bytes | None] | None = None,
+        events: Callable[[], list[dict]] = nba_legs.live_events,
+        bundled: Path = BUNDLED,
+        clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+    ):
+        if read_blob is None and os.environ.get("NBA_ACCOUNT"):
+            read_blob = blob_reader(os.environ["NBA_ACCOUNT"], os.environ.get("AZURE_CLIENT_ID"))
+        self.read_blob, self.events, self.bundled, self.clock = read_blob, events, bundled, clock
+        self._lock = threading.Lock()
+        self._board: tuple[float, dict | None, str] = (0.0, None, "")
+        self._view: tuple[float, dict | None] = (0.0, None)
+
+    def board(self) -> tuple[dict | None, str]:
+        stamp, board, source = self._board
+        if board is not None and time.monotonic() - stamp < BOARD_TTL_S:
+            return board, source
+        board, source = None, ""
+        if self.read_blob is not None:
+            try:
+                raw = self.read_blob("board-latest.json")
+                if raw:
+                    board, source = json.loads(raw), "azure"
+            except (httpx.HTTPError, ValueError, KeyError):
+                board = None
+        if board is None and self.bundled.is_file():
+            board, source = json.loads(self.bundled.read_text()), "bundled"
+        self._board = (time.monotonic(), board, source)
+        return board, source
+
+    def view(self) -> dict:
+        """The page's data. A copy older than PRICES_TTL_S is still served at once while a
+        background refresh fetches new prices, so only the very first visit waits."""
+        stamp, cached = self._view
+        if cached is not None:
+            if time.monotonic() - stamp >= PRICES_TTL_S and self._lock.acquire(blocking=False):
+                threading.Thread(target=self._refresh_locked, daemon=True).start()
+            return cached
+        with self._lock:
+            if self._view[1] is None:
+                self._compute()
+            return self._view[1]
+
+    def _refresh_locked(self) -> None:
+        try:
+            self._compute()
+        finally:
+            self._lock.release()
+
+    def _compute(self) -> None:
+        now = self.clock()
+        today = now.astimezone(NY).strftime("%Y%m%d")
+        board, source = self.board()
+        out: dict = {"today": today, "source": source, "board": board, "error": None}
+        if board is None:
+            out["error"] = "No board yet: the model has not priced today's games."
+        else:
+            try:
+                events = self.events()
+            except (OSError, ValueError, KeyError) as exc:
+                events = []
+                out["error"] = f"PointsBet did not answer ({type(exc).__name__})."
+            out["report"] = nba_legs.report(board, events)
+            out["nearest"] = (
+                [] if out["report"]["value_legs"] else nearest(out["report"]["all_legs"])
+            )
+            out["games"] = len(events)
+        out["priced_at"] = now
+        # a board for tonight's or tomorrow's US games is current; one for an earlier day is not
+        out["stale"] = board is not None and board.get("day", "") < today
+        self._view = (time.monotonic(), out)

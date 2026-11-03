@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "melbcup"
 DOCS = ROOT / "docs"
 # Server-only or offline-only modules the browser never imports.
-SKIP = {"melbcup/web/app.py", "melbcup/backtest.py"}
+# The NBA feed is server only (live HTTP to PointsBet and Azure): the offline copy explains that.
+SKIP = {"melbcup/web/app.py", "melbcup/backtest.py", "melbcup/nba_feed.py", "melbcup/nba_legs.py"}
 
 
 def wanted() -> dict[str, bytes]:

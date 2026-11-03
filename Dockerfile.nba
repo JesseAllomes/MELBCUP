@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir numpy==2.3.4 scipy==1.16.3 azure-identity==1.25.1
     && useradd --system --create-home --uid 10001 app
 WORKDIR /app
 COPY tools/nba/board.py tools/nba/tune.py tools/nba/settle.py tools/nba/espn_history.py tools/nba/daily.py tools/nba/legs.py tools/nba/model_v3.json /app/tools/nba/
-COPY azure/function/nba_legs.py /app/azure/function/
+COPY melbcup/__init__.py melbcup/nba_legs.py /app/melbcup/
 USER app
 ENTRYPOINT ["python3", "/app/tools/nba/daily.py"]

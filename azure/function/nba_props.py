@@ -17,7 +17,10 @@ import urllib.parse
 import urllib.request
 from zoneinfo import ZoneInfo
 
-import nba_legs
+try:
+    import nba_legs  # the deployed package: copied from melbcup/nba_legs.py by azure-deploy.yml
+except ImportError:  # the repository (tests)
+    from melbcup import nba_legs
 
 NY = ZoneInfo("America/New_York")
 PB = "https://api.au.pointsbet.com/api/mes/v3"
