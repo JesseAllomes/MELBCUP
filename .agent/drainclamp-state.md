@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=128 -->
+<!-- drainclamp-build: state; schema=1; generation=129 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T00:59:54+00:00 1403b1cc kids' bets card (kids cookie, #kids= import link, names, settle, off PointsBet money, in Today), BACK badge red/green, picks JSON on every page so final picks save from any page
 - 2026-11-03T01:30:36+00:00 af36142a amounts form + rules folded behind one 'Amounts SB · BF · PB change' row, one-line summary visible; tests pinned the web clock (10 tests failed from 12:00 because the test card's R1 is 11:45 on Cup day)
 - 2026-11-03T03:30:33+00:00 edb24682 Record another bet (Sonnet + import): extra cookie for custom multis (2-8 legs, auto-settled) and other bets (tote allowed, typed return), Other bets card, record-with-changes prefill, #extra= one-tap import; owner's PB 3-leg multi + R7 First Four imported via link
 - 2026-11-03T03:41:59+00:00 42f0b631 deploys 34-35 FAILED (guard: conftest clock fixture imported melbcup.web.views, guard env has no jinja2): 12:30 fold + 14:30 extra bets never went live; fixture now tolerates ImportError; guard replicated in a clean venv: pass
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T09:37:22+00:00 875caf16 Owner 2026-11-03 design rules: (1) agencies + day P&L fixed at the top of every screen; (2) Agencies panel lists every agency we pull prices from (Sportsbet, Betfair, PointsBet, TAB, Ladbrokes, Neds), on/off per agency for money tracking + balance, model always uses all prices; (3) theme dark purples/blacks, no bookie-brand colours. Applied to round 3 A-D (same URLs, v2).
 - 2026-11-03T09:40:46+00:00 6e380816 ui6 round 4 (owner: A Race days + D Hub win): merged E https://claude.ai/artifact/T941cW9hBenvPRje3Svgz3. Header never hidden (meetings inline, no covering sheet). Mine: Betting pool with Edit = every $ amount editable (agency money, day budget, usual stakes, bet stakes). Take races show top 4 picks worth a shot + same race multi.
 - 2026-11-03T09:50:24+00:00 6f328584 Owner 2026-11-03: Damian OK with copying RaceLens; snapshot Oaks Day (Thu 5 Nov) to find the best model. racelens-snapshot.yml every 5 min 8:00-20:55 AEDT -> racelens-data branch; needs secrets RACELENS_URL + RACELENS_PASSWORD. Today's Flemington/Randwick packs were deleted on his side before pull (jobs log proves they ran). Re-score 101 races: MELBCUP 1.8878 vs RaceLens 1.9706, top pick 40.6% vs 36.6%.
+- 2026-11-03T09:55:08+00:00 c802a09e Owner: run RaceLens snapshots in Azure, not GitHub Actions. Function timer racelens_snapshot every 5 min 7am-9:55pm AEDT, only on RACELENS_DATE (default 2026-11-05), blob container racelens. limits.json grant (owner instruction) -> deploy via workflow_dispatch limits_approved. Worst case $23.91/month (budget $25). Needs Function app settings RACELENS_URL, RACELENS_PASSWORD.
 <!-- /DC:LOG -->

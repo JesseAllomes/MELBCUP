@@ -147,6 +147,9 @@ def function_cost(limits: dict, host_timeout_s: int, memory_mb: int) -> dict[str
         "publish": 24 * days,
         "reenter": float(fn["assumed_http_requests_month"]),
     }
+    for name, spec in fn["allowed_functions"].items():  # any other timer counts at its full rate
+        if name not in runs and "timer_max_per_day" in spec:
+            runs[name] = spec["timer_max_per_day"] * days
     gb_s = sum(count * host_timeout_s * gb for count in runs.values())
     executions = sum(runs.values())
     window = max(0.0, gb_s - prices["flex_free_gb_s"]) * prices["flex_gb_s"]

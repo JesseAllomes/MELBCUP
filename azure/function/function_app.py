@@ -19,6 +19,7 @@ from azure.storage.blob import BlobServiceClient, ContentSettings
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
+import racelens  # noqa: E402
 from collector_runtime import (  # noqa: E402
     CollectorSession,
     StateTooLarge,
@@ -141,6 +142,31 @@ def publish(timer: func.TimerRequest) -> None:
         return
     container = blobs().get_container_client("live-observations")
     publish_pending(container, lambda: os.environ["GITHUB_TOKEN"], moment.strftime("%Y-%m-%d/%H"))
+
+
+RACELENS_DAY = "2026-11-05"  # Oaks Day; RACELENS_DATE overrides
+MELBOURNE = dt.timezone(dt.timedelta(hours=11))  # AEDT, all of the Spring Carnival
+
+
+@app.timer_trigger(
+    schedule="0 */5 20-23,0-10 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+)
+def racelens_snapshot(timer: func.TimerRequest) -> None:
+    """Read-only RaceLens snapshots on the chosen race day only (owner and Damian agreed)."""
+    moment = now_utc()
+    day = os.environ.get("RACELENS_DATE", RACELENS_DAY)
+    base = os.environ.get("RACELENS_URL", "").rstrip("/")
+    password = os.environ.get("RACELENS_PASSWORD", "")
+    if moment.astimezone(MELBOURNE).strftime("%Y-%m-%d") != day or not base or not password:
+        return
+    container = blobs().get_container_client("racelens")
+    try:
+        container.create_container()
+    except ResourceExistsError:
+        pass
+    req = racelens.client(base, password)
+    meetings, written = racelens.snapshot_day(container, req, day, moment)
+    logging.info("racelens: %d meetings, %d race snapshots", meetings, written)
 
 
 def take_start_slot(moment: dt.datetime) -> bool:
