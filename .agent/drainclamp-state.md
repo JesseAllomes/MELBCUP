@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=153 -->
+<!-- drainclamp-build: state; schema=1; generation=155 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -93,9 +93,10 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | ui6 | Redesign (owner 2026-11-03): product-ui pass with RaceLens' UI as the starting point; new lock in .grok/product-ui, then rebuild race and day pages on it; owner signs off the prototype before the build | .grok/product-ui/;melbcup/web/;tests/ | pending | bl1;st1 |
 | nba1 | NBA player props first (owner 2026-11-03): token-free collector of player prop and milestone markets (points, rebounds, assists, threes, alt lines like 3+ / 10+ / 20+), plus games, minutes, injuries and results, from every agency we pull; head-to-head/line/totals only as a later add | tools/;azure/function/;tests/ | pending | ui6 |
 | nba2 | NBA leg model: margin-free consensus per market with a fitted bias correction; tuned on past NBA odds and results (source of free history is the main unknown), frozen, then tested once on unseen games | melbcup/;research/nba/;tests/ | pending | nba1 |
-| nba3 | Value multis from likely props (owner 2026-11-03): filter legs that are BOTH highly likely (e.g. 75%+) AND priced at or above fair; stack 3 to 10 into same-game and multi-game multis; show chance, payout on $10 and EV; correlation-adjust same-game legs; show only multis with positive EV, else say none today; void rules for players who do not play | melbcup/bets/;tests/ | pending | nba2 |
+| nba3 | Value multis from likely props (owner 2026-11-03): filter legs that are BOTH highly likely (e.g. 75%+) AND priced at or above fair; stack 3 to 10 into same-game and multi-game multis; show chance, payout on $10 and EV; correlation-adjust same-game legs; show only multis with positive EV, else say none today; void rules for players who do not play; owner 2026-11-03: also unders (role players), alt lines/milestone tails, and same-game linked legs via joint box-score simulation | melbcup/bets/;tests/ | pending | nba2 |
 | nba4 | NBA in AsynymBet: Sport tab beside Racing (Games > Game > Bet / Odds / Result), value multis card, shared agencies, pool and P&L | melbcup/web/;tests/ | pending | nba3;ui6 |
-| lm1 | Looser markets (owner 2026-11-03, after NBA is live and forward-tested): racing each-way value in small fields (1/4 odds, 3 places, short favourite), tote pools with carryovers/jackpots, Best Tote/top fluc, Betfair place drift; NBA role-player unders, same-game multis with mispriced linked legs (joint simulation), alt lines/milestones tails, quarter/half markets, first basket; NBL/NBL1/WNBA/EuroLeague props. Each market backtested and forward-tested before it shows in the app | melbcup/bets/;tools/nba/;research/;tests/ | pending | nba4 |
+| lm1 | Looser markets (owner 2026-11-03, after NBA is live and forward-tested): racing each-way value in small fields (1/4 odds, 3 places, short favourite), tote pools with carryovers/jackpots, Best Tote/top fluc, Betfair place drift; NBA quarter/half markets and first basket (need play-by-play; unders, alt lines and SGM moved into nba3); NBL/NBL1/WNBA/EuroLeague props. Each market backtested and forward-tested before it shows in the app | melbcup/bets/;tools/nba/;research/;tests/ | pending | nba4 |
+| arb1 | Sure-thing finder (owner 2026-11-03): scan every agency we read (Odds API 12 AU books + PointsBet/Sportsbet direct + Betfair) for arbitrage (all outcomes covered at a locked profit) and promo lay-offs (agency promo + Betfair lay = locked profit); show stake split per agency and locked $; racing and NBA | melbcup/bets/;melbcup/web/;tests/ | pending | nba1 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -110,7 +111,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T10:15:11+00:00 f89c28ce Owner 2026-11-03: add NBA, purpose = value multis 3-10 legs, cross-game and same-game. Roadmap nba1-nba4 after ui6.
 - 2026-11-03T10:18:25+00:00 280022c1 Owner: NBA = player props first (x gets 3+ points etc.), likely legs stacked into 3-10 leg same-game and multi-game multis, $10 into a decent win. Filter = likely AND at/above fair.
 - 2026-11-03T10:19:22+00:00 c6ff65fb Owner design rule: RaceLens-style % ring meter for the chance a bet/multi gets up (green 60%+, purple 30-59%, amber under 30%). Added to E (main bet + same race multi); applies to nba3 multis too.
 - 2026-11-03T10:23:12+00:00 19e9b594 RACELENS_DATE cleared (run 41618611031): Thursday default restored. Azure test copy unverified (deploy SP has no blob data read; keys disabled); owner declined extra access and the data-check ring: use our model. NBA plan (low token): scripts only at runtime; props from agency web feeds + free NBA game logs; player-stat model (minutes x per-minute rate), no betting history needed; reuse multis.py and AsynymBet parts; 4 Sonnet chunks; first step = token-free agency feed probe from Azure.
@@ -130,4 +130,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T12:20:24+00:00 49c034b9 NBA v2 (minutes x rate x opponent, missing-teammates, b2b, NB phi, calibration) quick tune (every 40th row): beats v1 on validate 2023-24 and check 2024-25 for all stats; threes biggest gain (check 0.4693 -> 0.4572). Full tune (every 3rd row, half-lives incl. 1.5/2) queued after downloads. Caveat: missing-teammates read from the game box (stand-in for the injury report).
 - 2026-11-03T12:28:36+00:00 d6219689 NBA v2 full tune (69k tune rows, 2014-15..2022-23): validate 2023-24 / check 2024-25 log loss v1->v2 points .3336->.3273/.3475->.3409, rebounds .3533->.3484/.3687->.3616, assists .3172->.3106/.3236->.3167, threes .4520->.4428/.4684->.4575. Back-to-back effect ~0. 80-89% bucket hits 84-85%, 90-99% 93-94%. Params tools/nba/model_v2.json. Next levers: starter/role change, usage redistribution, game script (spread), pace, per-player spread, SGM correlation, GBM; rolling validation; 2025-26 sealed.
 - 2026-11-03T12:38:55+00:00 5be6da2c Owner: milestone lm1 (looser markets) after NBA live and tested.
+- 2026-11-03T12:40:49+00:00 d61ab05f Owner: NBA loose markets now. Unders, alt-line tails, SGM linked legs moved into nba3; quarter/first basket stay lm1. New arb1: arbitrage + promo lay-off (matched betting) finder.
 <!-- /DC:LOG -->
