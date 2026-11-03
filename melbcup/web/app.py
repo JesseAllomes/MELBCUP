@@ -24,7 +24,14 @@ from melbcup.sources.racingcom import RacingComClient
 from melbcup.web import asynym
 from melbcup.web.offer_api import OfferNotFound, OfferRequestError, offer_response
 from melbcup.web.racecard import BF_COOKIE, PB_COOKIE, SB_COOKIE, parse_amount, pick_amounts
-from melbcup.web.views import BUDGET_COOKIE, HERE, NotFound, Views, parse_budget
+from melbcup.web.views import (
+    BUDGET_COOKIE,
+    HERE,
+    NotFound,
+    Views,
+    melbourne_today,
+    parse_budget,
+)
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
 
@@ -202,7 +209,9 @@ def create_app(
                 response.delete_cookie(PB_COOKIE)
         if settings.asynym and path == "nba" and "ch" in query:  # the $10 -> $1000 challenge
             state = nba_challenge.apply(
-                nba_challenge.parse(request.cookies.get(nba_challenge.COOKIE)), query
+                nba_challenge.parse(request.cookies.get(nba_challenge.COOKIE)),
+                query,
+                melbourne_today().isoformat(),
             )
             if state is None:
                 response.delete_cookie(nba_challenge.COOKIE)

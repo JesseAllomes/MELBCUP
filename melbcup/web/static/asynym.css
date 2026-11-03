@@ -378,3 +378,4 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .ch-act .lost { background: var(--bad); color: #fff; }
 .ch-mode { display: flex; gap: 6px; align-items: center; width: 100%; font-size: 13px; }
 .ch-mode input { width: auto; }
+.ch-act select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--chip); color: inherit; font: inherit; }

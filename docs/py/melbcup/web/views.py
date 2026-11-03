@@ -344,6 +344,31 @@ class NotFound(LookupError):
     pass
 
 
+@dataclass
+class TodayMoney:
+    """The header's day profit or loss (today's racing bets and NBA challenge stages)."""
+
+    profit: float
+
+    def fill(self, total: float) -> float:
+        if not self.profit:
+            return 0.0
+        return 100.0 if total <= 0 else min(100.0, 100.0 * abs(self.profit) / total)
+
+
+def _nba_money(path, query, cookies, today):
+    """The NBA challenge state (with this request's action applied on /nba) and today's money."""
+    try:
+        from melbcup import nba_challenge
+    except ImportError:  # the phone's offline copy leaves the NBA code out
+        return None, {}, 0.0
+    state = nba_challenge.parse((cookies or {}).get(nba_challenge.COOKIE))
+    if path == "/nba" and "ch" in query:
+        state = nba_challenge.apply(state, query, today.isoformat())
+    used, profit = nba_challenge.today_money(state, today.isoformat())
+    return state, used, profit
+
+
 class Views:
     def __init__(self, settings: Settings, board: LiveBoard, *, browser: bool = False):
         self.settings = settings
@@ -359,9 +384,7 @@ class Views:
             from melbcup import nba_challenge, nba_legs
         except ImportError:  # the phone's offline copy leaves the NBA code out
             return {"ch": None, "ch_step": None}
-        state = nba_challenge.apply(
-            nba_challenge.parse(ctx["cookies"].get(nba_challenge.COOKIE)), query
-        )
+        state = ctx.get("ch_state")
         step, games = None, []
         if state is not None:
             legs = (ctx["nba_rep"] or {}).get("all_legs") or []
@@ -445,7 +468,20 @@ class Views:
         )
         if az is not None:
             az.apply_wallet(wal)
+        # The header's "Today": only today's bets. A meeting from another day (yesterday's card
+        # still loaded) keeps its bets on Mine but neither its loss nor its stakes count today;
+        # NBA challenge stakes come off their agency and wins pay back into it.
+        today = melbourne_today()
+        racing_today = snap.race_date == today
+        day_bets = DayResult(mine.bets + [k.settled for k in kids] + [x.settled for x in extras])
+        ch_state, nba_used, nba_profit = _nba_money(path, query, cookies, today)
+        if az is not None:
+            for a in az.agencies:
+                a.used = (a.used if racing_today else 0.0) + nba_used.get(a.code, 0.0)
+        day_pnl = TodayMoney((day_bets.profit if racing_today else 0.0) + nba_profit)
         return {
+            "day_pnl": day_pnl,
+            "ch_state": ch_state,
             "az": az,
             "settings": self.settings,
             "browser": self.browser,

@@ -88,3 +88,19 @@ def test_a_tote_other_bet_needs_no_odds_and_a_link_can_import_it():
     assert got and "@ tote" in got[0].detail
     base = (Path(__file__).resolve().parents[1] / "melbcup/web/templates/_bets_js.html").read_text()
     assert '#extra=' in base and "importExtra" in base
+
+
+def test_the_header_counts_only_todays_bets(monkeypatch):
+    """Yesterday's card still loaded: its loss stays on Mine but not in today's money (owner)."""
+    from melbcup.web import views as views_module
+
+    views = make_views({"ASYNYM": "1"})
+    cookies = jar([DATE, "other", "", "sb", 30, 6, "Q", ""], sb_budget="100", bf_budget="0")
+    cookies["agencies"] = "sb"
+    monkeypatch.setattr(views_module, "melbourne_today", lambda: date(2026, 11, 3))
+    ctx = views._context("/", {}, cookies)
+    assert ctx["az"].get("sb").used == 30  # the card's own day: its stake counts
+    monkeypatch.setattr(views_module, "melbourne_today", lambda: date(2026, 11, 4))
+    ctx = views._context("/", {}, cookies)
+    assert ctx["az"].get("sb").used == 0 and ctx["day_pnl"].profit == 0.0  # the next day: clean
+    assert ctx["pnl"].bets  # Mine still lists it
