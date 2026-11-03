@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=161 -->
+<!-- drainclamp-build: state; schema=1; generation=162 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T10:42:52+00:00 714161fa Owner approved (2026-11-03 'Grant it'): Storage Blob Data Reader for the deploy app on the Function storage account, via azure-racelens-settings check/probe.
 - 2026-11-03T10:45:30+00:00 087efbdf Owner 2026-11-03: push AsynymBet live at bet.asynym.dev. E locked (.grok/product-ui/LOCK-asynymbet.md). Build ui6 now on the current single-meeting board behind ASYNYM=1; multi-meeting board (Home best bets across all meetings) is the next milestone mm1. DNS (Cloudflare) needs owner: CNAME bet + TXT asuid.bet.
 - 2026-11-03T10:48:50+00:00 9ecdda4b Grant attempt failed (run 41621566777): deploy app (client 7ab2c182, object 1219dd34-...) lacks Microsoft.Authorization/roleAssignments/write on stpersonalv5ethud2i3cfq, so it is not Owner there. Owner must add Storage Blob Data Reader in the portal.
 - 2026-11-03T11:00:29+00:00 83249137 ui6 built (Sonnet) and verified: full pytest + 18 new, ruff clean, golden identical vs origin/main with ASYNYM unset, screenshots OK. Live with ASYNYM=1 in melbcup-web.json (rollback = 0). TAB/Ladbrokes/Neds chips display-only (no per-agency prices yet); /history stays old UI.
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T12:54:49+00:00 ac4d7204 NBA v3 rolling validation (folds 2021-22, 2022-23, 2023-24; each tuned on earlier seasons): beats v2 in 12/12 fold-stat pairs. Check 2024-25 log loss v1/v2/v3: points .3475/.3409/.3341, rebounds .3687/.3616/.3547, assists .3236/.3167/.3117, threes .4684/.4575/.4538. Role minutes weight g ~0.8, usage share 0.5-1.0, blowout ~0. v3 frozen in tools/nba/model_v3.json. 2025-26 still sealed.
 - 2026-11-03T13:00:18+00:00 cbab9663 nba2 live: tools/nba/board.py prices a day's games with v3 through the backtest feature code (build() now takes 'upcoming' fixtures). Dry run 2026-11-04: 14 games, 336 players. Expected line-up = 2 of last 5 games, starters = last game's, ESPN injury Out removed. Current season 00226 pulled (107 games). PointsBet props collector live in Azure (deploy 41639467183). NEXT CHUNK: parse PointsBet prop outcomes (posted game day) -> legs with chance + EV; nba3 multi builder (3-10 legs, likely AND >= fair, cross-game, same-game penalty); nightly ESPN settle + forward log; then Azure board timer + AsynymBet NBA tab.
 - 2026-11-03T19:15:26+00:00 2a05aace 2026-11-04 nba1+nba3+settle built: legs (azure/function/nba_legs.py, PB 'X To Score N+' -> chance/fair/EV; value = chance>=75% AND EV>=+3%; cross-game 1 leg/game 3-10; same-game list), settle.py + forward.jsonl, daily job tools/nba/daily.py (ACA job melbcup-nba 22:30 UTC, 1vCPU/2GiB/300s, C12 in cost guard, $24.54/$25). Pushed to branch ccr-63b3240a-qdwy3g (commit ec676e33), NOT main: needs owner OK for (a) Storage Blob Data Contributor on container nba for UAI e533dd19 + owner SP (classifier blocked the grant), (b) deploy dispatch with limits_approved (C10: jobs added). Then: upload history pack (scratch nba/store/history/games.jsonl.gz), push main, dispatch. Next after: nba4 NBA tab in AsynymBet.
+- 2026-11-03T19:26:29+00:00 2013ab26 2026-11-04 nba4 NBA tab built and pushed to main (2d8c862b, ee04e9fd): /nba with verdict, tabs Multis/Value legs/Same game/All lines, rings; melbcup/nba_feed.py reads Azure board via MI HTTP else bundled data/nba/board-latest.json (20261104); PB parallel fetch, 90 s cache + background refresh (first load ~2 s, then ms). melbcup-nba job parked in azure/jobs-pending/ (+limits-jobs.json); to enable: move to azure/jobs, merge limits, owner grant Blob Data Contributor on container nba to UAI e533dd19, dispatch with limits_approved.
 <!-- /DC:LOG -->
