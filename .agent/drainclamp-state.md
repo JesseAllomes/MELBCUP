@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=122 -->
+<!-- drainclamp-build: state; schema=1; generation=123 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-02T23:52:43+00:00 3a7e6049 Record a bet I placed (Sonnet + fix): form on every race page (run races too) records runner, kind, bookmaker, actual stake, price; several records per race; Remove per record; wallets net of real stakes. Clicked through in Chromium: 3 R1 records -> SB 139, BF 45; Remove works
 - 2026-11-03T00:09:46+00:00 94339734 settle + day P&L bar (Sonnet + fix): recorded bets settled on results (BF commission, BF cash back 2nd, PB run 2nd, SB bonus bets reported apart), Won/Lost/Back per line, race total, centred bar (red left/green right, half-width = day amounts); EW place price recordable (8th element). Browser check R1: -3, -5, -1.52 = -9.52
 - 2026-11-03T00:19:31+00:00 38055c32 UI: versioned /static links (phone cached old CSS: bar unstyled), WON/LOST/BACK badges on cards, density pass (body 15px, smaller headings, tighter cards, 6px bars, 150ms transitions); checked light+dark 390px
 - 2026-11-03T00:23:48+00:00 2fbf4701 countdown strip (next jump, ticking) + BET NOW at <=3:00 (amber, vibrate, beep, notification if allowed, one reload per race)
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T09:10:06+00:00 0b60e95e ui6 started: prototype v1 (RaceLens layout + take-this-bet verdict) https://claude.ai/artifact/SFMukYyWGnT5632F9HwaEi, copy in .grok/product-ui/v2/. Awaiting owner sign-off before lock + build.
 - 2026-11-03T09:10:28+00:00 6372a056 Owner 2026-11-03: new name AsynymBet (prototype v2). App rename goes into the ui6 build; repo, domain and Azure names unchanged unless the owner asks.
 - 2026-11-03T09:15:37+00:00 8789fedc ui6 product-ui: 4 prototypes. A Classic SFMukYyWGnT5632F9HwaEi, B Slip W9RecNEEMpM8ipY3GcdDis, C Board F6sLhPyb79odhEvhirVAgh, D Glance Tm4B5DianMEjYhVt28ozLW (claude.ai/artifact/). Copies in .grok/product-ui/v2/. Owner picks or mixes, then lock.
+- 2026-11-03T09:16:16+00:00 f1855db6 st1 part 1 verified: /healthz 0.98 s after 8 min idle (was 22 s cold). Page-speed work still open.
 <!-- /DC:LOG -->
