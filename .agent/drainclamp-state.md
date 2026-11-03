@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=127 -->
+<!-- drainclamp-build: state; schema=1; generation=128 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T00:41:17+00:00 83517491 ui5 built (Sonnet): app's final picks kept on the phone (picks cookie, saved on each race-page load while open) and settled under own bets; side-by-side per product-ui lock (wallet columns, podium result, pick row line 1 kind|runner|pills|stake, line 2 text|chips). Checked 390 light/dark, 360
 - 2026-11-03T00:59:54+00:00 1403b1cc kids' bets card (kids cookie, #kids= import link, names, settle, off PointsBet money, in Today), BACK badge red/green, picks JSON on every page so final picks save from any page
 - 2026-11-03T01:30:36+00:00 af36142a amounts form + rules folded behind one 'Amounts SB · BF · PB change' row, one-line summary visible; tests pinned the web clock (10 tests failed from 12:00 because the test card's R1 is 11:45 on Cup day)
 - 2026-11-03T03:30:33+00:00 edb24682 Record another bet (Sonnet + import): extra cookie for custom multis (2-8 legs, auto-settled) and other bets (tote allowed, typed return), Other bets card, record-with-changes prefill, #extra= one-tap import; owner's PB 3-leg multi + R7 First Four imported via link
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T09:35:01+00:00 0ffc3e42 Owner 2026-11-03: AsynymBet covers ALL meetings, not just the Cup (answers t3 scope). ui6 round 3 on RaceLens nav (Day > Meeting > Race > race tabs; real meeting lists, sample picks): A Race days GEJ8cNhcdSUZjzoVi9sCXq, B Next up MfcgMbumxLaU6ypaopJdje, C Three tier 3DBHx7KqR99bRyycy3PJcZ, D Hub HPKgsrD5e4fEaGEFzeHV8i. Source .grok/product-ui/v4/.
 - 2026-11-03T09:37:22+00:00 875caf16 Owner 2026-11-03 design rules: (1) agencies + day P&L fixed at the top of every screen; (2) Agencies panel lists every agency we pull prices from (Sportsbet, Betfair, PointsBet, TAB, Ladbrokes, Neds), on/off per agency for money tracking + balance, model always uses all prices; (3) theme dark purples/blacks, no bookie-brand colours. Applied to round 3 A-D (same URLs, v2).
 - 2026-11-03T09:40:46+00:00 6e380816 ui6 round 4 (owner: A Race days + D Hub win): merged E https://claude.ai/artifact/T941cW9hBenvPRje3Svgz3. Header never hidden (meetings inline, no covering sheet). Mine: Betting pool with Edit = every $ amount editable (agency money, day budget, usual stakes, bet stakes). Take races show top 4 picks worth a shot + same race multi.
+- 2026-11-03T09:50:24+00:00 6f328584 Owner 2026-11-03: Damian OK with copying RaceLens; snapshot Oaks Day (Thu 5 Nov) to find the best model. racelens-snapshot.yml every 5 min 8:00-20:55 AEDT -> racelens-data branch; needs secrets RACELENS_URL + RACELENS_PASSWORD. Today's Flemington/Randwick packs were deleted on his side before pull (jobs log proves they ran). Re-score 101 races: MELBCUP 1.8878 vs RaceLens 1.9706, top pick 40.6% vs 36.6%.
 <!-- /DC:LOG -->
