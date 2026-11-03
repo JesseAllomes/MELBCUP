@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=135 -->
+<!-- drainclamp-build: state; schema=1; generation=136 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 - 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
 - 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:15:11+00:00 f89c28ce Owner 2026-11-03: add NBA, purpose = value multis 3-10 legs, cross-game and same-game. Roadmap nba1-nba4 after ui6.
 - 2026-11-03T10:18:25+00:00 280022c1 Owner: NBA = player props first (x gets 3+ points etc.), likely legs stacked into 3-10 leg same-game and multi-game multis, $10 into a decent win. Filter = likely AND at/above fair.
 - 2026-11-03T10:19:22+00:00 c6ff65fb Owner design rule: RaceLens-style % ring meter for the chance a bet/multi gets up (green 60%+, purple 30-59%, amber under 30%). Added to E (main bet + same race multi); applies to nba3 multis too.
+- 2026-11-03T10:23:12+00:00 19e9b594 RACELENS_DATE cleared (run 41618611031): Thursday default restored. Azure test copy unverified (deploy SP has no blob data read; keys disabled); owner declined extra access and the data-check ring: use our model. NBA plan (low token): scripts only at runtime; props from agency web feeds + free NBA game logs; player-stat model (minutes x per-minute rate), no betting history needed; reuse multis.py and AsynymBet parts; 4 Sonnet chunks; first step = token-free agency feed probe from Azure.
 <!-- /DC:LOG -->
