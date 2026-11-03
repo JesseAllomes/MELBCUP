@@ -1,0 +1,22 @@
+season 00224: 166 nights; leg prices assumed fair minus 5%
+
+1. Stacks across games (one leg per game), all payout targets
+       said  stacks  said avg   got up
+    0- 9%      143      8.5%     8.4%  (±4.6)
+   10-19%      150     17.8%    10.0%  (±4.9)
+   30-39%      150     31.1%    25.3%  (±7.1)
+   40-49%      146     47.8%    49.3%  (±8.3)
+   50-59%        4     50.3%    50.0%  (±50.0)
+  all           593     26.5%    23.4%
+   $10 -> $20: 150 nights, said 47.9%, got up 49.3%, return per $1 at assumed prices 0.99
+   $10 -> $30: 150 nights, said 31.1%, got up 25.3%, return per $1 at assumed prices 0.76
+   $10 -> $50: 150 nights, said 17.8%, got up 10.0%, return per $1 at assumed prices 0.50
+   $10 -> $100: 143 nights, said 8.5%, got up 8.4%, return per $1 at assumed prices 0.84
+
+2. Same-game stacks ($10 -> ~$30, one leg per player): legs treated as separate
+       said  stacks  said avg   got up
+   20-29%     1234     29.0%    30.4%  (±2.6)
+  all          1234     29.0%    30.4%
+
+3. $10 -> $1000 challenges at ~5x a night: 135 finished, 0 reached $1000 (0.0%); a run lasted 1.1 nights on average
+   (at the model's own chances a 5x-step run should reach $1000 about 0.6% of the time before the margin)
