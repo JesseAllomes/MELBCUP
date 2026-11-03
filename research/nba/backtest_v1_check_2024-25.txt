@@ -1,0 +1,67 @@
+games: 6911  test season 00224
+
+points
+  base   log loss 0.5193  brier 0.1329  (101260 predictions)
+  form   log loss 0.3653  brier 0.1140  (101260 predictions)
+  model  log loss 0.3467  brier 0.1094  (101260 predictions)
+  calibration (model): said -> happened
+     0-9%    3.4%  (48932)
+    10-19%   16.9%  (13230)
+    20-29%   27.7%  (8281)
+    30-39%   39.7%  (6607)
+    40-49%   49.3%  (5420)
+    50-59%   59.1%  (4400)
+    60-69%   69.1%  (3792)
+    70-79%   78.8%  (3456)
+    80-89%   86.2%  (3195)
+    90-99%   94.3%  (3947)
+
+reboundsTotal
+  base   log loss 0.4129  brier 0.1272  (101260 predictions)
+  form   log loss 0.3874  brier 0.1220  (101260 predictions)
+  model  log loss 0.3667  brier 0.1165  (101260 predictions)
+  calibration (model): said -> happened
+     0-9%    3.6%  (45801)
+    10-19%   15.9%  (13265)
+    20-29%   26.2%  (9469)
+    30-39%   35.9%  (7294)
+    40-49%   45.2%  (6106)
+    50-59%   55.4%  (5141)
+    60-69%   66.0%  (4180)
+    70-79%   74.7%  (3685)
+    80-89%   84.5%  (3245)
+    90-99%   94.4%  (3074)
+
+assists
+  base   log loss 0.3678  brier 0.1122  (75945 predictions)
+  form   log loss 0.3469  brier 0.1067  (75945 predictions)
+  model  log loss 0.3241  brier 0.1014  (75945 predictions)
+  calibration (model): said -> happened
+     0-9%    3.1%  (39626)
+    10-19%   16.0%  (9410)
+    20-29%   25.1%  (6737)
+    30-39%   35.1%  (4314)
+    40-49%   46.9%  (3811)
+    50-59%   55.8%  (3129)
+    60-69%   66.7%  (2340)
+    70-79%   77.3%  (2371)
+    80-89%   85.2%  (2421)
+    90-99%   94.4%  (1786)
+
+threePointersMade
+  base   log loss 0.4917  brier 0.1615  (75945 predictions)
+  form   log loss 0.4850  brier 0.1600  (75945 predictions)
+  model  log loss 0.4704  brier 0.1546  (75945 predictions)
+  calibration (model): said -> happened
+     0-9%    5.0%  (21854)
+    10-19%   19.2%  (8777)
+    20-29%   30.0%  (7968)
+    30-39%   38.0%  (7011)
+    40-49%   48.5%  (6106)
+    50-59%   57.4%  (6130)
+    60-69%   67.0%  (5651)
+    70-79%   75.7%  (5286)
+    80-89%   84.9%  (4813)
+    90-99%   92.2%  (2349)
+
+[exited with code 0]
