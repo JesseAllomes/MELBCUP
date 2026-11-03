@@ -5,6 +5,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
 from test_racecard import FakeBoard, _models
 
 from melbcup.config import load_settings
@@ -26,6 +27,13 @@ def views_at(*minutes, finished=()):
 
 def data(html):
     return json.loads(re.search(r'id="alert-data">(.*?)</script>', html, re.S).group(1))
+
+
+
+@pytest.fixture(autouse=True)
+def _web_clock_before_the_card():
+    """These tests build their races relative to the real clock: no pinned clock here."""
+    yield
 
 
 def test_strip_counts_down_to_the_next_open_race_on_every_page():

@@ -349,3 +349,14 @@ footer .help { display: flex; flex-wrap: wrap; align-items: center; column-gap: 
 footer .help a { display: inline-flex; align-items: center; min-height: var(--tap); color: var(--ink); font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Amounts folded behind one small row (owner 2026-11-03: "a whole page for this") */
+.money-fold { margin: 4px 0 8px; }
+.money-fold > summary { list-style: none; display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 999px; font: 500 13px var(--body); color: var(--muted); cursor: pointer; width: fit-content; transition: border-color 150ms; }
+.money-fold > summary::-webkit-details-marker { display: none; }
+.money-fold > summary .mf-k { color: var(--ink); font-weight: 700; }
+.money-fold > summary .mf-edit { color: var(--navy); text-decoration: underline; margin-left: 4px; }
+.money-fold[open] > summary { border-color: var(--navy); }
+.money-fold .money { margin-top: 8px; }
+.money-fold .mf-rules { font-size: 12px; margin-top: 6px; }
+.split.one { margin: 2px 0; font-size: 13px; }

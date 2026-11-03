@@ -18,8 +18,8 @@
 
   <section aria-labelledby="money-h">
     <h2 id="money-h">Today's money</h2>
-    {{ amounts(wallet, here) }}
-    <p class="split">Your <b>{{ wallet.total | dollars }}</b>{% if wallet.left < wallet.total %} (<b>{{ wallet.left | dollars }}</b> left){% endif %} is shared across {{ 'all ' ~ day.races | length if day.open_count == day.races | length else 'the ' ~ day.open_count }} races{{ ' still to run' if day.open_count != day.races | length }} by how likely each bet is to pay: <b>${{ day.total }}</b> in bets below. Open a race for its picks and the account each one goes to.</p>
+    <p class="split one"><b>${{ day.total }}</b> in bets below · <b>{{ wallet.left | dollars }}</b> left over {{ day.open_count }} race{{ 's' if day.open_count != 1 }}</p>
+    {{ amounts(wallet, here, "Your " ~ (wallet.total | dollars) ~ " is shared across the races still to run by how likely each bet is to pay. Open a race for its picks and the account each one goes to.") }}
   </section>
 
   {% if grade %}

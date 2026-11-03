@@ -1,7 +1,7 @@
 """Every pick carries one verdict, derived from the value rule and the existing price verdict."""
 
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -53,7 +53,9 @@ def test_single_call_prefers_the_sportsbet_price():
 
 
 def test_betting_closes_once_a_race_has_run():
-    now = datetime.now(UTC)
+    from melbcup.web import views as web_views
+
+    now = web_views.datetime.now(UTC)  # the web layer's clock (pinned in conftest)
     ahead = SimpleNamespace(result=None, start_time=now + timedelta(minutes=20))
     gone = SimpleNamespace(result=None, start_time=now - timedelta(minutes=30))
     done = SimpleNamespace(result=object(), start_time=now + timedelta(minutes=20))

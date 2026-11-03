@@ -29,8 +29,9 @@
 <section aria-labelledby="picks-h">
   <h2 id="picks-h">{{ 'Win, place, each way' if rc.open else 'Your bets before the race' }}</h2>
   {% if rc.open %}
-  {{ amounts(wallet, here) }}
-  <p class="split">Your <b>{{ wallet.total | dollars }}</b>{% if wallet.left < wallet.total %} (<b>{{ wallet.left | dollars }}</b> left){% endif %} is shared across {{ 'all ' ~ day.races | length if day.open_count == day.races | length else 'the ' ~ day.open_count }} races{{ ' still to run' if day.open_count != day.races | length }} by how likely each bet is to pay. This race gets <b>${{ rc.total }}</b>. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.{% if settings.pointsbet %} PointsBet takes a bet when it pays most and has money left, with no minimum stake; multis and exotics stay with Sportsbet.{% endif %}</p>
+  {% set rules %}Your {{ wallet.total | dollars }} is shared across the races still to run by how likely each bet is to pay. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.{% if settings.pointsbet %} PointsBet takes a bet when it pays most and has money left, with no minimum stake; multis and exotics stay with Sportsbet.{% endif %}{% endset %}
+  <p class="split one">This race gets <b>${{ rc.total }}</b> · <b>{{ wallet.left | dollars }}</b> left over {{ day.open_count }} race{{ 's' if day.open_count != 1 }}</p>
+  {{ amounts(wallet, here, rules) }}
   {% endif %}
   {% if rc.board %}
   <div class="board">

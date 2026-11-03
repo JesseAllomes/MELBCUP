@@ -335,3 +335,22 @@ def router() -> Router:
 
 def load_fixture(name: str) -> dict:
     return json.loads((FIXTURES / f"{name}.json").read_text())
+
+
+@pytest.fixture(autouse=True)
+def _web_clock_before_the_card(monkeypatch):
+    """Pages decide which races are still open from the clock. The test card runs on Cup day
+    (R1 11:45am, R2 3pm Melbourne), so pin the web layer's clock to 11am that morning: the
+    tests then mean the same thing whenever they run, including during the meeting itself."""
+    from datetime import UTC
+    from datetime import datetime as real
+
+    import melbcup.web.views as views
+
+    class Fixed(real):
+        @classmethod
+        def now(cls, tz=None):
+            fixed = real(2026, 11, 3, 0, 0, tzinfo=UTC)
+            return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+
+    monkeypatch.setattr(views, "datetime", Fixed)

@@ -107,11 +107,15 @@
 {% endmacro %}
 
 {# The day amounts (a third, PointsBet, with POINTSBET=1). A plain form: the server remembers them in cookies. #}
-{% macro amounts(wallet, here) %}
+{% macro amounts(wallet, here, rules="") %}
+<details class="money-fold">
+<summary><span class="mf-k">Amounts</span> SB {{ wallet.sportsbet | dollars }} · BF {{ wallet.betfair | dollars }}{% if wallet.pointsbet is not none %} · PB {{ wallet.pointsbet | dollars }}{% endif %}<span class="mf-edit">change</span></summary>
 <form class="money" method="get" action="{{ here }}">
   <label for="m-sb"><span><span class="pill sb best"><small>Sportsbet</small></span> today</span><input id="m-sb" name="sb" inputmode="decimal" autocomplete="off" value="{{ wallet.sportsbet | dollars }}"></label>
   <label for="m-bf"><span><span class="pill bf best"><small>Betfair</small></span> today</span><input id="m-bf" name="bf" inputmode="decimal" autocomplete="off" value="{{ wallet.betfair | dollars }}"></label>{% if wallet.pointsbet is not none %}
   <label for="m-pb"><span><span class="pill pb best"><small>PointsBet</small></span> today</span><input id="m-pb" name="pb" inputmode="decimal" autocomplete="off" value="{{ wallet.pointsbet | dollars }}"></label>{% endif %}
   <button type="submit">Share it out</button>
-</form>
+</form>{% if rules %}
+<p class="split mf-rules">{{ rules }}</p>{% endif %}
+</details>
 {% endmacro %}
