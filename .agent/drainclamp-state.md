@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=109 -->
+<!-- drainclamp-build: state; schema=1; generation=110 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -101,7 +101,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T09:48:29+00:00 38a65a70 owner: all good ($6 leftover kept as spare). ui3 done. Open: ui4 multi picks, m7, bf2 (betting backend dormant, no live key), az4 after 7 Nov
 - 2026-11-01T10:45:05+00:00 87d1aada m7 review (research/M7_REVIEW.md): 'tune weights' is dead (market model, holdouts spent); honest work = replay the card's fixed rules on the archive, apply the already-proven price^1.14 correction if it helps on blocks it was not fitted on, build a token-free forward test; variants reported, never chosen (overfitting)
 - 2026-11-01T10:45:06+00:00 265c5294 m7 done. Replay (research/m7/card_rules.py, 28,721 races): card win pick at alpha 1 loses -17/-21/-22/-21% (dev/tune2/final/fwd), worse than the favourite, because 'closest to fair' lands on 2-21 shots (A/E 0.75); at alpha 1.14 -13/-13/-13.5/-11 (4-10 pts better on every block, 3 of them unseen by the fit). Shipped MARKET_ALPHA 1.14 in probability.py (+offers scenarios, cup_signals), tools/forward_check.py (T-30 v last price from collector obs, graded from racing.com; 31 Oct sample 121 races saved). Rejected: floors, pick rule, stake weighting, value rule (fitted noise/untestable). Owner call: fixed-odds EW at 3 places is the worst pick everywhere (-18..-24%). Tests green; session branch only, main push awaits owner
 - 2026-11-01T10:51:46+00:00 3cb0b219 ui4: Multi picks for the day on the day page; day_multis (top 5 by chance) in multis.py, kind multi in allocate (Sportsbet only, keyed by legs), placed cookie code m; tests green, docs rebuilt
@@ -121,4 +120,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T00:41:17+00:00 83517491 ui5 built (Sonnet): app's final picks kept on the phone (picks cookie, saved on each race-page load while open) and settled under own bets; side-by-side per product-ui lock (wallet columns, podium result, pick row line 1 kind|runner|pills|stake, line 2 text|chips). Checked 390 light/dark, 360
 - 2026-11-03T00:59:54+00:00 1403b1cc kids' bets card (kids cookie, #kids= import link, names, settle, off PointsBet money, in Today), BACK badge red/green, picks JSON on every page so final picks save from any page
 - 2026-11-03T01:30:36+00:00 af36142a amounts form + rules folded behind one 'Amounts SB · BF · PB change' row, one-line summary visible; tests pinned the web clock (10 tests failed from 12:00 because the test card's R1 is 11:45 on Cup day)
+- 2026-11-03T03:30:33+00:00 edb24682 Record another bet (Sonnet + import): extra cookie for custom multis (2-8 legs, auto-settled) and other bets (tote allowed, typed return), Other bets card, record-with-changes prefill, #extra= one-tap import; owner's PB 3-leg multi + R7 First Four imported via link
 <!-- /DC:LOG -->

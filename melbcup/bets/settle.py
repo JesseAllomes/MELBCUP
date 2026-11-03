@@ -138,6 +138,44 @@ def _multi(bet: Placed, races: dict) -> Settled:
     return Settled(bet, "settled", round(returns, 2))
 
 
+@dataclass(frozen=True)
+class Extra:
+    """Any other bet the owner recorded by hand. A "multi" has ``legs`` of (race, runner, "win" |
+    "place") and the total decimal ``odds`` taken; an "other" bet (quinella, a quaddie, anything)
+    has no legs and is settled by the owner typing ``result``, the total amount returned."""
+
+    kind: str  # "multi" | "other"
+    legs: tuple[tuple[int, int, str], ...]
+    account: str
+    stake: float
+    odds: float
+    label: str = ""
+    result: float | None = None
+
+
+def settle_extra(x: Extra, races: dict) -> Settled:
+    """A multi wins (stake x odds) when every leg hits, loses as soon as one leg's race has a
+    result where the leg missed, else is pending. No Betfair commission (multis are bookmaker
+    bets). An "other" bet is pending until the owner types the amount returned."""
+    bet = Placed(0, "extra", 0, x.account, x.stake)  # race 0: it counts in the day, not a race
+    if x.kind != "multi":
+        if x.result is None:
+            return Settled(bet, "pending")
+        return Settled(bet, "settled", round(x.result, 2))
+    hits = []
+    for race_no, number, kind in x.legs:
+        race = races.get(race_no)
+        if race is None or race.result is None or not race.result.finish:
+            hits.append(None)
+            continue
+        hits.append(_hit(race.result.finish.get(number), kind, race.places_paid))
+    if any(h is False for h in hits):
+        return Settled(bet, "settled", 0.0)
+    if x.legs and all(hits):
+        return Settled(bet, "settled", round(x.stake * x.odds, 2))
+    return Settled(bet, "pending")
+
+
 def settle_bet(bet: Placed, races: dict) -> Settled:
     """``races`` maps race number -> domain.Race."""
     if bet.kind in HORSE_KINDS:

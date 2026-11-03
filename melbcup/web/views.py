@@ -19,11 +19,12 @@ from melbcup import history
 from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.bets.promos import PROMOS
-from melbcup.bets.settle import DayResult, settle_all, settle_bet, signed
+from melbcup.bets.settle import DayResult, settle_all, settle_bet, settle_extra, signed
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
 from melbcup.web.racecard import (
+    EXTRA_COOKIE,
     KIDS_COOKIE,
     PICKS_COOKIE,
     PLACED_COOKIE,
@@ -31,6 +32,7 @@ from melbcup.web.racecard import (
     cup_note,
     final_picks,
     open_picks,
+    parse_extras,
     parse_kids,
     parse_placed,
     pick_amounts,
@@ -379,6 +381,9 @@ class Views:
         kids = parse_kids(cookies.get(KIDS_COOKIE), snap.race_date, pb is not None)
         for k in kids:
             k.settled = settle_bet(k.bet, races)
+        extras = parse_extras(cookies.get(EXTRA_COOKIE), snap.race_date, pb is not None)
+        for x in extras:
+            x.settled = settle_extra(x.bet, races)
         mine = settle_all(placed, races)
         kids_by_race: dict[int, list] = {}
         for k in kids:
@@ -389,8 +394,14 @@ class Views:
             "snap": snap,
             "card": snap.card,
             "day": card,
-            "wallet": wallet(sb, bf, placed + [k.bet for k in kids], pb),
-            "pnl": DayResult(mine.bets + [k.settled for k in kids]),
+            "wallet": wallet(
+                sb, bf, placed + [k.bet for k in kids] + [x.settled.bet for x in extras], pb
+            ),
+            "pnl": DayResult(mine.bets + [k.settled for k in kids] + [x.settled for x in extras]),
+            "extras": extras,
+            "extra_races": {
+                n: [[r.number, r.name] for r in rc.starters] for n, rc in sorted(races.items())
+            },
             "pnl_own": mine,
             "kids": kids_by_race,
             "kids_in": bool(kids),
@@ -459,9 +470,7 @@ class Views:
             ctx["race"] = rp.model.race
             ctx["rc"] = ctx["day"].race(number)
             ctx["check"] = ctx["checks"].get(number)
-            ctx["cup_note"] = (
-                cup_note(rp) if self.settings.pointsbet and ctx["rc"].open else None
-            )
+            ctx["cup_note"] = cup_note(rp) if self.settings.pointsbet and ctx["rc"].open else None
             if ctx["cup_note"] and any(x.promo for x in ctx["rc"].board):
                 ctx["cup_note"] = None  # the Win bet already is the promo bet, shown on its line
             return self.env.get_template("race.html").render(ctx)

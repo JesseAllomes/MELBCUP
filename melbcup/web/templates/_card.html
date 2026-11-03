@@ -74,7 +74,7 @@
 {% endmacro %}
 
 {# A day multi: legs as rows (race, cloth, horse), stake on the right, Sportsbet price, verdict. #}
-{% macro multi_card(line) %}
+{% macro multi_card(line, prefill=false) %}
 <article class="bet multi{{ ' is-placed' if line.placed }}">
   <div class="bet-top"><h3>{{ line.title }}</h3>{% if line.stake %}<span class="stake sb">{{ badge(line) }}${{ line.stake }}<small>Sportsbet</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}</div>
   <ol class="mlegs">
@@ -89,6 +89,7 @@
   <p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</p>
   {{ outcome(line) }}
   {{ placed(line) }}
+  {% if prefill %}<button type="button" class="prefill" data-prefill="{% for race, number, name, kind in line.multi_legs %}{{ race }}:{{ number }}{{ 'p' if kind == 'Place' else 'w' }}{{ ',' if not loop.last }}{% endfor %}"{% if line.price %} data-odds="{{ '%.2f' % line.price }}"{% endif %}>record with changes</button>{% endif %}
 </article>
 {% endmacro %}
 

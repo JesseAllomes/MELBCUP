@@ -51,7 +51,7 @@
     <h2 id="multis-h">Multi picks for the day</h2>
     <p class="split">The {{ day.multis | length }} likeliest multis across races still to run, placed with Sportsbet. Each leg is a win or a place bet in a different race.</p>
     <div class="bets multis">
-      {% for line in day.multis %}{{ multi_card(line) }}{% endfor %}
+      {% for line in day.multis %}{{ multi_card(line, true) }}{% endfor %}
     </div>
   </section>
   {% endif %}
@@ -61,6 +61,41 @@
     <div class="bets multis">{{ payback_card(day.payback) }}</div>
   </section>
   {% endif %}
+  <section aria-labelledby="extra-h" id="extra-sec">
+    <h2 id="extra-h">Other bets</h2>
+    <details class="record-wrap" id="extra-wrap">
+      <summary>+ Record another bet</summary>
+      <form class="record-extra" data-date="{{ race_date_iso }}">
+        <label>Type <select name="xkind"><option value="multi">Multi</option><option value="other">Other</option></select></label>
+        <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+        <label>Stake $ <input name="stake" type="number" inputmode="decimal" min="0.01" step="any" required></label>
+        <label>Total odds <input name="odds" type="number" inputmode="decimal" min="1.01" step="any" required placeholder="e.g. 12.40"></label>
+        <label class="wide" data-for="other" hidden>What <input name="label" type="text" maxlength="60" placeholder="e.g. Quinella R5 3-7"></label>
+        <div class="wide" data-for="multi" id="xlegs"></div>
+        <button type="button" class="xleg-add" data-for="multi" id="xleg-add">+ leg</button>
+        <button type="submit">Record bet</button>
+        <p class="hint wide">Total odds as you took them. A multi is settled by the app; an other bet when you type what it returned.</p>
+      </form>
+    </details>
+    <script type="application/json" id="extra-races">{{ extra_races | tojson }}</script>
+    {% if extras %}
+    <div class="xbets">
+      {% for x in extras %}{% set s = x.settled %}
+      <div class="xbet" data-xrec="{{ x.record }}">
+        <div class="xtop">
+          <span class="xchips">{% if x.bet.kind == 'multi' %}{% for r, n, k in x.bet.legs %}<span>R{{ r }} <span class="cloth sm">{{ n }}</span>{{ k[0] | upper }}</span>{% endfor %}{% else %}{{ x.chips }}{% endif %}</span>
+          {% if s.status == 'settled' %}{% if s.profit > 0 %}<span class="outcome pos">WON {{ s.profit | signed }}</span>{% else %}<span class="outcome neg">LOST {{ s.profit | signed | replace('-', '−') }}</span>{% endif %}{% else %}<span class="outcome part">PENDING</span>{% endif %}
+        </div>
+        <div class="xfoot">
+          <span>{{ x.detail }}</span>
+          {% if x.bet.kind == 'other' %}<label class="xret">returned $<input type="number" inputmode="decimal" min="0" step="any" class="xret-in" aria-label="Amount returned" value="{{ '' if x.bet.result is none else x.bet.result }}"></label>{% endif %}
+          <button type="button" class="remove" data-xremove title="Remove this recorded bet">remove</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
   <p class="help">Prices: Sportsbet{{ ', Betfair and PointsBet' if settings.pointsbet else ' and Betfair' }} (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endif %}
 {% endblock %}

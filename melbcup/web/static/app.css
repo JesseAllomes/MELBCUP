@@ -202,12 +202,12 @@ p { margin: 0 0 6px; }
 .record-wrap summary::-webkit-details-marker { display: none; }
 .record-wrap summary:hover { border-color: var(--navy); }
 .record-wrap[open] summary { margin-bottom: 6px; }
-.record-bet { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 8px 10px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; }
-.record-bet .wide { grid-column: 1 / -1; }
-.record-bet label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); min-width: 0; }
-.record-bet select, .record-bet input { font: 600 15px var(--head); padding: 3px 8px; min-height: 34px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper, var(--sheet)); color: var(--ink); min-width: 0; width: 100%; }
-.record-bet button { align-self: end; min-height: 34px; padding: 0 12px; }
-.record-bet .hint { margin: 0; font-size: 11px; color: var(--muted); }
+.record-bet, .record-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 8px 10px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; }
+.record-bet .wide, .record-extra .wide { grid-column: 1 / -1; }
+.record-bet label, .record-extra label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); min-width: 0; }
+.record-bet select, .record-bet input, .record-extra select, .record-extra input { font: 600 15px var(--head); padding: 3px 8px; min-height: 34px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper, var(--sheet)); color: var(--ink); min-width: 0; width: 100%; }
+.record-bet button, .record-extra button { align-self: end; min-height: 34px; padding: 0 12px; }
+.record-bet .hint, .record-extra .hint { margin: 0; font-size: 11px; color: var(--muted); }
 
 /* Exotic cards */
 .bets { display: grid; gap: 7px; }
@@ -360,3 +360,18 @@ footer .help a { display: inline-flex; align-items: center; min-height: var(--ta
 .money-fold .money { margin-top: 8px; }
 .money-fold .mf-rules { font-size: 12px; margin-top: 6px; }
 .split.one { margin: 2px 0; font-size: 13px; }
+
+/* Other bets (the extra cookie) */
+.record-extra .xleg { grid-column: 1 / -1; display: grid; grid-template-columns: 4.2em minmax(0, 1fr) 5em; gap: 4px; }
+.record-extra .xleg-add { grid-column: 1 / -1; justify-self: start; min-height: 30px; }
+.record-extra [hidden] { display: none; }
+.xbets { display: grid; gap: 6px; margin-top: 8px; }
+.xbet { padding: 7px 10px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; display: grid; gap: 4px; }
+.xbet .xtop { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.xbet .xchips { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font: 600 14px var(--head); min-width: 0; overflow-wrap: anywhere; }
+.xbet .xchips .cloth { margin-right: 3px; }
+.xbet .xfoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.xbet .xret { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.xbet .xret input { width: 5.5em; font: 600 14px var(--head); padding: 2px 6px; min-height: 30px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper, var(--sheet)); color: var(--ink); }
+.xbet button.remove { min-height: 30px; padding: 0 4px; border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; cursor: pointer; }
+.prefill { border: 0; background: none; color: var(--navy); font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px 0; min-height: 30px; }

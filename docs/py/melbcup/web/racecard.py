@@ -34,7 +34,7 @@ from melbcup.bets.promos import (
     booster_gain,
     payback_multi,
 )
-from melbcup.bets.settle import HORSE_KINDS, settle_bet
+from melbcup.bets.settle import HORSE_KINDS, Extra, settle_bet
 from melbcup.config import MELBOURNE
 from melbcup.domain import betfair_net
 from melbcup.model.probability import top_k_probs
@@ -137,9 +137,7 @@ def pick_pointsbet(query: Mapping[str, str], cookies: Mapping[str, str] | None =
     return DEFAULT_POINTSBET if chosen is None else chosen
 
 
-def parse_placed(
-    raw: str | None, race_date: date | None, pointsbet: bool = False
-) -> list[Placed]:
+def parse_placed(raw: str | None, race_date: date | None, pointsbet: bool = False) -> list[Placed]:
     """The placed cookie: a URL-encoded JSON list of [date, race, kind, runner, account, stake]
     with an optional 7th element, the price taken. Records for another date, damaged records and
     repeats are ignored. Several records may share a race and kind: a record is a repeat of one
@@ -213,7 +211,7 @@ class Kid:
 
     @property
     def detail(self) -> str:
-        """"EW $5 · PB 17.00/6.00"."""
+        """ "EW $5 · PB 17.00/6.00"."""
         b = self.bet
         if b.kind == "each_way":
             prices = "/".join(f"{x:,.2f}" for x in (b.price, b.place_price) if x)
@@ -222,9 +220,7 @@ class Kid:
         return f"{self.label} {dollars(b.stake)} · {self.acct}{' ' + prices if prices else ''}"
 
 
-def parse_kids(
-    raw: str | None, race_date: date | None, pointsbet: bool = False
-) -> list[Kid]:
+def parse_kids(raw: str | None, race_date: date | None, pointsbet: bool = False) -> list[Kid]:
     """The kids cookie: a URL-encoded JSON list of [date, race, kind_code, runner, account_code,
     stake_total, win_price, place_price, name], name "" when not given. Read like parse_placed
     (win, place and each way only; an each way stake is the total of two equal halves, the win half
@@ -243,6 +239,83 @@ def parse_kids(
         if p is None or p.kind not in HORSE_KINDS:
             continue
         out.append(Kid(p, name.strip()[:40], json.dumps(rec[:8] + [name], separators=(",", ":"))))
+    return out
+
+
+EXTRA_COOKIE = "extra"  # any other bet the owner recorded by hand (see parse_extras)
+EXTRA_CODES = {**ACCOUNTS, **POINTSBET_ACCOUNTS}
+_LEG = re.compile(r"^(\d{1,2}):(\d{1,3})([wp])$")
+
+
+def parse_legs(text: str) -> tuple[tuple[int, int, str], ...]:
+    """ "1:6w,7:4p,10:3w" as ((1, 6, "win"), ...); () unless 2 to 8 legs in different races."""
+    legs = []
+    for part in str(text).replace(" ", "").split(","):
+        m = _LEG.match(part)
+        if not m or int(m[1]) < 1 or int(m[2]) < 1:
+            return ()
+        legs.append((int(m[1]), int(m[2]), "place" if m[3] == "p" else "win"))
+    ok = 2 <= len(legs) <= 8 and len({r for r, _, _ in legs}) == len(legs)
+    return tuple(legs) if ok else ()
+
+
+@dataclass
+class ExtraBet:
+    """One recorded multi or other bet: how it settled, its record for Remove / returned $."""
+
+    bet: Extra
+    record: str  # its cookie record as JSON
+    settled: object | None = None
+
+    @property
+    def chips(self) -> str:
+        """ "R1 6W · R7 4P" for a multi, the label for another bet."""
+        if self.bet.kind == "multi":
+            return " · ".join(f"R{r} {n}{k[0].upper()}" for r, n, k in self.bet.legs)
+        return self.bet.label or "Other bet"
+
+    @property
+    def acct(self) -> str:
+        return {"sportsbet": "SB", "betfair": "BF", "pointsbet": "PB"}.get(self.bet.account, "")
+
+    @property
+    def detail(self) -> str:
+        """ "$5 @ 12.40 · SB"."""
+        at = "tote" if not self.bet.odds else f"{self.bet.odds:,.2f}"
+        return f"{dollars(self.bet.stake)} @ {at} · {self.acct}"
+
+
+def parse_extras(
+    raw: str | None, race_date: date | None, pointsbet: bool = False
+) -> list[ExtraBet]:
+    """The extra cookie: a URL-encoded JSON list of [date, kind, legs, account_code, stake, odds,
+    label, result]. kind is "multi" (legs like "1:6w,7:4p,10:3w": race:runner and w win / p place)
+    or "other" (no legs). odds is the total decimal odds taken. result is "" (the app settles) or
+    the total amount returned, typed by the owner (0 = lost), for an "other" bet. Damaged records
+    and other dates are ignored."""
+    accounts = EXTRA_CODES if pointsbet else ACCOUNTS
+    out: list[ExtraBet] = []
+    for rec in _records(raw, race_date):
+        if not isinstance(rec, list) or len(rec) != 8 or rec[0] != race_date.isoformat():
+            continue
+        _, kind, legs_text, acct, stake, odds, label, result = rec
+        num = (int, float)
+        if kind not in ("multi", "other") or acct not in accounts:
+            continue
+        if not all(isinstance(x, num) and not isinstance(x, bool) for x in (stake, odds)):
+            continue
+        tote = kind == "other" and odds == 0  # a tote bet: no fixed odds, the return is typed
+        if not (0 < stake <= MAX_AMOUNT) or not (tote or 1.0 < odds < 1_000_000):
+            continue
+        legs = parse_legs(legs_text) if kind == "multi" else ()
+        if kind == "multi" and not legs:
+            continue
+        ret = None
+        if kind == "other" and isinstance(result, num) and not isinstance(result, bool):
+            ret = float(result) if 0 <= result <= 10_000_000 else None
+        label = label.strip()[:60] if isinstance(label, str) else ""
+        x = Extra(kind, legs, accounts[acct], float(stake), float(odds), label, ret)
+        out.append(ExtraBet(x, json.dumps(rec, separators=(",", ":"))))
     return out
 
 
@@ -288,8 +361,14 @@ def final_picks(
         runner = race.runner(p.key)
         out.setdefault(p.race, ([], 0.0))[0].append(
             FinalPick(
-                p.race, p.kind, p.key, runner.name if runner else str(p.key), p.stake,
-                p.account, p.price, settle_bet(p, races),
+                p.race,
+                p.kind,
+                p.key,
+                runner.name if runner else str(p.key),
+                p.stake,
+                p.account,
+                p.price,
+                settle_bet(p, races),
             )
         )
     order = {k: i for i, k in enumerate(("win", "place", "each_way"))}
@@ -585,9 +664,7 @@ def _horse_words(line: Line, prices) -> None:
         line.say = f"{line.say} Price taken {price_text(line.taken)}.".strip()
 
 
-def _multi_line(
-    m: Multi, routed: Routed | None, race_date: date, pointsbet: bool = False
-) -> Line:
+def _multi_line(m: Multi, routed: Routed | None, race_date: date, pointsbet: bool = False) -> Line:
     """One day multi: its legs, the stake, and "Lands 1 in N. $S returns $R." at Sportsbet's
     price. A multi nobody has put money on (no stake) shows no $ and no Placed button."""
     stake = routed.pick.stake if routed else 0
@@ -774,7 +851,10 @@ def open_picks(day: DayCard | None, race_date: date | None = None) -> dict:
     price] records (stake above 0; win, place, each way), ``open`` the open race numbers and
     ``held`` the [race, kind code] of lines already placed (they keep their saved pick)."""
     out: dict = {
-        "date": race_date.isoformat() if race_date else "", "open": [], "held": [], "picks": []
+        "date": race_date.isoformat() if race_date else "",
+        "open": [],
+        "held": [],
+        "picks": [],
     }
     for rc in day.races if day else []:
         if not rc.open:
@@ -842,9 +922,7 @@ def build_day(
         ]
         for kind, e in candidates:
             if mine_ := held.get((n, kind)):
-                exotics += [
-                    x for r in mine_ if (x := _exotic_line(n, kind, e, r, race_date, on))
-                ]
+                exotics += [x for r in mine_ if (x := _exotic_line(n, kind, e, r, race_date, on))]
                 continue
             r = slot.get((n, kind))
             if (is_open and e is not None) or r is not None:
@@ -966,9 +1044,7 @@ def cup_note(rp) -> CupNote | None:
     if CUP_NAME not in (race.name or "").lower():
         return None
     win = {a.number: a.win for a in rp.model.ranked()}
-    priced = {
-        n: p.pointsbet_win for n, p in race.prices.items() if n in win and p.pointsbet_win
-    }
+    priced = {n: p.pointsbet_win for n, p in race.prices.items() if n in win and p.pointsbet_win}
     if len(win) < 2 or not priced:
         return None
     top2 = top_k_probs(win, 2)

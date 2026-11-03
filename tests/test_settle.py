@@ -193,3 +193,58 @@ def test_final_picks_from_the_picks_cookie_show_after_the_result():
     open_ = views_with()  # no result yet: not shown
     assert "App's final picks" not in open_.page("/race/1", {}, picks)
     assert 'data-pick="' in open_.page("/race/1", {}, {})  # the open card carries what to save
+
+
+# -- extra bets: hand-recorded multis and other bets ---------------------------------------
+
+
+def _x_races():
+    r1 = race(1, finish={6: 1, 1: 2, 8: 3})
+    r2 = race(2, finish={3: 1, 4: 2, 5: 3, 9: 4}, places_paid=3)
+    r3 = race(3)  # no result yet
+    return {1: r1, 2: r2, 3: r3}
+
+
+def _mx(legs, stake=5.0, odds=12.4):
+    from melbcup.bets.settle import Extra
+
+    return Extra("multi", tuple(legs), "sportsbet", stake, odds)
+
+
+def test_extra_multi_wins_loses_pending():
+    from melbcup.bets.settle import settle_extra
+
+    races = _x_races()
+    won = settle_extra(_mx([(1, 6, "win"), (2, 5, "place")]), races)
+    assert (won.status, won.returns, won.profit) == ("settled", 62.0, 57.0)
+    lost = settle_extra(_mx([(1, 6, "win"), (2, 9, "place"), (3, 1, "win")]), races)
+    assert (lost.status, lost.returns, lost.profit) == ("settled", 0.0, -5.0)  # lost early
+    wait = settle_extra(_mx([(1, 6, "win"), (3, 1, "win")]), races)
+    assert wait.status == "pending" and wait.profit == 0.0
+    assert settle_extra(_mx([(1, 6, "win"), (7, 1, "win")]), races).status == "pending"
+
+
+def test_extra_four_leg_multi_with_place_leg_and_no_commission():
+    from melbcup.bets.settle import Extra, settle_extra
+
+    races = _x_races()
+    races[3] = race(3, finish={2: 1, 7: 2})
+    legs = [(1, 6, "win"), (1 + 1, 4, "place"), (3, 2, "win")]
+    four = (*legs, (4, 1, "win"))
+    races[4] = race(4, finish={1: 1})
+    x = Extra("multi", four, "betfair", 10.0, 8.0)
+    s = settle_extra(x, races)
+    assert (s.status, s.returns) == ("settled", 80.0)  # no 8% off: a bookmaker multi
+    races[4] = race(4, finish={2: 1, 1: 4})
+    assert settle_extra(x, races).returns == 0.0
+
+
+def test_extra_other_bet_settles_on_typed_return():
+    from melbcup.bets.settle import Extra, settle_extra
+
+    base = Extra("other", (), "sportsbet", 10.0, 6.0, "Quinella R5 3-7")
+    assert settle_extra(base, {}).status == "pending"
+    got = settle_extra(Extra("other", (), "sportsbet", 10.0, 6.0, "q", 45.5), {})
+    assert (got.status, got.profit) == ("settled", 35.5)
+    zero = settle_extra(Extra("other", (), "sportsbet", 10.0, 6.0, "q", 0.0), {})
+    assert (zero.status, zero.profit) == ("settled", -10.0)

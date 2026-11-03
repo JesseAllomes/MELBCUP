@@ -144,8 +144,28 @@
       var rec = JSON.parse(row.getAttribute("data-kid")); rec[8] = list[i][8];
       row.setAttribute("data-kid", JSON.stringify(rec));
     });
-    if (!importKids()) savePicks();
-    window.addEventListener("hashchange", importKids);
+    // Other bets: a link ending #extra=<encodeURIComponent(JSON list of extra records)> merges them
+    // into the "extra" cookie (an exact repeat of date, kind, legs, account, stake, odds is skipped).
+    function importExtra() {
+      if (location.hash.indexOf("#extra=") !== 0) return false;
+      var add = [];
+      try { add = JSON.parse(decodeURIComponent(location.hash.slice(7))); } catch (e) { add = []; }
+      var list = read("extra"), n = 0;
+      (Array.isArray(add) ? add : []).forEach(function (rec) {
+        if (!Array.isArray(rec) || rec.length < 6) return;
+        rec = rec.slice(0, 8); while (rec.length < 8) rec.push("");
+        if (list.some(function (r) {
+          return Array.isArray(r) && r[0] === rec[0] && r[1] === rec[1] && r[2] === rec[2] && r[3] === rec[3] && r[4] === rec[4] && r[5] === rec[5] && r[6] === rec[6];
+        })) return;
+        list.push(rec); n++;
+      });
+      if (n) write(list, "extra");
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+      if (n) location.reload();
+      return true;
+    }
+    if (!importKids() && !importExtra()) savePicks();
+    window.addEventListener("hashchange", function () { importKids() || importExtra(); });
     document.addEventListener("melb:data", savePicks);
     document.addEventListener("submit", function (e) {
       var f = e.target;
@@ -165,6 +185,102 @@
       write(list);
       location.reload();
     });
+
+    // Other bets: the cookie "extra" is a list of [date, kind ("multi"|"other"), legs ("1:6w,7:4p"),
+    // account, stake, total odds, label, result ("" or the amount returned)]. The day page's
+    // "Record another bet" form builds a record; "record with changes" prefills it from a multi card.
+    (function () {
+      var form = document.querySelector("form.record-extra");
+      if (!form) return;
+      var data = {}, box = document.getElementById("xlegs"), tag = document.getElementById("extra-races");
+      try { data = tag ? JSON.parse(tag.textContent) : {}; } catch (e) { data = {}; }
+      function legRow(race, num, kind) {
+        var row = document.createElement("div"); row.className = "xleg";
+        var rs = document.createElement("select"); rs.className = "x-race"; rs.setAttribute("aria-label", "Race");
+        Object.keys(data).forEach(function (n) { var o = document.createElement("option"); o.value = n; o.textContent = "R" + n; rs.appendChild(o); });
+        var ns = document.createElement("select"); ns.className = "x-num"; ns.setAttribute("aria-label", "Runner");
+        var ks = document.createElement("select"); ks.className = "x-kind"; ks.setAttribute("aria-label", "Win or place");
+        ks.innerHTML = '<option value="w">Win</option><option value="p">Place</option>';
+        function fill() {
+          ns.innerHTML = "";
+          (data[rs.value] || []).forEach(function (r) { var o = document.createElement("option"); o.value = r[0]; o.textContent = r[0] + " " + r[1]; ns.appendChild(o); });
+        }
+        rs.addEventListener("change", fill);
+        if (race) rs.value = String(race);
+        fill();
+        if (num) ns.value = String(num);
+        if (kind) ks.value = kind;
+        row.appendChild(rs); row.appendChild(ns); row.appendChild(ks);
+        box.appendChild(row);
+      }
+      function setLegs(list) {
+        box.innerHTML = "";
+        (list.length ? list : [[0, 0, "w"], [0, 0, "w"]]).slice(0, 8).forEach(function (l) { legRow(l[0], l[1], l[2]); });
+        syncAdd();
+      }
+      function syncAdd() { document.getElementById("xleg-add").disabled = box.children.length >= 8; }
+      function syncKind() {
+        var multi = form.elements["xkind"].value === "multi";
+        form.querySelectorAll("[data-for]").forEach(function (el) { el.hidden = el.getAttribute("data-for") === (multi ? "other" : "multi"); });
+      }
+      form.elements["xkind"].addEventListener("change", syncKind);
+      document.getElementById("xleg-add").addEventListener("click", function () { if (box.children.length < 8) legRow(0, 0, "w"); syncAdd(); });
+      setLegs([]); syncKind();
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest && e.target.closest("button[data-prefill]");
+        if (!b) return;
+        var legs = b.getAttribute("data-prefill").split(",").map(function (p) {
+          var m = /^(\d+):(\d+)([wp])$/.exec(p); return m ? [m[1], m[2], m[3]] : null;
+        }).filter(Boolean);
+        form.elements["xkind"].value = "multi"; syncKind(); setLegs(legs);
+        if (b.getAttribute("data-odds")) form.elements["odds"].value = b.getAttribute("data-odds");
+        var w = document.getElementById("extra-wrap"); w.open = true;
+        w.scrollIntoView({block: "start"});
+      });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var el = form.elements, multi = el["xkind"].value === "multi";
+        var stake = Math.round(parseFloat(el["stake"].value) * 100) / 100, odds = Math.round(parseFloat(el["odds"].value) * 100) / 100;
+        if (!(stake > 0) || !(odds > 1)) return;
+        var legs = "";
+        if (multi) {
+          var parts = [], races = {};
+          for (var i = 0; i < box.children.length; i++) {
+            var r = box.children[i], rn = r.querySelector(".x-race").value, nn = r.querySelector(".x-num").value;
+            if (!rn || !nn || races[rn]) { window.alert("Each leg needs a different race and a runner."); return; }
+            races[rn] = 1; parts.push(rn + ":" + nn + r.querySelector(".x-kind").value);
+          }
+          if (parts.length < 2) return;
+          legs = parts.join(",");
+        }
+        var list = read("extra").filter(function (r) { return Array.isArray(r) && r[0] === form.getAttribute("data-date"); });
+        list.push([form.getAttribute("data-date"), multi ? "multi" : "other", legs, el["acct"].value, stake, odds, multi ? "" : el["label"].value.trim().slice(0, 60), ""]);
+        write(list, "extra");
+        location.reload();
+      });
+      function xIndex(row, list) {
+        var want = row.getAttribute("data-xrec");
+        for (var i = 0; i < list.length; i++) if (JSON.stringify(list[i]) === want) return i;
+        return -1;
+      }
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest && e.target.closest("button[data-xremove]");
+        if (!b) return;
+        var list = read("extra"), i = xIndex(b.closest("[data-xrec]"), list);
+        if (i >= 0) { list.splice(i, 1); write(list, "extra"); }
+        location.reload();
+      });
+      document.addEventListener("change", function (e) {
+        var inp = e.target;
+        if (!inp.classList || !inp.classList.contains("xret-in")) return;
+        var row = inp.closest("[data-xrec]"), list = read("extra"), i = xIndex(row, list);
+        if (i < 0) return;
+        var v = parseFloat(inp.value);
+        list[i][7] = v >= 0 ? Math.round(v * 100) / 100 : "";
+        write(list, "extra");
+        location.reload();
+      });
+    })();
     document.addEventListener("click", function (e) {
       var kr = e.target.closest && e.target.closest("button[data-kid-remove]");
       if (kr) {
