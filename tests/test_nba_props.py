@@ -15,7 +15,9 @@ def feed(price):
         "name": "Player Points",
         "eventClass": "Player Points Over/Under",
         "groupName": "Player Points",
-        "outcomes": [{"name": "J Embiid Over 25.5", "price": price, "points": 25.5, "playerId": "9"}],
+        "outcomes": [
+            {"name": "J Embiid Over 25.5", "price": price, "points": 25.5, "playerId": "9"}
+        ],
     }
 
     def get(url):
