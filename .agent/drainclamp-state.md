@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=102 -->
+<!-- drainclamp-build: state; schema=1; generation=103 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -100,7 +100,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T06:45:33+00:00 0658b905 owner: two sticky bars at the very top (Sportsbet, Betfair: limit, left); each bet has 'Placed on Sportsbet/Betfair' tick that confirms and takes the stake off that account; exotics Sportsbet only. Plan for build: ticks kept in a cookie on the owner's phone (no login), placed stakes lock, remaining money reshared over unplaced bets. Last-minute check moved to bottom. Prototype v14
 - 2026-11-01T06:51:21+00:00 53aa297d owner: quinella + trifecta back on each race card with a stake from the day budget (by chance, likeliest structure) and advice 'worth a try only if the tote estimate is over the fair dividend' (combos/prob); still never a value BET; Sportsbet only. Exotics per race (First Four on its race, quaddie on its first race, legs noted on later races); day page loses quaddie/multi block. allocate.py + test; prototype v17
 - 2026-11-01T08:21:03+00:00 94b53960 ui3 BUILD built on session branch ccr-63b3240a-qdwy3g (51ab72cc, 0d1c6a3f): wallet bars, SB $150/BF $50 cookies, placed ticks cookie, allocate_accounts(placed), SB/BF pills, Good/Short price, per-race exotics, day list, last-minute check (in memory) + History total; 438 tests pass; main push awaits owner
 - 2026-11-01T08:43:56+00:00 0819df81 owner: Deploy. ui3 race card build (51ab72cc..39919ca2, 438 tests) pushed to main with owner approval; verifying live
@@ -120,4 +119,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-02T23:46:55+00:00 29bc789f each-way stake now shown as the bookmaker's unit ('$2 EW', '$4 total' under it): owner bet $4 EW (= $8) off the old total-only display; placed prompt for EW asks for the total
 - 2026-11-02T23:52:43+00:00 3a7e6049 Record a bet I placed (Sonnet + fix): form on every race page (run races too) records runner, kind, bookmaker, actual stake, price; several records per race; Remove per record; wallets net of real stakes. Clicked through in Chromium: 3 R1 records -> SB 139, BF 45; Remove works
 - 2026-11-03T00:09:46+00:00 94339734 settle + day P&L bar (Sonnet + fix): recorded bets settled on results (BF commission, BF cash back 2nd, PB run 2nd, SB bonus bets reported apart), Won/Lost/Back per line, race total, centred bar (red left/green right, half-width = day amounts); EW place price recordable (8th element). Browser check R1: -3, -5, -1.52 = -9.52
+- 2026-11-03T00:19:31+00:00 38055c32 UI: versioned /static links (phone cached old CSS: bar unstyled), WON/LOST/BACK badges on cards, density pass (body 15px, smaller headings, tighter cards, 6px bars, 150ms transitions); checked light+dark 390px
 <!-- /DC:LOG -->

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -56,6 +57,12 @@ def build(dest: Path = DOCS) -> None:
         out = dest / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(data)
+    # docs/index.html is hand-written: keep its stylesheet link versioned so phones re-fetch it.
+    index = dest / "index.html"
+    if index.is_file():
+        v = hashlib.sha256(wanted()["app.css"]).hexdigest()[:10]
+        text = re.sub(r'href="app\.css(\?v=\w+)?"', f'href="app.css?v={v}"', index.read_text())
+        index.write_text(text)
 
 
 if __name__ == "__main__":

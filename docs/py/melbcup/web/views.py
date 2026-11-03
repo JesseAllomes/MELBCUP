@@ -7,6 +7,7 @@ where to go next.
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -225,6 +226,15 @@ def betting_open(race) -> bool:
     return race.result is None and (race.start_time is None or until(race.start_time) != "run")
 
 
+def asset_version() -> str:
+    """Cache-buster for /static: the first 10 hex chars of the sha256 over the static assets, so a
+    phone re-fetches app.css and app.js the moment either changes. Computed once per env."""
+    digest = hashlib.sha256()
+    for path in sorted((HERE / "static").glob("app.*")):
+        digest.update(path.read_bytes())
+    return digest.hexdigest()[:10]
+
+
 def make_env() -> Environment:
     env = Environment(
         loader=FileSystemLoader(str(HERE / "templates")), autoescape=select_autoescape(["html"])
@@ -257,6 +267,7 @@ def make_env() -> Environment:
         open_races=open_races,
     )
     env.globals["shown"] = history.shown
+    env.globals["asset_v"] = asset_version()
     env.filters.update(
         one_in=racecard.one_in,
         signed=signed,

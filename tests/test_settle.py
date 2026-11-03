@@ -148,16 +148,17 @@ def test_bar_fills_left_for_a_loss_and_right_for_a_profit():
     loss = views.page("/race/1", {}, both)
     assert "Today -$8.00" in loss and 'class="pnl-fill neg"' in loss
     assert "2 settled, 0 pending" in loss
-    assert "Lost $3" in loss and "Your bets this race: <b" in loss and "-$8.00" in loss
+    assert "LOST −$3.00" in loss and "Your bets this race: <b" in loss and "-$8.00" in loss
     win = views.page("/race/1", {}, jar([D, 1, "w", 3, "sb", 10, 3.0]))
-    assert "Today +$20.00" in win and 'class="pnl-fill pos"' in win and "Won $20" in win
+    assert "Today +$20.00" in win and 'class="pnl-fill pos"' in win and "WON +$20.00" in win
 
 
 def test_bar_shows_pending_and_partial_each_way():
     views = views_with({3: 1, 1: 2, 2: 3})
     recs = jar([D, 1, "e", 1, "sb", 8, 4.6], [D, 2, "w", 1, "sb", 5, 3.0])
     html = views.page("/race/1", {}, recs)
-    assert "Back $6.48" in html and "1 settled, 1 pending" in html and "Today -$1.52" in html
+    assert "BACK $6.48 · −$1.52" in html
+    assert "1 settled, 1 pending" in html and "Today -$1.52" in html
 
 
 def test_bar_absent_without_records():
