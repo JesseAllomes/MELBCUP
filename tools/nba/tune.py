@@ -53,6 +53,8 @@ def build(games):
     team_recent = defaultdict(lambda: deque(maxlen=5))  # team -> deque of sets of player ids
     opp_allowed = defaultdict(lambda: {s: [0.0, 0.0] for s in STATS})  # team -> stat -> [ewma stat allowed, ewma minutes]
     league = {s: [0.0, 0.0] for s in STATS}
+    team_net = defaultdict(lambda: [0.0, 0.0])  # team -> [ewma points margin, weight]
+    team_tot = defaultdict(lambda: {s: 0.0 for s in STATS})  # team -> ewma team stat per game
     rows = defaultdict(list)
     for when, season, players in games:
         day = dt.datetime.fromisoformat(when.replace("Z", "+00:00")).date()
@@ -62,6 +64,7 @@ def build(games):
         by_team = {t: [p for p in players if p["team"] == t] for t in teams}
         present = {t: {p["id"] for p in by_team[t]} for t in teams}
         miss = {}
+        miss_use = {}
         b2b = {}
         for t in teams:
             regs = defaultdict(int)
@@ -69,10 +72,13 @@ def build(games):
                 for pid in s_:
                     regs[pid] += 1
             missing = 0.0
+            miss_use[t] = {s_: 0.0 for s_ in STATS}
             for pid, cnt in regs.items():
                 st = P.get(pid)
                 if cnt >= 3 and st and pid not in present[t]:
                     missing += st["m"][8] / st["w"][8]
+                    for s_ in STATS:
+                        miss_use[t][s_] += st["pg"][s_] / max(team_tot[t][s_], 1e-6)
             miss[t] = missing / 240.0
             last = team_last.get(t)
             b2b[t] = 1.0 if last is not None and (day - last).days == 1 else 0.0
@@ -84,6 +90,11 @@ def build(games):
                     rows["season"].append(season); rows["miss"].append(miss[t]); rows["b2b"].append(b2b[t]); rows["n"].append(st["n"])
                     for h in HLS:
                         rows[f"m{h}"].append(st["m"][h] / st["w"][h])
+                    rows["starter"].append(1.0 if p.get("starter") else 0.0)
+                    rows["m_start"].append(st["ms"] / st["ws"] if st["ws"] > 0.5 else np.nan)
+                    rows["m_bench"].append(st["mb"] / st["wb"] if st["wb"] > 0.5 else np.nan)
+                    tn, on = team_net[t], team_net[opp]
+                    rows["margin"].append((tn[0] / tn[1] if tn[1] else 0.0) - (on[0] / on[1] if on[1] else 0.0))
                     for s in STATS:
                         for h in HLS:
                             rows[f"r_{s}_{h}"].append(st["r"][s][h] / st["w"][h])
@@ -93,18 +104,30 @@ def build(games):
                         rows[f"var_{s}"].append(st["sq"][s] / st["n"] - (st["sum"][s] / st["n"]) ** 2)
                         rows[f"mean_{s}"].append(st["sum"][s] / st["n"])
                         rows[f"y_{s}"].append(p[s])
+                        rows[f"use_{s}"].append(miss_use[t][s])
         # update states after the game
         for t in teams:
             opp = teams[1] if t == teams[0] else teams[0]
             tm = sum(p["min"] for p in by_team[t]) or 1.0
+            pts = {x: sum(q["points"] for q in by_team[x]) for x in teams}
+            tn = team_net[t]; tn[0] = tn[0] * 0.9 + (pts[t] - pts[opp]); tn[1] = tn[1] * 0.9 + 1
             for s in STATS:
                 tot = sum(p[s] for p in by_team[t])
+                team_tot[t][s] = team_tot[t][s] * 0.9 + 0.1 * tot if team_tot[t][s] else tot
                 oa = opp_allowed[opp][s]; oa[0] = oa[0] * 0.95 + tot; oa[1] = oa[1] * 0.95 + tm
                 league[s][0] = league[s][0] * 0.999 + tot; league[s][1] = league[s][1] * 0.999 + tm
             for p in by_team[t]:
                 st = P.setdefault(p["id"], {"n": 0, "m": {h: 0.0 for h in HLS}, "w": {h: 0.0 for h in HLS},
                                             "r": {s: {h: 0.0 for h in HLS} for s in STATS}, "tot": {s: 0.0 for s in STATS},
-                                            "totm": 0.0, "sum": {s: 0.0 for s in STATS}, "sq": {s: 0.0 for s in STATS}})
+                                            "totm": 0.0, "sum": {s: 0.0 for s in STATS}, "sq": {s: 0.0 for s in STATS},
+                                            "ms": 0.0, "ws": 0.0, "mb": 0.0, "wb": 0.0, "pg": {s: 0.0 for s in STATS}})
+                k3 = 0.5 ** (1 / 3)
+                if p.get("starter"):
+                    st["ms"] = st["ms"] * k3 + p["min"]; st["ws"] = st["ws"] * k3 + 1
+                else:
+                    st["mb"] = st["mb"] * k3 + p["min"]; st["wb"] = st["wb"] * k3 + 1
+                for s in STATS:
+                    st["pg"][s] = st["pg"][s] * 0.8 + 0.2 * p[s] if st["n"] else p[s]
                 for h in HLS:
                     k = decay[h]
                     st["m"][h] = st["m"][h] * k + p["min"]; st["w"][h] = st["w"][h] * k + 1
