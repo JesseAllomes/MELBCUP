@@ -193,6 +193,12 @@ body{background:radial-gradient(120% 60% at 50% -10%,#1E1236 0%,var(--ground) 55
 .srm .legs{display:flex;flex-direction:column;gap:3px;margin:6px 0;font-size:13px}
 .srm .legs span{display:flex;gap:6px;align-items:center}
 .homegrid{display:flex;flex-direction:column;gap:8px}
+.ring{position:relative;flex:0 0 auto;display:grid;place-items:center}
+.ring svg{transform:rotate(-90deg)}
+.ring b{position:absolute;font-weight:800;font-size:13px;line-height:1;text-align:center}
+.ring b small{display:block;font-size:8.5px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.ringrow{display:flex;align-items:center;gap:10px}
+
 
 
 </style>
@@ -292,7 +298,7 @@ const V={
   const tabs=`<div class="rtabs">${[["bet","Bet"],["field","Field",cup?23:10],["check","Verification"],["news","News",4],["result","Result"],["mine","Mine"]].map(([k,l,n])=>`<button data-tab="${k}" class="${R.tab===k?"on":""}" type="button">${l}${n?`<small>${n}</small>`:""}</button>`).join("")}</div>`;
   let body;
   if(R.tab==="bet"){ if(cup) body=`<section class="card ${S.verdict}">${UI.verdict()}</section>`;
-   else if(r.take&&S.verdict==="take") body=`<section class="card take"><div class="vlabel">Take this bet</div><div class="vrow"><span class="cloth lg">${r.pick.no}</span><div class="nm"><b>${r.pick.name}</b><span>Win · best at ${r.pick.book}</span></div><span class="st">$${r.pick.stake}</span></div><div class="nums"><div>Fair<b>$${r.pick.fair}</b></div><div>Best<b>$${r.pick.price}</b></div><div>Book<b>${{Sportsbet:"SB",Betfair:"BF",PointsBet:"PB"}[r.pick.book]}</b></div></div><div class="floor">Only worth it at $${r.pick.fair} or better</div></section>`;
+   else if(r.take&&S.verdict==="take") body=`<section class="card take"><div class="vlabel">Take this bet</div><div class="vrow">${ring(Math.round(100/r.pick.fair),52,"win")}<span class="cloth lg">${r.pick.no}</span><div class="nm"><b>${r.pick.name}</b><span>Win · best at ${r.pick.book}</span></div><span class="st">$${r.pick.stake}</span></div><div class="nums"><div>Fair<b>$${r.pick.fair}</b></div><div>Best<b>$${r.pick.price}</b></div><div>Book<b>${{Sportsbet:"SB",Betfair:"BF",PointsBet:"PB"}[r.pick.book]}</b></div></div><div class="floor">Only worth it at $${r.pick.fair} or better</div></section>`;
    else {const o=bestOther();body=`<section class="card none"><div class="vlabel">Nothing worth trying here</div><p style="margin:5px 0 0;font-size:13px">No runner pays more than it is worth. Best bet left across every meeting:</p>${o?`<button class="goto" data-meet="${o.m.venue}" data-race="${o.r.n}" type="button"><span class="rn">R${o.r.n}</span><span><b>${o.m.venue} · ${o.r.pick.no} ${o.r.pick.name} · $${o.r.pick.stake}</b><small>${o.r.time} · ${o.r.pick.book} $${o.r.pick.price} · fair $${o.r.pick.fair}</small></span><i>›</i></button>`:""}</section>`}
    if(cup||(r.take&&S.verdict==="take")) body+=topPicks(r,cup); else body+="";
    if(false) body+=cup?`<section class="card">${UI.bets()}</section>`:`<section class="card"><div class="rows"><div class="r"><span class="k">Place</span><span class="t">${(r.pick.no%12)+1} ${NAMES[(r.pick.no+3)%12]}<small>likeliest placer</small></span><span class="a">$5</span></div><div class="r off"><span class="k">Quinella</span><span class="t">${r.pick.no} – ${(r.pick.no%12)+1}<small>short · skip</small></span><span class="a">–</span></div></div></section>`}
@@ -306,6 +312,11 @@ const V={
 
 R.edit=false;const POOL={budget:200,win:10,place:5};
 const money=(v,id)=>R.edit?`<input class="mi" inputmode="numeric" data-money="${id}" value="${v}" aria-label="Amount">`:`$${v}`;
+
+function ring(pct,size=58,label="chance"){const r=(size-8)/2,c=2*Math.PI*r,col=pct>=60?"var(--good)":pct>=30?"var(--brand)":"var(--warn)";
+ return `<span class="ring" style="width:${size}px;height:${size}px" role="img" aria-label="${pct}% ${label}"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--chip)" stroke-width="6"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c*pct/100} ${c}"/></svg><b>${pct}%<small>${label}</small></b></span>`}
+
+const _uiVerdict=UI.verdict;UI.verdict=()=>_uiVerdict().replace('<div class="vrow"><span class="cloth lg">20</span>','<div class="vrow">'+ring(14,52,"win")+'<span class="cloth lg">20</span>');
 function picksFor(r,cup){
  if(cup) return [["Win","20 Point Of Law","SB $8.50 · fair $7.00",21,10],["Place","12 Hopewell Rock","BF $3.10 · fair $2.80",11,5],["Each way","11 Juja Kibo","PB $14 / $4.20",9,4],["Quinella","20 – 2","est. $52 · fair $41",27,2]];
  const a=r.pick,o=(a.no%12)+1,q=((a.no+4)%12)+1;
@@ -314,8 +325,8 @@ function topPicks(r,cup){const P=picksFor(r,cup).filter(x=>x[3]>0).slice(0,4);
  const srm=cup?{legs:[["20","Point Of Law","to win"],["12","Hopewell Rock","top 3"],["2","Trustyourinstinct","top 4"]],price:"11.40",fair:"9.20",stake:5}
   :{legs:[[String(r.pick.no),r.pick.name,"to win"],[String((r.pick.no%12)+1),NAMES[(r.pick.no+3)%12],"top 3"]],price:(r.pick.price*1.9).toFixed(2),fair:(r.pick.fair*1.7).toFixed(2),stake:5};
  return `<section class="card picks"><div class="lbl" style="margin-bottom:2px">Top picks worth a shot</div><div class="rows">${P.map((x,i)=>`<div class="r"><span class="k">${x[0]}</span><span class="t">${x[1]}<span class="edge">+${x[3]}%</span><small>${x[2]}</small></span><span class="a">${money(x[4],"p"+i)}</span></div>`).join("")}</div></section>
- <section class="srm"><div class="lbl" style="color:var(--brand)">Same race multi</div><div class="legs">${srm.legs.map(l=>`<span><span class="cloth">${l[0]}</span>${l[1]} <small style="color:var(--muted)">· ${l[2]}</small></span>`).join("")}</div>
- <div style="display:flex;align-items:baseline;gap:8px;font-size:13px"><span>Sportsbet <b>$${srm.price}</b> · fair $${srm.fair}</span><b style="margin-left:auto;font-size:16px">${money(srm.stake,"srm")}</b></div></section>`}
+ <section class="srm"><div class="ringrow">${ring(cup?11:Math.max(8,Math.round(100/srm.fair)),58,"gets up")}<div style="flex:1"><div class="lbl" style="color:var(--brand)">Same race multi</div><div class="legs">${srm.legs.map(l=>`<span><span class="cloth">${l[0]}</span>${l[1]} <small style="color:var(--muted)">· ${l[2]}</small></span>`).join("")}</div>
+ <div style="display:flex;align-items:baseline;gap:8px;font-size:13px"><span>Sportsbet <b>$${srm.price}</b> · fair $${srm.fair}</span><b style="margin-left:auto;font-size:16px">${money(srm.stake,"srm")}</b></div></div></div></section>`}
 function mineView(){const on=AG.filter(a=>a.on);const tot=on.reduce((t,a)=>t+a.bal,0),left=on.reduce((t,a)=>t+a.left,0);
  return `<section class="card"><div class="poolhd"><b>Betting pool</b><button id="poolEdit" class="${R.edit?"on":""}" type="button">${R.edit?"Done":"Edit"}</button></div>
  <div class="pool">${on.map(a=>`<span>${a.n}</span><span>${R.edit?`<input class="mi" inputmode="numeric" data-agbal="${AG.indexOf(a)}" value="${a.bal}" aria-label="${a.n} money">`:"$"+a.bal}</span><small>$${a.left} left</small>`).join("")}

@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=134 -->
+<!-- drainclamp-build: state; schema=1; generation=135 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T04:05:49+00:00 bc6aa276 results quicker: first check 1 min after the jump (was 3), then every 45 s (was 2 min), results cache 15 s (was 60), Check results button on each run race without a final result (20 s min gap); also deploys the fold + extra bets + guard fix
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 - 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:04:10+00:00 1dad49d8 RaceLens Azure snapshot live: deploy run 41615523275 OK (function redeployed with racelens_snapshot), settings run 41615537121 set RACELENS_URL + RACELENS_PASSWORD (masked). Fires Thu 5 Nov 7am-9:55pm AEDT into blob container racelens. Not yet seen end-to-end in Azure.
 - 2026-11-03T10:15:11+00:00 f89c28ce Owner 2026-11-03: add NBA, purpose = value multis 3-10 legs, cross-game and same-game. Roadmap nba1-nba4 after ui6.
 - 2026-11-03T10:18:25+00:00 280022c1 Owner: NBA = player props first (x gets 3+ points etc.), likely legs stacked into 3-10 leg same-game and multi-game multis, $10 into a decent win. Filter = likely AND at/above fair.
+- 2026-11-03T10:19:22+00:00 c6ff65fb Owner design rule: RaceLens-style % ring meter for the chance a bet/multi gets up (green 60%+, purple 30-59%, amber under 30%). Added to E (main bet + same race multi); applies to nba3 multis too.
 <!-- /DC:LOG -->
