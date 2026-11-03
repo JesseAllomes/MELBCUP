@@ -34,7 +34,7 @@ from melbcup.bets.promos import (
     booster_gain,
     payback_multi,
 )
-from melbcup.bets.settle import settle_bet
+from melbcup.bets.settle import HORSE_KINDS, settle_bet
 from melbcup.config import MELBOURNE
 from melbcup.domain import betfair_net
 from melbcup.model.probability import top_k_probs
@@ -45,6 +45,7 @@ DEFAULT_POINTSBET = 0.0  # PointsBet (POINTSBET=1) takes nothing until the owner
 MAX_AMOUNT = 100_000
 SB_COOKIE, BF_COOKIE, PLACED_COOKIE = "sb_budget", "bf_budget", "placed"
 PB_COOKIE = "pb_budget"
+KIDS_COOKIE = "kids"  # the kids' bets, kept on the phone (see parse_kids)
 PICKS_COOKIE = "picks"  # the app's own last suggested lines per race, kept on the phone
 # Short codes keep the placed cookie small: [date, race, kind, runner or 0, account, stake] and
 # optionally the price taken.
@@ -145,41 +146,103 @@ def parse_placed(
     with the same race, kind, runner and account (a multi: the same legs). ``pointsbet``
     (POINTSBET=1) accepts account "pb"; otherwise such a record is ignored."""
     accounts = ACCOUNTS | POINTSBET_ACCOUNTS if pointsbet else ACCOUNTS
+    out: list[Placed] = []
+    seen: set[tuple[int, str, int, str]] = set()
+    for rec in _records(raw, race_date):
+        p = _placed(rec, race_date, accounts)
+        if p is None:
+            continue
+        ident = (p.race, p.kind, p.key, p.account)
+        if ident in seen:
+            continue
+        seen.add(ident)
+        out.append(p)
+    return out
+
+
+def _records(raw: str | None, race_date: date | None) -> list:
+    """The cookie's JSON list (URL-encoded), first 200 records; [] when absent or damaged."""
     if not raw or race_date is None:
         return []
     try:
         data = json.loads(unquote(raw))
     except ValueError:
         return []
-    if not isinstance(data, list):
-        return []
-    out: list[Placed] = []
-    seen: set[tuple[int, str, int, str]] = set()
-    for rec in data[:200]:
-        if not isinstance(rec, list) or len(rec) not in (6, 7, 8):
+    return data[:200] if isinstance(data, list) else []
+
+
+def _placed(rec, race_date: date, accounts: dict[str, str]) -> Placed | None:
+    """One placed record (6 to 8 elements) as a Placed, None when damaged or for another date."""
+    if not isinstance(rec, list) or len(rec) not in (6, 7, 8):
+        return None
+    when, race, code, key, acct, stake = rec[:6]
+    price = _price(rec[6]) if len(rec) >= 7 else None
+    place_price = _price(rec[7]) if len(rec) == 8 else None  # each way's place price
+    kind, account = KIND_OF.get(code), accounts.get(acct)
+    if when != race_date.isoformat() or kind is None or account is None:
+        return None
+    if not all(isinstance(x, int) and not isinstance(x, bool) for x in (race, key, stake)):
+        return None
+    bad_multi = kind == "multi" and not key_legs(key)
+    if not (0 < stake <= MAX_AMOUNT) or bad_multi:
+        return None
+    if kind in SPORTSBET_ONLY:
+        account = "sportsbet"
+        key = key if kind == "multi" else 0
+    return Placed(
+        race, kind, key, account, stake, price, place_price if kind == "each_way" else None
+    )
+
+
+@dataclass
+class Kid:
+    """One of the kids' bets (the kids cookie): a Placed, the kid's name and how it settled."""
+
+    bet: Placed
+    name: str
+    record: str  # its cookie record as JSON, so the page can find it again to rename or remove it
+    settled: object | None = None
+
+    @property
+    def label(self) -> str:
+        return {"win": "Win", "place": "Place", "each_way": "EW"}[self.bet.kind]
+
+    @property
+    def acct(self) -> str:
+        return {"sportsbet": "SB", "betfair": "BF", "pointsbet": "PB"}.get(self.bet.account, "")
+
+    @property
+    def detail(self) -> str:
+        """"EW $5 · PB 17.00/6.00"."""
+        b = self.bet
+        if b.kind == "each_way":
+            prices = "/".join(f"{x:,.2f}" for x in (b.price, b.place_price) if x)
+        else:
+            prices = f"{b.price:,.2f}" if b.price else ""
+        return f"{self.label} {dollars(b.stake)} · {self.acct}{' ' + prices if prices else ''}"
+
+
+def parse_kids(
+    raw: str | None, race_date: date | None, pointsbet: bool = False
+) -> list[Kid]:
+    """The kids cookie: a URL-encoded JSON list of [date, race, kind_code, runner, account_code,
+    stake_total, win_price, place_price, name], name "" when not given. Read like parse_placed
+    (win, place and each way only; an each way stake is the total of two equal halves, the win half
+    at win_price and the place half at place_price; a place bet takes place_price, else
+    win_price). Unlike parse_placed nothing is a repeat: two kids may back the same runner."""
+    accounts = ACCOUNTS | POINTSBET_ACCOUNTS if pointsbet else ACCOUNTS
+    out: list[Kid] = []
+    for rec in _records(raw, race_date):
+        if not isinstance(rec, list) or len(rec) not in (8, 9):
             continue
-        when, race, code, key, acct, stake = rec[:6]
-        price = _price(rec[6]) if len(rec) >= 7 else None
-        place_price = _price(rec[7]) if len(rec) == 8 else None  # each way's place price
-        kind, account = KIND_OF.get(code), accounts.get(acct)
-        if when != race_date.isoformat() or kind is None or account is None:
+        name = rec[8] if len(rec) == 9 and isinstance(rec[8], str) else ""
+        win, place = rec[6], rec[7]
+        if KIND_OF.get(rec[2]) == "place":  # one price: the place price
+            win = place if _price(place) else win
+        p = _placed(rec[:6] + [win, place], race_date, accounts)
+        if p is None or p.kind not in HORSE_KINDS:
             continue
-        if not all(isinstance(x, int) and not isinstance(x, bool) for x in (race, key, stake)):
-            continue
-        bad_multi = kind == "multi" and not key_legs(key)
-        if not (0 < stake <= MAX_AMOUNT) or bad_multi:
-            continue
-        if kind in SPORTSBET_ONLY:
-            account = "sportsbet"
-            key = key if kind == "multi" else 0
-        ident = (race, kind, key, account)
-        if ident in seen:
-            continue
-        seen.add(ident)
-        out.append(
-            Placed(race, kind, key, account, stake, price,
-                   place_price if kind == "each_way" else None)
-        )
+        out.append(Kid(p, name.strip()[:40], json.dumps(rec[:8] + [name], separators=(",", ":"))))
     return out
 
 
@@ -703,6 +766,28 @@ class DayCard:
     @property
     def total(self) -> int:
         return sum(r.total for r in self.races) + sum(x.stake for x in self.multis)
+
+
+def open_picks(day: DayCard | None, race_date: date | None = None) -> dict:
+    """Every open race's current suggested lines for the page's picks-data tag, so any page can
+    keep the picks cookie up to date: ``picks`` are [date, race, kind, runner, account, stake,
+    price] records (stake above 0; win, place, each way), ``open`` the open race numbers and
+    ``held`` the [race, kind code] of lines already placed (they keep their saved pick)."""
+    out: dict = {
+        "date": race_date.isoformat() if race_date else "", "open": [], "held": [], "picks": []
+    }
+    for rc in day.races if day else []:
+        if not rc.open:
+            continue
+        out["open"].append(rc.race.number)
+        for line in rc.board:
+            if not line.code:
+                continue
+            if line.placed or not line.pick_record:
+                out["held"].append([line.race, line.code])
+            elif line.stake > 0 and line.acct:
+                out["picks"].append(json.loads(line.pick_record))
+    return out
 
 
 def build_day(

@@ -19,16 +19,19 @@ from melbcup import history
 from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.bets.promos import PROMOS
-from melbcup.bets.settle import settle_all, signed
+from melbcup.bets.settle import DayResult, settle_all, settle_bet, signed
 from melbcup.config import MELBOURNE, Settings
 from melbcup.live import LiveBoard
 from melbcup.web import racecard
 from melbcup.web.racecard import (
+    KIDS_COOKIE,
     PICKS_COOKIE,
     PLACED_COOKIE,
     build_day,
     cup_note,
     final_picks,
+    open_picks,
+    parse_kids,
     parse_placed,
     pick_amounts,
     pick_pointsbet,
@@ -371,14 +374,26 @@ class Views:
             if picks
             else None
         )
+        # The kids' bets (their own cookie) come off the wallet and count in the day's profit
+        # and loss, but they are not the owner's own bets: nothing else treats them as placed.
+        kids = parse_kids(cookies.get(KIDS_COOKIE), snap.race_date, pb is not None)
+        for k in kids:
+            k.settled = settle_bet(k.bet, races)
+        mine = settle_all(placed, races)
+        kids_by_race: dict[int, list] = {}
+        for k in kids:
+            kids_by_race.setdefault(k.bet.race, []).append(k)
         return {
             "settings": self.settings,
             "browser": self.browser,
             "snap": snap,
             "card": snap.card,
             "day": card,
-            "wallet": wallet(sb, bf, placed, pb),
-            "pnl": settle_all(placed, races),
+            "wallet": wallet(sb, bf, placed + [k.bet for k in kids], pb),
+            "pnl": DayResult(mine.bets + [k.settled for k in kids]),
+            "pnl_own": mine,
+            "kids": kids_by_race,
+            "kids_in": bool(kids),
             "finals": final_picks(cookies.get(PICKS_COOKIE), snap.race_date, pb is not None, races),
             "amounts_chosen": chosen,
             "race_date_iso": snap.race_date.isoformat() if snap.race_date else "",
@@ -393,6 +408,7 @@ class Views:
             "can_fetch": self.board.can_fetch,
             "now": now,
             "countdown": countdown(picks, now),
+            "picks_data": open_picks(card, snap.race_date),
         }
 
     def page(

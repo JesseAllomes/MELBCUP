@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=107 -->
+<!-- drainclamp-build: state; schema=1; generation=108 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -101,7 +101,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T09:29:32+00:00 859d4892 live check: race card live, Betfair pills on every line; only $163/$200 used (Betfair-better stakes under $5). Owner: yes, raise them to $5 on Betfair while Betfair money lasts. route() lifts; test added; suite passes; awaiting push approval
 - 2026-11-01T09:37:37+00:00 6ce3d0f0 c83b388f live (owner approved): day $194/$200 in bets; Cup win/place/EW all on Betfair ($5/$5/$10), returns after commission. ui3 done pending owner feedback
 - 2026-11-01T09:48:29+00:00 38a65a70 owner: all good ($6 leftover kept as spare). ui3 done. Open: ui4 multi picks, m7, bf2 (betting backend dormant, no live key), az4 after 7 Nov
 - 2026-11-01T10:45:05+00:00 87d1aada m7 review (research/M7_REVIEW.md): 'tune weights' is dead (market model, holdouts spent); honest work = replay the card's fixed rules on the archive, apply the already-proven price^1.14 correction if it helps on blocks it was not fitted on, build a token-free forward test; variants reported, never chosen (overfitting)
@@ -121,4 +120,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T00:23:48+00:00 2fbf4701 countdown strip (next jump, ticking) + BET NOW at <=3:00 (amber, vibrate, beep, notification if allowed, one reload per race)
 - 2026-11-03T00:29:15+00:00 0fc2a36c slim pass 2 (placed chips SB/BF/PB, EW shows only its account's pill, record form folded, smaller rows); fix: promo bets routed first in race order (R2 Betfair promo showed '-' because later races' bigger gains spent Betfair's money first)
 - 2026-11-03T00:41:17+00:00 83517491 ui5 built (Sonnet): app's final picks kept on the phone (picks cookie, saved on each race-page load while open) and settled under own bets; side-by-side per product-ui lock (wallet columns, podium result, pick row line 1 kind|runner|pills|stake, line 2 text|chips). Checked 390 light/dark, 360
+- 2026-11-03T00:59:54+00:00 1403b1cc kids' bets card (kids cookie, #kids= import link, names, settle, off PointsBet money, in Today), BACK badge red/green, picks JSON on every page so final picks save from any page
 <!-- /DC:LOG -->

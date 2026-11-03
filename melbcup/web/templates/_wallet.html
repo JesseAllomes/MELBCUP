@@ -3,7 +3,7 @@
   {% if pnl and pnl.bets %}
   {% set fill = pnl.fill(wallet.total) %}
   <div class="pnl">
-    <div class="acct-top"><b class="{{ 'pos' if pnl.profit > 0 else 'neg' if pnl.profit < 0 }}">Today {{ pnl.profit | signed }}</b><span>{{ pnl.settled }} settled, {{ pnl.pending }} pending{% if pnl.bonus %} · bonus bet {{ pnl.bonus | dollars }}{% endif %}</span></div>
+    <div class="acct-top"><b class="{{ 'pos' if pnl.profit > 0 else 'neg' if pnl.profit < 0 }}">Today {{ pnl.profit | signed }}</b><span>{{ pnl.settled }} settled, {{ pnl.pending }} pending{% if kids_in %} · incl. kids{% endif %}{% if pnl.bonus %} · bonus bet {{ pnl.bonus | dollars }}{% endif %}</span></div>
     <div class="pnl-track" role="meter" aria-label="Today's profit or loss" aria-valuemin="{{ 0 - wallet.total | round | int }}" aria-valuemax="{{ wallet.total | round | int }}" aria-valuenow="{{ pnl.profit }}"><i class="pnl-fill {{ 'neg' if pnl.profit < 0 else 'pos' }}" style="width:{{ (fill / 2) | round(1) }}%"></i></div>
   </div>
   {% endif %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}R{{ race.number }} · MELBCUP{% endblock %}
-{% from "_card.html" import pick_row, final_row, exotic_card, amounts, pillset %}
+{% from "_card.html" import pick_row, final_row, exotic_card, amounts, pillset, badge %}
 {% block top %}{% include "_racestrip.html" %}{% endblock %}
 {% block content %}
 {% set runners = race.starters | length %}
@@ -20,7 +20,7 @@
 </section>
 {% endif %}
 
-{% set rp_pnl = pnl.race(race.number) if pnl else none %}
+{% set rp_pnl = pnl_own.race(race.number) if pnl_own else none %}
 {% if rp_pnl and rp_pnl.settled %}
 <p class="race-pnl">Your bets this race: <b class="{{ 'pos' if rp_pnl.profit > 0 else 'neg' if rp_pnl.profit < 0 }}">{{ rp_pnl.profit | signed }}</b>{% if rp_pnl.bonus %} · bonus bet {{ rp_pnl.bonus | dollars }}{% endif %}</p>
 {% endif %}
@@ -154,6 +154,27 @@
   {% endif %}
   <p class="fine">Saved at $150 Sportsbet and $50 Betfair, while the app is running. A restart loses them.</p>
 </section>
+
+{% set kr = kids.get(race.number) if kids else none %}
+{% if kr %}
+{% set ks = kr | selectattr('settled.status', 'equalto', 'settled') | list %}
+{% set kp = (ks | sum(attribute='settled.profit')) %}
+<section class="kids" aria-labelledby="kids-h">
+  <div class="kids-top"><h2 id="kids-h">Kids' bets</h2>{% if ks %}<span class="kids-total">Kids: <b class="{{ 'pos' if kp > 0 else 'neg' if kp < 0 }}">{{ kp | signed | replace('-', '−') }}</b>{% if ks | length < kr | length %} · {{ kr | length - ks | length }} pending{% endif %}</span>{% endif %}</div>
+  <div class="board">
+    {% for k in kr %}
+    {% set r = race.runner(k.bet.key) %}
+    <div class="pick kid" data-kid="{{ k.record }}">
+      <span class="who"><span class="cloth sm">{{ k.bet.key }}</span><b>{{ r.name if r else '' }}</b></span>
+      {{ badge(k) }}
+      <span class="kid-bet">{{ k.detail }}</span>
+      <input class="kid-name" type="text" maxlength="40" placeholder="Name" aria-label="Kid's name" value="{{ k.name }}">
+      <button type="button" class="remove" data-kid-remove title="Remove this kid's bet">remove</button>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 
 <p class="help">Prices: Sportsbet{{ ', Betfair and PointsBet' if settings.pointsbet else ' and Betfair' }} (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
 {% endblock %}

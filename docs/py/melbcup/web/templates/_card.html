@@ -20,7 +20,7 @@
    BACK $6.48 · -$1.52 / PENDING. Needs: line.settled #}
 {% macro badge(line) %}{% set s = line.settled %}{% if s %}{% if s.status == 'settled' %}
   {% if s.profit > 0 %}<span class="outcome pos">WON {{ s.profit | signed }}</span>
-  {% elif s.returns > 0 %}<span class="outcome part">BACK {{ s.returns | dollars }}{% if s.profit != 0 %} · {{ s.profit | signed | replace('-', '−') }}{% endif %}</span>
+  {% elif s.returns > 0 %}<span class="outcome {{ 'pos' if s.profit > 0 else 'neg' if s.profit < 0 else 'part' }}">BACK {{ s.returns | dollars }}{% if s.profit != 0 %} · {{ s.profit | signed | replace('-', '−') }}{% endif %}</span>
   {% else %}<span class="outcome neg">LOST {{ s.profit | signed | replace('-', '−') }}</span>{% endif %}
 {% elif s.status == 'pending' %}<span class="outcome part">PENDING</span>{% endif %}{% endif %}{% endmacro %}
 

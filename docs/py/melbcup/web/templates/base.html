@@ -62,6 +62,7 @@
         guarantee a result. Bet only what you can afford to lose.</p>
       <p class="help"><span>Gambling Help Online</span> <a href="tel:1800858858">1800 858 858</a> <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a></p>
     </footer>
+    <script type="application/json" id="picks-data">{{ picks_data | tojson }}</script>
   </main>
   <script>
   // Placed bets live in a cookie on this phone (no login, by design): [date, race, kind, runner,
@@ -84,28 +85,67 @@
       return read().filter(function (r) { return Array.isArray(r) && r[0] === rec[0] && !same(r, rec); });
     }
     // The app's own suggested lines are kept on this phone too (the server forgets them on every
-    // restart), as the cookie "picks": [date, race, kind, runner, account, stake, price]. On every
-    // page load while a race is open, that race's current suggested lines (only those with a
+    // restart), as the cookie "picks": [date, race, kind, runner, account, stake, price]. Every page
+    // carries the current suggested lines of every open race in the JSON tag #picks-data
+    // ({date, open, held, picks}); on every page load each open race's lines (only those with a
     // stake) replace what was saved for it, so the last suggestion before the jump is the one that
-    // stays. A kind the owner has since placed keeps its saved pick. Other days are dropped.
+    // stays. A kind the owner has since placed ("held") keeps its saved pick. Other days are dropped.
     function savePicks() {
-      var date = null, fresh = [], live = {}, held = {};
-      document.querySelectorAll("#main .pick[data-race]").forEach(function (row) {
-        var n = parseInt(row.getAttribute("data-race"), 10), raw = row.getAttribute("data-pick");
-        if (!raw) { held[n + "|" + row.getAttribute("data-k")] = true; return; }
-        var rec;
-        try { rec = JSON.parse(raw); } catch (e) { return; }
-        if (!Array.isArray(rec) || rec.length < 6) return;
-        date = rec[0]; live[n] = true;
-        if (rec[5] > 0 && rec[4]) fresh.push(rec);
-      });
-      if (!date) return;
+      var tag = document.getElementById("picks-data"), d;
+      try { d = tag ? JSON.parse(tag.textContent) : null; } catch (e) { d = null; }
+      if (!d || !Array.isArray(d.picks) || !Array.isArray(d.open) || !d.open.length || !d.date) return;
+      var live = {}, held = {};
+      d.open.forEach(function (n) { live[n] = true; });
+      (d.held || []).forEach(function (h) { held[h[0] + "|" + h[1]] = true; });
+      var fresh = d.picks.filter(function (rec) { return Array.isArray(rec) && rec.length >= 6 && rec[5] > 0 && rec[4]; });
       var keep = read("picks").filter(function (r) {
-        return Array.isArray(r) && r[0] === date && !(live[r[1]] && !held[r[1] + "|" + r[2]]);
+        return Array.isArray(r) && r[0] === d.date && !(live[r[1]] && !held[r[1] + "|" + r[2]]);
       });
       write(keep.concat(fresh), "picks");
     }
-    savePicks();
+    // Kids' bets: the cookie "kids" is a list of [date, race, kind_code, runner, account_code,
+    // stake_total, win_price, place_price, name]. A link ending #kids=<encodeURIComponent(JSON list of
+    // those records)> merges them in (an exact repeat of date, race, kind, runner, account, stake and
+    // prices is skipped), drops the hash and reloads once.
+    function sameKid(a, b) {
+      for (var i = 0; i < 8; i++) if (a[i] !== b[i]) return false;
+      return true;
+    }
+    function importKids() {
+      if (location.hash.indexOf("#kids=") !== 0) return false;
+      var add = [];
+      try { add = JSON.parse(decodeURIComponent(location.hash.slice(6))); } catch (e) { add = []; }
+      var list = read("kids"), n = 0;
+      (Array.isArray(add) ? add : []).forEach(function (rec) {
+        if (!Array.isArray(rec) || rec.length < 8) return;
+        rec = rec.slice(0, 9); if (rec.length < 9) rec.push("");
+        if (list.some(function (r) { return Array.isArray(r) && sameKid(r, rec); })) return;
+        list.push(rec); n++;
+      });
+      if (n) write(list, "kids");
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+      if (n) location.reload();
+      return true;
+    }
+    function kidIndex(row, list) {
+      var rec; try { rec = JSON.parse(row.getAttribute("data-kid")); } catch (e) { return -1; }
+      for (var i = 0; i < list.length; i++) {
+        if (Array.isArray(list[i]) && sameKid(list[i], rec) && (list[i][8] || "") === (rec[8] || "")) return i;
+      }
+      return -1;
+    }
+    document.addEventListener("change", function (e) {
+      var inp = e.target;
+      if (!inp.classList || !inp.classList.contains("kid-name")) return;
+      var row = inp.closest("[data-kid]"), list = read("kids"), i = kidIndex(row, list);
+      if (i < 0) return;
+      list[i] = list[i].slice(0, 8).concat([inp.value.trim().slice(0, 40)]);
+      write(list, "kids");
+      var rec = JSON.parse(row.getAttribute("data-kid")); rec[8] = list[i][8];
+      row.setAttribute("data-kid", JSON.stringify(rec));
+    });
+    if (!importKids()) savePicks();
+    window.addEventListener("hashchange", importKids);
     document.addEventListener("melb:data", savePicks);
     document.addEventListener("submit", function (e) {
       var f = e.target;
@@ -126,6 +166,13 @@
       location.reload();
     });
     document.addEventListener("click", function (e) {
+      var kr = e.target.closest && e.target.closest("button[data-kid-remove]");
+      if (kr) {
+        var klist = read("kids"), ki = kidIndex(kr.closest("[data-kid]"), klist);
+        if (ki >= 0) { klist.splice(ki, 1); write(klist, "kids"); }
+        location.reload();
+        return;
+      }
       var rm = e.target.closest && e.target.closest("button[data-remove]");
       if (rm) {
         var gone = JSON.parse(rm.getAttribute("data-remove"));
