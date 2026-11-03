@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=155 -->
+<!-- drainclamp-build: state; schema=1; generation=156 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -111,7 +111,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T10:18:25+00:00 280022c1 Owner: NBA = player props first (x gets 3+ points etc.), likely legs stacked into 3-10 leg same-game and multi-game multis, $10 into a decent win. Filter = likely AND at/above fair.
 - 2026-11-03T10:19:22+00:00 c6ff65fb Owner design rule: RaceLens-style % ring meter for the chance a bet/multi gets up (green 60%+, purple 30-59%, amber under 30%). Added to E (main bet + same race multi); applies to nba3 multis too.
 - 2026-11-03T10:23:12+00:00 19e9b594 RACELENS_DATE cleared (run 41618611031): Thursday default restored. Azure test copy unverified (deploy SP has no blob data read; keys disabled); owner declined extra access and the data-check ring: use our model. NBA plan (low token): scripts only at runtime; props from agency web feeds + free NBA game logs; player-stat model (minutes x per-minute rate), no betting history needed; reuse multis.py and AsynymBet parts; 4 Sonnet chunks; first step = token-free agency feed probe from Azure.
 - 2026-11-03T10:30:45+00:00 e7f86a32 nba1 step 0: nba_probe_run timer (hourly, self-stops 2026-11-10) probes TAB/Sportsbet/PointsBet/Ladbrokes/Neds/NBA CDN/stats from Azure AU into blob nba-probe/latest.json. From the US container all blocked (403/500/blank). Reading the report needs Storage Blob Data Reader for the deploy app: self-grant blocked by the safety check, needs owner approval.
@@ -131,4 +130,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T12:28:36+00:00 d6219689 NBA v2 full tune (69k tune rows, 2014-15..2022-23): validate 2023-24 / check 2024-25 log loss v1->v2 points .3336->.3273/.3475->.3409, rebounds .3533->.3484/.3687->.3616, assists .3172->.3106/.3236->.3167, threes .4520->.4428/.4684->.4575. Back-to-back effect ~0. 80-89% bucket hits 84-85%, 90-99% 93-94%. Params tools/nba/model_v2.json. Next levers: starter/role change, usage redistribution, game script (spread), pace, per-player spread, SGM correlation, GBM; rolling validation; 2025-26 sealed.
 - 2026-11-03T12:38:55+00:00 5be6da2c Owner: milestone lm1 (looser markets) after NBA live and tested.
 - 2026-11-03T12:40:49+00:00 d61ab05f Owner: NBA loose markets now. Unders, alt-line tails, SGM linked legs moved into nba3; quarter/first basket stay lm1. New arb1: arbitrage + promo lay-off (matched betting) finder.
+- 2026-11-03T12:50:02+00:00 465b6464 mkt1 v1 football (286 league-seasons, 2012-25): favourites under ~1.50 happen more than margin-free price says (home 1.20-1.35: 78.7% vs 74.1%; away 1.20-1.35: 78.3% vs 73.9%) and paid at the BEST price in both halves (+2 to +6%). Caveats: best price = max across many books (some offshore/exchange), ~40 bands tested so some positives are chance. research/markets/football_scan_v1.txt
 <!-- /DC:LOG -->
