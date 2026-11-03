@@ -1,0 +1,124 @@
+<title>AsynymBet Slip</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Narrow:wght@500;600;700&display=swap">
+<style>
+/* B · Slip: the verdict is a bet slip you can hand to a bookie; detail below as a dense form guide table. */
+:root{
+  --ground:#FFFFFF; --panel:#F3F5F4; --ink:#121614; --muted:#5D6662; --rule:#DDE2DF;
+  --brand:#0E6A48; --brand-wash:#E2F2EA; --good:#167A4A; --good-wash:#E0F2E8; --bad:#B42F27; --bad-wash:#FBE5E2;
+  --sb:#1E3687; --bf:#B57A00; --pb:#C4182F; --slip:#FFFBEF; --slip-edge:#E9DFC2;
+  --font:"Archivo",system-ui,sans-serif; --num:"Archivo Narrow","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#101412;--panel:#19201C;--ink:#E8EEEA;--muted:#9AA7A0;--rule:#2B3530;--brand:#45B985;--brand-wash:#183428;--good:#4FC98B;--good-wash:#163325;--bad:#F07A6E;--bad-wash:#3B1D1A;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--slip:#221F16;--slip-edge:#4A4330;color-scheme:dark}}
+:root[data-theme="dark"]{--ground:#101412;--panel:#19201C;--ink:#E8EEEA;--muted:#9AA7A0;--rule:#2B3530;--brand:#45B985;--brand-wash:#183428;--good:#4FC98B;--good-wash:#163325;--bad:#F07A6E;--bad-wash:#3B1D1A;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--slip:#221F16;--slip-edge:#4A4330;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.4;font-variant-numeric:tabular-nums}
+.wrap{max-width:460px;margin:0 auto;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:10px 32px;display:flex;flex-direction:column;gap:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+.hdr{display:flex;align-items:baseline;gap:8px}
+.hdr b{font-weight:800;font-size:18px;color:var(--brand)}
+.hdr span{color:var(--muted);font-size:13px}
+.hdr .pl{margin-left:auto;font-family:var(--num);font-weight:700;font-size:18px;color:var(--good)}
+.money{display:flex;border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.money div{flex:1;padding:6px 8px;font-size:11px;color:var(--muted);border-left:4px solid}
+.money div+div{border-left-width:4px}
+.money b{display:block;font-family:var(--num);font-size:17px;color:var(--ink)}
+.money .sb{border-color:var(--sb)}.money .bf{border-color:var(--bf)}.money .pb{border-color:var(--pb)}
+.races{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.races a{text-decoration:none;color:var(--ink);font-family:var(--num);font-weight:700;font-size:14px;text-align:center;padding:6px 0;border-radius:6px;background:var(--panel);position:relative}
+.races a.on{background:var(--brand);color:var(--ground)}
+.races a.t::after{content:"";position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--good)}
+.races a.on.t::after{background:var(--ground)}
+.races a.done{color:var(--muted)}
+.title{display:flex;gap:10px;align-items:center}
+.title .no{font-family:var(--num);font-weight:700;font-size:34px;line-height:1}
+.title h1{margin:0;font-size:18px;line-height:1.2}
+.title p{margin:0;color:var(--muted);font-size:13px}
+.clock{margin-left:auto;text-align:right;font-family:var(--num);font-weight:700;font-size:22px;line-height:1}
+.clock small{display:block;font-family:var(--font);font-size:11px;color:var(--muted);font-weight:500}
+.clock.now{color:var(--bad)}
+.slip{background:var(--slip);border:1px solid var(--slip-edge);border-radius:4px;padding:14px;position:relative}
+.slip .kind{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
+.slip.take .kind span:first-child{color:var(--good)}
+.slip.none .kind span:first-child{color:var(--muted)}
+.line{display:flex;align-items:center;gap:10px;margin:10px 0}
+.cloth{flex:0 0 auto;width:30px;height:30px;border-radius:5px;background:#fff;color:#111;border:1.5px solid #111;display:grid;place-items:center;font-family:var(--num);font-weight:700;font-size:16px}
+.line b{font-size:20px;flex:1;min-width:0;line-height:1.1}
+.line .x{font-family:var(--num);font-weight:700;font-size:28px}
+.perf{border-top:2px dashed var(--slip-edge);margin:10px -14px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
+.kv span{color:var(--muted)}.kv b{font-family:var(--num);font-size:16px;text-align:right}
+.note{font-size:13px;margin-top:8px;color:var(--good);font-weight:600}
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.books button{border:0;border-radius:6px;padding:9px 4px;color:#fff;font-weight:700;font-size:12px;line-height:1.15}
+.books button b{display:block;font-family:var(--num);font-size:18px}
+.books .sb{background:var(--sb)}.books .bf{background:var(--bf)}.books .pb{background:var(--pb)}
+.books .dim{opacity:.45}
+.books .ok{background:var(--good)}
+.go{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--ink);margin-top:8px;padding:10px;border:1.5px solid var(--brand);border-radius:6px}
+.go .no{font-family:var(--num);font-weight:700;font-size:26px;color:var(--brand)}
+.go small{display:block;color:var(--muted);font-size:12px}
+.go i{margin-left:auto;font-style:normal;font-weight:800;color:var(--brand)}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:6px 0 0;font-weight:800}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;font-weight:700;padding:4px 4px;border-bottom:1px solid var(--rule)}
+th:nth-child(2){text-align:left}
+td{padding:7px 4px;border-bottom:1px solid var(--rule);text-align:right;font-family:var(--num);font-size:15px}
+td:nth-child(2){text-align:left;font-family:var(--font);font-size:14px}
+td:nth-child(2) small{display:block;color:var(--muted);font-size:11px}
+td .cloth{width:24px;height:24px;font-size:13px}
+td.val{color:var(--good);font-weight:700}
+td.short{color:var(--muted)}
+.bets{display:flex;flex-direction:column}
+.bet{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.bet b{font-weight:700}.bet small{color:var(--muted);font-size:12px;display:block}
+.bet .amt{font-family:var(--num);font-weight:700;font-size:17px}
+.bet.skip{color:var(--muted)}
+.tag{font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px;background:var(--panel)}
+.proto{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.proto button{border:1px solid var(--rule);background:var(--ground);border-radius:999px;padding:3px 10px;font-size:12px}
+.proto button.on{background:var(--ink);color:var(--ground)}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+</style>
+<main class="wrap">
+  <div class="proto">B · Slip · sample prices · <button id="t1" class="on" type="button">Take this bet</button><button id="t2" type="button">Nothing here</button><button id="t3" type="button">2 min</button></div>
+  <div class="hdr"><b>AsynymBet</b><span>Flemington · Tue 3 Nov</span><span class="pl">+$36 today</span></div>
+  <div class="money"><div class="sb">Sportsbet<b>$90</b></div><div class="bf">Betfair<b>$45</b></div><div class="pb">PointsBet<b>$20</b></div></div>
+  <nav class="races"><a class="done" href="#r1">1</a><a class="done" href="#r2">2</a><a class="done" href="#r3">3</a><a class="done" href="#r4">4</a><a class="done" href="#r5">5</a><a class="done" href="#r6">6</a><a class="on t" href="#r7">7</a><a href="#r8">8</a><a class="t" href="#r9">9</a><a href="#r10">10</a></nav>
+  <div class="title"><span class="no">R7</span><div><h1>Lexus Melbourne Cup</h1><p>3:00pm · 3200m · 23 run · Good 4</p></div><div class="clock" id="clock">12:40<small>to the jump</small></div></div>
+  <section id="slip" aria-live="polite"></section>
+  <h2>All bets this race</h2>
+  <div class="bets">
+    <div class="bet"><b>Win</b><span>20 Point Of Law<small>take $7.00+ · SB $8.50</small></span><span class="amt">$10</span></div>
+    <div class="bet"><b>Place</b><span>12 Hopewell Rock<small>take $2.80+ · BF $3.10</small></span><span class="amt">$5</span></div>
+    <div class="bet"><b>Each way</b><span>11 Juja Kibo<small>$2 EW · $4 total · PB</small></span><span class="amt">$4</span></div>
+    <div class="bet skip"><b>Trifecta</b><span>20, 12, 2, 16<small>short · skip</small></span><span class="amt">–</span></div>
+  </div>
+  <h2>Form guide</h2>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Runner</th><th>Win</th><th>Fair</th><th>Best</th></tr></thead><tbody id="tb"></tbody></table></div>
+  <h2>My bets</h2>
+  <div class="bets">
+    <div class="bet"><b>Win</b><span>20 Point Of Law<small>$10 @ $8.50 · SB</small></span><span class="tag">OPEN</span></div>
+    <div class="bet"><b>Kids</b><span>2 Trustyourinstinct · Holly<small>$5 EW @ $9 / $3 · PB</small></span><span class="tag">OPEN</span></div>
+  </div>
+  <p class="foot">Suggestions only. Gambling Help 1800 858 858.</p>
+</main>
+<script>
+const F=[[20,"Point Of Law","E. Brown · C. Maher",14,7.0,8.5,"SB"],[12,"Hopewell Rock","Z. Lloyd · G. Boughey",13,8.0,7.8,"BF"],[2,"Trustyourinstinct","J. McDonald · A. O'Brien",10,10.0,9.4,"BF"],[16,"So You Are","R. King · B. Baker",9,11.0,13.0,"SB"],[24,"Shockletz","H. Coffey · C. Maher",9,11.0,11.0,"SB"],[11,"Juja Kibo","S. Clipperton · C. Maher",6,16.0,14.5,"BF"]];
+document.getElementById("tb").innerHTML=F.map(r=>`<tr><td><span class="cloth">${r[0]}</span></td><td>${r[1]}<small>${r[2]}</small></td><td>${r[3]}%</td><td>$${r[4].toFixed(2)}</td><td class="${r[5]>r[4]?"val":"short"}">$${r[5].toFixed(2)} <small>${r[6]}</small></td></tr>`).join("");
+const V={take:`<div class="slip take"><div class="kind"><span>Take this bet</span><span>R7 · Win</span></div>
+ <div class="line"><span class="cloth">20</span><b>Point Of Law</b><span class="x">$10</span></div>
+ <div class="perf"></div>
+ <div class="kv"><span>Our chance</span><b>1 in 7</b><span>Fair price</span><b>$7.00</b><span>Best price · Sportsbet</span><b>$8.50</b><span>Returns if it wins</span><b>$85</b></div>
+ <p class="note">Only worth it at $7.00 or better. PointsBet Run 2nd, You Win applies.</p>
+ <div class="books"><button class="sb" type="button">Sportsbet<b>$8.50</b></button><button class="bf dim" type="button">Betfair<b>$8.20</b></button><button class="pb dim" type="button">PointsBet<b>$8.00</b></button></div></div>`,
+none:`<div class="slip none"><div class="kind"><span>Nothing worth trying here</span><span>R7</span></div>
+ <p style="margin:10px 0 0">Every runner is at or under its fair price. Keep the money for:</p>
+ <a class="go" href="#r9"><span class="no">R9</span><span><b>4 Ferocious · Win $10</b><small>4:25pm · Betfair $6.50 · fair $5.20</small></span><i>Go ›</i></a></div>`};
+const s=document.getElementById("slip");
+function show(k){s.innerHTML=V[k];t1.classList.toggle("on",k==="take");t2.classList.toggle("on",k==="none");
+ s.querySelectorAll(".books button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed<b>$10</b>"})}
+show("take");t1.onclick=()=>show("take");t2.onclick=()=>show("none");
+t3.onclick=()=>{const c=document.getElementById("clock"),on=c.classList.toggle("now");c.innerHTML=on?"2:00<small>BET NOW</small>":"12:40<small>to the jump</small>";t3.classList.toggle("on",on)};
+</script>

@@ -1,0 +1,110 @@
+<title>AsynymBet Night Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* C · Board: one deliberate dark look, a trackside tote board. Side-by-side tiles, big condensed numbers. */
+:root{--bg:#0B0F0D;--tile:#141B17;--tile2:#1C2520;--ink:#EEF3EF;--muted:#8E9B94;--rule:#26302B;
+ --lit:#4CE08F;--amber:#FFC247;--red:#FF6B5E;--sb:#8FA6FF;--bf:#FFC247;--pb:#FF7A8C;
+ --disp:"Barlow Condensed","Arial Narrow",sans-serif;--body:"Barlow",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.35;font-variant-numeric:tabular-nums}
+.wrap{max-width:460px;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px 30px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.full{grid-column:1/-1}
+button{font:inherit;color:inherit;cursor:pointer}
+.t{background:var(--tile);border:1px solid var(--rule);border-radius:10px;padding:10px;min-width:0}
+.lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.big{font-family:var(--disp);font-weight:700;font-size:34px;line-height:1}
+.top{display:flex;align-items:center;gap:8px}
+.top b{font-family:var(--disp);font-size:22px;letter-spacing:.04em}
+.top b span{color:var(--lit)}
+.top .pl{margin-left:auto;font-family:var(--disp);font-size:22px;color:var(--lit)}
+.wal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.wal div{background:var(--tile);border-radius:8px;padding:6px 8px;border-top:3px solid}
+.wal .sb{border-color:var(--sb)}.wal .bf{border-color:var(--bf)}.wal .pb{border-color:var(--pb)}
+.wal b{display:block;font-family:var(--disp);font-size:22px;line-height:1}
+.wal small{color:var(--muted);font-size:11px}
+.strip{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.strip a{flex:0 0 auto;width:42px;text-decoration:none;color:var(--muted);text-align:center;font-family:var(--disp);font-size:18px;font-weight:700;padding:5px 0;border-radius:6px;background:var(--tile);border:1px solid var(--rule)}
+.strip a small{display:block;font-size:11px;font-family:var(--body);font-weight:500}
+.strip a.on{color:var(--bg);background:var(--lit);border-color:var(--lit)}
+.strip a.tk{color:var(--lit)}
+.race h1{margin:2px 0 0;font-family:var(--disp);font-size:24px;line-height:1.05;font-weight:700}
+.race p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.clk .big{color:var(--amber)}
+.clk.now{background:var(--red);border-color:var(--red)}
+.clk.now .big,.clk.now .lbl{color:#1a0503}
+.vd{border:2px solid var(--lit);background:linear-gradient(180deg,rgba(76,224,143,.10),transparent 60%),var(--tile)}
+.vd.none{border-color:var(--rule);background:var(--tile)}
+.vd .lbl{color:var(--lit)}.vd.none .lbl{color:var(--muted)}
+.pick{display:flex;align-items:center;gap:10px;margin-top:6px}
+.cloth{flex:0 0 auto;width:36px;height:36px;border-radius:6px;background:#fff;color:#111;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:20px}
+.pick .nm{flex:1;min-width:0;font-family:var(--disp);font-size:26px;font-weight:700;line-height:1}
+.pick .nm small{display:block;font-family:var(--body);font-size:12px;color:var(--muted);font-weight:500}
+.pick .big{color:var(--lit)}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.nums div{background:var(--tile2);border-radius:7px;padding:5px 7px}
+.nums b{display:block;font-family:var(--disp);font-size:22px;line-height:1}
+.floor{margin-top:8px;font-size:13px;color:var(--lit)}
+.bk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.bk button{background:transparent;border:2px solid;border-radius:8px;padding:6px 2px;font-size:11px;font-weight:600;line-height:1.1}
+.bk button b{display:block;font-family:var(--disp);font-size:22px}
+.bk .sb{border-color:var(--sb);color:var(--sb)}.bk .bf{border-color:var(--bf);color:var(--bf)}.bk .pb{border-color:var(--pb);color:var(--pb)}
+.bk .hot{background:var(--sb);color:var(--bg)}
+.bk .ok{background:var(--lit);border-color:var(--lit);color:var(--bg)}
+.go{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);margin-top:8px;background:var(--tile2);border-radius:8px;padding:9px}
+.go .big{font-size:28px;color:var(--lit)}
+.go small{display:block;color:var(--muted);font-size:12px}
+.go i{margin-left:auto;font-style:normal;font-family:var(--disp);font-size:24px;color:var(--lit)}
+.mini .big{font-size:26px}
+.mini small{color:var(--muted);font-size:12px;display:block}
+.fld{display:flex;flex-direction:column}
+.fr{display:grid;grid-template-columns:30px 1fr 46px 60px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--rule)}
+.fr:first-child{border-top:0}
+.fr .cloth{width:26px;height:26px;font-size:15px}
+.fr .n{min-width:0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr .n i{display:block;height:4px;border-radius:2px;background:var(--rule);margin-top:4px}
+.fr .n i span{display:block;height:100%;border-radius:2px;background:var(--lit)}
+.fr .w{font-family:var(--disp);font-size:18px;text-align:right}
+.fr .p{font-family:var(--disp);font-size:18px;text-align:right}
+.fr .p.v{color:var(--lit)}.fr .p.s{color:var(--muted)}
+.mine{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 0;border-top:1px solid var(--rule)}
+.mine:first-of-type{border-top:0}
+.mine em{font-style:normal;font-family:var(--disp);font-size:15px;color:var(--amber)}
+.proto{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.proto button{border:1px solid var(--rule);background:var(--tile);border-radius:999px;padding:3px 10px;font-size:12px}
+.proto button.on{background:var(--ink);color:var(--bg)}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+</style>
+<main class="wrap">
+  <div class="proto full">C · Board · sample prices · <button id="t1" class="on" type="button">Take this bet</button><button id="t2" type="button">Nothing here</button><button id="t3" type="button">2 min</button></div>
+  <div class="top full"><b>ASYNYM<span>BET</span></b><span class="pl">+$36</span></div>
+  <div class="wal full"><div class="sb"><small>Sportsbet</small><b>$90</b></div><div class="bf"><small>Betfair</small><b>$45</b></div><div class="pb"><small>PointsBet</small><b>$20</b></div></div>
+  <nav class="strip full"><a href="#r5">5<small>done</small></a><a href="#r6">6<small>done</small></a><a class="on" href="#r7">7<small>3:00</small></a><a href="#r8">8<small>3:45</small></a><a class="tk" href="#r9">9<small>4:25</small></a><a href="#r10">10<small>5:10</small></a></nav>
+  <div class="t race"><div class="lbl">R7 · Flemington</div><h1>Lexus Melbourne Cup</h1><p>3200m · 23 run · Good 4</p></div>
+  <div class="t clk" id="clk"><div class="lbl" id="clkl">To the jump</div><div class="big" id="clkv">12:40</div><p style="margin:2px 0 0;font-size:12px;color:inherit;opacity:.8">prices 40 s ago</p></div>
+  <section class="t vd full" id="vd" aria-live="polite"></section>
+  <div class="t mini"><div class="lbl">Place</div><div class="big">$5</div><small>12 Hopewell Rock · BF $3.10</small></div>
+  <div class="t mini"><div class="lbl">Each way</div><div class="big">$4</div><small>11 Juja Kibo · $2 EW · PB</small></div>
+  <div class="t full"><div class="lbl" style="display:flex;justify-content:space-between"><span>Field</span><span>Win · Best</span></div><div class="fld" id="fld"></div></div>
+  <div class="t full"><div class="lbl">My bets</div>
+    <div class="mine"><span>Win 20 Point Of Law · $10 @ $8.50 SB</span><em>OPEN</em></div>
+    <div class="mine"><span>Kids · Holly · 2 Trustyourinstinct $5 EW PB</span><em>OPEN</em></div>
+  </div>
+  <p class="foot full">Suggestions only. Gambling Help 1800 858 858.</p>
+</main>
+<script>
+const F=[[20,"Point Of Law",14,8.5,7.0],[12,"Hopewell Rock",13,7.8,8.0],[2,"Trustyourinstinct",10,9.4,10],[16,"So You Are",9,13,11],[24,"Shockletz",9,11,11],[11,"Juja Kibo",6,14.5,16]];
+fld.innerHTML=F.map(r=>`<div class="fr"><span class="cloth">${r[0]}</span><span class="n">${r[1]}<i><span style="width:${r[2]*5}%"></span></i></span><span class="w">${r[2]}%</span><span class="p ${r[3]>r[4]?"v":"s"}">$${r[3].toFixed(2)}</span></div>`).join("");
+const V={take:["",`<div class="lbl">Take this bet</div>
+ <div class="pick"><span class="cloth">20</span><span class="nm">Point Of Law<small>Win · best at Sportsbet</small></span><span class="big">$10</span></div>
+ <div class="nums"><div><span class="lbl">Chance</span><b>1 in 7</b></div><div><span class="lbl">Fair</span><b>$7.00</b></div><div><span class="lbl">Best</span><b>$8.50</b></div></div>
+ <p class="floor">Only worth it at $7.00 or better · PB Run 2nd, You Win applies</p>
+ <div class="bk"><button class="sb hot" type="button">Sportsbet<b>$8.50</b></button><button class="bf" type="button">Betfair<b>$8.20</b></button><button class="pb" type="button">PointsBet<b>$8.00</b></button></div>`],
+ none:["none",`<div class="lbl">Nothing worth trying here</div>
+ <p style="margin:6px 0 0">Every runner is at or under its fair price.</p>
+ <a class="go" href="#r9"><span class="big">R9</span><span><b>4 Ferocious · Win $10</b><small>4:25pm · Betfair $6.50 · fair $5.20</small></span><i>›</i></a>`]};
+function show(k){vd.className="t vd full "+V[k][0];vd.innerHTML=V[k][1];t1.classList.toggle("on",k==="take");t2.classList.toggle("on",k==="none");
+ vd.querySelectorAll(".bk button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed<b>$10</b>"})}
+show("take");t1.onclick=()=>show("take");t2.onclick=()=>show("none");
+t3.onclick=()=>{const on=clk.classList.toggle("now");clkv.textContent=on?"2:00":"12:40";clkl.textContent=on?"BET NOW":"To the jump";t3.classList.toggle("on",on)};
+</script>

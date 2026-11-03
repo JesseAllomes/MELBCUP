@@ -1,0 +1,96 @@
+<title>AsynymBet Glance</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* D · Glance: one screen at the track. Countdown and the one decision fill the view; everything else sits in a sheet. Bottom race bar for the thumb. */
+:root{--bg:#F6F7F5;--sheet:#FFFFFF;--ink:#111612;--muted:#62706A;--rule:#E1E5E2;--brand:#0F6C49;--brand-ink:#FFFFFF;--soft:#E3F1EA;
+ --good:#16804C;--bad:#C0362C;--sb:#1E3687;--bf:#B57A00;--pb:#C4182F;--font:"Manrope",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1311;--sheet:#17201B;--ink:#EBF1ED;--muted:#97A59E;--rule:#28332D;--brand:#43B884;--brand-ink:#07120D;--soft:#173327;--good:#4FCB8C;--bad:#F27B70;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1311;--sheet:#17201B;--ink:#EBF1ED;--muted:#97A59E;--rule:#28332D;--brand:#43B884;--brand-ink:#07120D;--soft:#173327;--good:#4FCB8C;--bad:#F27B70;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.4;font-variant-numeric:tabular-nums}
+.wrap{max-width:460px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 100px;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+.bar{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.bar b{color:var(--brand);font-weight:800;font-size:16px}
+.bar .pl{margin-left:auto;font-weight:800;color:var(--good);font-size:16px}
+.purse{display:flex;gap:12px;font-size:12px;color:var(--muted)}
+.purse span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--c)}
+.purse b{color:var(--ink)}
+.hero{text-align:center;padding:6px 0}
+.hero .r{font-size:13px;color:var(--muted);font-weight:600}
+.hero h1{margin:2px 0 0;font-size:22px;text-wrap:balance}
+.count{font-size:64px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:8px}
+.count small{display:block;font-size:13px;font-weight:600;color:var(--muted);letter-spacing:0}
+.count.now{color:var(--bad)}
+.count.now small{color:var(--bad)}
+.dec{background:var(--sheet);border-radius:22px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06)}
+.dec .q{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.dec.take .q{color:var(--good)}.dec.none .q{color:var(--muted)}
+.dec .s{font-size:24px;font-weight:800;line-height:1.2;margin:6px 0 4px;text-wrap:balance}
+.dec .w{color:var(--muted);font-size:14px}
+.btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.btns button{display:flex;justify-content:space-between;align-items:center;border:0;border-radius:14px;padding:14px 16px;font-weight:700;font-size:16px;color:#fff}
+.btns button b{font-size:20px}
+.btns .sb{background:var(--sb)}
+.btns .alt{background:transparent;color:var(--ink);border:1.5px solid var(--rule);font-weight:600;font-size:14px;padding:10px 16px}
+.btns .alt b{font-size:16px}
+.btns .ok{background:var(--good)}
+.go{display:flex;align-items:center;gap:12px;margin-top:14px;background:var(--soft);border-radius:14px;padding:14px;text-decoration:none;color:var(--ink)}
+.go .rn{font-size:30px;font-weight:800;color:var(--brand)}
+.go small{display:block;color:var(--muted);font-size:13px}
+.go i{margin-left:auto;font-style:normal;font-size:24px;font-weight:800;color:var(--brand)}
+details{background:var(--sheet);border-radius:16px;padding:4px 14px}
+summary{list-style:none;padding:12px 0;font-weight:700;display:flex;justify-content:space-between;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary span{color:var(--muted);font-weight:500}
+.row{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--rule);font-size:14px}
+.row small{display:block;color:var(--muted);font-size:12px}
+.row b{white-space:nowrap}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--sheet);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.dock nav{max-width:460px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+.dock a{flex:0 0 auto;min-width:48px;text-align:center;text-decoration:none;color:var(--muted);font-weight:800;font-size:16px;padding:6px 8px;border-radius:12px}
+.dock a small{display:block;font-size:10px;font-weight:600}
+.dock a.on{background:var(--brand);color:var(--brand-ink)}
+.dock a.tk{color:var(--good)}
+.proto{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.proto button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:3px 10px;font-size:12px}
+.proto button.on{background:var(--ink);color:var(--bg)}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+</style>
+<main class="wrap">
+  <div class="proto">D · Glance · sample prices · <button id="t1" class="on" type="button">Take this bet</button><button id="t2" type="button">Nothing here</button><button id="t3" type="button">2 min</button></div>
+  <div class="bar"><b>AsynymBet</b><span>Flemington</span><span class="pl">+$36</span></div>
+  <div class="purse"><span style="--c:var(--sb)">SB <b>$90</b></span><span style="--c:var(--bf)">BF <b>$45</b></span><span style="--c:var(--pb)">PB <b>$20</b></span></div>
+  <div class="hero"><div class="r">R7 · 3:00pm · 3200m · 23 runners</div><h1>Lexus Melbourne Cup</h1><div class="count" id="cnt">12:40<small>to the jump</small></div></div>
+  <section class="dec" id="dec" aria-live="polite"></section>
+  <details><summary>Other bets this race <span>3</span></summary>
+    <div class="row"><span>Place · 12 Hopewell Rock<small>take $2.80+ · Betfair $3.10</small></span><b>$5</b></div>
+    <div class="row"><span>Each way · 11 Juja Kibo<small>$2 EW · $4 total · PointsBet</small></span><b>$4</b></div>
+    <div class="row"><span>Trifecta · 20, 12, 2, 16<small>short · skip</small></span><b>–</b></div>
+  </details>
+  <details><summary>Field <span>23</span></summary>
+    <div class="row"><span>20 Point Of Law<small>14% · fair $7.00</small></span><b>$8.50 SB</b></div>
+    <div class="row"><span>12 Hopewell Rock<small>13% · fair $8.00</small></span><b>$7.80 BF</b></div>
+    <div class="row"><span>2 Trustyourinstinct<small>10% · fair $10.00</small></span><b>$9.40 BF</b></div>
+    <div class="row"><span>16 So You Are<small>9% · fair $11.00</small></span><b>$13.00 SB</b></div>
+  </details>
+  <details><summary>My bets <span>2 open</span></summary>
+    <div class="row"><span>Win · 20 Point Of Law<small>$10 @ $8.50 · Sportsbet</small></span><b>OPEN</b></div>
+    <div class="row"><span>Kids · Holly · 2 Trustyourinstinct<small>$5 EW @ $9 / $3 · PointsBet</small></span><b>OPEN</b></div>
+  </details>
+  <p class="foot">Suggestions only. Gambling Help 1800 858 858.</p>
+</main>
+<div class="dock"><nav><a href="#r5">R5<small>done</small></a><a href="#r6">R6<small>done</small></a><a class="on" href="#r7">R7<small>3:00</small></a><a href="#r8">R8<small>3:45</small></a><a class="tk" href="#r9">R9<small>4:25 ●</small></a><a href="#r10">R10<small>5:10</small></a></nav></div>
+<script>
+const V={take:["take",`<div class="q">Take this bet</div><div class="s">$10 win on 20 Point Of Law</div>
+ <div class="w">We rate it 1 in 7 (fair $7.00). Sportsbet pays $8.50. Only worth it at $7.00 or better.</div>
+ <div class="btns"><button class="sb" type="button">Place on Sportsbet <b>$8.50</b></button><button class="alt" type="button">Betfair <b>$8.20</b></button><button class="alt" type="button">PointsBet · Run 2nd You Win <b>$8.00</b></button></div>`],
+ none:["none",`<div class="q">Nothing worth trying here</div><div class="s">Skip R7</div>
+ <div class="w">Every runner is at or under its fair price.</div>
+ <a class="go" href="#r9"><span class="rn">R9</span><span><b>$10 win on 4 Ferocious</b><small>4:25pm · Betfair $6.50 · fair $5.20</small></span><i>›</i></a>`]};
+function show(k){dec.className="dec "+V[k][0];dec.innerHTML=V[k][1];t1.classList.toggle("on",k==="take");t2.classList.toggle("on",k==="none");
+ dec.querySelectorAll(".btns button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed <b>$10</b>"})}
+show("take");t1.onclick=()=>show("take");t2.onclick=()=>show("none");
+t3.onclick=()=>{const on=cnt.classList.toggle("now");cnt.innerHTML=on?"2:00<small>BET NOW</small>":"12:40<small>to the jump</small>";t3.classList.toggle("on",on)};
+</script>
