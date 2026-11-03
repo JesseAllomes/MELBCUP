@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=142 -->
+<!-- drainclamp-build: state; schema=1; generation=143 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T09:10:28+00:00 6372a056 Owner 2026-11-03: new name AsynymBet (prototype v2). App rename goes into the ui6 build; repo, domain and Azure names unchanged unless the owner asks.
 - 2026-11-03T09:15:37+00:00 8789fedc ui6 product-ui: 4 prototypes. A Classic SFMukYyWGnT5632F9HwaEi, B Slip W9RecNEEMpM8ipY3GcdDis, C Board F6sLhPyb79odhEvhirVAgh, D Glance Tm4B5DianMEjYhVt28ozLW (claude.ai/artifact/). Copies in .grok/product-ui/v2/. Owner picks or mixes, then lock.
 - 2026-11-03T09:16:16+00:00 f1855db6 st1 part 1 verified: /healthz 0.98 s after 8 min idle (was 22 s cold). Page-speed work still open.
 - 2026-11-03T09:24:11+00:00 78cf54d6 ui6 round 2 (owner: modular + tabbed, no long scroll): one-screen shells. A Tabs LzRVheREuhFyVsfcjjpbDx, B Segments HuNiJy6QiCHPKT9DWXa4w9, C Bento ArRfRT7i6G7NdSxHgvn8gv, D Pager 1TeWtWyVeQuSujLUcUx5s3. Source .grok/product-ui/v3/build.py. Round 1 (v2) rejected: long scroll.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:45:30+00:00 087efbdf Owner 2026-11-03: push AsynymBet live at bet.asynym.dev. E locked (.grok/product-ui/LOCK-asynymbet.md). Build ui6 now on the current single-meeting board behind ASYNYM=1; multi-meeting board (Home best bets across all meetings) is the next milestone mm1. DNS (Cloudflare) needs owner: CNAME bet + TXT asuid.bet.
 - 2026-11-03T10:48:50+00:00 9ecdda4b Grant attempt failed (run 41621566777): deploy app (client 7ab2c182, object 1219dd34-...) lacks Microsoft.Authorization/roleAssignments/write on stpersonalv5ethud2i3cfq, so it is not Owner there. Owner must add Storage Blob Data Reader in the portal.
 - 2026-11-03T11:00:29+00:00 83249137 ui6 built (Sonnet) and verified: full pytest + 18 new, ruff clean, golden identical vs origin/main with ASYNYM unset, screenshots OK. Live with ASYNYM=1 in melbcup-web.json (rollback = 0). TAB/Ladbrokes/Neds chips display-only (no per-agency prices yet); /history stays old UI.
+- 2026-11-03T11:04:24+00:00 0b36433d AsynymBet live on cup.asynym.dev (/, /meetings, /mine, /race/7 all 200, titles AsynymBet). Pending owner: Cloudflare CNAME bet + TXT asuid.bet; Azure role (A: Owner/UAA on RG for app 7ab2c182, or B: Storage Blob Data Reader).
 <!-- /DC:LOG -->
