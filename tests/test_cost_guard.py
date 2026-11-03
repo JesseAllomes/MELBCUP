@@ -450,7 +450,9 @@ def test_c11_spec_passes_and_is_priced(tree, capsys):
     costs = json.loads(out)["costs_usd"]
     # (0.25 * 2592000 - 180000) * 0.000024 + (0.5 * 2592000 - 360000) * 0.000003 = 11.232 + 2.808
     assert costs["container_app_worst_case_month"] == 14.04
-    assert costs["total_worst_case"] == round(costs["function_window_worst_case"] + 14.04, 2)
+    assert costs["total_worst_case"] == round(
+        costs["function_window_worst_case"] + 14.04 + costs["jobs_worst_case_month"], 2
+    )
 
 
 def test_c11_total_must_fit_the_budget(tree, capsys):
@@ -607,21 +609,7 @@ def test_deploy_workflow_judges_the_whole_push():
 
 
 def job(root: Path) -> Path:
-    """The NBA job as it will be once the owner approves it: the pending spec moved into
-    azure/jobs/ and the pending jobs section added to the limits (both in azure/jobs-pending/)."""
-    path = root / "azure" / "jobs" / "melbcup-nba.json"
-    if not path.exists():
-        path.parent.mkdir(exist_ok=True)
-        shutil.copy(root / "azure" / "jobs-pending" / "melbcup-nba.json", path)
-        extra = json.loads((root / "azure" / "jobs-pending" / "limits-jobs.json").read_text())
-        edit_json(root / "azure/limits.json", lambda d: d.update(extra))
-    return path
-
-
-def test_c12_pending_job_is_not_counted_until_approved(tree, capsys):
-    code, out = guard(tree, capsys, "--json")
-    assert code == 0, out
-    assert json.loads(out)["costs_usd"]["jobs_worst_case_month"] == 0
+    return root / "azure" / "jobs" / "melbcup-nba.json"
 
 
 def test_c12_job_passes_and_is_priced(tree, capsys):

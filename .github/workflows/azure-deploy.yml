@@ -230,8 +230,7 @@ jobs:
           python3 tools/cost_guard.py --base-ref ${{ needs.guard.outputs.base }} --live live/containerapp.json
 
   nbajob:
-    # Waits for the owner: runs only once azure/jobs/melbcup-nba.json exists (moved there from
-    # azure/jobs-pending/ with the jobs section of azure/limits.json, under limits_approved).
+    # Runs while azure/jobs/melbcup-nba.json exists (owner-approved 2026-11-04); remove it to stop.
     needs: guard
     runs-on: ubuntu-latest
     timeout-minutes: 30
