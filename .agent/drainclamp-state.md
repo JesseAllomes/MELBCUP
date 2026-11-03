@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=144 -->
+<!-- drainclamp-build: state; schema=1; generation=145 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T09:16:16+00:00 f1855db6 st1 part 1 verified: /healthz 0.98 s after 8 min idle (was 22 s cold). Page-speed work still open.
 - 2026-11-03T09:24:11+00:00 78cf54d6 ui6 round 2 (owner: modular + tabbed, no long scroll): one-screen shells. A Tabs LzRVheREuhFyVsfcjjpbDx, B Segments HuNiJy6QiCHPKT9DWXa4w9, C Bento ArRfRT7i6G7NdSxHgvn8gv, D Pager 1TeWtWyVeQuSujLUcUx5s3. Source .grok/product-ui/v3/build.py. Round 1 (v2) rejected: long scroll.
 - 2026-11-03T09:35:01+00:00 0ffc3e42 Owner 2026-11-03: AsynymBet covers ALL meetings, not just the Cup (answers t3 scope). ui6 round 3 on RaceLens nav (Day > Meeting > Race > race tabs; real meeting lists, sample picks): A Race days GEJ8cNhcdSUZjzoVi9sCXq, B Next up MfcgMbumxLaU6ypaopJdje, C Three tier 3DBHx7KqR99bRyycy3PJcZ, D Hub HPKgsrD5e4fEaGEFzeHV8i. Source .grok/product-ui/v4/.
 - 2026-11-03T09:37:22+00:00 875caf16 Owner 2026-11-03 design rules: (1) agencies + day P&L fixed at the top of every screen; (2) Agencies panel lists every agency we pull prices from (Sportsbet, Betfair, PointsBet, TAB, Ladbrokes, Neds), on/off per agency for money tracking + balance, model always uses all prices; (3) theme dark purples/blacks, no bookie-brand colours. Applied to round 3 A-D (same URLs, v2).
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T11:00:29+00:00 83249137 ui6 built (Sonnet) and verified: full pytest + 18 new, ruff clean, golden identical vs origin/main with ASYNYM unset, screenshots OK. Live with ASYNYM=1 in melbcup-web.json (rollback = 0). TAB/Ladbrokes/Neds chips display-only (no per-agency prices yet); /history stays old UI.
 - 2026-11-03T11:04:24+00:00 0b36433d AsynymBet live on cup.asynym.dev (/, /meetings, /mine, /race/7 all 200, titles AsynymBet). Pending owner: Cloudflare CNAME bet + TXT asuid.bet; Azure role (A: Owner/UAA on RG for app 7ab2c182, or B: Storage Blob Data Reader).
 - 2026-11-03T11:28:09+00:00 003f707b Owner allowed role grants: Storage Blob Data Reader on stpersonalv5ethud2i3cfq granted to deploy app (1219dd34) and owner SP dfe297b5 (8cfbb9d5). Owner SP creds kept only in session scratchpad azure.env (600); owner told to rotate the secret.
+- 2026-11-03T11:36:10+00:00 b8c3a91e NBA probe v2 (on demand via admin endpoint): PointsBet mes/v3 featured competition 7176 works with player prop categories (points, rebounds, assists, threes, steals, blocks, turnovers); Sportsbet competition + Events/{id}/Markets work (game markets; player props in another market group, next probe); TAB 403 (WAF), Ladbrokes/Neds 500 (wrong endpoint); NBA CDN OK; stats.nba.com blocked. Backtest plan offered: step 1 free accuracy test on 2 past seasons of box scores.
 <!-- /DC:LOG -->
