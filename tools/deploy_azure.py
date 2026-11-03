@@ -1,4 +1,4 @@
-# ruff: noqa: E501
+# ruff: noqa: E501, E702
 """Deploy straight to Azure, no GitHub Actions (owner, 2026-11-04: "stop using git to deploy").
 
     python3 tools/deploy_azure.py web|job|function|all [--skip-checks]
