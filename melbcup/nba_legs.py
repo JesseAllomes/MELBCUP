@@ -215,6 +215,24 @@ def best_stack(groups, target, min_legs=3, max_legs=10):
     return list(max(done, key=lambda c: c[0])[2]) if done else None
 
 
+LEG_MIN_PRICE = 1.15  # a leg paying less barely moves a multi's price
+
+
+def by_game(legs, n=6):
+    """Per game, each player's surest line that still pays LEG_MIN_PRICE or more; the most likely first."""
+    games = {}
+    for g in legs:
+        if g["price"] >= LEG_MIN_PRICE:
+            best = games.setdefault(g["event"], {}).get(g["player"])
+            if best is None or (g["chance"], g["price"]) > (best["chance"], best["price"]):
+                games[g["event"]][g["player"]] = g
+    out = []
+    for players in games.values():
+        top = sorted(players.values(), key=lambda g: -g["chance"])[:n]
+        out.append({"game": top[0]["game"], "startsAt": top[0].get("startsAt"), "legs": top})
+    return sorted(out, key=lambda x: (x["startsAt"] or "", x["game"]))
+
+
 def stacks(legs, stake=10.0, floor=0.5):
     """For each payout target, the most likely stack: across games (one leg per game, a normal
     multi) and inside one game (one leg per player, a same-game multi)."""
@@ -250,7 +268,7 @@ def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03):
     legs, unmatched = legs_from(events, board)
     ok, cross, same = build(legs, min_chance, stake, min_ev)
     stack_cross, stack_same = stacks(legs, stake)
-    return {"stacks": stack_cross, "stacks_same": stack_same,"day": board["day"], "verdict": "take" if ok else "nothing worth taking today", "min_chance": min_chance, "min_ev": min_ev,
+    return {"stacks": stack_cross, "stacks_same": stack_same, "by_game": by_game(legs),"day": board["day"], "verdict": "take" if ok else "nothing worth taking today", "min_chance": min_chance, "min_ev": min_ev,
             "stake": stake, "games_priced": len({g["event"] for g in legs}), "legs_seen": len(legs),
             "value_legs": sorted(ok, key=lambda g: -g["chance"]), "all_legs": legs, "cross_game": cross, "same_game": same,
             "unmatched_players": unmatched}

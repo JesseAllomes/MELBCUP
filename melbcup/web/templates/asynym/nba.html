@@ -28,7 +28,7 @@
 {% endif %}
 
 <nav class="rtabs" aria-label="NBA tabs">
-  {% for key, label, n in [('stacks', 'Stacks', rep.stacks | length), ('same', 'Same game', rep.stacks_same | length), ('legs', 'Over fair', rep.value_legs | length), ('all', 'All lines', rep.all_legs | length)] %}
+  {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('games', 'By game', (rep.by_game or []) | length), ('same', 'Same game', rep.stacks_same | length), ('all', 'All lines', rep.all_legs | length)] %}
   <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}<small>{{ n }}</small></a>
   {% endfor %}
 </nav>
@@ -37,7 +37,7 @@
 <section class="card">
   {% for m in rep.stacks %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b><span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
+    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b><span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}
@@ -49,18 +49,22 @@
 <section class="card">
   {% for m in rep.stacks_same %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b><span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
+    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b><span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
   <p class="note">Same-game multi: PointsBet prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
 </section>
-{% elif nba_tab == 'legs' %}
+{% elif nba_tab == 'games' %}
+{% for gm in rep.by_game or [] %}
 <section class="card rows">
-  {% for g in rep.value_legs %}
-  <div class="brow nba-leg val">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }} · {{ g.startsAt | iso_time }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
-  {% else %}<p class="say">No value legs right now.</p>{% endfor %}
+  <div class="sec"><span>{{ gm.game }}{% if gm.startsAt %} · {{ gm.startsAt | iso_time }}{% endif %}</span></div>
+  {% for g in gm.legs %}
+  <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}</span></div>
+  {% endfor %}
 </section>
+{% else %}<section class="card"><p class="say">PointsBet has no player lines posted yet.</p></section>{% endfor %}
+<p class="note">Each player's surest line that still pays $1.15 or more (a shorter leg barely moves a multi). Green: 75%+.</p>
 {% else %}
 <section class="card rows">
   {% for g in rep.all_legs | sort(attribute='chance', reverse=True) %}{% if loop.index <= 120 %}
@@ -70,5 +74,5 @@
 </section>
 {% endif %}
 {% endif %}
-<p class="note">"Over fair" lists lines paying more than our chance says they should. The chance is the model's (v3, tested on past seasons). Whether it beats PointsBet's prices is being measured from today: every line is settled against the real box score.</p>
+<p class="note">The chance is the model's (v3, tested on past seasons). Whether it beats PointsBet's prices is being measured from today: every line is settled against the real box score.</p>
 {% endblock %}

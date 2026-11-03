@@ -363,7 +363,7 @@ class Views:
             self._nba = NbaFeed()
         v = self._nba.view()
         tab = query.get("tab")
-        tab = tab if tab in ("stacks", "same", "legs", "all") else "stacks"
+        tab = tab if tab in ("stacks", "games", "same", "all") else "stacks"
         rep = v.get("report") or {}
         games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
         return {"nba": v, "nba_tab": tab, "nba_rep": rep, "nba_games": games}

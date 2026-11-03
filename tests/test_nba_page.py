@@ -116,7 +116,7 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
         html = c.get("/nba").text
         assert 'class="hd"' in html and ">NBA<" in html and 'aria-current="page">NBA' in html
         assert "Most likely to get up" in html and "3-leg multi" in html
-        for tab, text in (("stacks", "$10 → $"), ("legs", "Joel Embiid To Score 10+ Points"),
+        for tab, text in (("stacks", "$10 → $"), ("games", "Joel Embiid To Score 10+ Points"),
                           ("same", "No game has enough lines"), ("all", "LaMelo Ball To Score 10+ Points")):
             r = c.get(f"/nba?tab={tab}")
             assert r.status_code == 200 and text in r.text, tab

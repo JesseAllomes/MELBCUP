@@ -145,3 +145,14 @@ def test_stacks_reach_each_payout_with_three_games():
     # stack that pays is 0.9 x 0.9 x 0.62 ($2.51), ahead of 0.9 x 0.7 x 0.7 ($2.59)
     assert cross[0]["chance"] == round(0.9 * 0.9 * 0.62, 4)
     assert [m["target"] for m in same] == [2.0, 3.0]  # one game: 3 players, at most $1.15 x $1.5 x $1.9
+
+
+def test_by_game_shows_each_players_surest_line_that_still_pays():
+    legs = [
+        {"event": "1", "game": "G", "player": "A", "label": "A 5+", "chance": 0.97, "price": 1.03},
+        {"event": "1", "game": "G", "player": "A", "label": "A 10+", "chance": 0.85, "price": 1.25},
+        {"event": "1", "game": "G", "player": "A", "label": "A 15+", "chance": 0.6, "price": 1.8},
+        {"event": "1", "game": "G", "player": "B", "label": "B 8+", "chance": 0.9, "price": 1.2},
+    ]
+    (game,) = L.by_game(legs)
+    assert [g["label"] for g in game["legs"]] == ["B 8+", "A 10+"]  # A 5+ pays too little
