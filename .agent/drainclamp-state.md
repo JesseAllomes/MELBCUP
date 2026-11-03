@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=115 -->
+<!-- drainclamp-build: state; schema=1; generation=116 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -101,7 +101,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-02T22:41:13+00:00 1f40e8af pb2 built (Sonnet): promos are bets behind PROMOS=1 (off = byte-identical, PB off and on, verified). PointsBet Run 2nd You Win (Cup, PaysAsWinner) and Sportsbet R1-2 bonus back 2nd/3rd (MoneyBack c=0.75); promo replaces the Win pick when its worst-case EV beats it; max stakes $50 assumed (melbcup/bets/promos.py). On in prod
 - 2026-11-02T23:11:54+00:00 66667dc1 owner confirmed promo max stakes $50 (PointsBet Run 2nd, Sportsbet bonus back); no code change
 - 2026-11-02T23:23:58+00:00 576b918a pb2+: PointsBet Daily Booster (racing single: max stake x chance x (price-1) PB line marked) and Daily Pay Back any multi ($50, bonus 0.75, criteria ASSUMED 'multi loses'; best EV 2-3 leg PB multi, P>=0.25) shown when PROMOS+POINTSBET on and PB amount > 0; off path byte-identical (verified)
 - 2026-11-02T23:39:55+00:00 ab489ce4 pb2+: Betfair Cash Back 2nd (cash, every race, valued after 8% commission, max $50 ASSUMED, Betfair $5 min) as a promo bet; promo checks limited to the places each promo needs (exact, no 200k simulation): cold day page 34 s -> 0.2 s
@@ -121,4 +120,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 - 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
+- 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.
 <!-- /DC:LOG -->
