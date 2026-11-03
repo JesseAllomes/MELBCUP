@@ -21,7 +21,7 @@ import urllib.request
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 UA = "Mozilla/5.0 (compatible; asynymbet-backtest)"
 SEASONS = ("00224:2024-10-22:2025-04-13", "00225:2025-10-21:2026-04-12")
-PAUSE_S = 0.5
+PAUSE_S = float(os.environ.get("ESPN_PAUSE_S", "0.5"))
 
 
 def get(url: str) -> dict:
