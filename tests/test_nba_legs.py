@@ -13,11 +13,11 @@ pytest.importorskip("scipy")
 import legs as L  # noqa: E402
 import settle as S  # noqa: E402
 
-PARAMS = {s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "rebounds", "assists", "threes")}
+PARAMS = {s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "reboundsTotal", "assists", "threePointersMade")}
 
 
 def player(name, team, pts):
-    return {"name": name, "team": team, "minutes": 32.0, "mu": {"points": pts, "rebounds": 6.0, "assists": 4.0, "threes": 2.0}}
+    return {"name": name, "team": team, "minutes": 32.0, "mu": {"points": pts, "reboundsTotal": 6.0, "assists": 4.0, "threePointersMade": 2.0}}
 
 
 BOARD = {
@@ -86,12 +86,12 @@ def test_nothing_worth_taking_when_prices_are_short():
 def test_settle_won_lost_void():
     legs = [
         {"player": "Joel Embiid", "stat": "points", "line": 20},
-        {"player": "Cade Cunningham", "stat": "points", "line": 30},
+        {"player": "Cade Cunningham", "stat": "reboundsTotal", "line": 10},
         {"player": "LaMelo Ball", "stat": "points", "line": 10},
     ]
     rows = {
         "joel embiid": {"min": 30, "points": 24},
-        "cade cunningham": {"min": 34, "points": 29},
+        "cade cunningham": {"min": 34, "points": 29, "reboundsTotal": 6},
     }
     res = [x["result"] for x in S.settle(legs, rows)]
     assert res == ["won", "lost", "void"]
@@ -156,3 +156,15 @@ def test_by_game_shows_each_players_surest_line_that_still_pays():
     ]
     (game,) = L.by_game(legs)
     assert [g["label"] for g in game["legs"]] == ["B 8+", "A 10+"]  # A 5+ pays too little
+
+
+@pytest.mark.parametrize("label,unit,stat", [
+    ("Joel Embiid To Get 8+ Rebounds", "Rebounds", "reboundsTotal"),
+    ("Joel Embiid To Get 5+ Assists", "Assists", "assists"),
+    ("Joel Embiid To Make 2+ Threes", "Threes", "threePointersMade"),
+    ("Joel Embiid To Score 20+ Points", "Points", "points"),
+])
+def test_every_stat_is_priced_with_the_boards_names(label, unit, stat):
+    ev = [event("1", "Philadelphia 76ers @ Detroit Pistons", [out(label, 1.5, unit)])]
+    legs, unmatched = L.legs_from(ev, BOARD)
+    assert unmatched == [] and [g["stat"] for g in legs] == [stat]

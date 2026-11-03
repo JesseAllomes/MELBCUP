@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from espn_history import API, game_rows, get  # noqa: E402
 from legs import norm  # noqa: E402
 
-FIELD = {"points": "points", "rebounds": "reboundsTotal", "assists": "assists", "threes": "threePointersMade"}
+FIELD = {"points": "points", "reboundsTotal": "reboundsTotal", "assists": "assists", "threePointersMade": "threePointersMade"}
 
 
 def box(day: str) -> dict:

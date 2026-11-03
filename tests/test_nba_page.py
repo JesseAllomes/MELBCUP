@@ -11,7 +11,7 @@ from test_asynym import ON, make
 from melbcup import nba_feed
 from melbcup.nba_feed import NbaFeed, nearest
 
-PARAMS = {s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "rebounds", "assists", "threes")}
+PARAMS = {s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "reboundsTotal", "assists", "threePointersMade")}
 GAMES = [
     ("Philadelphia 76ers", "PHI", "Detroit Pistons", "DET", "Joel Embiid"),
     ("Charlotte Hornets", "CHA", "Brooklyn Nets", "BKN", "LaMelo Ball"),

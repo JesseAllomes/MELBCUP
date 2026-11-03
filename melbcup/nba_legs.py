@@ -46,11 +46,15 @@ def chance(mu: float, phi: float, ca: float, cb: float, k: int) -> float:
 
 def stat_of(what: str, unit: str | None) -> str | None:
     t = f"{what} {unit or ''}".lower()
-    if "three" in t or "3-point" in t or "3 point" in t or "threes" in t:
-        return "threes"
-    for s in ("points", "rebounds", "assists"):
-        if s[:-1] in t:
-            return s
+    # the board's own stat names (tools/nba/tune.py STATS)
+    if "three" in t or "3-point" in t or "3 point" in t:
+        return "threePointersMade"
+    if "rebound" in t:
+        return "reboundsTotal"
+    if "assist" in t:
+        return "assists"
+    if "point" in t:
+        return "points"
     return None
 
 

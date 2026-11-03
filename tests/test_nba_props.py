@@ -42,7 +42,8 @@ def test_only_changes_are_written(monkeypatch):
 BOARD = {
     "day": "20261104",
     "params": {
-        s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "rebounds", "assists", "threes")
+        s: {"phi": 1.2, "ca": 1.0, "cb": 0.0}
+        for s in ("points", "reboundsTotal", "assists", "threePointersMade")
     },
     "games": [
         {"name": "Philadelphia 76ers at Detroit Pistons", "teams": {"home": "DET", "away": "PHI"}}
