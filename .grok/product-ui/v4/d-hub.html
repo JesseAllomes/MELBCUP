@@ -1,0 +1,238 @@
+<title>AsynymBet Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* D · Hub: one home screen of modules (best bets, meetings, money); meetings open as a sheet, races open full with tabs. */
+:root{
+  --ground:#F4F2EE; --sheet:#FFFFFF; --ink:#16201B; --muted:#5F6B66; --rule:#E4E1DA; --chip:#EFECE6;
+  --brand:#136A4B; --brand-ink:#FFFFFF; --brand-wash:#E3F1EA;
+  --good:#1B7F4E; --good-wash:#E2F3E8; --bad:#B8322A; --bad-wash:#FBE6E3; --warn:#9A6200; --warn-wash:#FCF0D6;
+  --sb:#1E3687; --bf:#B57A00; --pb:#C4182F; --place:#2F5FD0;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#0F1412;--sheet:#18201C;--ink:#EAF0EC;--muted:#9AA8A1;--rule:#2A3530;--chip:#222C27;--brand:#3FB683;--brand-ink:#08130E;--brand-wash:#183429;--good:#4CC98A;--good-wash:#173326;--bad:#F07A6E;--bad-wash:#3A1D1A;--warn:#F0B54A;--warn-wash:#3A2C12;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--place:#86A8FF;color-scheme:dark}}
+:root[data-theme="dark"]{--ground:#0F1412;--sheet:#18201C;--ink:#EAF0EC;--muted:#9AA8A1;--rule:#2A3530;--chip:#222C27;--brand:#3FB683;--brand-ink:#08130E;--brand-wash:#183429;--good:#4CC98A;--good-wash:#173326;--bad:#F07A6E;--bad-wash:#3A1D1A;--warn:#F0B54A;--warn-wash:#3A2C12;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--place:#86A8FF;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.35;font-variant-numeric:tabular-nums;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{height:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.fill{flex:1;min-height:0;overflow:auto}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:10px;min-width:0}
+.lbl{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.cloth{flex:0 0 auto;width:24px;height:24px;border-radius:5px;background:#fff;color:#111;border:1.5px solid #111;display:inline-grid;place-items:center;font-weight:800;font-size:12px}
+.cloth.lg{width:34px;height:34px;font-size:16px}
+.brandbar{display:flex;align-items:center;gap:8px;padding-block:8px 6px}
+.brandbar b{font-weight:800;color:var(--brand);font-size:16px}
+.brandbar .pl{margin-left:auto;font-weight:800;color:var(--good)}
+.wal{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.wal div{border-radius:9px;background:var(--sheet);border:1px solid var(--rule);border-left:4px solid var(--c);padding:4px 7px;font-size:10.5px;color:var(--muted)}
+.wal b{display:block;color:var(--ink);font-size:14px}
+.plbar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.plbar .tr{flex:1;height:6px;border-radius:3px;background:var(--rule);position:relative}
+.plbar .tr::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.plbar .fl{position:absolute;left:50%;top:0;bottom:0;width:18%;background:var(--good);border-radius:3px}
+.plbar b{color:var(--good);font-size:13px}
+.strip{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.strip button{flex:0 0 auto;border:1px solid var(--rule);background:var(--sheet);border-radius:9px;padding:3px 8px;font-size:11px;display:flex;flex-direction:column;align-items:flex-start;position:relative;min-width:44px;color:var(--muted)}
+.strip button b{font-size:14px;color:var(--ink)}
+.strip button.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.strip button.on b{color:var(--brand-ink)}
+.strip button i{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%}
+.i-take{background:var(--good)}.i-res{background:var(--warn)}.i-none{background:var(--rule)}
+.seg{display:flex;background:var(--chip);border-radius:11px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:6px 4px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg button small{font-size:10px;background:var(--rule);border-radius:999px;padding:0 5px;margin-left:3px}
+.clock{font-weight:800;color:var(--brand)}
+.clock.now{color:var(--bad)}
+.vlabel{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--good)}
+.none .vlabel{color:var(--muted)}
+.vrow{display:flex;align-items:center;gap:9px;margin-top:6px}
+.vrow .nm{flex:1;min-width:0}
+.vrow .nm b{display:block;font-size:17px;line-height:1.1}
+.vrow .nm span{font-size:12px;color:var(--muted)}
+.vrow .st{font-size:24px;font-weight:800}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.nums div{background:var(--chip);border-radius:8px;padding:4px 7px;font-size:10.5px;color:var(--muted)}
+.nums b{display:block;color:var(--ink);font-size:14px}
+.floor{margin-top:6px;font-size:12px;color:var(--good);font-weight:600}
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.books button{border:1.5px solid var(--c);color:var(--c);background:transparent;border-radius:9px;padding:5px 2px;font-size:11px;font-weight:700;line-height:1.1}
+.books button b{display:block;font-size:15px}
+.books button.best{background:var(--c);color:var(--sheet)}
+.books button.ok{background:var(--good);border-color:var(--good);color:#fff}
+.goto{display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--brand-wash);border-radius:11px;padding:9px;text-decoration:none;color:var(--ink);border:0;width:100%;text-align:left}
+.goto .rn{font-size:22px;font-weight:800;color:var(--brand)}
+.goto small{display:block;color:var(--muted);font-size:12px}
+.goto i{margin-left:auto;font-style:normal;font-size:20px;font-weight:800;color:var(--brand)}
+.rows{display:flex;flex-direction:column}
+.r{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--rule)}
+.r:first-child{border-top:0}
+.r .t{flex:1;min-width:0}
+.r .t small{display:block;color:var(--muted);font-size:11.5px}
+.r .a{font-weight:800;white-space:nowrap}
+.r .k{font-weight:700;width:62px;flex:0 0 auto}
+.r.off{opacity:.5}
+.bar2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:3px}
+.bar2 i{display:block;height:4px;border-radius:2px;background:var(--rule);overflow:hidden}
+.bar2 i span{display:block;height:100%}
+.pv{color:var(--good);font-weight:800}.ps{color:var(--muted);font-weight:700}
+.tag{font-size:10px;font-weight:800;border-radius:5px;padding:2px 6px;background:var(--chip)}
+.say{border-left:3px solid var(--brand);background:var(--brand-wash);border-radius:0 9px 9px 0;padding:7px 9px;font-size:13px;margin:0}
+.proto{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--muted);padding-top:6px;flex-wrap:wrap}
+.proto button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:2px 9px;font-size:11px}
+.proto button.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+
+.app{padding-top:0}
+.scr{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-block:8px 12px}
+.back{border:0;background:none;color:var(--brand);font-weight:700;padding:0;text-align:left;font-size:13px}
+.daychips{display:flex;gap:5px}
+.daychips button{flex:1;border:1px solid var(--rule);background:var(--sheet);border-radius:10px;padding:5px 2px;font-weight:700;font-size:13px;line-height:1.15}
+.daychips button small{display:block;font-weight:500;font-size:10.5px;color:var(--muted)}
+.daychips button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.daychips button.on small{color:var(--brand-ink);opacity:.85}
+.mrow{display:flex;align-items:center;gap:9px;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:8px 10px;width:100%;text-align:left}
+.mrow .v{flex:1;min-width:0}
+.mrow .v b{display:block;font-size:15px}
+.mrow .v small{color:var(--muted);font-size:11.5px}
+.mrow .n{font-weight:800;font-size:15px;text-align:center;line-height:1;background:var(--chip);border-radius:8px;padding:5px 7px}
+.mrow .n small{display:block;font-size:9.5px;font-weight:600;color:var(--muted)}
+.mrow .tk{font-size:11px;font-weight:800;color:var(--good);background:var(--good-wash);border-radius:6px;padding:2px 6px;white-space:nowrap}
+.brow{display:flex;align-items:center;gap:9px;background:var(--sheet);border:1px solid var(--rule);border-left:4px solid var(--good);border-radius:10px;padding:7px 9px;width:100%;text-align:left}
+.brow.none{border-left-color:var(--rule)}
+.brow .tm{font-weight:800;width:56px;flex:0 0 auto;font-size:13px}
+.brow .tm small{display:block;font-weight:600;color:var(--muted);font-size:10.5px}
+.brow .v{flex:1;min-width:0;font-size:13px}
+.brow .v b{display:block;font-size:14px}
+.brow .v small{color:var(--muted)}
+.brow .a{font-weight:800}
+.rtabs{display:flex;gap:2px;border-bottom:1px solid var(--rule);overflow-x:auto;scrollbar-width:none}
+.rtabs button{flex:0 0 auto;border:0;background:none;padding:7px 9px;font-weight:600;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.rtabs button.on{color:var(--brand);border-color:var(--brand)}
+.rtabs small{background:var(--chip);border-radius:999px;padding:0 5px;font-size:10px;margin-left:2px}
+.mtabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.mtabs button{flex:0 0 auto;border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:600}
+.mtabs button.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.mtabs button i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-left:5px;vertical-align:middle}
+.topnav{display:flex;gap:4px;background:var(--brand);color:var(--brand-ink);margin:0 calc(-1*max(10px,env(safe-area-inset-left,0px)));padding:8px max(10px,env(safe-area-inset-left,0px));align-items:center}
+.topnav b{font-weight:800;font-size:16px;margin-right:auto}
+.topnav button{border:0;background:none;color:inherit;font-weight:600;font-size:12.5px;padding:5px 8px;border-radius:999px;opacity:.85}
+.topnav button.on{background:rgba(255,255,255,.2);opacity:1}
+.dock{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);background:var(--sheet);margin:0 calc(-1*max(10px,env(safe-area-inset-left,0px)));padding-bottom:env(safe-area-inset-bottom,0px)}
+.dock button{border:0;background:none;padding:8px 0 7px;font-size:11px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.dock button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.dock button.on{color:var(--brand)}
+.sec{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 0 -2px;display:flex;justify-content:space-between}
+.mhead{display:flex;flex-direction:column;gap:5px}
+.mhead h2{margin:0;font-size:19px}
+.facts{display:flex;flex-wrap:wrap;gap:4px}
+.facts span{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:11.5px}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:14px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet[hidden]{display:none}
+.sheet .in{background:var(--ground);width:100%;max-width:460px;height:88%;border-radius:18px 18px 0 0;padding:10px max(10px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px}
+.sheet .bar{display:flex;align-items:center}
+.sheet .bar button{margin-left:auto;border:0;background:var(--chip);border-radius:999px;padding:4px 12px;font-weight:700}
+
+</style>
+<div class="app">
+<div class="proto">D · Hub · sample picks · <button data-v="take" type="button">Take</button><button data-v="none" type="button">Nothing here</button><button id="pNow" type="button">2 min</button></div>
+<div class="brandbar"><b>AsynymBet</b><span class="pl">+$36</span></div>
+<div class="scr" id="scr"></div></div>
+<div class="sheet" id="sheet" hidden><div class="in" role="dialog" aria-modal="true"><div class="bar"><b id="shT"></b><button id="shX" type="button">Close</button></div><div class="scr" id="shB" style="padding:0"></div></div></div>
+<script>
+const FIELD=[[20,"Point Of Law","B9 · E. Brown · C. Maher",14,30,7.0,8.5,"SB"],[12,"Hopewell Rock","B15 · Z. Lloyd · G. Boughey",13,30,8.0,7.8,"BF"],[2,"Trustyourinstinct","B18 · J. McDonald · A. O'Brien",10,25,10.0,9.4,"BF"],[16,"So You Are","B7 · R. King · B. Baker",9,25,11.0,13.0,"SB"],[24,"Shockletz","B17 · H. Coffey · C. Maher",9,25,11.0,11.0,"SB"],[11,"Juja Kibo","B14 · S. Clipperton · C. Maher",6,17,16.0,14.5,"BF"],[5,"Vauban","B3 · W. Pike · W. Mullins",5,15,20.0,17.0,"PB"],[8,"Wine Dark Sea","B11 · D. Lane · C. Waller",4,13,25.0,26.0,"SB"]];
+const S={verdict:"take",now:false};
+const $=s=>document.querySelector(s);
+const UI={
+ wallets:()=>`<div class="wal"><div style="--c:var(--sb)">Sportsbet<b>$90 <small style="color:var(--muted);font-weight:500">/150</small></b></div><div style="--c:var(--bf)">Betfair<b>$45 <small style="color:var(--muted);font-weight:500">/50</small></b></div><div style="--c:var(--pb)">PointsBet<b>$20 <small style="color:var(--muted);font-weight:500">/50</small></b></div></div>`,
+ pnl:()=>`<div class="plbar"><span>Today</span><div class="tr"><div class="fl"></div></div><b>+$36</b></div>`,
+ strip:(on=7)=>`<nav class="strip" aria-label="Races">${[[5,"1:40","res"],[6,"2:20","res"],[7,"3:00","take"],[8,"3:45","none"],[9,"4:25","take"],[10,"5:10","none"]].map(([n,t,s])=>`<button type="button" class="${n===on?"on":""}"><b>R${n}</b>${t}<i class="i-${s}"></i></button>`).join("")}</nav>`,
+ clock:()=>S.now?`<span class="clock now">BET NOW · 2:00</span>`:`<span class="clock">12:40 to jump</span>`,
+ head:()=>`<div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:22px;color:var(--brand);font-weight:800">R7</b><div style="min-width:0;flex:1"><b style="font-size:15px">Lexus Melbourne Cup</b><div style="font-size:11.5px;color:var(--muted)">3200m · 23 run · Good 4 · prices 40 s ago</div></div><span class="clk">${UI.clock()}</span></div>`,
+ verdict:()=>S.verdict==="take"?`<div class="vlabel">Take this bet</div>
+   <div class="vrow"><span class="cloth lg">20</span><div class="nm"><b>Point Of Law</b><span>Win · best at Sportsbet</span></div><span class="st">$10</span></div>
+   <div class="nums"><div>Chance<b>1 in 7</b></div><div>Fair<b>$7.00</b></div><div>Best<b>$8.50</b></div></div>
+   <div class="floor">Only worth it at $7.00 or better · PB Run 2nd applies</div>
+   <div class="books"><button class="best" style="--c:var(--sb)" type="button">Sportsbet<b>$8.50</b></button><button style="--c:var(--bf)" type="button">Betfair<b>$8.20</b></button><button style="--c:var(--pb)" type="button">PointsBet<b>$8.00</b></button></div>`
+  :`<div class="vlabel">Nothing worth trying here</div><p style="margin:5px 0 0;font-size:13px">Every runner is at or under its fair price. Best bet left today:</p>
+   <button class="goto" type="button"><span class="rn">R9</span><span><b>4 Ferocious · Win $10</b><small>4:25pm · Betfair $6.50 · fair $5.20</small></span><i>›</i></button>`,
+ say:()=>S.verdict==="take"?"We rate Point Of Law 1 in 7; Sportsbet pays $8.50, 21% over fair. Hopewell Rock is the likeliest placer. Exotics are short: skip.":"Every runner is at or under fair. Hold the money for R9.",
+ bets:()=>`<div class="rows">
+   <div class="r"><span class="k">Win</span><span class="t"><span class="cloth">20</span> Point Of Law<small>take $7.00+ · SB $8.50</small></span><span class="a">$10</span></div>
+   <div class="r"><span class="k">Place</span><span class="t"><span class="cloth">12</span> Hopewell Rock<small>take $2.80+ · BF $3.10</small></span><span class="a">$5</span></div>
+   <div class="r"><span class="k">Each way</span><span class="t"><span class="cloth">11</span> Juja Kibo<small>$2 EW · $4 total · PB $14/$4.20</small></span><span class="a">$4</span></div>
+   <div class="r off"><span class="k">Quinella</span><span class="t">20 – 12<small>est. $38 · needs $45 · skip</small></span><span class="a">–</span></div>
+   <div class="r off"><span class="k">Trifecta</span><span class="t">20, 12, 2, 16 box<small>short · skip</small></span><span class="a">–</span></div></div>`,
+ field:(n=8)=>`<div class="rows">${FIELD.slice(0,n).map((r,i)=>`<div class="r"><span class="cloth">${r[0]}</span><span class="t"><b>${r[1]}</b><small>${r[2]}</small><div class="bar2"><i><span style="width:${r[3]*4}%;background:var(--good)"></span></i><i><span style="width:${r[4]*2}%;background:var(--place)"></span></i></div></span><span style="text-align:right;font-size:12px"><b>${r[3]}%</b><br><span class="${r[6]>r[5]?"pv":"ps"}">$${r[6].toFixed(2)}</span> <small style="color:var(--muted)">${r[7]}</small></span></div>`).join("")}</div>`,
+ mine:()=>`<div class="lbl" style="margin-bottom:2px">Your bets</div><div class="rows">
+   <div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>$10 @ $8.50 · SB</small></span><span class="tag">OPEN</span></div>
+   <div class="r"><span class="k">Kids</span><span class="t">Holly · 2 Trustyourinstinct<small>$5 EW @ $9/$3 · PB</small></span><span class="tag">OPEN</span></div></div>
+   <div class="lbl" style="margin:8px 0 2px">App's picks</div><div class="rows"><div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>$10 @ $8.50</small></span><span class="tag">OPEN</span></div></div>`,
+ day:()=>`<div class="rows">${[["R5","1:40","Won $18","var(--good)"],["R6","2:20","Lost $10","var(--bad)"],["R7","3:00","Take: 20 Point Of Law $10","var(--ink)"],["R8","3:45","Nothing here","var(--muted)"],["R9","4:25","Take: 4 Ferocious $10","var(--ink)"],["R10","5:10","Nothing here","var(--muted)"]].map(r=>`<div class="r"><b style="width:36px">${r[0]}</b><span class="t">${r[2]}<small>${r[1]}pm</small></span><span style="width:8px;height:8px;border-radius:50%;background:${r[3]}"></span></div>`).join("")}</div>`
+};
+function wire(render){
+ const draw=()=>{render();document.querySelectorAll(".books button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed<b>$10</b>"});
+  document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===S.verdict));$("#pNow").classList.toggle("on",S.now)};
+ document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{S.verdict=b.dataset.v;draw()});
+ $("#pNow").onclick=()=>{S.now=!S.now;draw()};
+ draw();return draw;}
+function tabs(sel,cb){document.querySelectorAll(sel).forEach(b=>b.onclick=()=>{document.querySelectorAll(sel).forEach(x=>x.classList.toggle("on",x===b));cb(b.dataset.tab)})}
+
+const DATA={"2026-11-03": [{"venue": "Ascot", "state": "WA", "raceType": "thoroughbred", "raceCount": 9, "trackCondition": "Soft 5", "firstRaceTime": "2026-11-03T03:25:00.000Z", "weather": "Showers", "rail": "+11m Entire", "races": []}, {"venue": "Bunbury", "state": "WA", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Good 4", "firstRaceTime": "2026-11-03T05:31:00.000Z", "weather": "Fine", "rail": "True", "races": []}, {"venue": "Canberra", "state": "ACT", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Soft 5", "firstRaceTime": "2026-11-03T02:44:00.000Z", "weather": "Overcast", "rail": "True", "races": []}, {"venue": "Darwin", "state": "NT", "raceType": "thoroughbred", "raceCount": 6, "trackCondition": "Good", "firstRaceTime": "2026-11-03T04:21:00.000Z", "weather": "Fine", "rail": "True", "races": []}, {"venue": "Doomben", "state": "QLD", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Good 4", "firstRaceTime": "2026-11-03T00:53:00.000Z", "weather": "Overcast", "rail": "+7m Entire course", "races": []}, {"venue": "Echuca", "state": "VIC", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Soft 5", "firstRaceTime": "2026-11-03T02:00:00.000Z", "weather": "Fine", "rail": "True Entire Circuit", "races": []}, {"venue": "Ellerslie", "state": null, "raceType": "thoroughbred", "raceCount": 10, "trackCondition": null, "firstRaceTime": "2026-11-02T23:20:00.000Z", "weather": null, "rail": null, "races": []}, {"venue": "Flemington", "state": "VIC", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Good 4", "firstRaceTime": "2026-11-02T23:45:00.000Z", "weather": "Overcast", "rail": "Out 3m Entire Circuit", "races": []}, {"venue": "Geraldton", "state": "WA", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Good 4", "firstRaceTime": "2026-11-03T05:19:00.000Z", "weather": "Fine", "rail": "True", "races": []}, {"venue": "Gold Coast", "state": "QLD", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Synthetic", "firstRaceTime": "2026-11-03T02:02:00.000Z", "weather": "Overcast", "rail": "True", "races": []}, {"venue": "Hobart", "state": "TAS", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Good 4", "firstRaceTime": "2026-11-02T23:28:00.000Z", "weather": "Overcast", "rail": "+11m Entire", "races": []}, {"venue": "Kembla Grange", "state": "NSW", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Soft 6", "firstRaceTime": "2026-11-03T01:45:00.000Z", "weather": "Overcast", "rail": "+7m 1100m-W/Post, +6m Remainder", "races": []}, {"venue": "Morphettville", "state": "SA", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Good 4", "firstRaceTime": "2026-11-03T00:40:00.000Z", "weather": "Fine", "rail": "+6m 1200m-W/P, +3m Remainder Sectional 608m", "races": []}, {"venue": "Muswellbrook", "state": "NSW", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Heavy 8", "firstRaceTime": "2026-11-03T02:15:00.000Z", "weather": "Showers", "rail": "4m from 1000m - 300m where cutaway applies", "races": []}, {"venue": "Park Gold Coast Poly", "state": "QLD", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Synth", "firstRaceTime": null, "weather": "Overcast", "rail": "True", "races": []}, {"venue": "Randwick", "state": "NSW", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Good 4", "firstRaceTime": "2026-11-03T00:45:00.000Z", "weather": "Overcast", "rail": "+2m Entire", "races": []}, {"venue": "Sunshine Coast", "state": "QLD", "raceType": "thoroughbred", "raceCount": 7, "trackCondition": "Soft 5", "firstRaceTime": "2026-11-03T02:29:00.000Z", "weather": "Overcast", "rail": "+9m Entire", "races": []}, {"venue": "Wangaratta", "state": "VIC", "raceType": "thoroughbred", "raceCount": 6, "trackCondition": "Soft 5", "firstRaceTime": "2026-11-03T01:13:00.000Z", "weather": "Overcast", "rail": "True Entire Circuit", "races": []}, {"venue": "Wingatui", "state": null, "raceType": "thoroughbred", "raceCount": 11, "trackCondition": null, "firstRaceTime": "2026-11-02T22:30:00.000Z", "weather": null, "rail": null, "races": []}], "2026-11-04": [{"venue": "Coffs Harbour", "state": "NSW", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Soft 7", "firstRaceTime": "2026-11-04T02:50:00.000Z", "weather": "Overcast", "rail": "True", "races": []}, {"venue": "Grafton", "state": "NSW", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Soft 7", "firstRaceTime": "2026-11-04T02:50:00.000Z", "weather": "Clear", "rail": null, "races": []}, {"venue": "Hawera", "state": null, "raceType": "thoroughbred", "raceCount": 8, "trackCondition": null, "firstRaceTime": "2026-11-04T00:22:00.000Z", "weather": null, "rail": null, "races": []}, {"venue": "Kyneton", "state": "VIC", "raceType": "thoroughbred", "raceCount": 9, "trackCondition": "Heavy 8", "firstRaceTime": "2026-11-04T01:55:00.000Z", "weather": "Showers", "rail": "True Entire Circuit", "races": []}, {"venue": "Port Lincoln", "state": "SA", "raceType": "thoroughbred", "raceCount": 9, "trackCondition": "Good 4", "firstRaceTime": "2026-11-04T02:10:00.000Z", "weather": "Showers", "rail": "+2m 1000m - 800m, +2.5m 800m - 550m, +3m 550m - 350m, True Remainder", "races": []}], "2026-11-07": [{"venue": "Ascot", "state": "WA", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "N/a 0", "firstRaceTime": null, "weather": null, "rail": "True", "races": []}, {"venue": "Chinchilla", "state": "QLD", "raceType": "thoroughbred", "raceCount": 6, "trackCondition": "N/a 0", "firstRaceTime": null, "weather": null, "rail": "True", "races": []}, {"venue": "Eagle Farm", "state": "QLD", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Soft 5", "firstRaceTime": null, "weather": "Fine", "rail": "+3m Entire", "races": []}, {"venue": "Flemington", "state": "VIC", "raceType": "thoroughbred", "raceCount": 9, "trackCondition": "N/a 0", "firstRaceTime": null, "weather": null, "rail": null, "races": []}, {"venue": "Geelong", "state": "VIC", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Good 4", "firstRaceTime": null, "weather": "Showers", "rail": "Out 4m Entire Circuit", "races": []}, {"venue": "Goulburn", "state": "NSW", "raceType": "thoroughbred", "raceCount": 6, "trackCondition": "Good 4", "firstRaceTime": null, "weather": "Overcast", "rail": "+6m Entire", "races": []}, {"venue": "Hawkesbury", "state": "NSW", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "N/a 0", "firstRaceTime": null, "weather": null, "rail": null, "races": []}, {"venue": "Ladbrokes Pioneer Park", "state": "NT", "raceType": "thoroughbred", "raceCount": 5, "trackCondition": null, "firstRaceTime": null, "weather": null, "rail": null, "races": []}, {"venue": "Morphettville", "state": "SA", "raceType": "thoroughbred", "raceCount": 9, "trackCondition": "Good 4", "firstRaceTime": null, "weather": "Fine", "rail": "+3m 1200m-W/Post, True Remainder. Sectional 604 metres", "races": []}, {"venue": "Park Gold Coast", "state": "QLD", "raceType": "thoroughbred", "raceCount": 8, "trackCondition": "Soft 5", "firstRaceTime": null, "weather": "Overcast", "rail": "+2m 1000m to 400m True Remainder", "races": []}, {"venue": "Rosehill", "state": "NSW", "raceType": "thoroughbred", "raceCount": 10, "trackCondition": "Good 4", "firstRaceTime": null, "weather": "Showers", "rail": "True", "races": []}]};
+const DAYS=[["2026-11-03","Today","Tue 3 Nov"],["2026-11-04","Tomorrow","Wed 4 Nov"],["2026-11-07","Saturday","Sat 7 Nov"]];
+const NAMES=["Ferocious","Sky Harbour","Iron Ledger","Quiet Riot","Bold Venture","Miss Tempo","Red Atlas","Harbour Lights","Coastal Run","Nightjar","Lucky Strand","Grand Arch"];
+const mel=iso=>new Date(iso).toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit",timeZone:"Australia/Melbourne"}).replace(" ","").toLowerCase();
+function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+function races(m){const t0=new Date(m.firstRaceTime||"2026-11-03T01:00:00Z").getTime();
+ return Array.from({length:m.raceCount},(_,i)=>{const h=hash(m.venue+i);const take=h%3!==0;
+  const fav=NAMES[h%NAMES.length];const price=(3+(h%90)/10);
+  const ts=(m.venue==="Flemington"&&R.day==="2026-11-03")?Date.parse("2026-11-02T23:45:00Z")+[0,35,70,110,150,190,255,300,340,385][i]*60000:t0+i*35*60000;
+  return {n:i+1,ts,time:mel(new Date(ts).toISOString()),take,
+   pick:{no:1+h%12,name:(m.venue==="Flemington"&&i===6)?"Point Of Law":fav,stake:[5,10,10,15][h%4],price:price.toFixed(2),fair:(price*0.84).toFixed(2),book:["Sportsbet","Betfair","PointsBet"][h%3]},
+   done:R.day==="2026-11-03"&&ts<Date.parse("2026-11-03T03:40:00Z")}})}
+const R={day:"2026-11-03",meet:null,race:null,tab:"bet"};
+const meetings=()=>DATA[R.day]||[];
+const M=()=>meetings().find(m=>m.venue===R.meet);
+function allBets(){return meetings().flatMap(m=>races(m).filter(r=>r.take&&!r.done).map(r=>({m,r}))).sort((a,b)=>a.r.ts-b.r.ts)}
+function bestOther(){const b=allBets().filter(x=>!(x.m.venue===R.meet&&x.r.n===R.race));return b.sort((a,b)=>(b.r.pick.price/b.r.pick.fair)-(a.r.pick.price/a.r.pick.fair))[0]}
+const V={
+ days:()=>`<div class="daychips">${DAYS.map(([d,a,b])=>`<button data-day="${d}" class="${d===R.day?"on":""}" type="button">${a}<small>${b}</small></button>`).join("")}</div>`,
+ meetRow:m=>{const rs=races(m);const tk=rs.filter(r=>r.take&&!r.done).length;return `<button class="mrow" data-meet="${m.venue}" type="button"><span class="v"><b>${m.venue}</b><small>${m.state||""} · ${m.trackCondition||"Track TBA"} · first ${m.firstRaceTime?mel(m.firstRaceTime):"–"}${m.weather?" · "+m.weather:""}</small></span>${tk?`<span class="tk">${tk} to take</span>`:""}<span class="n">${m.raceCount}<small>races</small></span></button>`},
+ meetList:()=>`<div class="sec"><span>${meetings().length} meetings</span><span>gallops</span></div>${meetings().map(V.meetRow).join("")}`,
+ betRow:({m,r})=>`<button class="brow" data-meet="${m.venue}" data-race="${r.n}" type="button"><span class="tm">${r.time}<small>R${r.n}</small></span><span class="v"><b>${r.pick.no} ${r.pick.name}</b><small>${m.venue} · Win · ${r.pick.book} $${r.pick.price} · fair $${r.pick.fair}</small></span><span class="a">$${r.pick.stake}</span></button>`,
+ best:(n=99)=>{const b=allBets();return `<div class="sec"><span>Bets to take · all meetings</span><span>${b.length}</span></div>${b.slice(0,n).map(V.betRow).join("")||'<p class="empty">Nothing worth trying today.</p>'}`},
+ meetHead:()=>{const m=M();return `<div class="mhead"><h2>${m.venue} <small style="font-size:12px;color:var(--muted);font-weight:500">${m.state||""}</small></h2><div class="facts"><span>${m.trackCondition||"Track TBA"}</span><span>Rail ${m.rail||"–"}</span>${m.weather?`<span>${m.weather}</span>`:""}<span>${m.raceCount} races</span></div></div>`},
+ strip:()=>`<nav class="strip">${races(M()).map(r=>`<button data-race="${r.n}" class="${r.n===R.race?"on":""}" type="button"><b>R${r.n}</b>${r.time}<i class="i-${r.done?"res":r.take?"take":"none"}"></i></button>`).join("")}</nav>`,
+ raceList:()=>races(M()).map(r=>`<button class="brow ${r.take?"":"none"}" data-race="${r.n}" type="button"><span class="tm">${r.time}<small>R${r.n}</small></span><span class="v"><b>${r.done?"Result in":r.take?`${r.pick.no} ${r.pick.name}`:"Nothing worth trying"}</b><small>${r.done?"settled":r.take?`Win · ${r.pick.book} $${r.pick.price}`:"keep the money"}</small></span><span class="a">${r.take&&!r.done?"$"+r.pick.stake:""}</span></button>`).join(""),
+ race:()=>{const r=races(M())[R.race-1];const cup=R.meet==="Flemington"&&R.race===7;
+  const head=`<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:22px;color:var(--brand);font-weight:800">R${r.n}</b><div style="flex:1;min-width:0"><b>${cup?"Lexus Melbourne Cup":R.meet+" race "+r.n}</b><div style="font-size:11.5px;color:var(--muted)">${r.time} · ${M().trackCondition||""}</div></div><span>${UI.clock()}</span></div></div>`;
+  const tabs=`<div class="rtabs">${[["bet","Bet"],["field","Field",cup?23:10],["check","Verification"],["news","News",4],["result","Result"],["mine","Mine"]].map(([k,l,n])=>`<button data-tab="${k}" class="${R.tab===k?"on":""}" type="button">${l}${n?`<small>${n}</small>`:""}</button>`).join("")}</div>`;
+  let body;
+  if(R.tab==="bet"){ if(cup) body=`<section class="card ${S.verdict}">${UI.verdict()}</section>`;
+   else if(r.take&&S.verdict==="take") body=`<section class="card take"><div class="vlabel">Take this bet</div><div class="vrow"><span class="cloth lg">${r.pick.no}</span><div class="nm"><b>${r.pick.name}</b><span>Win · best at ${r.pick.book}</span></div><span class="st">$${r.pick.stake}</span></div><div class="nums"><div>Fair<b>$${r.pick.fair}</b></div><div>Best<b>$${r.pick.price}</b></div><div>Book<b>${{Sportsbet:"SB",Betfair:"BF",PointsBet:"PB"}[r.pick.book]}</b></div></div><div class="floor">Only worth it at $${r.pick.fair} or better</div></section>`;
+   else {const o=bestOther();body=`<section class="card none"><div class="vlabel">Nothing worth trying here</div><p style="margin:5px 0 0;font-size:13px">No runner pays more than it is worth. Best bet left across every meeting:</p>${o?`<button class="goto" data-meet="${o.m.venue}" data-race="${o.r.n}" type="button"><span class="rn">R${o.r.n}</span><span><b>${o.m.venue} · ${o.r.pick.no} ${o.r.pick.name} · $${o.r.pick.stake}</b><small>${o.r.time} · ${o.r.pick.book} $${o.r.pick.price} · fair $${o.r.pick.fair}</small></span><i>›</i></button>`:""}</section>`}
+   body+=cup?`<section class="card">${UI.bets()}</section>`:`<section class="card"><div class="rows"><div class="r"><span class="k">Place</span><span class="t">${(r.pick.no%12)+1} ${NAMES[(r.pick.no+3)%12]}<small>likeliest placer</small></span><span class="a">$5</span></div><div class="r off"><span class="k">Quinella</span><span class="t">${r.pick.no} – ${(r.pick.no%12)+1}<small>short · skip</small></span><span class="a">–</span></div></div></section>`}
+  else if(R.tab==="field") body=`<section class="card">${UI.field()}</section>`;
+  else if(R.tab==="check") body=`<section class="card"><div class="lbl">Sources agree</div><p style="margin:4px 0">Field, barriers and scratchings checked across Racing Australia, Racing.com, TAB, Sportsbet and Ladbrokes. <b>5 of 5 agree.</b></p><p class="lbl" style="margin-top:8px">Last checks</p><p style="margin:2px 0">15 min before: no changes · 3 min before: due</p></section>`;
+  else if(R.tab==="news") body=`<section class="card"><div class="rows"><div class="r"><span class="t">Track upgraded to Good 4 at 11:20am<small>Racing.com</small></span></div><div class="r"><span class="t">Late scratching: 9 (vet)<small>Racing Australia</small></span></div></div></section>`;
+  else if(R.tab==="result") body=`<section class="card"><p class="empty">${r.done?"Result: 1st 20 · 2nd 15 · 3rd 11. App's pick WON +$60.":"Result shows here a minute after the jump."}</p></section>`;
+  else body=`<section class="card">${UI.mine()}</section>`;
+  return head+tabs+body}
+};
+function bindAll(go){document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{R.day=b.dataset.day;R.meet=null;R.race=null;go()});
+ document.querySelectorAll("[data-meet]").forEach(b=>b.onclick=()=>{R.meet=b.dataset.meet;R.race=b.dataset.race?+b.dataset.race:null;R.tab="bet";go()});
+ document.querySelectorAll(".strip [data-race],.brow[data-race]:not([data-meet])").forEach(b=>b.onclick=()=>{R.race=+b.dataset.race;R.tab="bet";go()});
+ document.querySelectorAll(".rtabs [data-tab]").forEach(b=>b.onclick=()=>{R.tab=b.dataset.tab;go()});
+ document.querySelectorAll(".books button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed<b>$10</b>"});}
+
+function go(){const s=$("#scr");
+ if(R.meet&&R.race){$("#sheet").hidden=true;s.innerHTML=`<button class="back" data-home="1" type="button">‹ Home</button>`+V.strip()+V.race();}
+ else{s.innerHTML=V.days()+UI.wallets()+UI.pnl()+`<section class="card" style="display:flex;flex-direction:column;gap:6px">${V.best(4)}</section><section class="card" style="display:flex;flex-direction:column;gap:6px"><div class="sec"><span>Meetings</span><span>${meetings().length}</span></div><div class="mtabs" style="flex-wrap:wrap">${meetings().map(m=>`<button data-sheet="${m.venue}" type="button">${m.venue}${races(m).some(r=>r.take&&!r.done)?"<i></i>":""}</button>`).join("")}</div></section>`;
+  document.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{R.meet=b.dataset.sheet;R.race=null;$("#shT").textContent=R.meet;$("#shB").innerHTML=`<div class="card">${V.meetHead()}</div>`+V.raceList();$("#sheet").hidden=false;bindAll(go)});}
+ bindAll(go);document.querySelectorAll("[data-home]").forEach(b=>b.onclick=()=>{R.meet=null;R.race=null;go()});}
+$("#shX").onclick=()=>{$("#sheet").hidden=true;R.meet=null};
+wire(go);
+</script>
