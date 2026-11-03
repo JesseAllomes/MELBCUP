@@ -357,15 +357,14 @@ class Views:
             from melbcup.nba_feed import NbaFeed
         except ImportError:  # the phone's offline copy (GitHub Pages) leaves the live NBA code out
             v = {"board": None, "source": "", "stale": False, "games": 0, "priced_at": None,
-                 "error": "The NBA page needs the live site: open cup.asynym.dev."}
+                 "error": "The NBA page needs the live site: open bet.asynym.dev."}
             return {"nba": v, "nba_tab": "legs", "nba_rep": {}, "nba_games": {}}
         if self._nba is None:
             self._nba = NbaFeed()
         v = self._nba.view()
-        tab = query.get("tab") if query.get("tab") in ("multis", "legs", "same", "all") else None
+        tab = query.get("tab")
+        tab = tab if tab in ("stacks", "same", "legs", "all") else "stacks"
         rep = v.get("report") or {}
-        if tab is None:
-            tab = "multis" if rep.get("cross_game") else "legs"
         games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
         return {"nba": v, "nba_tab": tab, "nba_rep": rep, "nba_games": games}
 

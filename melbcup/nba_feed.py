@@ -108,10 +108,40 @@ class NbaFeed:
             if time.monotonic() - stamp >= PRICES_TTL_S and self._lock.acquire(blocking=False):
                 threading.Thread(target=self._refresh_locked, daemon=True).start()
             return cached
+        saved = self._saved()
+        if saved is not None:  # a cold start: show the Function's last pricing, refresh live now
+            self._view = (float("-inf"), saved)
+            return self.view()
         with self._lock:
             if self._view[1] is None:
                 self._compute()
             return self._view[1]
+
+    def _saved(self) -> dict | None:
+        """The legs the Azure Function priced on its last run (every 20 minutes), if they are
+        for the board's day: shown at once on a cold start while live prices load."""
+        if self.read_blob is None:
+            return None
+        try:
+            raw = self.read_blob("legs-latest.json")
+            board, source = self.board()
+            rep = json.loads(raw) if raw else None
+        except (httpx.HTTPError, ValueError, KeyError):
+            return None
+        if not rep or board is None or rep.get("day") != board.get("day") or "stacks" not in rep:
+            return None
+        priced = datetime.fromisoformat(rep["pricedAt"]) if rep.get("pricedAt") else self.clock()
+        return {
+            "today": self.clock().astimezone(NY).strftime("%Y%m%d"),
+            "source": source,
+            "board": board,
+            "error": None,
+            "report": rep,
+            "nearest": [],
+            "games": rep.get("games_priced", 0),
+            "priced_at": priced,
+            "stale": False,
+        }
 
     def _refresh_locked(self) -> None:
         try:

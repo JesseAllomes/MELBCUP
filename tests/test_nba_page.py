@@ -26,7 +26,7 @@ BOARD = {
 NOW = datetime(2026, 11, 4, 22, 0, tzinfo=UTC)  # 5pm 4 Nov in New York
 
 
-def events(price=1.20):
+def events(price=1.30):
     def fetch():
         return [
             {"event": str(i), "name": f"{a} @ {h}", "startsAt": "2026-11-05T00:00:00Z",
@@ -88,6 +88,21 @@ def test_feed_serves_the_cached_copy_while_it_refreshes(bundled, monkeypatch):
     assert len(calls) == 2 and feed._view[1] is not first  # ... while a refresh replaces it
 
 
+def test_cold_start_shows_the_functions_last_pricing_then_goes_live(bundled):
+    from melbcup import nba_legs
+
+    saved = nba_legs.report(BOARD, events(1.25)()) | {"pricedAt": "2026-11-04T21:40:00+00:00"}
+    blobs = {"board-latest.json": json.dumps(BOARD).encode(), "legs-latest.json": json.dumps(saved).encode()}
+    feed = NbaFeed(read_blob=blobs.get, events=events(1.40), bundled=bundled, clock=lambda: NOW)
+    first = feed.view()
+    assert first["report"]["all_legs"][0]["price"] == 1.25  # at once, from the Function
+    for _ in range(200):
+        if feed._view[1] is not first:
+            break
+        time.sleep(0.01)
+    assert feed._view[1]["report"]["all_legs"][0]["price"] == 1.40  # then live
+
+
 def test_nearest_only_likely_legs():
     legs = [{"chance": 0.9, "ev": -0.01}, {"chance": 0.5, "ev": 0.5}, {"chance": 0.8, "ev": -0.2}]
     assert nearest(legs) == [legs[0], legs[2]]
@@ -100,9 +115,9 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
     with make(ON) as c:
         html = c.get("/nba").text
         assert 'class="hd"' in html and ">NBA<" in html and 'aria-current="page">NBA' in html
-        assert "Take these" in html and "3 legs" in html and "$10 returns" in html
-        for tab, text in (("multis", "3 legs"), ("legs", "Joel Embiid To Score 10+ Points"),
-                          ("same", "No game has 3 value legs"), ("all", "LaMelo Ball To Score 10+ Points")):
+        assert "Most likely to get up" in html and "3-leg multi" in html
+        for tab, text in (("stacks", "$10 → $"), ("legs", "Joel Embiid To Score 10+ Points"),
+                          ("same", "No game has enough lines"), ("all", "LaMelo Ball To Score 10+ Points")):
             r = c.get(f"/nba?tab={tab}")
             assert r.status_code == 200 and text in r.text, tab
         assert ">NBA<" in c.get("/").text

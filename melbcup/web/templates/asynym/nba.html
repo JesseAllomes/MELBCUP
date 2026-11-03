@@ -13,58 +13,53 @@
 </section>
 
 {% if rep %}
-{% if rep.value_legs %}
-<section class="card take" aria-label="Verdict">
-  <div class="vlabel">Take these</div>
-  <p class="say">{{ rep.value_legs | length }} leg{{ 's' if rep.value_legs | length != 1 }} at least {{ (rep.min_chance * 100) | round | int }}% likely <b>and</b> paying {{ (rep.min_ev * 100) | round | int }}%+ over fair.{% if rep.cross_game %} Best multi below.{% endif %}</p>
-  {% if rep.cross_game %}{% set m = rep.cross_game[0] %}
-  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>{{ m.legs }}-leg multi ${{ '%.2f' % m.price }}</b><span>$10 returns ${{ '%.2f' % m.returns }} · fair ${{ '%.2f' % m.fair }} · edge {{ m.ev | edge }}</span></div></div>
-  {% endif %}
+{% set pick = (rep.stacks | selectattr('target', 'equalto', 3.0) | list or rep.stacks)[:1] %}
+{% if pick %}{% set m = pick[0] %}
+<section class="card take" aria-label="Best stack">
+  <div class="vlabel">Most likely to get up · $10 → ${{ '%.0f' % m.returns }}</div>
+  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>{{ m.legs }}-leg multi · ${{ '%.2f' % m.price }}</b><span>One leg per game · our chance {{ (m.chance * 100) | round | int }}% · price says {{ (100 / m.price) | round | int }}%</span></div></div>
+  <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
 </section>
 {% else %}
-<section class="card none" aria-label="Verdict">
-  <div class="vlabel">Nothing worth taking today</div>
-  <p class="say">No likely leg pays more than its chance deserves{{ ' yet: PointsBet posts more lines closer to tip-off' if v.games }}.</p>
-  {% if v.nearest %}<p class="note">Closest to value (still under fair):</p>
-  {% for g in v.nearest %}
-  <div class="brow nba-leg">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }} · ${{ '%.2f' % g.price }} · fair ${{ '%.2f' % g.fair }} · edge {{ g.ev | edge }}</small></span></div>
-  {% endfor %}{% endif %}
+<section class="card none" aria-label="Best stack">
+  <div class="vlabel">No stack yet</div>
+  <p class="say">A multi needs lines in at least 3 games{{ ': PointsBet has ' ~ (v.games or 0) ~ ' so far' }}. More are posted closer to tip-off.</p>
 </section>
 {% endif %}
 
 <nav class="rtabs" aria-label="NBA tabs">
-  {% for key, label, n in [('multis', 'Multis', rep.cross_game | length), ('legs', 'Value legs', rep.value_legs | length), ('same', 'Same game', rep.same_game | length), ('all', 'All lines', rep.all_legs | length)] %}
+  {% for key, label, n in [('stacks', 'Stacks', rep.stacks | length), ('same', 'Same game', rep.stacks_same | length), ('legs', 'Over fair', rep.value_legs | length), ('all', 'All lines', rep.all_legs | length)] %}
   <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}<small>{{ n }}</small></a>
   {% endfor %}
 </nav>
 
-{% if nba_tab == 'multis' %}
+{% if nba_tab == 'stacks' %}
 <section class="card">
-  {% for m in rep.cross_game %}
+  {% for m in rep.stacks %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>{{ m.legs }} legs · ${{ '%.2f' % m.price }}</b><span>$10 returns <b>${{ '%.2f' % m.returns }}</b> · fair ${{ '%.2f' % m.fair }} · edge {{ m.ev | edge }}</span></div></div>
-    <ol class="nba-picks">{% for p in m.picks %}<li>{{ p }}</li>{% endfor %}</ol>
+    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b><span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
+    <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}
-  <p class="say">A multi needs value legs in at least 3 different games{{ ' (value legs are in ' ~ (rep.value_legs | map(attribute='event') | unique | list | length) ~ ' so far)' if rep.value_legs }}.</p>
+  <p class="say">A multi needs lines in at least 3 games; PointsBet has {{ v.games or 0 }} so far.</p>
   {% endfor %}
-  <p class="note">One leg per game, the surest value leg of each. Games don't affect each other, so the chance is the legs' chances multiplied.</p>
+  <p class="note">For each payout, the combination with the highest chance of getting up: one leg per game (a normal multi), 3 to 10 legs. Games don't affect each other, so the chance is the legs' chances multiplied.</p>
+</section>
+{% elif nba_tab == 'same' %}
+<section class="card">
+  {% for m in rep.stacks_same %}
+  <div class="nba-multi">
+    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b><span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
+    <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
+  </div>
+  {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
+  <p class="note">Same-game multi: PointsBet prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
 </section>
 {% elif nba_tab == 'legs' %}
 <section class="card rows">
   {% for g in rep.value_legs %}
   <div class="brow nba-leg val">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }} · {{ g.startsAt | iso_time }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
   {% else %}<p class="say">No value legs right now.</p>{% endfor %}
-</section>
-{% elif nba_tab == 'same' %}
-<section class="card">
-  {% for m in rep.same_game %}
-  <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 52, 'gets up') }}<div class="nm"><b>{{ m.game }} · {{ m.legs }} legs</b><span>legs multiply to ${{ '%.2f' % m.price }} · our fair ${{ '%.2f' % m.fair }}</span></div></div>
-    <ol class="nba-picks">{% for p in m.picks %}<li>{{ p }}</li>{% endfor %}</ol>
-  </div>
-  {% else %}<p class="say">No game has 3 value legs yet.</p>{% endfor %}
-  <p class="note">PointsBet prices a same-game multi itself. Take it only if its quote is at or above our fair price; legs in one game are linked, so treat the chance as a guide.</p>
 </section>
 {% else %}
 <section class="card rows">
@@ -75,5 +70,5 @@
 </section>
 {% endif %}
 {% endif %}
-<p class="note">The chance is the model's (v3, tested on past seasons). Whether it beats PointsBet's prices is being measured from today: every line is settled against the real box score.</p>
+<p class="note">"Over fair" lists lines paying more than our chance says they should. The chance is the model's (v3, tested on past seasons). Whether it beats PointsBet's prices is being measured from today: every line is settled against the real box score.</p>
 {% endblock %}

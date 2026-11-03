@@ -95,3 +95,53 @@ def test_settle_won_lost_void():
     }
     res = [x["result"] for x in S.settle(legs, rows)]
     assert res == ["won", "lost", "void"]
+
+
+def test_best_stack_is_the_most_likely_combination_that_pays_the_target():
+    import itertools
+    import math
+    import random
+
+    rnd = random.Random(7)
+    for _ in range(30):
+        groups = []
+        for gi in range(5):
+            legs = []
+            for _li in range(4):
+                c = rnd.uniform(0.3, 0.97)
+                legs.append({"chance": c, "price": round(max(1.01, rnd.uniform(0.8, 1.2) / c), 2), "game": str(gi)})
+            groups.append(L.frontier(legs))
+        target = rnd.choice([2.0, 3.0, 5.0])
+        got = L.best_stack(groups, target)
+        best = 0.0
+        for k in range(3, 6):
+            for gs in itertools.combinations(groups, k):
+                for pick in itertools.product(*gs):
+                    if math.prod(g["price"] for g in pick) >= target:
+                        best = max(best, math.prod(g["chance"] for g in pick))
+        if got is None:
+            assert best == 0.0
+            continue
+        assert len({g["game"] for g in got}) == len(got) >= 3  # one leg per game
+        assert math.prod(g["price"] for g in got) >= target - 1e-9
+        assert math.prod(g["chance"] for g in got) >= best - 1e-9  # nothing likelier reaches the target
+
+
+def test_frontier_drops_a_leg_that_pays_less_and_is_no_more_likely():
+    a = {"chance": 0.9, "price": 1.2}
+    b = {"chance": 0.85, "price": 1.15}  # pays less and is less likely: gone
+    c = {"chance": 0.6, "price": 1.8}
+    assert L.frontier([a, b, c]) == [c, a]
+
+
+def test_stacks_reach_each_payout_with_three_games():
+    legs = [{"event": e, "game": e, "player": f"{e}{i}", "label": f"{e}{i}", "team": "T", "chance": c, "price": p}
+            for e in "ABC" for i, (c, p) in enumerate([(0.9, 1.15), (0.7, 1.5), (0.62, 1.9)])]
+    cross, same = L.stacks(legs)
+    assert [m["target"] for m in cross] == [2.0, 3.0, 5.0]  # 1.9 x 1.9 x 1.9 = 6.86: no $100
+    for m in cross:
+        assert m["legs"] == 3 and m["price"] >= m["target"]
+    # $20 on $10: 0.9 x 0.9 x 0.7 at $1.15 x $1.15 x $1.5 = $1.98 falls just short; the likeliest
+    # stack that pays is 0.9 x 0.9 x 0.62 ($2.51), ahead of 0.9 x 0.7 x 0.7 ($2.59)
+    assert cross[0]["chance"] == round(0.9 * 0.9 * 0.62, 4)
+    assert [m["target"] for m in same] == [2.0, 3.0]  # one game: 3 players, at most $1.15 x $1.5 x $1.9

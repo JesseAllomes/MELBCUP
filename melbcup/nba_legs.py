@@ -146,7 +146,8 @@ def multi(legs, stake):
     for g in legs:
         c *= g["chance"]; price *= g["price"]
     return {"legs": len(legs), "chance": round(c, 4), "price": round(price, 2), "fair": round(1 / c, 2),
-            "ev": round(c * price - 1, 4), "returns": round(stake * price, 2), "picks": [g["label"] for g in legs]}
+            "ev": round(c * price - 1, 4), "returns": round(stake * price, 2), "picks": [g["label"] for g in legs],
+            "detail": [{k: g[k] for k in ("label", "chance", "price", "game", "team")} for g in legs]}
 
 
 def build(legs, min_chance, stake, min_ev=0.03):
@@ -168,10 +169,88 @@ def build(legs, min_chance, stake, min_ev=0.03):
     return ok, cross, same
 
 
+TARGETS = (2.0, 3.0, 5.0, 10.0, 20.0)  # payouts: $10 returns $20, $30, $50, $100, $200
+STEP = 0.01  # price grid on a log scale (1% steps)
+SAME_MAX_LEGS = 6  # a same-game multi longer than this almost never gets up
+SAME_FLOOR = 0.6
+
+
+def frontier(legs):
+    """Drop a leg when another pays at least as much AND is at least as likely."""
+    out, best = [], -1.0
+    for g in sorted(legs, key=lambda g: (-g["price"], -g["chance"])):
+        if g["chance"] > best:
+            out.append(g); best = g["chance"]
+    return out
+
+
+def _keep(front, cand):
+    """Add cand to a bucket's list unless one there is at least as likely AND pays at least as
+    much; drop the ones cand beats on both. Exact: no stack that could still win is thrown away."""
+    if any(o[0] >= cand[0] and o[1] >= cand[1] for o in front):
+        return front
+    return [o for o in front if not (cand[0] >= o[0] and cand[1] >= o[1])] + [cand]
+
+
+def best_stack(groups, target, min_legs=3, max_legs=10):
+    """The stack most likely to get up whose price reaches `target`, at most one leg per group.
+    Search over a 1% log-price grid with each bucket holding only the stacks not beaten on both
+    chance and price, so it is exact and a day's board takes milliseconds."""
+    goal = math.log(target) - 1e-9
+    top = math.ceil(goal / STEP)
+    states = [dict() for _ in range(max_legs + 1)]  # k legs -> {bucket: [(log chance, log price, picks)]}
+    states[0][0] = [(0.0, 0.0, ())]
+    for group in groups:
+        for k in range(max_legs - 1, -1, -1):  # downwards: one leg per group
+            for front in list(states[k].values()):
+                for lc, lp, picks in front:
+                    for g in group:
+                        lp2 = lp + math.log(g["price"])
+                        b2 = min(top, int(lp2 / STEP))
+                        if lp2 >= goal:
+                            b2 = top + 1  # reached: price no longer matters, only the chance
+                            lp2 = goal
+                        states[k + 1][b2] = _keep(states[k + 1].get(b2, []), (lc + math.log(g["chance"]), lp2, picks + (g,)))
+    done = [c for k in range(min_legs, max_legs + 1) for c in states[k].get(top + 1, [])]
+    return list(max(done, key=lambda c: c[0])[2]) if done else None
+
+
+def stacks(legs, stake=10.0, floor=0.5):
+    """For each payout target, the most likely stack: across games (one leg per game, a normal
+    multi) and inside one game (one leg per player, a same-game multi)."""
+    usable = [g for g in legs if g["chance"] >= floor and g["price"] > 1.0]
+    by_game = {}
+    for g in usable:
+        by_game.setdefault(g["event"], []).append(g)
+    cross = []
+    groups = [frontier(gs) for gs in by_game.values()]
+    for t in TARGETS:
+        picks = best_stack(groups, t)
+        if picks:
+            cross.append({"target": t} | multi(picks, stake))
+    same = []
+    for gs in by_game.values():
+        by_player = {}
+        for g in gs:
+            by_player.setdefault(g["player"], []).append(g)
+        pgroups = [frontier([g for g in x if g["chance"] >= SAME_FLOOR]) for x in by_player.values()]
+        pgroups = [x for x in pgroups if x]
+        for t in TARGETS:
+            picks = best_stack(pgroups, t, max_legs=SAME_MAX_LEGS)
+            if picks:
+                same.append({"target": t, "game": gs[0]["game"]} | multi(picks, stake))
+    same.sort(key=lambda m: (m["target"], -m["chance"]))
+    best_same = {}
+    for m in same:
+        best_same.setdefault(m["target"], m)  # the best game for each target
+    return cross, list(best_same.values())
+
+
 def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03):
     legs, unmatched = legs_from(events, board)
     ok, cross, same = build(legs, min_chance, stake, min_ev)
-    return {"day": board["day"], "verdict": "take" if ok else "nothing worth taking today", "min_chance": min_chance, "min_ev": min_ev,
+    stack_cross, stack_same = stacks(legs, stake)
+    return {"stacks": stack_cross, "stacks_same": stack_same,"day": board["day"], "verdict": "take" if ok else "nothing worth taking today", "min_chance": min_chance, "min_ev": min_ev,
             "stake": stake, "games_priced": len({g["event"] for g in legs}), "legs_seen": len(legs),
             "value_legs": sorted(ok, key=lambda g: -g["chance"]), "all_legs": legs, "cross_game": cross, "same_game": same,
             "unmatched_players": unmatched}
