@@ -10,6 +10,12 @@ import pytest
 
 from tools import cost_guard
 
+
+@pytest.fixture(autouse=True)
+def _no_owner_approval(monkeypatch):
+    # The deploy workflow may run with LIMITS_APPROVED=1; the C10 tests set it themselves.
+    monkeypatch.delenv("LIMITS_APPROVED", raising=False)
+
 REPO = Path(__file__).resolve().parents[1]
 NOW = "2026-10-31T00:00:00Z"
 WORKFLOW = """name: x
