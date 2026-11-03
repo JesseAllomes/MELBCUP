@@ -1,5 +1,5 @@
 {% extends "asynym/base.html" %}
-{% from "asynym/_parts.html" import ring, buttons, bet_row, kid_rows, extra_rows, record_form %}
+{% from "asynym/_parts.html" import ring, buttons, bet_row, extra_rows, record_form %}
 {% from "_card.html" import badge %}
 {% block title %}R{{ race.number }} · AsynymBet{% endblock %}
 {% block content %}
@@ -25,7 +25,7 @@
 
 <nav class="rtabs" aria-label="Race tabs">
   {% for key, label in [('bet', 'Bet'), ('field', 'Field'), ('result', 'Result'), ('mine', 'Mine')] %}
-  <a href="/race/{{ n }}?tab={{ key }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}{% if key == 'field' %}<small>{{ race.starters | length }}</small>{% elif key == 'mine' and (my_lines or kids.get(n) or race_extras) %}<small>{{ (my_lines | length) + ((kids.get(n) or []) | length) + (race_extras | length) }}</small>{% endif %}</a>
+  <a href="/race/{{ n }}?tab={{ key }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}{% if key == 'field' %}<small>{{ race.starters | length }}</small>{% elif key == 'mine' and (my_lines or race_extras) %}<small>{{ (my_lines | length) + (race_extras | length) }}</small>{% endif %}</a>
   {% endfor %}
 </nav>
 
@@ -193,15 +193,6 @@
   {% else %}<p class="empty">No bet recorded for this race.</p>{% endif %}
   {{ record_form(race, race_date_iso, az) }}
 </section>
-{% set kr = kids.get(n) if kids else none %}
-{% if kr %}
-{% set ks = kr | selectattr('settled.status', 'equalto', 'settled') | list %}
-{% set kp = (ks | sum(attribute='settled.profit')) %}
-<section class="card" aria-labelledby="kids-h">
-  <div class="lbl" id="kids-h">Kids' bets{% if ks %} <span class="kids-total">Kids: <b class="{{ 'pos' if kp > 0 else 'neg' if kp < 0 }}">{{ kp | signed | replace('-', '−') }}</b>{% if ks | length < kr | length %} · {{ kr | length - ks | length }} pending{% endif %}</span>{% endif %}</div>
-  <div class="rows">{{ kid_rows(kr, {n: race}) }}</div>
-</section>
-{% endif %}
 {% if race_extras %}
 <section class="card" aria-labelledby="xb-h">
   <div class="lbl" id="xb-h">Other bets with a leg here</div>

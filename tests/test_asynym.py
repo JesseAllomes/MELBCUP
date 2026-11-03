@@ -98,3 +98,9 @@ def test_mine_has_the_betting_pool_and_edit(on):
 )
 def test_ring_colours(pct, name):
     assert tone(pct) == name
+
+
+def test_no_kids_bets_card(on):
+    """Removed at the owner's request (2026-11-04): Mine and the race page carry no kids' card."""
+    assert "Kids' bets" not in on.get("/mine").text
+    assert "Kids' bets" not in on.get("/race/1?tab=mine").text

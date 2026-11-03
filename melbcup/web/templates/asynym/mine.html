@@ -1,5 +1,5 @@
 {% extends "asynym/base.html" %}
-{% from "asynym/_parts.html" import bet_row, kid_rows, extra_rows %}
+{% from "asynym/_parts.html" import bet_row, extra_rows %}
 {% block title %}Mine · AsynymBet{% endblock %}
 {% block refresh %}0{% endblock %}
 {% block content %}
@@ -32,12 +32,6 @@
   <div class="sec"><span id="mine-h">Your bets</span><span>{{ pnl_own.profit | signed | replace('-', '−') if pnl_own.bets else '' }}</span></div>
   {% if mine_lines %}<div class="rows">{% for line in mine_lines %}{{ bet_row(line) }}{% endfor %}</div>
   {% else %}<p class="empty">No bet recorded today. Open a race to record one.</p>{% endif %}
-</section>
-
-<section class="card" aria-labelledby="kids-h">
-  <div class="sec"><span id="kids-h">Kids' bets</span><span>{{ kids_all | length if kids_all else '' }}</span></div>
-  {% if kids_all %}<div class="rows">{{ kid_rows(kids_all, race_objs) }}</div>
-  {% else %}<p class="empty">No kids' bets today.</p>{% endif %}
 </section>
 
 <section class="card" aria-labelledby="x-h" id="extra-sec">
