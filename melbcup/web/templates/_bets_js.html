@@ -1,0 +1,261 @@
+  <script>
+  // Placed bets live in a cookie on this phone (no login, by design): [date, race, kind, runner,
+  // account, stake, price?]. Tap to tick (adds that record), tap again to untick (removes only that
+  // record), "Remove" deletes one recorded bet, and the "Record a bet I placed" form adds one.
+  // Records for other days are dropped. A repeat of race+kind+runner+account replaces the old one.
+  (function () {
+    function read(name) {
+      var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + (name || "placed") + "=([^;]*)"));
+      try { var v = m ? JSON.parse(decodeURIComponent(m[1])) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
+    }
+    function write(list, name) {
+      document.cookie = (name || "placed") + "=" + encodeURIComponent(JSON.stringify(list)) + "; path=/; max-age=1209600; samesite=lax";
+    }
+    // the same bet: date, race, kind, runner (a multi: its legs) and account
+    function same(r, rec) {
+      return Array.isArray(r) && r[0] === rec[0] && r[1] === rec[1] && r[2] === rec[2] && r[3] === rec[3] && r[4] === rec[4];
+    }
+    function others(rec) {
+      return read().filter(function (r) { return Array.isArray(r) && r[0] === rec[0] && !same(r, rec); });
+    }
+    // The app's own suggested lines are kept on this phone too (the server forgets them on every
+    // restart), as the cookie "picks": [date, race, kind, runner, account, stake, price]. Every page
+    // carries the current suggested lines of every open race in the JSON tag #picks-data
+    // ({date, open, held, picks}); on every page load each open race's lines (only those with a
+    // stake) replace what was saved for it, so the last suggestion before the jump is the one that
+    // stays. A kind the owner has since placed ("held") keeps its saved pick. Other days are dropped.
+    function savePicks() {
+      var tag = document.getElementById("picks-data"), d;
+      try { d = tag ? JSON.parse(tag.textContent) : null; } catch (e) { d = null; }
+      if (!d || !Array.isArray(d.picks) || !Array.isArray(d.open) || !d.open.length || !d.date) return;
+      var live = {}, held = {};
+      d.open.forEach(function (n) { live[n] = true; });
+      (d.held || []).forEach(function (h) { held[h[0] + "|" + h[1]] = true; });
+      var fresh = d.picks.filter(function (rec) { return Array.isArray(rec) && rec.length >= 6 && rec[5] > 0 && rec[4]; });
+      var keep = read("picks").filter(function (r) {
+        return Array.isArray(r) && r[0] === d.date && !(live[r[1]] && !held[r[1] + "|" + r[2]]);
+      });
+      write(keep.concat(fresh), "picks");
+    }
+    // Kids' bets: the cookie "kids" is a list of [date, race, kind_code, runner, account_code,
+    // stake_total, win_price, place_price, name]. A link ending #kids=<encodeURIComponent(JSON list of
+    // those records)> merges them in (an exact repeat of date, race, kind, runner, account, stake and
+    // prices is skipped), drops the hash and reloads once.
+    function sameKid(a, b) {
+      for (var i = 0; i < 8; i++) if (a[i] !== b[i]) return false;
+      return true;
+    }
+    function importKids() {
+      if (location.hash.indexOf("#kids=") !== 0) return false;
+      var add = [];
+      try { add = JSON.parse(decodeURIComponent(location.hash.slice(6))); } catch (e) { add = []; }
+      var list = read("kids"), n = 0;
+      (Array.isArray(add) ? add : []).forEach(function (rec) {
+        if (!Array.isArray(rec) || rec.length < 8) return;
+        rec = rec.slice(0, 9); if (rec.length < 9) rec.push("");
+        if (list.some(function (r) { return Array.isArray(r) && sameKid(r, rec); })) return;
+        list.push(rec); n++;
+      });
+      if (n) write(list, "kids");
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+      if (n) location.reload();
+      return true;
+    }
+    function kidIndex(row, list) {
+      var rec; try { rec = JSON.parse(row.getAttribute("data-kid")); } catch (e) { return -1; }
+      for (var i = 0; i < list.length; i++) {
+        if (Array.isArray(list[i]) && sameKid(list[i], rec) && (list[i][8] || "") === (rec[8] || "")) return i;
+      }
+      return -1;
+    }
+    document.addEventListener("change", function (e) {
+      var inp = e.target;
+      if (!inp.classList || !inp.classList.contains("kid-name")) return;
+      var row = inp.closest("[data-kid]"), list = read("kids"), i = kidIndex(row, list);
+      if (i < 0) return;
+      list[i] = list[i].slice(0, 8).concat([inp.value.trim().slice(0, 40)]);
+      write(list, "kids");
+      var rec = JSON.parse(row.getAttribute("data-kid")); rec[8] = list[i][8];
+      row.setAttribute("data-kid", JSON.stringify(rec));
+    });
+    // Other bets: a link ending #extra=<encodeURIComponent(JSON list of extra records)> merges them
+    // into the "extra" cookie (an exact repeat of date, kind, legs, account, stake, odds is skipped).
+    function importExtra() {
+      if (location.hash.indexOf("#extra=") !== 0) return false;
+      var add = [];
+      try { add = JSON.parse(decodeURIComponent(location.hash.slice(7))); } catch (e) { add = []; }
+      var list = read("extra"), n = 0;
+      (Array.isArray(add) ? add : []).forEach(function (rec) {
+        if (!Array.isArray(rec) || rec.length < 6) return;
+        rec = rec.slice(0, 8); while (rec.length < 8) rec.push("");
+        if (list.some(function (r) {
+          return Array.isArray(r) && r[0] === rec[0] && r[1] === rec[1] && r[2] === rec[2] && r[3] === rec[3] && r[4] === rec[4] && r[5] === rec[5] && r[6] === rec[6];
+        })) return;
+        list.push(rec); n++;
+      });
+      if (n) write(list, "extra");
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+      if (n) location.reload();
+      return true;
+    }
+    if (!importKids() && !importExtra()) savePicks();
+    window.addEventListener("hashchange", function () { importKids() || importExtra(); });
+    document.addEventListener("melb:data", savePicks);
+    document.addEventListener("submit", function (e) {
+      var f = e.target;
+      if (!f.classList || !f.classList.contains("record-bet")) return;
+      e.preventDefault();
+      var el = f.elements, kind = el["kind"].value;
+      var v = Math.round(parseFloat(el["stake"].value));
+      if (kind === "e") v = Math.max(2, Math.round(v / 2) * 2); // each way: the total of two equal halves
+      if (!(v > 0)) return;
+      var rec = [f.getAttribute("data-date"), parseInt(f.getAttribute("data-race"), 10), kind, parseInt(el["runner"].value, 10), el["acct"].value, v];
+      var price = parseFloat(el["price"].value);
+      var place = el["place_price"] ? parseFloat(el["place_price"].value) : NaN;
+      if (price > 1 || (kind === "e" && place > 1)) rec.push(price > 1 ? Math.round(price * 100) / 100 : null);
+      if (kind === "e" && place > 1) rec.push(Math.round(place * 100) / 100);
+      var list = others(rec);
+      list.push(rec);
+      write(list);
+      location.reload();
+    });
+
+    // Other bets: the cookie "extra" is a list of [date, kind ("multi"|"other"), legs ("1:6w,7:4p"),
+    // account, stake, total odds, label, result ("" or the amount returned)]. The day page's
+    // "Record another bet" form builds a record; "record with changes" prefills it from a multi card.
+    (function () {
+      var form = document.querySelector("form.record-extra");
+      if (!form) return;
+      var data = {}, box = document.getElementById("xlegs"), tag = document.getElementById("extra-races");
+      try { data = tag ? JSON.parse(tag.textContent) : {}; } catch (e) { data = {}; }
+      function legRow(race, num, kind) {
+        var row = document.createElement("div"); row.className = "xleg";
+        var rs = document.createElement("select"); rs.className = "x-race"; rs.setAttribute("aria-label", "Race");
+        Object.keys(data).forEach(function (n) { var o = document.createElement("option"); o.value = n; o.textContent = "R" + n; rs.appendChild(o); });
+        var ns = document.createElement("select"); ns.className = "x-num"; ns.setAttribute("aria-label", "Runner");
+        var ks = document.createElement("select"); ks.className = "x-kind"; ks.setAttribute("aria-label", "Win or place");
+        ks.innerHTML = '<option value="w">Win</option><option value="p">Place</option>';
+        function fill() {
+          ns.innerHTML = "";
+          (data[rs.value] || []).forEach(function (r) { var o = document.createElement("option"); o.value = r[0]; o.textContent = r[0] + " " + r[1]; ns.appendChild(o); });
+        }
+        rs.addEventListener("change", fill);
+        if (race) rs.value = String(race);
+        fill();
+        if (num) ns.value = String(num);
+        if (kind) ks.value = kind;
+        row.appendChild(rs); row.appendChild(ns); row.appendChild(ks);
+        box.appendChild(row);
+      }
+      function setLegs(list) {
+        box.innerHTML = "";
+        (list.length ? list : [[0, 0, "w"], [0, 0, "w"]]).slice(0, 8).forEach(function (l) { legRow(l[0], l[1], l[2]); });
+        syncAdd();
+      }
+      function syncAdd() { document.getElementById("xleg-add").disabled = box.children.length >= 8; }
+      function syncKind() {
+        var multi = form.elements["xkind"].value === "multi";
+        form.querySelectorAll("[data-for]").forEach(function (el) { el.hidden = el.getAttribute("data-for") === (multi ? "other" : "multi"); });
+      }
+      form.elements["xkind"].addEventListener("change", syncKind);
+      document.getElementById("xleg-add").addEventListener("click", function () { if (box.children.length < 8) legRow(0, 0, "w"); syncAdd(); });
+      setLegs([]); syncKind();
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest && e.target.closest("button[data-prefill]");
+        if (!b) return;
+        var legs = b.getAttribute("data-prefill").split(",").map(function (p) {
+          var m = /^(\d+):(\d+)([wp])$/.exec(p); return m ? [m[1], m[2], m[3]] : null;
+        }).filter(Boolean);
+        form.elements["xkind"].value = "multi"; syncKind(); setLegs(legs);
+        if (b.getAttribute("data-odds")) form.elements["odds"].value = b.getAttribute("data-odds");
+        var w = document.getElementById("extra-wrap"); w.open = true;
+        w.scrollIntoView({block: "start"});
+      });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var el = form.elements, multi = el["xkind"].value === "multi";
+        var stake = Math.round(parseFloat(el["stake"].value) * 100) / 100, odds = Math.round(parseFloat(el["odds"].value) * 100) / 100;
+        if (!(stake > 0) || !(odds > 1)) return;
+        var legs = "";
+        if (multi) {
+          var parts = [], races = {};
+          for (var i = 0; i < box.children.length; i++) {
+            var r = box.children[i], rn = r.querySelector(".x-race").value, nn = r.querySelector(".x-num").value;
+            if (!rn || !nn || races[rn]) { window.alert("Each leg needs a different race and a runner."); return; }
+            races[rn] = 1; parts.push(rn + ":" + nn + r.querySelector(".x-kind").value);
+          }
+          if (parts.length < 2) return;
+          legs = parts.join(",");
+        }
+        var list = read("extra").filter(function (r) { return Array.isArray(r) && r[0] === form.getAttribute("data-date"); });
+        list.push([form.getAttribute("data-date"), multi ? "multi" : "other", legs, el["acct"].value, stake, odds, multi ? "" : el["label"].value.trim().slice(0, 60), ""]);
+        write(list, "extra");
+        location.reload();
+      });
+      function xIndex(row, list) {
+        var want = row.getAttribute("data-xrec");
+        for (var i = 0; i < list.length; i++) if (JSON.stringify(list[i]) === want) return i;
+        return -1;
+      }
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest && e.target.closest("button[data-xremove]");
+        if (!b) return;
+        var list = read("extra"), i = xIndex(b.closest("[data-xrec]"), list);
+        if (i >= 0) { list.splice(i, 1); write(list, "extra"); }
+        location.reload();
+      });
+      document.addEventListener("change", function (e) {
+        var inp = e.target;
+        if (!inp.classList || !inp.classList.contains("xret-in")) return;
+        var row = inp.closest("[data-xrec]"), list = read("extra"), i = xIndex(row, list);
+        if (i < 0) return;
+        var v = parseFloat(inp.value);
+        list[i][7] = v >= 0 ? Math.round(v * 100) / 100 : "";
+        write(list, "extra");
+        location.reload();
+      });
+    })();
+    document.addEventListener("click", function (e) {
+      var kr = e.target.closest && e.target.closest("button[data-kid-remove]");
+      if (kr) {
+        var klist = read("kids"), ki = kidIndex(kr.closest("[data-kid]"), klist);
+        if (ki >= 0) { klist.splice(ki, 1); write(klist, "kids"); }
+        location.reload();
+        return;
+      }
+      var rm = e.target.closest && e.target.closest("button[data-remove]");
+      if (rm) {
+        var gone = JSON.parse(rm.getAttribute("data-remove"));
+        write(others(gone));
+        location.reload();
+        return;
+      }
+      var b = e.target.closest && e.target.closest("button[data-rec]");
+      if (b) {
+        var rec = JSON.parse(b.getAttribute("data-rec")), acct = b.getAttribute("data-acct");
+        var on = b.getAttribute("aria-pressed") === "true";
+        rec[4] = acct;
+        var list = others(rec);
+        if (!on) {
+          // the stake actually placed (whole dollars), pre-filled with the app's stake
+          var ew = rec[2] === "e";
+          var s = window.prompt(ew ? "Total staked ($), win + place: $2 each way = $4" : "Stake placed ($)", rec[5]);
+          if (s === null) return;
+          var v = Math.round(parseFloat(s));
+          if (!(v > 0)) return;
+          rec[5] = v; list.push(rec);
+        }
+        write(list);
+        location.reload();
+        return;
+      }
+      var more = e.target.closest && e.target.closest("button[data-more]");
+      if (more) {
+        var open = more.getAttribute("aria-expanded") !== "true";
+        document.querySelectorAll("#" + more.getAttribute("data-more") + " li.extra").forEach(function (li) { li.hidden = !open; });
+        more.setAttribute("aria-expanded", String(open));
+        more.textContent = open ? "Show fewer" : more.getAttribute("data-label");
+      }
+    });
+  })();
+  </script>

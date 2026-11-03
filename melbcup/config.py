@@ -36,6 +36,7 @@ class Settings:
     auto_limit: float = 20.0  # AUTO_LIMIT: auto's default daily limit in dollars
     pointsbet: bool = False  # POINTSBET=1: PointsBet as a third betting account (off by default)
     promos: bool = False  # PROMOS=1: bookmaker promos (melbcup/bets/promos.py) become Win bets
+    asynym: bool = False  # ASYNYM=1: the AsynymBet redesign (melbcup/web/templates/asynym/)
 
 
 def _clean(value: str | None) -> str | None:
@@ -69,6 +70,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         auto_limit=_money(env.get("AUTO_LIMIT"), 20.0),
         pointsbet=_clean(env.get("POINTSBET")) == "1",
         promos=_clean(env.get("PROMOS")) == "1",
+        asynym=_clean(env.get("ASYNYM")) == "1",
     )
 
 
