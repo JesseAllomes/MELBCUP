@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=171 -->
+<!-- drainclamp-build: state; schema=1; generation=172 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T12:15:02+00:00 a922ce75 NBA backtest v1 on check season 2024-25 (6,911 games loaded; 2025-26 sealed): minutes-projected model beats season average and last-10 on all four stats (points log loss 0.347 vs 0.519/0.365; rebounds 0.367; assists 0.324; threes 0.470). Calibration close: 80-89% bucket hit 86/85/85/85%; 90-99% hit 94/94/94/92%. research/nba/backtest_v1_check_2024-25.txt
 - 2026-11-03T12:20:24+00:00 49c034b9 NBA v2 (minutes x rate x opponent, missing-teammates, b2b, NB phi, calibration) quick tune (every 40th row): beats v1 on validate 2023-24 and check 2024-25 for all stats; threes biggest gain (check 0.4693 -> 0.4572). Full tune (every 3rd row, half-lives incl. 1.5/2) queued after downloads. Caveat: missing-teammates read from the game box (stand-in for the injury report).
 - 2026-11-03T12:28:36+00:00 d6219689 NBA v2 full tune (69k tune rows, 2014-15..2022-23): validate 2023-24 / check 2024-25 log loss v1->v2 points .3336->.3273/.3475->.3409, rebounds .3533->.3484/.3687->.3616, assists .3172->.3106/.3236->.3167, threes .4520->.4428/.4684->.4575. Back-to-back effect ~0. 80-89% bucket hits 84-85%, 90-99% 93-94%. Params tools/nba/model_v2.json. Next levers: starter/role change, usage redistribution, game script (spread), pace, per-player spread, SGM correlation, GBM; rolling validation; 2025-26 sealed.
 - 2026-11-03T12:38:55+00:00 5be6da2c Owner: milestone lm1 (looser markets) after NBA live and tested.
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
 - 2026-11-03T21:19:44+00:00 a224cbc3 2026-11-04 NBA times dated (views.when: Today/Tomorrow/Thu 6 Nov + time; header alert shows date when >6h). Deployed web. Open question: Sportsbet props vs push notifications.
 - 2026-11-03T21:28:16+00:00 2149370d 2026-11-04 challenge isolated to its tab (top card removed; _challenge only on tab=challenge; alerts only there). Deployed web.
+- 2026-11-03T23:21:28+00:00 80c51b13 2026-11-04 kids' bets card removed (asynym Mine + race). Deployed. Owner asked about sharing with a friend: per-person state is cookies (separate per phone); shared: picks + server-side Betfair auto-bet API (/api/betting public read; PIN-guarded actions; BET_MODE not live) + Load card/Auto on buttons (server-wide).
 <!-- /DC:LOG -->
