@@ -71,3 +71,4 @@ resume uses `.agent/drainclamp-state.md` alone. This file is for forensics.
 - 2026-11-03T04:05:49+00:00 bc6aa276 results quicker: first check 1 min after the jump (was 3), then every 45 s (was 2 min), results cache 15 s (was 60), Check results button on each run race without a final result (20 s min gap); also deploys the fold + extra bets + guard fix
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
 - 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
+- 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.

@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=137 -->
+<!-- drainclamp-build: state; schema=1; generation=138 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T08:10:36+00:00 27adc766 t2 done: RaceLens compared. Borrow candidates: day-pattern re-rate, fair-price floor, scratchings check 15/3 min.
 - 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.
 - 2026-11-03T08:42:50+00:00 d605d410 Owner 2026-11-03: st1 stability/speed, rl2 RaceLens inputs, bl1 take-this-bet verdict (supersedes three-picks rule), ui6 redesign from RaceLens UI. st1 first: it hurts today.
 - 2026-11-03T08:59:38+00:00 7fc89699 st1 part 1: web app stays up 3 h after the last request (cooldownPeriod 10800, ARM api 2025-01-01). Cold start 22 s remains only for the first open after 3 h idle. Warm render ~0.5 s server-side.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T10:19:22+00:00 c6ff65fb Owner design rule: RaceLens-style % ring meter for the chance a bet/multi gets up (green 60%+, purple 30-59%, amber under 30%). Added to E (main bet + same race multi); applies to nba3 multis too.
 - 2026-11-03T10:23:12+00:00 19e9b594 RACELENS_DATE cleared (run 41618611031): Thursday default restored. Azure test copy unverified (deploy SP has no blob data read; keys disabled); owner declined extra access and the data-check ring: use our model. NBA plan (low token): scripts only at runtime; props from agency web feeds + free NBA game logs; player-stat model (minutes x per-minute rate), no betting history needed; reuse multis.py and AsynymBet parts; 4 Sonnet chunks; first step = token-free agency feed probe from Azure.
 - 2026-11-03T10:30:45+00:00 e7f86a32 nba1 step 0: nba_probe_run timer (hourly, self-stops 2026-11-10) probes TAB/Sportsbet/PointsBet/Ladbrokes/Neds/NBA CDN/stats from Azure AU into blob nba-probe/latest.json. From the US container all blocked (403/500/blank). Reading the report needs Storage Blob Data Reader for the deploy app: self-grant blocked by the safety check, needs owner approval.
+- 2026-11-03T10:39:12+00:00 9b7969d2 nba_probe_run deployed (run 41620571627 OK); first probe 11:13Z (10:13pm AEDT). Report unreadable until owner approves Storage Blob Data Reader for the deploy app.
 <!-- /DC:LOG -->
