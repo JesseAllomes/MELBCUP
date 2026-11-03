@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=120 -->
+<!-- drainclamp-build: state; schema=1; generation=121 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-02T23:44:09+00:00 05c28075 placed tick asks for the stake actually placed (pre-filled with the app's stake); one record per race+kind slot still (Sportsbet and Betfair Win on one race cannot both be ticked)
 - 2026-11-02T23:46:55+00:00 29bc789f each-way stake now shown as the bookmaker's unit ('$2 EW', '$4 total' under it): owner bet $4 EW (= $8) off the old total-only display; placed prompt for EW asks for the total
 - 2026-11-02T23:52:43+00:00 3a7e6049 Record a bet I placed (Sonnet + fix): form on every race page (run races too) records runner, kind, bookmaker, actual stake, price; several records per race; Remove per record; wallets net of real stakes. Clicked through in Chromium: 3 R1 records -> SB 139, BF 45; Remove works
 - 2026-11-03T00:09:46+00:00 94339734 settle + day P&L bar (Sonnet + fix): recorded bets settled on results (BF commission, BF cash back 2nd, PB run 2nd, SB bonus bets reported apart), Won/Lost/Back per line, race total, centred bar (red left/green right, half-width = day amounts); EW place price recordable (8th element). Browser check R1: -3, -5, -1.52 = -9.52
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T08:42:50+00:00 d605d410 Owner 2026-11-03: st1 stability/speed, rl2 RaceLens inputs, bl1 take-this-bet verdict (supersedes three-picks rule), ui6 redesign from RaceLens UI. st1 first: it hurts today.
 - 2026-11-03T08:59:38+00:00 7fc89699 st1 part 1: web app stays up 3 h after the last request (cooldownPeriod 10800, ARM api 2025-01-01). Cold start 22 s remains only for the first open after 3 h idle. Warm render ~0.5 s server-side.
 - 2026-11-03T09:10:06+00:00 0b60e95e ui6 started: prototype v1 (RaceLens layout + take-this-bet verdict) https://claude.ai/artifact/SFMukYyWGnT5632F9HwaEi, copy in .grok/product-ui/v2/. Awaiting owner sign-off before lock + build.
+- 2026-11-03T09:10:28+00:00 6372a056 Owner 2026-11-03: new name AsynymBet (prototype v2). App rename goes into the ui6 build; repo, domain and Azure names unchanged unless the owner asks.
 <!-- /DC:LOG -->
