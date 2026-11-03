@@ -54,8 +54,9 @@ QUOTA_BACKOFF = timedelta(minutes=15)
 OUTAGE_BACKOFF = timedelta(minutes=1)  # Auto retries a failing racing.com call no faster than this
 MIN_REFRESH_GAP = timedelta(seconds=60)  # a manual price or results refresh, however often tapped
 FIELD_PUBLISHED = timedelta(days=3)  # Racing Australia publishes acceptances about two days out
-RESULTS_AFTER = timedelta(minutes=3)  # first results check, after each jump
-RESULTS_EVERY = timedelta(minutes=2)  # then again until every placing is final
+RESULTS_AFTER = timedelta(minutes=1)  # first results check, after each jump (owner: quicker)
+RESULTS_EVERY = timedelta(seconds=45)  # then again until every placing is final
+RESULTS_GAP = timedelta(seconds=20)  # a manual "Check results", however often tapped
 RESULTS_GIVE_UP = timedelta(hours=2)  # stop re-checking a race that never turns final
 PRICES_EVERY = timedelta(seconds=60)  # Auto prices the whole card this often
 CHECK_EARLY = (timedelta(minutes=25), timedelta(minutes=35))  # saved once in this window
@@ -514,7 +515,7 @@ class LiveBoard:
         return True
 
     def fetch_results_now(self) -> bool:
-        """Settled results for the meeting from racing.com. Ignored within MIN_REFRESH_GAP (60 s)
+        """Settled results for the meeting from racing.com. Ignored within RESULTS_GAP (60 s)
         of the last fetch."""
         if not self.can_fetch or self._card is None:
             return False

@@ -11,6 +11,9 @@
     <p>{{ race.start_time | jump }}{% if race.distance_m %} · {{ race.distance_m }}m{% endif %} · {{ runners }} runners{% if race.condition or card.condition %} · {{ race.condition or card.condition }}{% endif %}</p>
   </div>
 </header>
+{% if (not race.result or race.result.status != 'final') and not betting_open(race) %}
+<form class="check-results" method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Check results</button><span>{{ 'Interim result: placings may change' if race.result else 'Waiting for the result' }}</span></form>
+{% endif %}
 
 {% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
 {% if rg %}

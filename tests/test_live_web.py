@@ -88,22 +88,22 @@ def test_pricing_stops_once_every_race_has_jumped():
     assert router.hits["rc/results"] >= 2  # results are being collected instead
 
 
-def test_results_start_three_minutes_after_the_jump_then_every_two_minutes_until_final():
+def test_results_start_a_minute_after_the_jump_then_every_45_seconds_until_final():
     router, clock = Router(), Clock(START)
     board = board_with(router, clock, AUTO)
     board.tick()
-    clock.t = datetime(2026, 11, 3, 11, 47, 59, tzinfo=MELBOURNE)  # R1 jumped 2 min 59 s ago
+    clock.t = datetime(2026, 11, 3, 11, 45, 59, tzinfo=MELBOURNE)  # R1 jumped 59 s ago
     assert board._results_due(clock.t) is False
     board.tick()
     assert "rc/results" not in router.hits
-    clock.t = datetime(2026, 11, 3, 11, 48, 1, tzinfo=MELBOURNE)  # 3 minutes after the jump
+    clock.t = datetime(2026, 11, 3, 11, 46, 1, tzinfo=MELBOURNE)  # a minute after the jump
     assert board._results_due(clock.t) is True
     board.tick()
     assert router.hits["rc/results"] == 2  # one call per race: the whole card at once
-    # Placings still interim: re-checked every two minutes, not before.
+    # Placings still interim: re-checked every 45 seconds, not before.
     race = board._card.race(1)
     race.result = replace(race.result, status="interim")
-    clock.t += timedelta(seconds=119)
+    clock.t += timedelta(seconds=44)
     assert board._results_due(clock.t) is False
     clock.t += timedelta(seconds=2)
     assert board._results_due(clock.t) is True

@@ -412,7 +412,7 @@ class RacingComClient:
             raise SourceError("racing.com", "not_found", f"no meeting for {venue} on {race_date}")
         out = {}
         for n in races:
-            result = parse_result(self._query(RESULTS, {"meetCode": code, "raceNumber": n}, 60))
+            result = parse_result(self._query(RESULTS, {"meetCode": code, "raceNumber": n}, 15))
             if result is not None:
                 out[n] = result
         return out
