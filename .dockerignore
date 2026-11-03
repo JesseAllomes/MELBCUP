@@ -17,6 +17,8 @@ research
 tests
 azure
 tools
+# the NBA job image (Dockerfile.nba) needs the model code
+!tools/nba
 render.yaml
 CLAUDE.md
 README.md
