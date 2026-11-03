@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=169 -->
+<!-- drainclamp-build: state; schema=1; generation=170 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T11:50:50+00:00 87532dfb Owner: yes to NBA accuracy backtest. nba_history_run timer (every 15 min, 60 games/run, self-stops 12 Nov) downloads 2024-25 + 2025-26 regular-season box scores from cdn.nba.com into blob nba-history (~10 h). Worst case $24.77 (budget $25). Backtest scoring runs here, token-free.
 - 2026-11-03T11:57:03+00:00 8293e3c6 NBA CDN liveData has no past-season box scores (60/60 missing); Azure downloader paused (NBA_HISTORY=0 via ARM app setting). Source switched to ESPN public site API (works from here): tools/nba/espn_history.py pulling 2024-25 + 2025-26 regular seasons (~45 min, token-free); backtest.py reads both formats.
 - 2026-11-03T12:15:02+00:00 a922ce75 NBA backtest v1 on check season 2024-25 (6,911 games loaded; 2025-26 sealed): minutes-projected model beats season average and last-10 on all four stats (points log loss 0.347 vs 0.519/0.365; rebounds 0.367; assists 0.324; threes 0.470). Calibration close: 80-89% bucket hit 86/85/85/85%; 90-99% hit 94/94/94/92%. research/nba/backtest_v1_check_2024-25.txt
 - 2026-11-03T12:20:24+00:00 49c034b9 NBA v2 (minutes x rate x opponent, missing-teammates, b2b, NB phi, calibration) quick tune (every 40th row): beats v1 on validate 2023-24 and check 2024-25 for all stats; threes biggest gain (check 0.4693 -> 0.4572). Full tune (every 3rd row, half-lives incl. 1.5/2) queued after downloads. Caveat: missing-teammates read from the game box (stand-in for the injury report).
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T21:01:17+00:00 9a57fd1b 2026-11-04 challenge stages picker live (2-8 stages, stage_x even split with keep: 3 = 5x; re-balances; start screen shows per-option stage % and run % on tonight's lines). deploy_azure replaces previous code layer. Pending question to owner: add Sportsbet player props feed? 2023-24 backtest running.
 - 2026-11-03T21:10:36+00:00 2a120c3e 2026-11-04 challenge scheduling live (ee27747a): stages a night 1|2, GAP 3h tip-to-tip, later nights after quota, chance to finish from here (stage chance^remaining), result due (tip+2.5h), header alert strip labels (Stage N tips off / result due; in-app only, not push). Backtest 2023-24: cross 26.6/27.5, same-game 29.0/30.7 -> calibrated; 2024-25 $50 gap = noise. Open offers: Sportsbet props feed; real push notifications (web push) for alerts when app closed.
 - 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
+- 2026-11-03T21:19:44+00:00 a224cbc3 2026-11-04 NBA times dated (views.when: Today/Tomorrow/Thu 6 Nov + time; header alert shows date when >6h). Deployed web. Open question: Sportsbet props vs push notifications.
 <!-- /DC:LOG -->
