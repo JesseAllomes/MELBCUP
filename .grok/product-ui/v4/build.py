@@ -101,6 +101,22 @@ body{background:radial-gradient(120% 60% at 50% -10%,#1E1236 0%,var(--ground) 55
 .books button.best{color:var(--brand-ink)}
 .dock{background:#0E0B15}
 #agSheet .in{height:auto;max-height:88%}
+.mi{width:64px;background:var(--brand-wash);border:1px solid var(--brand);border-radius:7px;color:var(--ink);padding:2px 6px;font:inherit;font-weight:800;text-align:right}
+.editbar{display:flex;align-items:center;gap:8px;background:var(--brand-wash);border:1px solid var(--brand);border-radius:10px;padding:6px 10px;font-size:12.5px}
+.editbar button{margin-left:auto;border:0;background:var(--brand);color:var(--brand-ink);border-radius:8px;padding:4px 12px;font-weight:800}
+.poolhd{display:flex;align-items:center;gap:8px}
+.poolhd b{font-size:15px}
+.poolhd button{margin-left:auto;border:1px solid var(--brand);background:transparent;color:var(--brand);border-radius:8px;padding:3px 12px;font-weight:700}
+.poolhd button.on{background:var(--brand);color:var(--brand-ink)}
+.pool{display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;align-items:center;margin-top:8px;font-size:13.5px}
+.pool small{color:var(--muted);font-size:11.5px;text-align:right}
+.pool .tot{font-weight:800;border-top:1px solid var(--rule);padding-top:6px}
+.picks .r .edge{font-size:11px;font-weight:800;color:var(--good);background:var(--good-wash);border-radius:6px;padding:1px 6px;margin-left:4px}
+.srm{border:1px solid var(--brand);background:linear-gradient(180deg,var(--brand-wash),transparent);border-radius:12px;padding:9px 10px}
+.srm .legs{display:flex;flex-direction:column;gap:3px;margin:6px 0;font-size:13px}
+.srm .legs span{display:flex;gap:6px;align-items:center}
+.homegrid{display:flex;flex-direction:column;gap:8px}
+
 """
 
 JS = r"""
@@ -115,6 +131,7 @@ function races(m){const t0=new Date(m.firstRaceTime||"2026-11-03T01:00:00Z").get
   const ts=(m.venue==="Flemington"&&R.day==="2026-11-03")?Date.parse("2026-11-02T23:45:00Z")+[0,35,70,110,150,190,255,300,340,385][i]*60000:t0+i*35*60000;
   return {n:i+1,ts,time:mel(new Date(ts).toISOString()),take,
    pick:{no:1+h%12,name:(m.venue==="Flemington"&&i===6)?"Point Of Law":fav,stake:[5,10,10,15][h%4],price:price.toFixed(2),fair:(price*0.84).toFixed(2),book:["Sportsbet","Betfair","PointsBet"][h%3]},
+   ...((m.venue==="Flemington"&&i===6&&R.day==="2026-11-03")?{take:true,pick:{no:20,name:"Point Of Law",stake:10,price:"8.50",fair:"7.00",book:"Sportsbet"}}:{}),
    done:R.day==="2026-11-03"&&ts<Date.parse("2026-11-03T03:40:00Z")}})}
 
 const AG=[{k:"sb",n:"Sportsbet",on:true,bal:150,left:90},{k:"bf",n:"Betfair",on:true,bal:50,left:45},{k:"pb",n:"PointsBet",on:true,bal:50,left:20},{k:"tab",n:"TAB",on:false,bal:0,left:0},{k:"lb",n:"Ladbrokes",on:false,bal:0,left:0},{k:"neds",n:"Neds",on:false,bal:0,left:0}];
@@ -158,14 +175,47 @@ const V={
   if(R.tab==="bet"){ if(cup) body=`<section class="card ${S.verdict}">${UI.verdict()}</section>`;
    else if(r.take&&S.verdict==="take") body=`<section class="card take"><div class="vlabel">Take this bet</div><div class="vrow"><span class="cloth lg">${r.pick.no}</span><div class="nm"><b>${r.pick.name}</b><span>Win · best at ${r.pick.book}</span></div><span class="st">$${r.pick.stake}</span></div><div class="nums"><div>Fair<b>$${r.pick.fair}</b></div><div>Best<b>$${r.pick.price}</b></div><div>Book<b>${{Sportsbet:"SB",Betfair:"BF",PointsBet:"PB"}[r.pick.book]}</b></div></div><div class="floor">Only worth it at $${r.pick.fair} or better</div></section>`;
    else {const o=bestOther();body=`<section class="card none"><div class="vlabel">Nothing worth trying here</div><p style="margin:5px 0 0;font-size:13px">No runner pays more than it is worth. Best bet left across every meeting:</p>${o?`<button class="goto" data-meet="${o.m.venue}" data-race="${o.r.n}" type="button"><span class="rn">R${o.r.n}</span><span><b>${o.m.venue} · ${o.r.pick.no} ${o.r.pick.name} · $${o.r.pick.stake}</b><small>${o.r.time} · ${o.r.pick.book} $${o.r.pick.price} · fair $${o.r.pick.fair}</small></span><i>›</i></button>`:""}</section>`}
-   body+=cup?`<section class="card">${UI.bets()}</section>`:`<section class="card"><div class="rows"><div class="r"><span class="k">Place</span><span class="t">${(r.pick.no%12)+1} ${NAMES[(r.pick.no+3)%12]}<small>likeliest placer</small></span><span class="a">$5</span></div><div class="r off"><span class="k">Quinella</span><span class="t">${r.pick.no} – ${(r.pick.no%12)+1}<small>short · skip</small></span><span class="a">–</span></div></div></section>`}
+   if(cup||(r.take&&S.verdict==="take")) body+=topPicks(r,cup); else body+="";
+   if(false) body+=cup?`<section class="card">${UI.bets()}</section>`:`<section class="card"><div class="rows"><div class="r"><span class="k">Place</span><span class="t">${(r.pick.no%12)+1} ${NAMES[(r.pick.no+3)%12]}<small>likeliest placer</small></span><span class="a">$5</span></div><div class="r off"><span class="k">Quinella</span><span class="t">${r.pick.no} – ${(r.pick.no%12)+1}<small>short · skip</small></span><span class="a">–</span></div></div></section>`}
   else if(R.tab==="field") body=`<section class="card">${UI.field()}</section>`;
   else if(R.tab==="check") body=`<section class="card"><div class="lbl">Sources agree</div><p style="margin:4px 0">Field, barriers and scratchings checked across Racing Australia, Racing.com, TAB, Sportsbet and Ladbrokes. <b>5 of 5 agree.</b></p><p class="lbl" style="margin-top:8px">Last checks</p><p style="margin:2px 0">15 min before: no changes · 3 min before: due</p></section>`;
   else if(R.tab==="news") body=`<section class="card"><div class="rows"><div class="r"><span class="t">Track upgraded to Good 4 at 11:20am<small>Racing.com</small></span></div><div class="r"><span class="t">Late scratching: 9 (vet)<small>Racing Australia</small></span></div></div></section>`;
   else if(R.tab==="result") body=`<section class="card"><p class="empty">${r.done?"Result: 1st 20 · 2nd 15 · 3rd 11. App's pick WON +$60.":"Result shows here a minute after the jump."}</p></section>`;
-  else body=`<section class="card">${UI.mine()}</section>`;
+  else body=mineView();
   return head+tabs+body}
 };
+
+R.edit=false;const POOL={budget:200,win:10,place:5};
+const money=(v,id)=>R.edit?`<input class="mi" inputmode="numeric" data-money="${id}" value="${v}" aria-label="Amount">`:`$${v}`;
+function picksFor(r,cup){
+ if(cup) return [["Win","20 Point Of Law","SB $8.50 · fair $7.00",21,10],["Place","12 Hopewell Rock","BF $3.10 · fair $2.80",11,5],["Each way","11 Juja Kibo","PB $14 / $4.20",9,4],["Quinella","20 – 2","est. $52 · fair $41",27,2]];
+ const a=r.pick,o=(a.no%12)+1,q=((a.no+4)%12)+1;
+ return [["Win",`${a.no} ${a.name}`,`${a.book} $${a.price} · fair $${a.fair}`,Math.round((a.price/a.fair-1)*100),a.stake],["Place",`${o} ${NAMES[(a.no+3)%12]}`,`BF $${(1.6+(a.no%5)/10).toFixed(2)} · fair $${(1.45+(a.no%5)/10).toFixed(2)}`,9,5],["Each way",`${q} ${NAMES[(a.no+6)%12]}`,`PB $${(8+a.no%7).toFixed(2)} / $${(2.4+(a.no%4)/5).toFixed(2)}`,7,4],["Quinella",`${a.no} – ${o}`,`est. $${18+a.no*3} · fair $${14+a.no*2}`,15,2]]}
+function topPicks(r,cup){const P=picksFor(r,cup).filter(x=>x[3]>0).slice(0,4);
+ const srm=cup?{legs:[["20","Point Of Law","to win"],["12","Hopewell Rock","top 3"],["2","Trustyourinstinct","top 4"]],price:"11.40",fair:"9.20",stake:5}
+  :{legs:[[String(r.pick.no),r.pick.name,"to win"],[String((r.pick.no%12)+1),NAMES[(r.pick.no+3)%12],"top 3"]],price:(r.pick.price*1.9).toFixed(2),fair:(r.pick.fair*1.7).toFixed(2),stake:5};
+ return `<section class="card picks"><div class="lbl" style="margin-bottom:2px">Top picks worth a shot</div><div class="rows">${P.map((x,i)=>`<div class="r"><span class="k">${x[0]}</span><span class="t">${x[1]}<span class="edge">+${x[3]}%</span><small>${x[2]}</small></span><span class="a">${money(x[4],"p"+i)}</span></div>`).join("")}</div></section>
+ <section class="srm"><div class="lbl" style="color:var(--brand)">Same race multi</div><div class="legs">${srm.legs.map(l=>`<span><span class="cloth">${l[0]}</span>${l[1]} <small style="color:var(--muted)">· ${l[2]}</small></span>`).join("")}</div>
+ <div style="display:flex;align-items:baseline;gap:8px;font-size:13px"><span>Sportsbet <b>$${srm.price}</b> · fair $${srm.fair}</span><b style="margin-left:auto;font-size:16px">${money(srm.stake,"srm")}</b></div></section>`}
+function mineView(){const on=AG.filter(a=>a.on);const tot=on.reduce((t,a)=>t+a.bal,0),left=on.reduce((t,a)=>t+a.left,0);
+ return `<section class="card"><div class="poolhd"><b>Betting pool</b><button id="poolEdit" class="${R.edit?"on":""}" type="button">${R.edit?"Done":"Edit"}</button></div>
+ <div class="pool">${on.map(a=>`<span>${a.n}</span><span>${R.edit?`<input class="mi" inputmode="numeric" data-agbal="${AG.indexOf(a)}" value="${a.bal}" aria-label="${a.n} money">`:"$"+a.bal}</span><small>$${a.left} left</small>`).join("")}
+ <span class="tot">Total</span><span class="tot">$${tot}</span><small class="tot">$${left} left</small>
+ <span>Day budget</span><span>${money(POOL.budget,"budget")}</span><small>most to spend today</small>
+ <span>Usual win stake</span><span>${money(POOL.win,"win")}</span><small>per Take bet</small>
+ <span>Usual place stake</span><span>${money(POOL.place,"place")}</span><small></small></div>
+ ${R.edit?'<p style="margin:8px 0 0;font-size:12px;color:var(--muted)">Every $ amount in the app is editable until you press Done.</p>':""}</section>
+ <section class="card">${UI.mine()}</section>`}
+function bindMoney(go){const pe=document.getElementById("poolEdit");if(pe)pe.onclick=()=>{R.edit=!R.edit;go()};
+ document.querySelectorAll("[data-agbal]").forEach(i=>i.onchange=()=>{const a=AG[+i.dataset.agbal];const v=Math.max(0,parseInt(i.value)||0);a.left=Math.max(0,a.left+(v-a.bal));a.bal=v;mountHeader();go()});
+ document.querySelectorAll("[data-money]").forEach(i=>i.onchange=()=>{const k=i.dataset.money;if(k in POOL)POOL[k]=Math.max(0,parseInt(i.value)||0)});
+ const eb=document.getElementById("editDone");if(eb)eb.onclick=()=>{R.edit=false;go()};}
+
+UI.mine=()=>`<div class="lbl" style="margin-bottom:2px">Your bets</div><div class="rows">
+ <div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>@ $8.50 · Sportsbet</small></span><span class="a">${money(10,"m1")}</span><span class="tag">OPEN</span></div>
+ <div class="r"><span class="k">Kids</span><span class="t">Holly · 2 Trustyourinstinct<small>EW @ $9 / $3 · PointsBet</small></span><span class="a">${money(5,"m2")}</span><span class="tag">OPEN</span></div></div>
+ <div class="lbl" style="margin:8px 0 2px">App's picks</div><div class="rows"><div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>@ $8.50</small></span><span class="a">$10</span><span class="tag">OPEN</span></div></div>`;
+const editBar=()=>R.edit?`<div class="editbar">Editing amounts<button id="editDone" type="button">Done</button></div>`:"";
 function bindAll(go){document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{R.day=b.dataset.day;R.meet=null;R.race=null;go()});
  document.querySelectorAll("[data-meet]").forEach(b=>b.onclick=()=>{R.meet=b.dataset.meet;R.race=b.dataset.race?+b.dataset.race:null;R.tab="bet";go()});
  document.querySelectorAll(".strip [data-race],.brow[data-race]:not([data-meet])").forEach(b=>b.onclick=()=>{R.race=+b.dataset.race;R.tab="bet";go()});
@@ -236,6 +286,24 @@ function go(){const s=$("#scr");
 $("#shX").onclick=()=>{$("#sheet").hidden=true;R.meet=null};
 wire(go);
 """),
+"e-merged": dict(title="AsynymBet", concept="E · Race days + Hub: Home hub, Race days drill-down inline under the fixed header, Mine with the betting pool.", body="""<div class="app">
+<div class="topnav"><button data-nav="home" class="on" type="button">Home</button><button data-nav="days" type="button">Race days</button><button data-nav="mine" type="button">Mine</button></div>
+{proto}
+<div class="scr" id="scr"></div></div>""", js="""
+let nav="home";
+function go(){document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("on",b.dataset.nav===nav));const s=$("#scr");
+ if(R.meet&&R.race) s.innerHTML=editBar()+`<button class="back" data-back="meet" type="button">‹ ${R.meet}</button>`+V.strip()+V.race();
+ else if(R.meet) s.innerHTML=editBar()+`<button class="back" data-back="day" type="button">‹ ${nav==="home"?"Home":"Race days"}</button><div class="card">${V.meetHead()}</div>`+V.raceList();
+ else if(nav==="mine") s.innerHTML=mineView();
+ else if(nav==="days") s.innerHTML=V.days()+V.meetList();
+ else s.innerHTML=V.days()+`<section class="card" style="display:flex;flex-direction:column;gap:6px">${V.best(4)}<button class="back" data-nav2="best" type="button" style="text-align:center">See all bets to take ›</button></section><section class="card" style="display:flex;flex-direction:column;gap:6px"><div class="sec"><span>Meetings</span><span>${meetings().length}</span></div><div class="mtabs" style="flex-wrap:wrap">${meetings().map(m=>`<button data-meet="${m.venue}" type="button">${m.venue}${races(m).some(r=>r.take&&!r.done)?"<i></i>":""}</button>`).join("")}</div></section>`;
+ bindAll(go);bindMoney(go);
+ document.querySelectorAll("[data-nav2]").forEach(b=>b.onclick=()=>{s.innerHTML=V.days()+V.best();bindAll(go)});
+ document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{if(b.dataset.back==="day")R.meet=null;R.race=null;go()});}
+document.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{nav=b.dataset.nav;R.meet=null;R.race=null;go()});
+wire(go);
+"""),
+
 }
 
 for key, v in SHELLS.items():
