@@ -221,6 +221,29 @@ def open_races(picks) -> set[int]:
     return {rp.model.race.number for rp in picks.races if betting_open(rp.model.race)}
 
 
+def countdown(picks, now: datetime) -> list[dict]:
+    """The open races that still have an advertised start ahead, soonest first: the data the
+    "R2 jumps in 4:12" strip counts down to (number, start as ISO, seconds left at ``now``)."""
+    if not picks:
+        return []
+    ahead = [
+        rp.model.race
+        for rp in picks.races
+        if betting_open(rp.model.race)
+        and rp.model.race.start_time is not None
+        and rp.model.race.start_time > now
+    ]
+    ahead.sort(key=lambda r: r.start_time)
+    return [
+        {
+            "n": r.number,
+            "t": r.start_time.isoformat(),
+            "left": int((r.start_time - now).total_seconds()),
+        }
+        for r in ahead
+    ]
+
+
 def betting_open(race) -> bool:
     """A race that has not run: no result yet and not started more than a few minutes ago."""
     return race.result is None and (race.start_time is None or until(race.start_time) != "run")
@@ -316,6 +339,7 @@ class Views:
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
     ) -> dict:
         snap = self.board.snapshot()
+        now = datetime.now(UTC)
         cookies = cookies or {}
         sb, bf, chosen = pick_amounts(query, cookies)
         # PointsBet (POINTSBET=1): a third account, $0 until the owner sets an amount. It is
@@ -364,7 +388,8 @@ class Views:
             "today": melbourne_today(),
             "here": path,
             "can_fetch": self.board.can_fetch,
-            "now": datetime.now(UTC),
+            "now": now,
+            "countdown": countdown(picks, now),
         }
 
     def page(

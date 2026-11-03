@@ -77,6 +77,7 @@ def views(env):
 
 
 def no_clock(html):
+    html = re.sub(r'<div class="alertbar".*?id="alert-data">.*?</script>', "", html, flags=re.S)
     return re.sub(r"in \d+ h \d+ min|in \d+ min", "", html)
 
 

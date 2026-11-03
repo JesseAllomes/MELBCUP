@@ -13,6 +13,16 @@
   <script src="/static/app.js?v={{ asset_v }}" defer></script>
 </head>
 <body>
+  {% if countdown %}
+  {% set first = countdown[0] %}
+  <div class="alertbar" id="alertbar" role="status">
+    <div class="ab-in">
+      <a class="ab-msg" href="/race/{{ first.n }}">R{{ first.n }} jumps in {{ '%d:%02d' % (first.left // 60, first.left % 60) if first.left < 3600 else '%d:%02d:%02d' % (first.left // 3600, first.left % 3600 // 60, first.left % 60) }}</a>
+      <button type="button" class="ab-alerts" hidden>Alerts</button>
+    </div>
+  </div>
+  <script type="application/json" id="alert-data">{{ countdown | tojson }}</script>
+  {% endif %}
   <main id="main" class="page" data-refresh="{% block refresh %}30{% endblock %}">
     {% include "_wallet.html" %}
     <nav class="topnav" aria-label="Site">

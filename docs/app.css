@@ -43,6 +43,21 @@ p { margin: 0 0 6px; }
   border-radius: 3px; font: 700 16px/1 var(--head); vertical-align: middle; }
 .cloth.sm { min-width: 22px; height: 22px; font-size: 14px; }
 
+/* Countdown strip, above everything: "R2 jumps in 4:12"; amber "BET NOW" from 3:00 to go */
+.alertbar { position: sticky; top: 0; z-index: 7; height: calc(30px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px); background: var(--sheet); color: var(--muted);
+  border-bottom: 1px solid var(--rule); transition: background-color 150ms ease, color 150ms ease; }
+.alertbar[hidden] { display: none; }
+.ab-in { max-width: 460px; height: 30px; margin: 0 auto; display: flex; align-items: center; gap: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.ab-msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 700 14px/30px var(--head); letter-spacing: 0.03em; color: var(--ink); text-decoration: none; }
+.ab-alerts { min-height: 24px; padding: 0 9px; font: 600 12px var(--body); border-radius: 999px; }
+.alertbar.hot { background: var(--amber); color: #1A1300; border-bottom-color: var(--amber); }
+.alertbar.hot .ab-msg { color: #1A1300; }
+.alertbar.hot .ab-alerts { background: transparent; color: #1A1300; border-color: #1A1300; }
+.alertbar:not([hidden]) + script + main .wallet { top: calc(30px + env(safe-area-inset-top, 0px)); }
+
 /* Wallet bars at the very top */
 .wallet { display: grid; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
   background: var(--ground); padding-block: 6px; margin-top: -6px; }

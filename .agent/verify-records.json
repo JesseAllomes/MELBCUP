@@ -1,9 +1,9 @@
 {
   "tier:milestone": {
     "digest": "tier",
-    "tree": "sha256:1be3559f17430db4",
+    "tree": "sha256:20382dd498d3c17a",
     "status": "pass",
-    "when": "2026-11-03T00:20:02+00:00",
+    "when": "2026-11-03T00:24:22+00:00",
     "log": "verify.log"
   },
   "tier:fast": {
