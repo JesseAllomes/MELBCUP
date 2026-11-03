@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=168 -->
+<!-- drainclamp-build: state; schema=1; generation=169 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T11:42:53+00:00 9bbc0853 Owner gave The Odds API key (kept only in session scratchpad odds.env, 600; not in repo). 500 free credits/month. AU h2h covers 12 AU books incl. TAB, Ladbrokes, Neds, Sportsbet, PointsBet, Betfair AU, Unibet, Betr (fills our TAB/Entain scrape gap). Player props empty for AU and US 37 h before tip (likely posted near game time; empty calls cost 0). Credits used: 1.
 - 2026-11-03T11:50:50+00:00 87532dfb Owner: yes to NBA accuracy backtest. nba_history_run timer (every 15 min, 60 games/run, self-stops 12 Nov) downloads 2024-25 + 2025-26 regular-season box scores from cdn.nba.com into blob nba-history (~10 h). Worst case $24.77 (budget $25). Backtest scoring runs here, token-free.
 - 2026-11-03T11:57:03+00:00 8293e3c6 NBA CDN liveData has no past-season box scores (60/60 missing); Azure downloader paused (NBA_HISTORY=0 via ARM app setting). Source switched to ESPN public site API (works from here): tools/nba/espn_history.py pulling 2024-25 + 2025-26 regular seasons (~45 min, token-free); backtest.py reads both formats.
 - 2026-11-03T12:15:02+00:00 a922ce75 NBA backtest v1 on check season 2024-25 (6,911 games loaded; 2025-26 sealed): minutes-projected model beats season average and last-10 on all four stats (points log loss 0.347 vs 0.519/0.365; rebounds 0.367; assists 0.324; threes 0.470). Calibration close: 80-89% bucket hit 86/85/85/85%; 90-99% hit 94/94/94/92%. research/nba/backtest_v1_check_2024-25.txt
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T20:53:22+00:00 cae87d5f 2026-11-04 DIRECT DEPLOY LIVE: tools/deploy_azure.py (checks -> function one-deploy zip, job+web code layer on running image via ghcr, PUT spec, cost_guard --live). Env: scratch azure.env + ghcr.env (KV ghcr-publish-token, owner approved). azure-deploy.yml push trigger removed (dispatch only for full rebuilds). Deployed d40ed08c: money rework, challenge one-game-per-stage + placed/won/lost + keep start, Sportsbet default agency, archive-to-gcs schedule off. main = d40ed08c, no workflow fired. Owner bets at Sportsbet: legs priced on PointsBet; next candidate: Sportsbet player props feed. 2023-24 multis backtest still running.
 - 2026-11-03T21:01:17+00:00 9a57fd1b 2026-11-04 challenge stages picker live (2-8 stages, stage_x even split with keep: 3 = 5x; re-balances; start screen shows per-option stage % and run % on tonight's lines). deploy_azure replaces previous code layer. Pending question to owner: add Sportsbet player props feed? 2023-24 backtest running.
 - 2026-11-03T21:10:36+00:00 2a120c3e 2026-11-04 challenge scheduling live (ee27747a): stages a night 1|2, GAP 3h tip-to-tip, later nights after quota, chance to finish from here (stage chance^remaining), result due (tip+2.5h), header alert strip labels (Stage N tips off / result due; in-app only, not push). Backtest 2023-24: cross 26.6/27.5, same-game 29.0/30.7 -> calibrated; 2024-25 $50 gap = noise. Open offers: Sportsbet props feed; real push notifications (web push) for alerts when app closed.
+- 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
 <!-- /DC:LOG -->
