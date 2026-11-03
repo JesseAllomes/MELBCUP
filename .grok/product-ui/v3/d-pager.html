@@ -1,0 +1,158 @@
+<title>AsynymBet Pager</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* D · Pager: swipe left and right between races; each race page has Bet | Field | Mine tabs. */
+:root{
+  --ground:#F4F2EE; --sheet:#FFFFFF; --ink:#16201B; --muted:#5F6B66; --rule:#E4E1DA; --chip:#EFECE6;
+  --brand:#136A4B; --brand-ink:#FFFFFF; --brand-wash:#E3F1EA;
+  --good:#1B7F4E; --good-wash:#E2F3E8; --bad:#B8322A; --bad-wash:#FBE6E3; --warn:#9A6200; --warn-wash:#FCF0D6;
+  --sb:#1E3687; --bf:#B57A00; --pb:#C4182F; --place:#2F5FD0;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#0F1412;--sheet:#18201C;--ink:#EAF0EC;--muted:#9AA8A1;--rule:#2A3530;--chip:#222C27;--brand:#3FB683;--brand-ink:#08130E;--brand-wash:#183429;--good:#4CC98A;--good-wash:#173326;--bad:#F07A6E;--bad-wash:#3A1D1A;--warn:#F0B54A;--warn-wash:#3A2C12;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--place:#86A8FF;color-scheme:dark}}
+:root[data-theme="dark"]{--ground:#0F1412;--sheet:#18201C;--ink:#EAF0EC;--muted:#9AA8A1;--rule:#2A3530;--chip:#222C27;--brand:#3FB683;--brand-ink:#08130E;--brand-wash:#183429;--good:#4CC98A;--good-wash:#173326;--bad:#F07A6E;--bad-wash:#3A1D1A;--warn:#F0B54A;--warn-wash:#3A2C12;--sb:#9CB0FF;--bf:#F2B53A;--pb:#FF7D8E;--place:#86A8FF;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.35;font-variant-numeric:tabular-nums;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{height:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.fill{flex:1;min-height:0;overflow:auto}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:10px;min-width:0}
+.lbl{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.cloth{flex:0 0 auto;width:24px;height:24px;border-radius:5px;background:#fff;color:#111;border:1.5px solid #111;display:inline-grid;place-items:center;font-weight:800;font-size:12px}
+.cloth.lg{width:34px;height:34px;font-size:16px}
+.brandbar{display:flex;align-items:center;gap:8px;padding-block:8px 6px}
+.brandbar b{font-weight:800;color:var(--brand);font-size:16px}
+.brandbar .pl{margin-left:auto;font-weight:800;color:var(--good)}
+.wal{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.wal div{border-radius:9px;background:var(--sheet);border:1px solid var(--rule);border-left:4px solid var(--c);padding:4px 7px;font-size:10.5px;color:var(--muted)}
+.wal b{display:block;color:var(--ink);font-size:14px}
+.plbar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.plbar .tr{flex:1;height:6px;border-radius:3px;background:var(--rule);position:relative}
+.plbar .tr::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.plbar .fl{position:absolute;left:50%;top:0;bottom:0;width:18%;background:var(--good);border-radius:3px}
+.plbar b{color:var(--good);font-size:13px}
+.strip{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.strip button{flex:0 0 auto;border:1px solid var(--rule);background:var(--sheet);border-radius:9px;padding:3px 8px;font-size:11px;display:flex;flex-direction:column;align-items:flex-start;position:relative;min-width:44px;color:var(--muted)}
+.strip button b{font-size:14px;color:var(--ink)}
+.strip button.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.strip button.on b{color:var(--brand-ink)}
+.strip button i{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%}
+.i-take{background:var(--good)}.i-res{background:var(--warn)}.i-none{background:var(--rule)}
+.seg{display:flex;background:var(--chip);border-radius:11px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:6px 4px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg button small{font-size:10px;background:var(--rule);border-radius:999px;padding:0 5px;margin-left:3px}
+.clock{font-weight:800;color:var(--brand)}
+.clock.now{color:var(--bad)}
+.vlabel{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--good)}
+.none .vlabel{color:var(--muted)}
+.vrow{display:flex;align-items:center;gap:9px;margin-top:6px}
+.vrow .nm{flex:1;min-width:0}
+.vrow .nm b{display:block;font-size:17px;line-height:1.1}
+.vrow .nm span{font-size:12px;color:var(--muted)}
+.vrow .st{font-size:24px;font-weight:800}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.nums div{background:var(--chip);border-radius:8px;padding:4px 7px;font-size:10.5px;color:var(--muted)}
+.nums b{display:block;color:var(--ink);font-size:14px}
+.floor{margin-top:6px;font-size:12px;color:var(--good);font-weight:600}
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.books button{border:1.5px solid var(--c);color:var(--c);background:transparent;border-radius:9px;padding:5px 2px;font-size:11px;font-weight:700;line-height:1.1}
+.books button b{display:block;font-size:15px}
+.books button.best{background:var(--c);color:var(--sheet)}
+.books button.ok{background:var(--good);border-color:var(--good);color:#fff}
+.goto{display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--brand-wash);border-radius:11px;padding:9px;text-decoration:none;color:var(--ink);border:0;width:100%;text-align:left}
+.goto .rn{font-size:22px;font-weight:800;color:var(--brand)}
+.goto small{display:block;color:var(--muted);font-size:12px}
+.goto i{margin-left:auto;font-style:normal;font-size:20px;font-weight:800;color:var(--brand)}
+.rows{display:flex;flex-direction:column}
+.r{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--rule)}
+.r:first-child{border-top:0}
+.r .t{flex:1;min-width:0}
+.r .t small{display:block;color:var(--muted);font-size:11.5px}
+.r .a{font-weight:800;white-space:nowrap}
+.r .k{font-weight:700;width:62px;flex:0 0 auto}
+.r.off{opacity:.5}
+.bar2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:3px}
+.bar2 i{display:block;height:4px;border-radius:2px;background:var(--rule);overflow:hidden}
+.bar2 i span{display:block;height:100%}
+.pv{color:var(--good);font-weight:800}.ps{color:var(--muted);font-weight:700}
+.tag{font-size:10px;font-weight:800;border-radius:5px;padding:2px 6px;background:var(--chip)}
+.say{border-left:3px solid var(--brand);background:var(--brand-wash);border-radius:0 9px 9px 0;padding:7px 9px;font-size:13px;margin:0}
+.proto{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--muted);padding-top:6px;flex-wrap:wrap}
+.proto button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:2px 9px;font-size:11px}
+.proto button.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+
+.pager{flex:1;min-height:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;padding-block:6px 4px}
+.page{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;gap:7px;min-height:0}
+.page .mod{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:7px}
+.dots{display:flex;justify-content:center;gap:5px;padding-block:4px 8px}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--rule)}
+.dots span.on{background:var(--brand);width:18px;border-radius:3px}
+.mini{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;flex:1;color:var(--muted);text-align:center}
+.mini b{font-size:40px;color:var(--ink)}
+
+</style>
+<div class="app">
+ <div class="proto">D · Pager · sample prices · <button data-v="take" type="button">Take</button><button data-v="none" type="button">Nothing here</button><button id="pNow" type="button">2 min</button></div>
+ <div class="brandbar"><b>AsynymBet</b><span style="font-size:12px;color:var(--muted)">swipe for races ›</span><span class="pl">+$36</span></div>
+ <div id="money"></div>
+ <div class="pager" id="pager"></div>
+ <div class="dots" id="dots"></div>
+</div>
+<script>
+const FIELD=[[20,"Point Of Law","B9 · E. Brown · C. Maher",14,30,7.0,8.5,"SB"],[12,"Hopewell Rock","B15 · Z. Lloyd · G. Boughey",13,30,8.0,7.8,"BF"],[2,"Trustyourinstinct","B18 · J. McDonald · A. O'Brien",10,25,10.0,9.4,"BF"],[16,"So You Are","B7 · R. King · B. Baker",9,25,11.0,13.0,"SB"],[24,"Shockletz","B17 · H. Coffey · C. Maher",9,25,11.0,11.0,"SB"],[11,"Juja Kibo","B14 · S. Clipperton · C. Maher",6,17,16.0,14.5,"BF"],[5,"Vauban","B3 · W. Pike · W. Mullins",5,15,20.0,17.0,"PB"],[8,"Wine Dark Sea","B11 · D. Lane · C. Waller",4,13,25.0,26.0,"SB"]];
+const S={verdict:"take",now:false};
+const $=s=>document.querySelector(s);
+const UI={
+ wallets:()=>`<div class="wal"><div style="--c:var(--sb)">Sportsbet<b>$90 <small style="color:var(--muted);font-weight:500">/150</small></b></div><div style="--c:var(--bf)">Betfair<b>$45 <small style="color:var(--muted);font-weight:500">/50</small></b></div><div style="--c:var(--pb)">PointsBet<b>$20 <small style="color:var(--muted);font-weight:500">/50</small></b></div></div>`,
+ pnl:()=>`<div class="plbar"><span>Today</span><div class="tr"><div class="fl"></div></div><b>+$36</b></div>`,
+ strip:(on=7)=>`<nav class="strip" aria-label="Races">${[[5,"1:40","res"],[6,"2:20","res"],[7,"3:00","take"],[8,"3:45","none"],[9,"4:25","take"],[10,"5:10","none"]].map(([n,t,s])=>`<button type="button" class="${n===on?"on":""}"><b>R${n}</b>${t}<i class="i-${s}"></i></button>`).join("")}</nav>`,
+ clock:()=>S.now?`<span class="clock now">BET NOW · 2:00</span>`:`<span class="clock">12:40 to jump</span>`,
+ head:()=>`<div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:22px;color:var(--brand);font-weight:800">R7</b><div style="min-width:0;flex:1"><b style="font-size:15px">Lexus Melbourne Cup</b><div style="font-size:11.5px;color:var(--muted)">3200m · 23 run · Good 4 · prices 40 s ago</div></div><span class="clk">${UI.clock()}</span></div>`,
+ verdict:()=>S.verdict==="take"?`<div class="vlabel">Take this bet</div>
+   <div class="vrow"><span class="cloth lg">20</span><div class="nm"><b>Point Of Law</b><span>Win · best at Sportsbet</span></div><span class="st">$10</span></div>
+   <div class="nums"><div>Chance<b>1 in 7</b></div><div>Fair<b>$7.00</b></div><div>Best<b>$8.50</b></div></div>
+   <div class="floor">Only worth it at $7.00 or better · PB Run 2nd applies</div>
+   <div class="books"><button class="best" style="--c:var(--sb)" type="button">Sportsbet<b>$8.50</b></button><button style="--c:var(--bf)" type="button">Betfair<b>$8.20</b></button><button style="--c:var(--pb)" type="button">PointsBet<b>$8.00</b></button></div>`
+  :`<div class="vlabel">Nothing worth trying here</div><p style="margin:5px 0 0;font-size:13px">Every runner is at or under its fair price. Best bet left today:</p>
+   <button class="goto" type="button"><span class="rn">R9</span><span><b>4 Ferocious · Win $10</b><small>4:25pm · Betfair $6.50 · fair $5.20</small></span><i>›</i></button>`,
+ say:()=>S.verdict==="take"?"We rate Point Of Law 1 in 7; Sportsbet pays $8.50, 21% over fair. Hopewell Rock is the likeliest placer. Exotics are short: skip.":"Every runner is at or under fair. Hold the money for R9.",
+ bets:()=>`<div class="rows">
+   <div class="r"><span class="k">Win</span><span class="t"><span class="cloth">20</span> Point Of Law<small>take $7.00+ · SB $8.50</small></span><span class="a">$10</span></div>
+   <div class="r"><span class="k">Place</span><span class="t"><span class="cloth">12</span> Hopewell Rock<small>take $2.80+ · BF $3.10</small></span><span class="a">$5</span></div>
+   <div class="r"><span class="k">Each way</span><span class="t"><span class="cloth">11</span> Juja Kibo<small>$2 EW · $4 total · PB $14/$4.20</small></span><span class="a">$4</span></div>
+   <div class="r off"><span class="k">Quinella</span><span class="t">20 – 12<small>est. $38 · needs $45 · skip</small></span><span class="a">–</span></div>
+   <div class="r off"><span class="k">Trifecta</span><span class="t">20, 12, 2, 16 box<small>short · skip</small></span><span class="a">–</span></div></div>`,
+ field:(n=8)=>`<div class="rows">${FIELD.slice(0,n).map((r,i)=>`<div class="r"><span class="cloth">${r[0]}</span><span class="t"><b>${r[1]}</b><small>${r[2]}</small><div class="bar2"><i><span style="width:${r[3]*4}%;background:var(--good)"></span></i><i><span style="width:${r[4]*2}%;background:var(--place)"></span></i></div></span><span style="text-align:right;font-size:12px"><b>${r[3]}%</b><br><span class="${r[6]>r[5]?"pv":"ps"}">$${r[6].toFixed(2)}</span> <small style="color:var(--muted)">${r[7]}</small></span></div>`).join("")}</div>`,
+ mine:()=>`<div class="lbl" style="margin-bottom:2px">Your bets</div><div class="rows">
+   <div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>$10 @ $8.50 · SB</small></span><span class="tag">OPEN</span></div>
+   <div class="r"><span class="k">Kids</span><span class="t">Holly · 2 Trustyourinstinct<small>$5 EW @ $9/$3 · PB</small></span><span class="tag">OPEN</span></div></div>
+   <div class="lbl" style="margin:8px 0 2px">App's picks</div><div class="rows"><div class="r"><span class="k">Win</span><span class="t">20 Point Of Law<small>$10 @ $8.50</small></span><span class="tag">OPEN</span></div></div>`,
+ day:()=>`<div class="rows">${[["R5","1:40","Won $18","var(--good)"],["R6","2:20","Lost $10","var(--bad)"],["R7","3:00","Take: 20 Point Of Law $10","var(--ink)"],["R8","3:45","Nothing here","var(--muted)"],["R9","4:25","Take: 4 Ferocious $10","var(--ink)"],["R10","5:10","Nothing here","var(--muted)"]].map(r=>`<div class="r"><b style="width:36px">${r[0]}</b><span class="t">${r[2]}<small>${r[1]}pm</small></span><span style="width:8px;height:8px;border-radius:50%;background:${r[3]}"></span></div>`).join("")}</div>`
+};
+function wire(render){
+ const draw=()=>{render();document.querySelectorAll(".books button").forEach(b=>b.onclick=()=>{b.className="ok";b.innerHTML="✓ Placed<b>$10</b>"});
+  document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===S.verdict));$("#pNow").classList.toggle("on",S.now)};
+ document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{S.verdict=b.dataset.v;draw()});
+ $("#pNow").onclick=()=>{S.now=!S.now;draw()};
+ draw();return draw;}
+function tabs(sel,cb){document.querySelectorAll(sel).forEach(b=>b.onclick=()=>{document.querySelectorAll(sel).forEach(x=>x.classList.toggle("on",x===b));cb(b.dataset.tab)})}
+
+$("#money").innerHTML=UI.wallets();
+const races=[6,7,8,9];let sub={7:"bet"};let cur=7;
+function racePage(n){
+ if(n!==7) return `<section class="page" data-r="${n}"><div class="card"><div style="display:flex;gap:8px;align-items:baseline"><b style="font-size:22px;color:var(--brand)">R${n}</b><b>${{6:"Kennedy Cup",8:"Hilton Hotels Handicap",9:"Furphy Plate"}[n]}</b></div></div>
+   <div class="card mini">${n===6?`<span>Result</span><b>Lost $10</b><span>App's pick 3 Rich Fella ran 4th</span>`:n===8?`<span>Nothing worth trying here</span><b>Skip</b><span>Every runner at or under fair</span>`:`<span>Take this bet</span><b>$10</b><span>4 Ferocious · Win · Betfair $6.50</span>`}</div></section>`;
+ const t=sub[7];
+ return `<section class="page" data-r="7"><div class="card">${UI.head()}</div>
+  <div class="seg"><button data-tab="bet" class="${t==="bet"?"on":""}" type="button">Bet</button><button data-tab="field" class="${t==="field"?"on":""}" type="button">Field<small>23</small></button><button data-tab="mine" class="${t==="mine"?"on":""}" type="button">Mine<small>2</small></button></div>
+  <div class="mod">${t==="bet"?`<section class="card ${S.verdict}">${UI.verdict()}</section><p class="say">${UI.say()}</p>${UI.pnl()}`:t==="field"?`<section class="card">${UI.field()}</section>`:`<section class="card">${UI.mine()}</section><section class="card">${UI.bets()}</section>`}</div></section>`;}
+const draw=wire(()=>{const pg=$("#pager");const x=pg.scrollLeft;pg.innerHTML=races.map(racePage).join("");pg.scrollLeft=x;
+ pg.querySelectorAll('[data-r="7"] .seg button').forEach(b=>b.onclick=()=>{sub[7]=b.dataset.tab;draw()});
+ $("#dots").innerHTML=races.map(n=>`<span class="${n===cur?"on":""}" title="R${n}"></span>`).join("");});
+const pg=$("#pager");requestAnimationFrame(()=>{pg.scrollLeft=pg.clientWidth+10;});
+pg.addEventListener("scroll",()=>{const i=Math.round(pg.scrollLeft/(pg.clientWidth+10));const n=races[i];if(n&&n!==cur){cur=n;$("#dots").innerHTML=races.map(m=>`<span class="${m===cur?"on":""}"></span>`).join("")}},{passive:true});
+</script>
