@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """The AsynymBet pages (ASYNYM=1): the same data under new templates, and the old pages when off."""
 
 import pytest
@@ -105,3 +106,9 @@ def test_no_kids_bets_card(on):
     for path in ("/mine", "/race/1?tab=mine"):
         html = on.get(path).text
         assert 'id="kids-h"' not in html and 'class="r kid"' not in html
+
+
+def test_autobet_is_off_unless_switched_on(on):
+    """The owner does not use auto-betting (2026-11-04): no betting routes while AUTOBET is unset."""
+    assert on.get("/api/betting").status_code == 404
+    assert on.post("/api/betting/bet", json={"race": 1, "runner": 1, "stake": 5, "pin": "x"}).status_code in (404, 405)

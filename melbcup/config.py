@@ -32,6 +32,7 @@ class Settings:
     betfair_password: str | None = field(default=None, repr=False)
     betfair_app_key: str | None = field(default=None, repr=False)
     bet_pin: str | None = field(default=None, repr=False)  # BET_PIN: every betting action
+    autobet: bool = False  # AUTOBET=1: Betfair auto-betting and its /api/betting routes (off)
     bet_live: bool = False  # BET_MODE=live: real Betfair bets (needs the live app key)
     auto_limit: float = 20.0  # AUTO_LIMIT: auto's default daily limit in dollars
     pointsbet: bool = False  # POINTSBET=1: PointsBet as a third betting account (off by default)
@@ -66,6 +67,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         betfair_password=_clean(env.get("BETFAIR_PASSWORD")),
         betfair_app_key=_clean(env.get("BETFAIR_APP_KEY")),
         bet_pin=_clean(env.get("BET_PIN")),
+        autobet=_clean(env.get("AUTOBET")) == "1",
         bet_live=(_clean(env.get("BET_MODE")) or "").lower() == "live",
         auto_limit=_money(env.get("AUTO_LIMIT"), 20.0),
         pointsbet=_clean(env.get("POINTSBET")) == "1",

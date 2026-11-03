@@ -55,14 +55,14 @@ def create_app(
 
         board = LiveBoard(settings, archive=Archive(read), rc=RacingComClient())
     views = Views(settings, board)
-    betting = Betting(settings, board)
+    betting = Betting(settings, board) if settings.autobet else None
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         stop_auto = None
         if start_background:
             board.start()
-            stop_auto = start_loop(betting)
+            stop_auto = start_loop(betting) if betting is not None else None
         yield
         if stop_auto is not None:
             stop_auto.set()
@@ -109,73 +109,79 @@ def create_app(
             raise HTTPException(400, str(exc)) from exc
         return JSONResponse(body, headers={"Cache-Control": "no-store"})
 
-    def _betting_answer(fn):
-        try:
-            return JSONResponse(fn(), headers={"Cache-Control": "no-store"})
-        except PinError as exc:
-            raise HTTPException(403, str(exc)) from exc
-        except BetError as exc:
-            raise HTTPException(400, str(exc)) from exc
+    # Betfair auto-betting: off unless AUTOBET=1 (the owner does not use it, 2026-11-04). While
+    # off, the loop never starts and these routes do not exist (404).
+    if settings.autobet:
 
-    async def _body(request: Request) -> dict:
-        if request.headers.get("content-type", "").startswith("application/json"):
-            data = await request.json()
-            return data if isinstance(data, dict) else {}
-        return dict(await request.form())
+        def _betting_answer(fn):
+            try:
+                return JSONResponse(fn(), headers={"Cache-Control": "no-store"})
+            except PinError as exc:
+                raise HTTPException(403, str(exc)) from exc
+            except BetError as exc:
+                raise HTTPException(400, str(exc)) from exc
 
-    def _number(data: dict, key: str, kind=float):
-        raw = data.get(key)
-        if raw in (None, ""):
-            return None
-        try:
-            return kind(raw)
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(400, f"{key} must be a number") from exc
+        async def _body(request: Request) -> dict:
+            if request.headers.get("content-type", "").startswith("application/json"):
+                data = await request.json()
+                return data if isinstance(data, dict) else {}
+            return dict(await request.form())
 
-    @app.get("/api/betting")
-    def betting_status():
-        """Auto and betting status: mode, limit, spent today, recent bets. No secrets."""
-        return _betting_answer(betting.status)
+        def _number(data: dict, key: str, kind=float):
+            raw = data.get(key)
+            if raw in (None, ""):
+                return None
+            try:
+                return kind(raw)
+            except (TypeError, ValueError) as exc:
+                raise HTTPException(400, f"{key} must be a number") from exc
 
-    def _client(request: Request) -> str:
-        """The caller's address: the last X-Forwarded-For hop (added by the ingress), else
-        the socket peer."""
-        forwarded = request.headers.get("x-forwarded-for", "")
-        return forwarded.split(",")[-1].strip() or (request.client.host if request.client else "")
+        @app.get("/api/betting")
+        def betting_status():
+            """Auto and betting status: mode, limit, spent today, recent bets. No secrets."""
+            return _betting_answer(betting.status)
 
-    @app.post("/api/betting/auto")
-    async def betting_auto(request: Request):
-        """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
-        data = await _body(request)
-        race = _number(data, "race", int)
-        if race is None:
-            raise HTTPException(400, "race is required")
-        on = str(data.get("on", "")).lower() in ("1", "true", "on", "yes")
-        limit = _number(data, "limit")
-        client = _client(request)
-        return _betting_answer(
-            lambda: betting.set_auto(data.get("pin"), race, on, limit, client=client)
-        )
+        def _client(request: Request) -> str:
+            """The caller's address: the last X-Forwarded-For hop (added by the ingress), else
+            the socket peer."""
+            forwarded = request.headers.get("x-forwarded-for", "")
+            return forwarded.split(",")[-1].strip() or (
+                request.client.host if request.client else ""
+            )
 
-    @app.post("/api/betting/bet")
-    async def betting_bet(request: Request):
-        """One bet by hand on Betfair: race, runner, kind (win or place), stake. Needs the PIN."""
-        data = await _body(request)
-        race, runner = _number(data, "race", int), _number(data, "runner", int)
-        stake = _number(data, "stake")
-        if race is None or runner is None or stake is None:
-            raise HTTPException(400, "race, runner and stake are required")
-        kind = str(data.get("kind") or "win")
-        return _betting_answer(
-            lambda: _placed(
-                betting.bet_by_hand(
-                    data.get("pin"), race, runner, kind, stake, client=_client(request)
+        @app.post("/api/betting/auto")
+        async def betting_auto(request: Request):
+            """Switch auto on for one race with that race's limit, or off. Needs the PIN."""
+            data = await _body(request)
+            race = _number(data, "race", int)
+            if race is None:
+                raise HTTPException(400, "race is required")
+            on = str(data.get("on", "")).lower() in ("1", "true", "on", "yes")
+            limit = _number(data, "limit")
+            client = _client(request)
+            return _betting_answer(
+                lambda: betting.set_auto(data.get("pin"), race, on, limit, client=client)
+            )
+
+        @app.post("/api/betting/bet")
+        async def betting_bet(request: Request):
+            """One bet by hand on Betfair: race, runner, kind (win or place), stake. Needs PIN."""
+            data = await _body(request)
+            race, runner = _number(data, "race", int), _number(data, "runner", int)
+            stake = _number(data, "stake")
+            if race is None or runner is None or stake is None:
+                raise HTTPException(400, "race, runner and stake are required")
+            kind = str(data.get("kind") or "win")
+            return _betting_answer(
+                lambda: _placed(
+                    betting.bet_by_hand(
+                        data.get("pin"), race, runner, kind, stake, client=_client(request)
+                    )
                 )
             )
-        )
 
-    def _placed(p) -> dict:
-        return {k: v for k, v in betting.status()["bets"][-1].items()} if p else {}
+        def _placed(p) -> dict:
+            return {k: v for k, v in betting.status()["bets"][-1].items()} if p else {}
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):

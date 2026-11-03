@@ -54,11 +54,6 @@
         "name": "betfair-password",
         "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/betfair-password",
         "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
-      },
-      {
-        "name": "bet-pin",
-        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-bet-pin",
-        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
       }
     ]
   },
@@ -79,8 +74,7 @@
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
           {"name": "APP_PASSWORD", "secretRef": "app-password"},
           {"name": "BETFAIR_USERNAME", "secretRef": "betfair-username"},
-          {"name": "BETFAIR_PASSWORD", "secretRef": "betfair-password"},
-          {"name": "BET_PIN", "secretRef": "bet-pin"}
+          {"name": "BETFAIR_PASSWORD", "secretRef": "betfair-password"}
         ],
         "probes": [
           {
