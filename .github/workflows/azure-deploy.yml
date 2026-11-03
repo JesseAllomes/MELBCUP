@@ -33,6 +33,8 @@ concurrency:
 permissions:
   contents: read
 env:
+  # The owner's approval of a loosened limits file covers every cost-guard run in this workflow run.
+  LIMITS_APPROVED: ${{ inputs.limits_approved && '1' || '' }}
   FUNCTION_APP: func-personal-v5ethud2i3cfq
   RESOURCE_GROUP: rg-personal-automation-aue
   SUBSCRIPTION_ID: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
@@ -69,8 +71,6 @@ jobs:
             echo "ref=HEAD~1" >> "$GITHUB_OUTPUT"
           fi
       - name: Cost guard
-        env:
-          LIMITS_APPROVED: ${{ inputs.limits_approved && '1' || '' }}
         run: python3 tools/cost_guard.py --base-ref ${{ steps.base.outputs.ref }}
       - name: Tests
         run: python3 -m pytest tests/test_azure_function.py tests/test_cost_guard.py

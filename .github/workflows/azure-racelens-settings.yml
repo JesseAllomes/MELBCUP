@@ -1,0 +1,47 @@
+# One-off: set the Function app settings the RaceLens Oaks Day snapshot needs (owner asked, 2026-11-03).
+# Run by hand with the URL and password as inputs; the password is masked in the log and never stored in
+# the repository. Changing app settings restarts the Function app, so run it outside race hours.
+name: azure-racelens-settings
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "RaceLens address (https://...)"
+        required: true
+      password:
+        description: "RaceLens password (masked)"
+        required: true
+concurrency:
+  group: azure-deploy
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  FUNCTION_APP: func-personal-v5ethud2i3cfq
+  RESOURCE_GROUP: rg-personal-automation-aue
+jobs:
+  settings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Mask the password
+        env:
+          PW: ${{ inputs.password }}
+        run: echo "::add-mask::$PW"
+      - uses: azure/login@v2
+        with:
+          client-id: 7ab2c182-e73b-4027-b30b-9cb9ddc841f7
+          tenant-id: f1575bc8-e389-49bf-8ab0-31155227f4c3
+          subscription-id: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
+      - name: Set RACELENS_URL and RACELENS_PASSWORD
+        env:
+          URL: ${{ inputs.url }}
+          PW: ${{ inputs.password }}
+        run: |
+          az functionapp config appsettings set --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
+            --settings "RACELENS_URL=$URL" "RACELENS_PASSWORD=$PW" -o none
+          az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
+            --query "[?starts_with(name, 'RACELENS')].name" -o tsv
