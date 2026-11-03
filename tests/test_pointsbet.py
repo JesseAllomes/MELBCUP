@@ -77,6 +77,7 @@ def spent(routed):
 
 def no_clock(html):
     """Page text without the "in 3 h 02 min" countdowns, which move with the wall clock."""
+    html = re.sub(r'<div class="alertbar".*?id="alert-data">.*?</script>', "", html, flags=re.S)
     return re.sub(r"in \d+ h \d+ min|in \d+ min", "", html)
 
 
@@ -252,7 +253,7 @@ def test_ticking_placed_on_pointsbet():
     rec = json.dumps(["2026-11-03", 1, "w", 1, "pb", 12], separators=(",", ":"))
     cookies = {"placed": quote(f"[{rec}]"), PB_COOKIE: "60"}
     html = v.page("/race/1", {}, cookies)
-    assert "✓ Placed $12 on PointsBet" in html
+    assert "Placed $12 on PointsBet" in html and "✓ PB $12" in html
     assert '<b class="left">$48</b> left of $60' in html
     placed = parse_placed(cookies["placed"], RACE_DATE, True)
     assert [(p.account, p.stake) for p in placed] == [("pointsbet", 12)]

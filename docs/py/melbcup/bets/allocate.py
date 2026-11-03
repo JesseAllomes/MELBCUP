@@ -294,6 +294,18 @@ class Routed:
     record: Placed | None = None  # the placed record this line stands for (placed lines only)
 
 
+def _promo_first(gain):
+    """Routing order: promo bets first, nearest race first (their stakes were reserved in race
+    order, so a later race's bigger price gain must not spend them), then the rest by gain."""
+
+    def key(p):
+        if getattr(p.single, "promo", None) is not None:
+            return (0, p.race, 0.0)
+        return (1, 0, -gain(p))
+
+    return key
+
+
 def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     """Send each pick to the account that pays more, within Betfair's money and minimum.
 
@@ -311,8 +323,7 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     out: dict[int, Routed] = {}
     better_on_betfair = sorted(
         (p for p in picks if p.single is not None and p.single.bookmaker == "betfair"),
-        key=gain,
-        reverse=True,
+        key=_promo_first(gain),
     )
     for p in better_on_betfair:
         minimum = 2 * BETFAIR_MIN if p.kind == "each_way" else BETFAIR_MIN
@@ -365,8 +376,7 @@ def route_three(
             p for p in picks
             if p.single is not None and p.single.bookmaker in ("betfair", POINTSBET_JUDGED)
         ),
-        key=gain,
-        reverse=True,
+        key=_promo_first(gain),
     )
     out: dict[int, Routed] = {}
     for p in moved:

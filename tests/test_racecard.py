@@ -175,7 +175,7 @@ def test_placed_tick_shows_and_counts_against_its_account(views):
     rec[4], rec[5] = "bf", 9
     jar = {"placed": quote(json.dumps([rec]))}
     html = page(views, "/race/1", cookies=jar)
-    assert "✓ Placed $9 on Betfair" in html
+    assert "Placed $9 on Betfair" in html and "✓ BF $9" in html
     assert "$41</b> left of $50" in html and "$150</b> left of $150" in html
     day = page(views, "/", cookies=jar)
     assert "1 placed" in day and "$41</b> left of $50" in day
@@ -251,4 +251,4 @@ def test_day_page_shows_multi_picks_and_a_ticked_multi_drops_the_wallet(views):
     day = page(views, "/", cookies=jar)
     spent = sum(t["s"] for t in ticked)
     assert f"${150 - spent}</b> left of $150" in day
-    assert day.count("✓ Placed $") == 2
+    assert day.count("aria-label=\"Placed $") == 2

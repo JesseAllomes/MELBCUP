@@ -54,10 +54,10 @@ def test_old_six_element_and_new_seven_element_records_parse():
 def test_two_win_records_in_one_race_both_count_and_both_show(views):
     jar = cookie([DATE, 1, "w", 2, "sb", 10], [DATE, 1, "w", 2, "bf", 8, 3.1])
     html = views.page("/race/1", {}, jar)
-    assert html.count("✓ Placed $10 on Sportsbet") == 1
-    assert html.count("✓ Placed $8 on Betfair") == 1
+    assert html.count("Placed $10 on Sportsbet") == 1 and "✓ SB $10" in html
+    assert html.count("Placed $8 on Betfair") == 1 and "✓ BF $8" in html
     assert html.count('class="pick is-placed"') == 2
-    assert html.count(">Remove<") == 2
+    assert html.count(">remove<") == 2
     # no new win suggestion in that race: only the two placed lines are win lines
     board = html.split('class="board"')[1].split("board-foot")[0]
     assert board.count('<span class="type">Win</span>') == 2
@@ -98,19 +98,19 @@ def test_seven_element_price_is_shown(views):
 
 def test_a_placed_runner_without_a_pick_line_still_shows(views):
     html = views.page("/race/1", {}, cookie([DATE, 1, "e", 6, "sb", 6, 16.0]))
-    assert "✓ Placed $6 on Sportsbet" in html and "Price taken $16.00" in html
+    assert "Placed $6 on Sportsbet" in html and "✓ SB $6" in html and "Price taken $16.00" in html
 
 
 def test_record_form_renders_with_starters(views):
     html = views.page("/race/2", {}, {})
-    assert 'class="record-bet"' in html and "Record a bet I placed" in html
+    assert 'class="record-bet"' in html and "+ Record a bet" in html
     form = html.split('class="record-bet"')[1].split("</form>")[0]
     assert 'data-race="2"' in form and f'data-date="{DATE}"' in form
     assert form.count("<option value=") >= 6 + 3 + 2
     assert re.search(r'<option value="1">1 [^<]+</option>', form)
     assert "Win</option>" in form and "Place</option>" in form and "Each way</option>" in form
     assert ">Sportsbet<" in form and ">Betfair<" in form and "PointsBet" not in form
-    assert "total of both halves" in form and 'name="stake"' in form and 'name="price"' in form
+    assert "total of both halves" in html and 'name="stake"' in form and 'name="price"' in form
 
 
 def test_form_offers_pointsbet_only_when_on():

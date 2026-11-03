@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=104 -->
+<!-- drainclamp-build: state; schema=1; generation=105 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -100,7 +100,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T08:21:03+00:00 94b53960 ui3 BUILD built on session branch ccr-63b3240a-qdwy3g (51ab72cc, 0d1c6a3f): wallet bars, SB $150/BF $50 cookies, placed ticks cookie, allocate_accounts(placed), SB/BF pills, Good/Short price, per-race exotics, day list, last-minute check (in memory) + History total; 438 tests pass; main push awaits owner
 - 2026-11-01T08:43:56+00:00 0819df81 owner: Deploy. ui3 race card build (51ab72cc..39919ca2, 438 tests) pushed to main with owner approval; verifying live
 - 2026-11-01T09:29:32+00:00 859d4892 live check: race card live, Betfair pills on every line; only $163/$200 used (Betfair-better stakes under $5). Owner: yes, raise them to $5 on Betfair while Betfair money lasts. route() lifts; test added; suite passes; awaiting push approval
 - 2026-11-01T09:37:37+00:00 6ce3d0f0 c83b388f live (owner approved): day $194/$200 in bets; Cup win/place/EW all on Betfair ($5/$5/$10), returns after commission. ui3 done pending owner feedback
@@ -120,4 +119,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T00:09:46+00:00 94339734 settle + day P&L bar (Sonnet + fix): recorded bets settled on results (BF commission, BF cash back 2nd, PB run 2nd, SB bonus bets reported apart), Won/Lost/Back per line, race total, centred bar (red left/green right, half-width = day amounts); EW place price recordable (8th element). Browser check R1: -3, -5, -1.52 = -9.52
 - 2026-11-03T00:19:31+00:00 38055c32 UI: versioned /static links (phone cached old CSS: bar unstyled), WON/LOST/BACK badges on cards, density pass (body 15px, smaller headings, tighter cards, 6px bars, 150ms transitions); checked light+dark 390px
 - 2026-11-03T00:23:48+00:00 2fbf4701 countdown strip (next jump, ticking) + BET NOW at <=3:00 (amber, vibrate, beep, notification if allowed, one reload per race)
+- 2026-11-03T00:29:15+00:00 0fc2a36c slim pass 2 (placed chips SB/BF/PB, EW shows only its account's pill, record form folded, smaller rows); fix: promo bets routed first in race order (R2 Betfair promo showed '-' because later races' bigger gains spent Betfair's money first)
 <!-- /DC:LOG -->

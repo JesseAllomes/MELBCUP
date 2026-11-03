@@ -42,17 +42,20 @@
   {% endif %}
 </section>
 {% endif %}
-<section aria-labelledby="record-h">
-  <form class="record-bet" data-race="{{ race.number }}" data-date="{{ race_date_iso }}">
-    <h3 id="record-h">Record a bet I placed</h3>
-    <label>Runner <select name="runner" required>{% for r in race.starters %}<option value="{{ r.number }}">{{ r.number }} {{ r.name }}</option>{% endfor %}</select></label>
-    <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
-    <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
-    <label>Stake ($, whole dollars; each way: the total of both halves) <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
-    <label>Price (optional, decimal; each way: the win price) <input name="price" type="number" inputmode="decimal" min="1.01" step="any"></label>
-    <label>Place price (each way only, optional) <input name="place_price" type="number" inputmode="decimal" min="1.01" step="any"></label>
-    <button type="submit">Record bet</button>
-  </form>
+<section class="record" aria-label="Record a bet I placed">
+  <details class="record-wrap">
+    <summary id="record-h">+ Record a bet</summary>
+    <form class="record-bet" data-race="{{ race.number }}" data-date="{{ race_date_iso }}">
+      <label class="wide">Runner <select name="runner" required>{% for r in race.starters %}<option value="{{ r.number }}">{{ r.number }} {{ r.name }}</option>{% endfor %}</select></label>
+      <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
+      <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+      <label>Stake $ <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
+      <label>Price <input name="price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="optional"></label>
+      <label>Place price <input name="place_price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="each way"></label>
+      <button type="submit">Record bet</button>
+      <p class="hint wide">Whole dollars; each way: the total of both halves, with the win price.</p>
+    </form>
+  </details>
 </section>{% if rc.open or rc.board %}{% if cup_note %}
 <section aria-labelledby="runsecond-h">
   <h2 id="runsecond-h">PointsBet: Run 2nd, You Win</h2>
