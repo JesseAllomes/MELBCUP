@@ -1,16 +1,25 @@
-# One-off: set the Function app settings the RaceLens Oaks Day snapshot needs (owner asked, 2026-11-03).
-# Run by hand with the URL and password as inputs; the password is masked in the log and never stored in
-# the repository. Changing app settings restarts the Function app, so run it outside race hours.
+# RaceLens snapshot settings on the Function app (owner asked, 2026-11-03). Run by hand.
+# url/password: set RACELENS_URL and RACELENS_PASSWORD (password masked in the log, never stored in the
+# repository). date: set RACELENS_DATE (YYYY-MM-DD), or "clear" to fall back to the code's Oaks Day.
+# check: list what the snapshot has saved in the `racelens` blob container. Changing app settings
+# restarts the Function app, so set them outside race hours.
 name: azure-racelens-settings
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: "RaceLens address (https://...)"
-        required: true
+        description: "RaceLens address (https://...), blank = unchanged"
+        required: false
       password:
-        description: "RaceLens password (masked)"
-        required: true
+        description: "RaceLens password (masked), blank = unchanged"
+        required: false
+      date:
+        description: "Race day to snapshot (YYYY-MM-DD), 'clear', or blank = unchanged"
+        required: false
+      check:
+        description: "List the saved snapshots"
+        type: boolean
+        default: false
 concurrency:
   group: azure-deploy
   cancel-in-progress: false
@@ -30,18 +39,38 @@ jobs:
       - name: Mask the password
         env:
           PW: ${{ inputs.password }}
-        run: echo "::add-mask::$PW"
+        run: if [ -n "$PW" ]; then echo "::add-mask::$PW"; fi
       - uses: azure/login@v2
         with:
           client-id: 7ab2c182-e73b-4027-b30b-9cb9ddc841f7
           tenant-id: f1575bc8-e389-49bf-8ab0-31155227f4c3
           subscription-id: 78e367c0-cd4d-4334-8c02-69fa04c8bffd
-      - name: Set RACELENS_URL and RACELENS_PASSWORD
+      - name: Settings
         env:
           URL: ${{ inputs.url }}
           PW: ${{ inputs.password }}
+          DAY: ${{ inputs.date }}
         run: |
-          az functionapp config appsettings set --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
-            --settings "RACELENS_URL=$URL" "RACELENS_PASSWORD=$PW" -o none
+          set_args=()
+          [ -n "$URL" ] && set_args+=("RACELENS_URL=$URL")
+          [ -n "$PW" ] && set_args+=("RACELENS_PASSWORD=$PW")
+          if [ -n "$DAY" ] && [ "$DAY" != "clear" ]; then set_args+=("RACELENS_DATE=$DAY"); fi
+          if [ ${#set_args[@]} -gt 0 ]; then
+            az functionapp config appsettings set --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" --settings "${set_args[@]}" -o none
+          fi
+          if [ "$DAY" = "clear" ]; then
+            az functionapp config appsettings delete --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" --setting-names RACELENS_DATE -o none
+          fi
           az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
-            --query "[?starts_with(name, 'RACELENS')].name" -o tsv
+            --query "[?starts_with(name, 'RACELENS')].{name:name, value:(name=='RACELENS_PASSWORD' && '***' || value)}" -o tsv
+      - name: Saved snapshots
+        if: inputs.check
+        run: |
+          acct=$(az functionapp config appsettings list --name "$FUNCTION_APP" --resource-group "$RESOURCE_GROUP" \
+            --query "[?name=='AzureWebJobsStorage__accountName' || name=='AZURE_STORAGE_ACCOUNT_URL'].value | [0]" -o tsv)
+          acct=${acct#https://}; acct=${acct%%.*}
+          echo "storage account: $acct"
+          az storage blob list --account-name "$acct" --container-name racelens --auth-mode login \
+            --query "[].{name:name, size:properties.contentLength, at:properties.lastModified}" -o table --num-results 60 \
+          || az storage blob list --account-name "$acct" --container-name racelens \
+            --query "[].{name:name, size:properties.contentLength, at:properties.lastModified}" -o table --num-results 60
