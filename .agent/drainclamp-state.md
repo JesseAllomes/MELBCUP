@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=130 -->
+<!-- drainclamp-build: state; schema=1; generation=132 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -91,6 +91,10 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | rl2 | Model inputs from RaceLens (owner 2026-11-03): add TAB fixed, Ladbrokes/Neds prices and cross-source scratchings to the consensus and routing; keep a source only if the head-to-head (tools/racelens/score.py) shows no loss in nats and a measurable price uplift | melbcup/sources/;melbcup/model/;tools/racelens/;tests/ | pending |  |
 | bl1 | Race verdict (owner 2026-11-03, replaces 'three picks whatever the price'): each race says TAKE THIS BET (named bet, positive edge under the robust offers check) or NOTHING WORTH TRYING HERE, which points to the open race with the best bet in its place | melbcup/bets/;melbcup/web/;tests/ | pending | rl2 |
 | ui6 | Redesign (owner 2026-11-03): product-ui pass with RaceLens' UI as the starting point; new lock in .grok/product-ui, then rebuild race and day pages on it; owner signs off the prototype before the build | .grok/product-ui/;melbcup/web/;tests/ | pending | bl1;st1 |
+| nba1 | NBA data (owner 2026-11-03): token-free collector of NBA games, results and odds (head-to-head, line, totals, player props where offered) from every agency we pull, archived like the racing observations | tools/;azure/function/;tests/ | pending | ui6 |
+| nba2 | NBA leg model: margin-free consensus per market with a fitted bias correction; tuned on past NBA odds and results (source of free history is the main unknown), frozen, then tested once on unseen games | melbcup/;research/nba/;tests/ | pending | nba1 |
+| nba3 | Value multis (owner 2026-11-03): 3 to 10 legs, across games and same-game; legs only where the price beats fair; multi EV from leg chances, with same-game legs correlation-adjusted (bookies price SGMs with extra margin); best agency per multi; promos/boosts count | melbcup/bets/;tests/ | pending | nba2 |
+| nba4 | NBA in AsynymBet: Sport tab beside Racing (Games > Game > Bet / Odds / Result), value multis card, shared agencies, pool and P&L | melbcup/web/;tests/ | pending | nba3;ui6 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -105,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T03:30:33+00:00 edb24682 Record another bet (Sonnet + import): extra cookie for custom multis (2-8 legs, auto-settled) and other bets (tote allowed, typed return), Other bets card, record-with-changes prefill, #extra= one-tap import; owner's PB 3-leg multi + R7 First Four imported via link
 - 2026-11-03T03:41:59+00:00 42f0b631 deploys 34-35 FAILED (guard: conftest clock fixture imported melbcup.web.views, guard env has no jinja2): 12:30 fold + 14:30 extra bets never went live; fixture now tolerates ImportError; guard replicated in a clean venv: pass
 - 2026-11-03T04:05:49+00:00 bc6aa276 results quicker: first check 1 min after the jump (was 3), then every 45 s (was 2 min), results cache 15 s (was 60), Check results button on each run race without a final result (20 s min gap); also deploys the fold + extra bets + guard fix
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
@@ -125,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T09:50:24+00:00 6f328584 Owner 2026-11-03: Damian OK with copying RaceLens; snapshot Oaks Day (Thu 5 Nov) to find the best model. racelens-snapshot.yml every 5 min 8:00-20:55 AEDT -> racelens-data branch; needs secrets RACELENS_URL + RACELENS_PASSWORD. Today's Flemington/Randwick packs were deleted on his side before pull (jobs log proves they ran). Re-score 101 races: MELBCUP 1.8878 vs RaceLens 1.9706, top pick 40.6% vs 36.6%.
 - 2026-11-03T09:55:08+00:00 c802a09e Owner: run RaceLens snapshots in Azure, not GitHub Actions. Function timer racelens_snapshot every 5 min 7am-9:55pm AEDT, only on RACELENS_DATE (default 2026-11-05), blob container racelens. limits.json grant (owner instruction) -> deploy via workflow_dispatch limits_approved. Worst case $23.91/month (budget $25). Needs Function app settings RACELENS_URL, RACELENS_PASSWORD.
 - 2026-11-03T10:04:10+00:00 1dad49d8 RaceLens Azure snapshot live: deploy run 41615523275 OK (function redeployed with racelens_snapshot), settings run 41615537121 set RACELENS_URL + RACELENS_PASSWORD (masked). Fires Thu 5 Nov 7am-9:55pm AEDT into blob container racelens. Not yet seen end-to-end in Azure.
+- 2026-11-03T10:15:11+00:00 f89c28ce Owner 2026-11-03: add NBA, purpose = value multis 3-10 legs, cross-game and same-game. Roadmap nba1-nba4 after ui6.
 <!-- /DC:LOG -->
