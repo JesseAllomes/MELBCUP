@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=113 -->
+<!-- drainclamp-build: state; schema=1; generation=114 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -101,7 +101,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-01T11:52:39+00:00 7950f21f owner approved push: m7 alpha 1.14 (d8360e10) + ui4 multis win/place (28c0aa55, d97d8382) to main
 - 2026-11-02T22:25:27+00:00 96a2ea3d pb1 built (Sonnet): PointsBet third account behind POINTSBET=1 (off = pages byte-identical to baseline, verified); PB prices, wallet bar, ?pb= amount (default $0), PB pill, placed tick, best-of-three routing, Cup Run 2nd note; on in prod via azure/webapp env. Not wired: autobet, last-minute check, browser build
 - 2026-11-02T22:41:13+00:00 1f40e8af pb2 built (Sonnet): promos are bets behind PROMOS=1 (off = byte-identical, PB off and on, verified). PointsBet Run 2nd You Win (Cup, PaysAsWinner) and Sportsbet R1-2 bonus back 2nd/3rd (MoneyBack c=0.75); promo replaces the Win pick when its worst-case EV beats it; max stakes $50 assumed (melbcup/bets/promos.py). On in prod
 - 2026-11-02T23:11:54+00:00 66667dc1 owner confirmed promo max stakes $50 (PointsBet Run 2nd, Sportsbet bonus back); no code change
@@ -121,4 +120,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T03:41:59+00:00 42f0b631 deploys 34-35 FAILED (guard: conftest clock fixture imported melbcup.web.views, guard env has no jinja2): 12:30 fold + 14:30 extra bets never went live; fixture now tolerates ImportError; guard replicated in a clean venv: pass
 - 2026-11-03T04:05:49+00:00 bc6aa276 results quicker: first check 1 min after the jump (was 3), then every 45 s (was 2 min), results cache 15 s (was 60), Check results button on each run race without a final result (20 s min gap); also deploys the fold + extra bets + guard fix
 - 2026-11-03T07:27:55+00:00 8f9114ea to-do saved: compare mate's app (Damian) vs MELBCUP for edges; password kept out of the repo
+- 2026-11-03T07:29:04+00:00 c27249e4 t1 replaced by t2: Sonnet compares mate's app after the owner compacts; credentials in session scratchpad only
 <!-- /DC:LOG -->

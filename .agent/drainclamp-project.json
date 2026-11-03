@@ -64,7 +64,7 @@
     ]
   },
   "errors": [],
-  "rev": 44,
+  "rev": 46,
   "review": {
     "advice": [],
     "config": {
@@ -5051,11 +5051,19 @@
   "todos": [
     {
       "at": "2026-11-03T07:27:55+00:00",
-      "done": false,
-      "done_at": null,
+      "done": true,
+      "done_at": "2026-11-03T07:29:04+00:00",
       "id": "t1",
       "milestone": "",
       "text": "Owner (2026-11-03, for later): compare a mate's racing app (Damian, https://damians-mac-mini.taile9e615.ts.net/, password with the owner, not stored) against MELBCUP and find where each has an edge. Tailscale host: may need the owner's network or a script run on their machine."
+    },
+    {
+      "at": "2026-11-03T07:29:04+00:00",
+      "done": false,
+      "done_at": null,
+      "id": "t2",
+      "milestone": "",
+      "text": "NEXT AFTER COMPACT (owner 2026-11-03): spawn ONE Sonnet agent (not Fable) to compare Damian's racing app with MELBCUP and report where each has an edge (picks, prices/books used, bet types, staking, promos, results/P&L, UI). App is reachable from the cloud session (HTTP 200). URL + password in the session scratchpad file mate-app.env (/tmp/claude-0/-home-user/418442d0-6a93-5b3f-a291-37c2b3744726/scratchpad/mate-app.env), never in the repo. Read-only: browse, do not submit forms or place bets."
     }
   ],
   "tokens": null
