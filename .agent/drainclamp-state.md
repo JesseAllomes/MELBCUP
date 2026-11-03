@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=149 -->
+<!-- drainclamp-build: state; schema=1; generation=150 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T09:50:24+00:00 6f328584 Owner 2026-11-03: Damian OK with copying RaceLens; snapshot Oaks Day (Thu 5 Nov) to find the best model. racelens-snapshot.yml every 5 min 8:00-20:55 AEDT -> racelens-data branch; needs secrets RACELENS_URL + RACELENS_PASSWORD. Today's Flemington/Randwick packs were deleted on his side before pull (jobs log proves they ran). Re-score 101 races: MELBCUP 1.8878 vs RaceLens 1.9706, top pick 40.6% vs 36.6%.
 - 2026-11-03T09:55:08+00:00 c802a09e Owner: run RaceLens snapshots in Azure, not GitHub Actions. Function timer racelens_snapshot every 5 min 7am-9:55pm AEDT, only on RACELENS_DATE (default 2026-11-05), blob container racelens. limits.json grant (owner instruction) -> deploy via workflow_dispatch limits_approved. Worst case $23.91/month (budget $25). Needs Function app settings RACELENS_URL, RACELENS_PASSWORD.
 - 2026-11-03T10:04:10+00:00 1dad49d8 RaceLens Azure snapshot live: deploy run 41615523275 OK (function redeployed with racelens_snapshot), settings run 41615537121 set RACELENS_URL + RACELENS_PASSWORD (masked). Fires Thu 5 Nov 7am-9:55pm AEDT into blob container racelens. Not yet seen end-to-end in Azure.
 - 2026-11-03T10:15:11+00:00 f89c28ce Owner 2026-11-03: add NBA, purpose = value multis 3-10 legs, cross-game and same-game. Roadmap nba1-nba4 after ui6.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T11:50:50+00:00 87532dfb Owner: yes to NBA accuracy backtest. nba_history_run timer (every 15 min, 60 games/run, self-stops 12 Nov) downloads 2024-25 + 2025-26 regular-season box scores from cdn.nba.com into blob nba-history (~10 h). Worst case $24.77 (budget $25). Backtest scoring runs here, token-free.
 - 2026-11-03T11:57:03+00:00 8293e3c6 NBA CDN liveData has no past-season box scores (60/60 missing); Azure downloader paused (NBA_HISTORY=0 via ARM app setting). Source switched to ESPN public site API (works from here): tools/nba/espn_history.py pulling 2024-25 + 2025-26 regular seasons (~45 min, token-free); backtest.py reads both formats.
 - 2026-11-03T12:15:02+00:00 a922ce75 NBA backtest v1 on check season 2024-25 (6,911 games loaded; 2025-26 sealed): minutes-projected model beats season average and last-10 on all four stats (points log loss 0.347 vs 0.519/0.365; rebounds 0.367; assists 0.324; threes 0.470). Calibration close: 80-89% bucket hit 86/85/85/85%; 90-99% hit 94/94/94/92%. research/nba/backtest_v1_check_2024-25.txt
+- 2026-11-03T12:20:24+00:00 49c034b9 NBA v2 (minutes x rate x opponent, missing-teammates, b2b, NB phi, calibration) quick tune (every 40th row): beats v1 on validate 2023-24 and check 2024-25 for all stats; threes biggest gain (check 0.4693 -> 0.4572). Full tune (every 3rd row, half-lives incl. 1.5/2) queued after downloads. Caveat: missing-teammates read from the game box (stand-in for the injury report).
 <!-- /DC:LOG -->
