@@ -1,0 +1,273 @@
+<title>MELBCUP Race Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one phone column (max 460px). Summary first: wallets, verdict, then detail in tabs. Starting point: RaceLens. */
+:root{
+  --ground:#F4F2EE; --sheet:#FFFFFF; --ink:#16201B; --muted:#5F6B66; --rule:#E4E1DA; --chip:#EFECE6;
+  --brand:#136A4B; --brand-ink:#FFFFFF; --brand-wash:#E3F1EA;
+  --good:#1B7F4E; --good-wash:#E2F3E8; --bad:#B8322A; --bad-wash:#FBE6E3;
+  --warn:#9A6200; --warn-wash:#FCF0D6;
+  --sb:#1E3687; --sb-wash:#E4E8F6; --bf:#B57A00; --bf-wash:#FAF0D7; --pb:#C4182F; --pb-wash:#FBE4E7;
+  --place:#2F5FD0;
+  --cloth:#FFFFFF; --cloth-ink:#111111;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0F1412; --sheet:#18201C; --ink:#EAF0EC; --muted:#9AA8A1; --rule:#2A3530; --chip:#222C27;
+  --brand:#3FB683; --brand-ink:#08130E; --brand-wash:#183429;
+  --good:#4CC98A; --good-wash:#173326; --bad:#F07A6E; --bad-wash:#3A1D1A;
+  --warn:#F0B54A; --warn-wash:#3A2C12;
+  --sb:#9CB0FF; --sb-wash:#1C2546; --bf:#F2B53A; --bf-wash:#3A2C10; --pb:#FF7D8E; --pb-wash:#401A20;
+  --place:#86A8FF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0F1412; --sheet:#18201C; --ink:#EAF0EC; --muted:#9AA8A1; --rule:#2A3530; --chip:#222C27;
+  --brand:#3FB683; --brand-ink:#08130E; --brand-wash:#183429;
+  --good:#4CC98A; --good-wash:#173326; --bad:#F07A6E; --bad-wash:#3A1D1A;
+  --warn:#F0B54A; --warn-wash:#3A2C12;
+  --sb:#9CB0FF; --sb-wash:#1C2546; --bf:#F2B53A; --bf-wash:#3A2C10; --pb:#FF7D8E; --pb-wash:#401A20;
+  --place:#86A8FF; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.4;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--brand)}
+.wrap{max-width:460px;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px 32px;display:flex;flex-direction:column;gap:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--brand);color:var(--brand-ink)}
+.top-in{max-width:460px;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:8px;display:flex;flex-direction:column;gap:8px}
+.bar1{display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.01em;font-size:17px}
+.logo i{width:22px;height:22px;border-radius:6px;border:2px solid currentColor;display:grid;place-items:center;font-style:normal;font-size:11px}
+.nav{margin-left:auto;display:flex;gap:4px}
+.nav a{color:inherit;text-decoration:none;font-weight:600;font-size:13px;padding:5px 10px;border-radius:999px;opacity:.85}
+.nav a.on{background:rgba(255,255,255,.18);opacity:1}
+.wallets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.w{background:rgba(255,255,255,.12);border-radius:9px;padding:5px 8px;font-size:11px;line-height:1.2}
+.w b{display:block;font-size:14px}
+.w .m{height:3px;border-radius:2px;background:rgba(255,255,255,.25);margin-top:4px;overflow:hidden}
+.w .m span{display:block;height:100%;background:#fff}
+.pl{display:flex;align-items:center;gap:8px;font-size:12px}
+.pl .track{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.2);position:relative}
+.pl .track::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#fff}
+.pl .fill{position:absolute;top:0;bottom:0;border-radius:4px}
+.pl b{min-width:58px;text-align:right;font-size:14px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:12px}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.strip a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:5px 9px;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;position:relative;min-width:52px}
+.strip a b{font-size:15px}
+.strip a.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.strip a .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%}
+.d-take{background:var(--good)}.d-none{background:var(--rule)}.d-res{background:var(--warn)}
+.head{display:flex;gap:10px;align-items:flex-start}
+.rn{font-size:28px;font-weight:800;color:var(--brand);line-height:1}
+.head h1{margin:0;font-size:19px;line-height:1.2;text-wrap:balance}
+.meta{color:var(--muted);font-size:13px;margin-top:2px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{background:var(--chip);border-radius:999px;padding:3px 9px;font-size:12px;font-weight:500}
+.tag.time{background:var(--brand-wash);color:var(--brand);font-weight:700}
+.tag.now{background:var(--bad);color:#fff;font-weight:800;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{to{opacity:.65}}
+@media (prefers-reduced-motion:reduce){.tag.now{animation:none}}
+.verdict{border-width:2px}
+.verdict.take{border-color:var(--good)}
+.verdict.none{border-color:var(--rule);border-style:dashed}
+.vlabel{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.take .vlabel{color:var(--good)}.none .vlabel{color:var(--muted)}
+.vbet{display:flex;align-items:center;gap:10px;margin-top:8px}
+.cloth{flex:0 0 auto;width:28px;height:28px;border-radius:6px;background:var(--cloth);color:var(--cloth-ink);border:1.5px solid #111;display:grid;place-items:center;font-weight:800;font-size:14px}
+.cloth.lg{width:38px;height:38px;font-size:18px}
+.vname{flex:1;min-width:0}
+.vname b{font-size:18px;display:block;line-height:1.15}
+.vname span{color:var(--muted);font-size:13px}
+.stake{font-size:26px;font-weight:800;color:var(--ink);text-align:right;line-height:1}
+.stake small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.why div{background:var(--chip);border-radius:9px;padding:6px 8px;font-size:11px;color:var(--muted)}
+.why b{display:block;color:var(--ink);font-size:15px}
+.floor{margin-top:8px;font-size:13px;background:var(--good-wash);color:var(--good);border-radius:9px;padding:6px 9px;font-weight:600}
+.promo{margin-top:6px;font-size:12px;background:var(--pb-wash);color:var(--pb);border-radius:9px;padding:5px 9px;font-weight:700}
+.place-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.pbtn{border:1.5px solid currentColor;background:transparent;border-radius:10px;padding:7px 4px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.pbtn b{font-size:15px}
+.pbtn.sb{color:var(--sb)}.pbtn.bf{color:var(--bf)}.pbtn.pb{color:var(--pb)}
+.pbtn.best{background:currentColor}
+.pbtn.best b,.pbtn.best span{color:var(--sheet)}
+.pbtn.done{background:var(--good);border-color:var(--good);color:#fff}
+.goto{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--brand-wash);border-radius:12px;padding:10px;text-decoration:none;color:var(--ink)}
+.goto .rn{font-size:22px}
+.goto b{display:block}
+.goto span{font-size:13px;color:var(--muted)}
+.goto .arr{margin-left:auto;font-size:20px;color:var(--brand);font-weight:800}
+.say{border-left:3px solid var(--brand);background:var(--brand-wash);border-radius:0 10px 10px 0;padding:9px 11px;font-size:14px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--rule)}
+.tabs button{background:none;border:0;padding:8px 10px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--brand);border-color:var(--brand)}
+.tabs .n{background:var(--chip);border-radius:999px;padding:1px 6px;font-size:11px;margin-left:3px}
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:9px;background:var(--chip);border-radius:10px;padding:8px 10px}
+.row .k{font-weight:700;min-width:70px;font-size:14px}
+.row .v{flex:1;min-width:0;font-size:14px}
+.row .v small{display:block;color:var(--muted);font-size:12px}
+.row .amt{font-weight:800;font-size:15px}
+.row.off{opacity:.55}
+.run{display:flex;flex-direction:column;gap:7px;padding:10px 0;border-top:1px solid var(--rule)}
+.run:first-child{border-top:0;padding-top:0}
+.r1{display:flex;align-items:center;gap:8px}
+.rank{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--muted);width:26px}
+.r1 b{font-size:16px;flex:1;min-width:0}
+.r1 .fair{font-size:12px;color:var(--muted);text-align:right}
+.r1 .fair b{font-size:14px;color:var(--ink);display:block}
+.sub{font-size:12px;color:var(--muted);margin-left:34px}
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-left:34px}
+.bars div{font-size:11px;color:var(--muted)}
+.bars em{font-style:normal;float:right;color:var(--ink);font-weight:700}
+.bars i{display:block;height:5px;border-radius:3px;background:var(--rule);margin-top:3px;overflow:hidden}
+.bars i span{display:block;height:100%;border-radius:3px}
+.prices{display:flex;gap:5px;margin-left:34px;flex-wrap:wrap}
+.pp{border:1.5px solid currentColor;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700}
+.pp.sb{color:var(--sb)}.pp.bf{color:var(--bf)}.pp.pb{color:var(--pb)}
+.pp.best{background:currentColor}.pp.best span{color:var(--sheet)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-left:34px}
+.c{font-size:11px;border-radius:999px;padding:2px 8px;font-weight:600}
+.c.for{background:var(--good-wash);color:var(--good)}.c.ag{background:var(--warn-wash);color:var(--warn)}
+.more{background:none;border:1px solid var(--rule);border-radius:10px;padding:8px;font-weight:600;color:var(--brand);width:100%}
+.mine .row .res{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px}
+.res.won{background:var(--good);color:#fff}.res.lost{background:var(--bad);color:#fff}.res.open{background:var(--rule);color:var(--ink)}
+.sec{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:4px 0 0}
+.proto{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.proto button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600}
+.proto button.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="bar1">
+      <div class="logo"><i>MC</i>MELBCUP</div>
+      <nav class="nav"><a class="on" href="#r7">Today</a><a href="#r7">History</a><a href="#r7">Money</a></nav>
+    </div>
+    <div class="wallets" aria-label="Money left in each account">
+      <div class="w">Sportsbet<b>$90 <small style="font-weight:500;opacity:.8">/ 150</small></b><div class="m"><span style="width:60%"></span></div></div>
+      <div class="w">Betfair<b>$45 <small style="font-weight:500;opacity:.8">/ 50</small></b><div class="m"><span style="width:90%"></span></div></div>
+      <div class="w">PointsBet<b>$20 <small style="font-weight:500;opacity:.8">/ 50</small></b><div class="m"><span style="width:40%"></span></div></div>
+    </div>
+    <div class="pl" aria-label="Profit or loss today"><span>Today</span><div class="track"><div class="fill" id="plfill"></div></div><b id="pltext"></b></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="proto" aria-label="Prototype controls">Prototype, sample prices · show:
+    <button id="vTake" class="on" type="button">Take this bet</button>
+    <button id="vNone" type="button">Nothing here</button>
+    <button id="vNow" type="button">2 min to jump</button>
+  </div>
+
+  <nav class="strip" aria-label="Races">
+    <a href="#r7"><b>R5</b>1:40 <span class="dot d-res"></span></a>
+    <a href="#r7"><b>R6</b>2:20 <span class="dot d-res"></span></a>
+    <a href="#r7" class="on"><b>R7</b>3:00 <span class="dot d-take"></span></a>
+    <a href="#r7"><b>R8</b>3:45 <span class="dot d-none"></span></a>
+    <a href="#r7"><b>R9</b>4:25 <span class="dot d-take"></span></a>
+    <a href="#r7"><b>R10</b>5:10 <span class="dot d-none"></span></a>
+  </nav>
+
+  <section class="card">
+    <div class="head">
+      <div class="rn">R7</div>
+      <div>
+        <h1>Lexus Melbourne Cup</h1>
+        <div class="meta">Flemington · Tue 3 Nov · 3200m · 23 runners</div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag time" id="clock">Jumps in 12:40</span>
+      <span class="tag">Good 4</span><span class="tag">Rail true</span><span class="tag">Prices 40 s ago</span>
+    </div>
+  </section>
+
+  <section class="card verdict take" id="verdict" aria-live="polite"></section>
+
+  <p class="say" id="say"></p>
+
+  <section class="card">
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="bets" role="tab" type="button">Bets</button>
+      <button data-tab="field" role="tab" type="button">Field <span class="n">23</span></button>
+      <button data-tab="mine" role="tab" type="button">My bets <span class="n">3</span></button>
+    </div>
+
+    <div data-pane="bets" class="list" style="margin-top:10px">
+      <div class="row"><span class="k">Win</span><span class="v"><span class="cloth" style="display:inline-grid;width:22px;height:22px;font-size:12px;margin-right:4px">20</span>Point Of Law<small>take $7.00 or better · Sportsbet $8.50</small></span><span class="amt">$10</span></div>
+      <div class="row"><span class="k">Place</span><span class="v"><span class="cloth" style="display:inline-grid;width:22px;height:22px;font-size:12px;margin-right:4px">12</span>Hopewell Rock<small>places 3 in 10 · take $2.80 or better · Betfair $3.10</small></span><span class="amt">$5</span></div>
+      <div class="row"><span class="k">Each way</span><span class="v"><span class="cloth" style="display:inline-grid;width:22px;height:22px;font-size:12px;margin-right:4px">11</span>Juja Kibo<small>$2 EW · $4 total · PointsBet $14 / $4.20</small></span><span class="amt">$4</span></div>
+      <div class="row off"><span class="k">Trifecta</span><span class="v">20, 12, 2, 16 box<small>no value at an estimated $310 · skip</small></span><span class="amt">–</span></div>
+      <div class="row off"><span class="k">First 4</span><span class="v">top 5 box<small>no value · skip</small></span><span class="amt">–</span></div>
+    </div>
+
+    <div data-pane="field" hidden style="margin-top:10px"><div id="field"></div><button class="more" type="button">Show all 23 runners</button></div>
+
+    <div data-pane="mine" class="list mine" hidden style="margin-top:10px">
+      <p class="sec">Your bets</p>
+      <div class="row"><span class="k">Win</span><span class="v">20 Point Of Law<small>$10 @ $8.50 · Sportsbet</small></span><span class="res open">OPEN</span></div>
+      <div class="row"><span class="k">Kids</span><span class="v">2 Trustyourinstinct · Holly<small>$5 EW @ $9.00 / $3.00 · PointsBet</small></span><span class="res open">OPEN</span></div>
+      <p class="sec">App's final picks</p>
+      <div class="row"><span class="k">Win</span><span class="v">20 Point Of Law<small>$10 @ $8.50</small></span><span class="res open">OPEN</span></div>
+      <button class="more" type="button">+ Record a bet</button>
+    </div>
+  </section>
+
+  <p class="foot">Suggestions only. Gambling Help 1800 858 858.</p>
+</main>
+
+<script>
+const field=[
+ {n:20,name:"Point Of Law",sub:"Barrier 9 · E. Brown · C. Maher · 53kg",w:14.3,p:30,fair:7.00,sb:8.5,bf:8.2,pb:8.0,f:["Recent form","Rating 111"],a:["First-time gear"]},
+ {n:12,name:"Hopewell Rock",sub:"Barrier 15 · Z. Lloyd · G. Boughey · 54.5kg",w:12.5,p:30,fair:8.00,sb:7.5,bf:7.8,pb:7.0,f:["Recent form","Class"],a:["Handicap rating"]},
+ {n:2,name:"Trustyourinstinct",sub:"Barrier 18 · J. McDonald · A. O'Brien · 57kg",w:10,p:25,fair:10.00,sb:9,bf:9.4,pb:9,f:["Rating 113","Handicap"],a:["Top weight"]},
+ {n:16,name:"So You Are",sub:"Barrier 7 · R. King · B. Baker · 54kg",w:9.1,p:25,fair:11.00,sb:13,bf:12.5,pb:12,f:["Recent form","Going"],a:["Barrier bias","Track record"]},
+ {n:24,name:"Shockletz",sub:"Barrier 17 · H. Coffey · C. Maher · 51kg",w:9.1,p:25,fair:11.00,sb:11,bf:10.5,pb:11,f:["Weight relief","Track record"],a:["Mare"]},
+ {n:11,name:"Juja Kibo",sub:"Barrier 14 · S. Clipperton · C. Maher · 55kg",w:6.3,p:17,fair:16.00,sb:13,bf:14.5,pb:14,f:["Recent form"],a:["First-time gear"]}
+];
+const $=s=>document.querySelector(s);
+const money=v=>(v<0?"−$":"+$")+Math.abs(v).toFixed(0);
+function pnl(v,max=100){const f=$("#plfill"),pct=Math.min(Math.abs(v)/max,1)*50;
+  f.style.background=v<0?"#FF9B92":"#9BF0C2";f.style.left=v<0?(50-pct)+"%":"50%";f.style.width=pct+"%";$("#pltext").textContent=money(v)}
+pnl(36);
+const price=(r,best)=>["sb","bf","pb"].map(k=>`<span class="pp ${k}${k===best?" best":""}"><span>${k.toUpperCase()} $${r[k].toFixed(2)}</span></span>`).join("");
+$("#field").innerHTML=field.map((r,i)=>{const best=["sb","bf","pb"].reduce((a,k)=>r[k]>r[a]?k:a,"sb");
+ return `<div class="run"><div class="r1"><span class="rank">${i+1}</span><span class="cloth">${r.n}</span><b>${r.name}</b><span class="fair">fair<b>$${r.fair.toFixed(2)}</b></span></div>
+ <div class="sub">${r.sub}</div>
+ <div class="bars"><div>Win <em>${r.w.toFixed(0)}%</em><i><span style="width:${r.w*3}%;background:var(--good)"></span></i></div><div>Place <em>${r.p}%</em><i><span style="width:${r.p*1.6}%;background:var(--place)"></span></i></div></div>
+ <div class="prices">${price(r,best)}</div>
+ <div class="chips">${r.f.map(x=>`<span class="c for">✓ ${x}</span>`).join("")}${r.a.map(x=>`<span class="c ag">! ${x}</span>`).join("")}</div></div>`}).join("");
+
+const views={
+ take:{cls:"take",say:"Point Of Law is our best bet: we rate it 1 in 7 (fair $7.00) and Sportsbet has $8.50, 21% more than it is worth. Hopewell Rock is the likeliest placer. The exotics are short, so skip them.",
+  html:`<div class="vlabel">Take this bet</div>
+   <div class="vbet"><span class="cloth lg">20</span><div class="vname"><b>Point Of Law</b><span>Win · best at Sportsbet</span></div><div class="stake">$10<small>stake</small></div></div>
+   <div class="why"><div>Our chance<b>1 in 7</b></div><div>Fair price<b>$7.00</b></div><div>Best price<b>$8.50</b></div></div>
+   <div class="floor">Only worth it at $7.00 or better. Below that, skip it.</div>
+   <div class="promo">PointsBet: Run 2nd, You Win applies (max $50)</div>
+   <div class="place-row">
+     <button class="pbtn sb best" type="button"><span>Sportsbet</span><b>$8.50</b></button>
+     <button class="pbtn bf" type="button"><span>Betfair</span><b>$8.20</b></button>
+     <button class="pbtn pb" type="button"><span>PointsBet</span><b>$8.00</b></button>
+   </div>`},
+ none:{cls:"none",say:"Every runner here is at or under its fair price. The favourite, Hopewell Rock, needs $8.00 and is $7.50. Keep the money for a race with a real edge.",
+  html:`<div class="vlabel">Nothing worth trying here</div>
+   <p style="margin:6px 0 0;font-size:14px">No runner is paying more than it is worth. Best bet left today:</p>
+   <a class="goto" href="#r9"><span class="rn">R9</span><div><b>4 Ferocious · Win $10</b><span>4:25pm · Betfair $6.50 · fair $5.20 · 25% over</span></div><span class="arr">›</span></a>`}
+};
+let cur="take";
+function show(v){cur=v;const d=views[v];const el=$("#verdict");el.className="card verdict "+d.cls;el.innerHTML=d.html;$("#say").textContent=d.say;
+ document.querySelectorAll(".pbtn").forEach(b=>b.addEventListener("click",()=>{b.classList.add("done");b.innerHTML="<span>✓ Placed</span><b>$10</b>"}));
+ $("#vTake").classList.toggle("on",v==="take");$("#vNone").classList.toggle("on",v==="none")}
+show("take");
+$("#vTake").onclick=()=>show("take");$("#vNone").onclick=()=>show("none");
+$("#vNow").onclick=()=>{const c=$("#clock");const on=c.classList.toggle("now");c.textContent=on?"BET NOW · 2:00 to jump":"Jumps in 12:40";$("#vNow").classList.toggle("on",on)};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+ document.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab)});
+</script>

@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=119 -->
+<!-- drainclamp-build: state; schema=1; generation=120 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -105,7 +105,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-02T23:39:55+00:00 ab489ce4 pb2+: Betfair Cash Back 2nd (cash, every race, valued after 8% commission, max $50 ASSUMED, Betfair $5 min) as a promo bet; promo checks limited to the places each promo needs (exact, no 200k simulation): cold day page 34 s -> 0.2 s
 - 2026-11-02T23:44:09+00:00 05c28075 placed tick asks for the stake actually placed (pre-filled with the app's stake); one record per race+kind slot still (Sportsbet and Betfair Win on one race cannot both be ticked)
 - 2026-11-02T23:46:55+00:00 29bc789f each-way stake now shown as the bookmaker's unit ('$2 EW', '$4 total' under it): owner bet $4 EW (= $8) off the old total-only display; placed prompt for EW asks for the total
 - 2026-11-02T23:52:43+00:00 3a7e6049 Record a bet I placed (Sonnet + fix): form on every race page (run races too) records runner, kind, bookmaker, actual stake, price; several records per race; Remove per record; wallets net of real stakes. Clicked through in Chromium: 3 R1 records -> SB 139, BF 45; Remove works
@@ -125,4 +124,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T08:33:42+00:00 88bfb495 RaceLens pulled read-only via JSON API (19 meetings, 197 races). H2H 99 races: MELBCUP 1.8906 vs RaceLens 1.9713 nats; blend weight 0. Scripts tools/racelens/, write-up research/RACELENS_H2H.md. Data in scratchpad only.
 - 2026-11-03T08:42:50+00:00 d605d410 Owner 2026-11-03: st1 stability/speed, rl2 RaceLens inputs, bl1 take-this-bet verdict (supersedes three-picks rule), ui6 redesign from RaceLens UI. st1 first: it hurts today.
 - 2026-11-03T08:59:38+00:00 7fc89699 st1 part 1: web app stays up 3 h after the last request (cooldownPeriod 10800, ARM api 2025-01-01). Cold start 22 s remains only for the first open after 3 h idle. Warm render ~0.5 s server-side.
+- 2026-11-03T09:10:06+00:00 0b60e95e ui6 started: prototype v1 (RaceLens layout + take-this-bet verdict) https://claude.ai/artifact/SFMukYyWGnT5632F9HwaEi, copy in .grok/product-ui/v2/. Awaiting owner sign-off before lock + build.
 <!-- /DC:LOG -->
