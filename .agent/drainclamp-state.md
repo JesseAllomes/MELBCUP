@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=156 -->
+<!-- drainclamp-build: state; schema=1; generation=157 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -97,6 +97,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | nba4 | NBA in AsynymBet: Sport tab beside Racing (Games > Game > Bet / Odds / Result), value multis card, shared agencies, pool and P&L | melbcup/web/;tests/ | pending | nba3;ui6 |
 | lm1 | Looser markets (owner 2026-11-03, after NBA is live and forward-tested): racing each-way value in small fields (1/4 odds, 3 places, short favourite), tote pools with carryovers/jackpots, Best Tote/top fluc, Betfair place drift; NBA quarter/half markets and first basket (need play-by-play; unders, alt lines and SGM moved into nba3); NBL/NBL1/WNBA/EuroLeague props. Each market backtested and forward-tested before it shows in the app | melbcup/bets/;tools/nba/;research/;tests/ | pending | nba4 |
 | arb1 | Sure-thing finder (owner 2026-11-03): scan every agency we read (Odds API 12 AU books + PointsBet/Sportsbet direct + Betfair) for arbitrage (all outcomes covered at a locked profit) and promo lay-offs (agency promo + Betfair lay = locked profit); show stake split per agency and locked $; racing and NBA | melbcup/bets/;melbcup/web/;tests/ | pending | nba1 |
+| mkt1 | Market predictability scan (owner 2026-11-03): every market sold in Australia; per market and price band, does the outcome happen more than the margin-free price says, and does it pay at a price we can actually get, stable across halves of history; sources football-data.co.uk (done v1), our racing archive, AusSportsBetting AFL/NRL/NBA/NHL/NFL (needs AU fetch), tennis-data, Odds API forward collection; then multis of the edge bands | tools/markets/;research/markets/ | active |  |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
