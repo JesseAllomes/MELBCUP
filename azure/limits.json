@@ -30,6 +30,7 @@
       "publish": {"timer_max_per_day": 24},
       "racelens_snapshot": {"timer_max_per_day": 180},
       "nba_probe_run": {"timer_max_per_day": 24},
+      "nba_history_run": {"timer_max_per_day": 96},
       "reenter": {"route": "github/reenter", "anonymous": true}
     },
     "forbidden_app_settings": ["APPLICATIONINSIGHTS_CONNECTION_STRING", "APPINSIGHTS_INSTRUMENTATIONKEY"]

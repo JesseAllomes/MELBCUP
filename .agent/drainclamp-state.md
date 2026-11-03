@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=146 -->
+<!-- drainclamp-build: state; schema=1; generation=147 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -109,7 +109,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T09:35:01+00:00 0ffc3e42 Owner 2026-11-03: AsynymBet covers ALL meetings, not just the Cup (answers t3 scope). ui6 round 3 on RaceLens nav (Day > Meeting > Race > race tabs; real meeting lists, sample picks): A Race days GEJ8cNhcdSUZjzoVi9sCXq, B Next up MfcgMbumxLaU6ypaopJdje, C Three tier 3DBHx7KqR99bRyycy3PJcZ, D Hub HPKgsrD5e4fEaGEFzeHV8i. Source .grok/product-ui/v4/.
 - 2026-11-03T09:37:22+00:00 875caf16 Owner 2026-11-03 design rules: (1) agencies + day P&L fixed at the top of every screen; (2) Agencies panel lists every agency we pull prices from (Sportsbet, Betfair, PointsBet, TAB, Ladbrokes, Neds), on/off per agency for money tracking + balance, model always uses all prices; (3) theme dark purples/blacks, no bookie-brand colours. Applied to round 3 A-D (same URLs, v2).
 - 2026-11-03T09:40:46+00:00 6e380816 ui6 round 4 (owner: A Race days + D Hub win): merged E https://claude.ai/artifact/T941cW9hBenvPRje3Svgz3. Header never hidden (meetings inline, no covering sheet). Mine: Betting pool with Edit = every $ amount editable (agency money, day budget, usual stakes, bet stakes). Take races show top 4 picks worth a shot + same race multi.
 - 2026-11-03T09:50:24+00:00 6f328584 Owner 2026-11-03: Damian OK with copying RaceLens; snapshot Oaks Day (Thu 5 Nov) to find the best model. racelens-snapshot.yml every 5 min 8:00-20:55 AEDT -> racelens-data branch; needs secrets RACELENS_URL + RACELENS_PASSWORD. Today's Flemington/Randwick packs were deleted on his side before pull (jobs log proves they ran). Re-score 101 races: MELBCUP 1.8878 vs RaceLens 1.9706, top pick 40.6% vs 36.6%.
@@ -129,4 +128,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T11:28:09+00:00 003f707b Owner allowed role grants: Storage Blob Data Reader on stpersonalv5ethud2i3cfq granted to deploy app (1219dd34) and owner SP dfe297b5 (8cfbb9d5). Owner SP creds kept only in session scratchpad azure.env (600); owner told to rotate the secret.
 - 2026-11-03T11:36:10+00:00 b8c3a91e NBA probe v2 (on demand via admin endpoint): PointsBet mes/v3 featured competition 7176 works with player prop categories (points, rebounds, assists, threes, steals, blocks, turnovers); Sportsbet competition + Events/{id}/Markets work (game markets; player props in another market group, next probe); TAB 403 (WAF), Ladbrokes/Neds 500 (wrong endpoint); NBA CDN OK; stats.nba.com blocked. Backtest plan offered: step 1 free accuracy test on 2 past seasons of box scores.
 - 2026-11-03T11:42:53+00:00 9bbc0853 Owner gave The Odds API key (kept only in session scratchpad odds.env, 600; not in repo). 500 free credits/month. AU h2h covers 12 AU books incl. TAB, Ladbrokes, Neds, Sportsbet, PointsBet, Betfair AU, Unibet, Betr (fills our TAB/Entain scrape gap). Player props empty for AU and US 37 h before tip (likely posted near game time; empty calls cost 0). Credits used: 1.
+- 2026-11-03T11:50:50+00:00 87532dfb Owner: yes to NBA accuracy backtest. nba_history_run timer (every 15 min, 60 games/run, self-stops 12 Nov) downloads 2024-25 + 2025-26 regular-season box scores from cdn.nba.com into blob nba-history (~10 h). Worst case $24.77 (budget $25). Backtest scoring runs here, token-free.
 <!-- /DC:LOG -->
