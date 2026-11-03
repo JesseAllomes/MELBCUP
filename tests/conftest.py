@@ -345,7 +345,11 @@ def _web_clock_before_the_card(monkeypatch):
     from datetime import UTC
     from datetime import datetime as real
 
-    import melbcup.web.views as views
+    try:  # the deploy guard runs a few tests without the web app's libraries installed
+        import melbcup.web.views as views
+    except ImportError:
+        yield
+        return
 
     class Fixed(real):
         @classmethod
@@ -354,3 +358,4 @@ def _web_clock_before_the_card(monkeypatch):
             return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
 
     monkeypatch.setattr(views, "datetime", Fixed)
+    yield
