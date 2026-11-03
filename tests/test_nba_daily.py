@@ -72,3 +72,12 @@ def test_daily_adds_games_settles_yesterday_once_and_builds_board(tmp_path):
     daily.run(store, now, fake_espn("20261103"))  # a second run neither re-adds nor re-settles
     assert len(gzip.decompress(store.read(daily.HISTORY)).decode().splitlines()) == 21
     assert len(store.read("forward.jsonl").decode().splitlines()) == 2
+
+
+def test_a_night_off_builds_the_next_game_day(tmp_path):
+    hist = [game(i, f"2025-11-{i + 1:02d}T00:00Z", 20 + i % 5) for i in range(20)]
+    store = daily.LocalStore(str(tmp_path))
+    store.write(daily.HISTORY, gzip.compress("\n".join(json.dumps(g) for g in hist).encode()))
+    now = dt.datetime(2026, 11, 3, 22, 30, tzinfo=dt.UTC)  # 3 Nov in New York: no games
+    daily.run(store, now, fake_espn("20261102"))
+    assert json.loads(store.read("board-latest.json"))["day"] == "20261104"

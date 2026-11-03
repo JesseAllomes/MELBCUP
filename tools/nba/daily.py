@@ -11,7 +11,7 @@ Blob container `nba` (account from NBA_ACCOUNT, managed identity from AZURE_CLIE
   forward.jsonl            every settled leg so far: the forward test on real prices
 
 Steps, each bounded: (1) add the last few days' finished games to the history, (2) settle
-yesterday's legs, (3) build today's board. The US date is New York's, the NBA's own calendar.
+yesterday's legs, (3) build the board for today, or for the next day with games. The US date is New York's, the NBA's own calendar.
 Usage: python3 daily.py [--local DIR]   (DIR stands in for the container, for a dry run)
 """
 from __future__ import annotations
@@ -31,6 +31,7 @@ from settle import settle  # noqa: E402
 
 NY = ZoneInfo("America/New_York")
 LOOKBACK_DAYS = 3
+AHEAD_DAYS = 3
 HISTORY = "history/games.jsonl.gz"
 
 
@@ -124,9 +125,15 @@ def run(store, now, fetch=get):
     added, boxes = add_recent(store, hist, today, fetch)
     yday = (today - dt.timedelta(days=1)).strftime("%Y%m%d")
     settled = settle_day(store, yday, boxes.get(yday, {}))
-    day = today.strftime("%Y%m%d")
+    # the next US date with games (today, or up to AHEAD_DAYS later on a night off), so the page
+    # always has the coming slate; that day's own run rebuilds it with the latest injuries
+    for ahead in range(AHEAD_DAYS + 1):
+        day = (today + dt.timedelta(days=ahead)).strftime("%Y%m%d")
+        scoreboard = fetch(f"{API}/scoreboard?dates={day}")
+        if scoreboard.get("events"):
+            break
     games = [(g["gameTimeUTC"], g["season"], g["players"]) for g in hist]
-    board = make_board(games, day, fetch(f"{API}/scoreboard?dates={day}"), fetch(f"{API}/injuries"), load_v3())
+    board = make_board(games, day, scoreboard, fetch(f"{API}/injuries"), load_v3())
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
