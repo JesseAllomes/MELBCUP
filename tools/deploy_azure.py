@@ -204,6 +204,13 @@ def ship_image(target, running_image, label):
     base_ref = running_image.split("@", 1)[1]
     man, media = reg.manifest(base_ref)
     cfg = json.loads(reg.blob(man["config"]["digest"]))
+    man = dict(man)
+    hist = cfg.get("history", [])
+    if hist and "tools/deploy_azure.py code layer" in hist[-1].get("created_by", ""):
+        # the running image is itself a direct deploy: replace its code layer, don't stack another
+        man["layers"] = man["layers"][:-1]
+        cfg["rootfs"]["diff_ids"] = cfg["rootfs"]["diff_ids"][:-1]
+        cfg["history"] = hist[:-1]
     blob, diff_id = code_layer(target["files"])
     layer_digest = reg.push_blob(blob)
     cfg["rootfs"]["diff_ids"].append(diff_id)
@@ -211,7 +218,6 @@ def ship_image(target, running_image, label):
     cfg_bytes = json.dumps(cfg, separators=(",", ":")).encode()
     cfg_digest = reg.push_blob(cfg_bytes)
     layer_media = man["layers"][-1]["mediaType"]
-    man = dict(man)
     man["config"] = dict(man["config"], digest=cfg_digest, size=len(cfg_bytes))
     man["layers"] = man["layers"] + [{"mediaType": layer_media, "digest": layer_digest, "size": len(blob)}]
     digest = reg.push_manifest(man, media, f"code-{label}")
