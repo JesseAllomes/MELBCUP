@@ -1,5 +1,5 @@
 # ruff: noqa: E501, E702
-"""NBA player board for a day's games with model v3 (owner, 2026-11-03). Token-free.
+"""NBA player board for a day's games with model v4 (v3 where v4 did not help) (owner, 2026-11-03). Token-free.
 
 Usage: python3 tools/nba/board.py BOXDIR YYYYMMDD OUT.json
 For each game on ESPN's scoreboard that day: the expected line-up (players who appeared in 2 of
@@ -19,6 +19,7 @@ from collections import defaultdict
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
+import tune_v4 as V4  # noqa: E402
 from tune import STATS, build, load, nb_tail  # noqa: E402
 
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
@@ -34,8 +35,8 @@ def chance(mu, phi, ca, cb, k):
     return float(1 / (1 + np.exp(-(ca * np.log(p / (1 - p)) + cb))))
 
 
-def make_board(games, day, scoreboard, injuries, v3):
-    """Price the day's fixtures. games: history from tune.load (or an equivalent list), oldest first."""
+def make_board(games, day, scoreboard, injuries, model):
+    """Price the day's fixtures; model maps stat -> hl_minutes, hl_rate, theta (v3's 9 numbers or v4's 16). games: history from tune.load (or an equivalent list), oldest first."""
     names, team_now = {}, {}
     recent = defaultdict(list)  # team -> list of (when, players) oldest first
     for when, _season, players in games:
@@ -67,15 +68,10 @@ def make_board(games, day, scoreboard, injuries, v3):
     up = np.where(R["season"] == "upcoming")[0]
     rows = {}
     for s in STATS:
-        prm = v3[s]; hm, hr = prm["hl_minutes"], prm["hl_rate"]
-        w, c_miss, a_opp, log_phi, ca, cb, g, c_blow, c_use = prm["theta"]
-        res["params"][s] = {"phi": float(np.exp(log_phi)), "ca": ca, "cb": cb}
-        n = R["n"][up]; base = R[f"m{hm}"][up]; starter = R["starter"][up]
-        role = np.where(starter > 0, R["m_start"][up], R["m_bench"][up]); role = np.where(np.isnan(role), base, role)
-        mins = (g * role + (1 - g) * base) * (1 + c_miss * R["miss"][up])
-        mins = mins * (1 - c_blow * starter * np.minimum(np.abs(R["margin"][up]), 25) / 10)
-        rate = (n * R[f"r_{s}_{hr}"][up] + w * R[f"car_{s}"][up]) / (n + w) * (1 + c_use * R[f"use_{s}"][up])
-        mu = np.maximum(mins, 0) * rate * np.power(np.clip(R[f"opp_{s}"][up], 0.5, 2.0), a_opp)
+        prm = model[s]; hm, hr = prm["hl_minutes"], prm["hl_rate"]
+        th = np.array(prm["theta"] + V4.START[len(prm["theta"]) - V4.N3:])
+        res["params"][s] = {"phi": float(np.exp(th[3])), "ca": float(th[4]), "cb": float(th[5])}
+        mins, mu = V4.mean_mu(R, up, s, hm, hr, th)
         for i, ix in enumerate(up):
             r = rows.setdefault(R["pid"][ix], {"id": R["pid"][ix], "name": names.get(R["pid"][ix]), "team": R["team"][ix], "opp": R["opp"][ix],
                                                "starter": bool(R["starter"][ix]), "minutes": round(float(mins[i]), 1), "mu": {}})
@@ -84,13 +80,23 @@ def make_board(games, day, scoreboard, injuries, v3):
     return res
 
 
-def load_v3():
-    return json.load(open(os.path.join(os.path.dirname(__file__), "model_v3.json")))
+def load_model():
+    """Model v4 where it beat v3 (tools/nba/model_v4.json, per stat), v3 as the fallback."""
+    here = os.path.dirname(__file__)
+    model = json.load(open(os.path.join(here, "model_v3.json")))
+    try:
+        model.update(json.load(open(os.path.join(here, "model_v4.json"))))
+    except (OSError, ValueError):
+        pass
+    return model
+
+
+load_v3 = load_model  # name daily.py imports
 
 
 def main():
     boxdir, day, out = sys.argv[1], sys.argv[2], sys.argv[3]
-    res = make_board(load(boxdir), day, get(f"{API}/scoreboard?dates={day}"), get(f"{API}/injuries"), load_v3())
+    res = make_board(load(boxdir), day, get(f"{API}/scoreboard?dates={day}"), get(f"{API}/injuries"), load_model())
     json.dump(res, open(out, "w"), indent=1)
     print(f"{day}: {len(res['games'])} games, {len(res['players'])} players priced")
     for r in res["players"][:6]:

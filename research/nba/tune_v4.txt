@@ -1,0 +1,36 @@
+# Model v4 vs v3: rolling log loss (mean of folds 2021-22, 22-23, 23-24) and check 2024-25 (tuned on earlier seasons only).
+# Run: python3 tools/nba/tune_v4.py BOXDIR --sample 6 --stats STAT --out F   (one process per stat)
+
+points             v3           rolling 0.3276  check 0.3340  calib-gap 0.0042  
+points             +A rest      rolling 0.3274  check 0.3340  calib-gap 0.0042  KEEP
+points             +B minutes   rolling 0.3276  check 0.3339  calib-gap 0.0044  drop
+points             +C blowout   rolling 0.3274  check 0.3337  calib-gap 0.0038  drop
+  kept ['A']  extras [-0.035, -0.024, 0.036, 0.019, 0.0, 48.0, 0.0]
+  calibration on check: 0-9%:2.8% 10-19%:14.4% 20-29%:24.7% 30-39%:34.8% 40-49%:45.8% 50-59%:55.5% 60-69%:67.0% 70-79%:73.9% 80-89%:84.5% 90-99%:93.7%
+reboundsTotal      v3           rolling 0.3509  check 0.3545  calib-gap 0.0042  
+reboundsTotal      +A rest      rolling 0.3508  check 0.3544  calib-gap 0.0045  KEEP
+reboundsTotal      +B minutes   rolling 0.3507  check 0.3543  calib-gap 0.0037  KEEP
+reboundsTotal      +C blowout   rolling 0.3508  check 0.3543  calib-gap 0.0038  drop
+  kept ['A', 'B']  extras [0.02, 0.021, 0.034, 0.001, -0.064, 44.464, 0.0]
+  calibration on check: 0-9%:3.1% 10-19%:14.1% 20-29%:25.2% 30-39%:33.9% 40-49%:44.4% 50-59%:53.7% 60-69%:64.8% 70-79%:74.4% 80-89%:84.0% 90-99%:93.7%
+assists            v3           rolling 0.2957  check 0.3117  calib-gap 0.0048  
+assists            +A rest      rolling 0.2955  check 0.3116  calib-gap 0.0047  KEEP
+assists            +B minutes   rolling 0.2955  check 0.3114  calib-gap 0.0051  drop
+assists            +C blowout   rolling 0.2955  check 0.3116  calib-gap 0.0055  drop
+  kept ['A']  extras [0.008, -0.021, 0.05, -0.017, 0.0, 48.0, 0.0]
+  calibration on check: 0-9%:2.5% 10-19%:14.7% 20-29%:23.3% 30-39%:33.3% 40-49%:45.9% 50-59%:52.8% 60-69%:64.0% 70-79%:74.7% 80-89%:84.6% 90-99%:93.9%
+threePointersMade  v3           rolling 0.4433  check 0.4537  calib-gap 0.0059  
+threePointersMade  +A rest      rolling 0.4432  check 0.4537  calib-gap 0.0056  KEEP
+threePointersMade  +B minutes   rolling 0.4432  check 0.4535  calib-gap 0.0058  drop
+threePointersMade  +C blowout   rolling 0.4432  check 0.4535  calib-gap 0.0061  drop
+  kept ['A']  extras [-0.015, 0.047, 0.129, 0.017, 0.0, 48.0, 0.0]
+  calibration on check: 0-9%:3.3% 10-19%:15.0% 20-29%:24.4% 30-39%:34.0% 40-49%:44.8% 50-59%:54.7% 60-69%:65.5% 70-79%:76.1% 80-89%:85.5% 90-99%:92.8%
+
+SUMMARY before (v3) -> after (v4), rolling folds / check 2024-25
+points            0.3276->0.3274 / 0.3340->0.3340  (rest)
+reboundsTotal     0.3509->0.3507 / 0.3545->0.3543  (rest + minutes)
+assists           0.2957->0.2955 / 0.3117->0.3116  (rest)
+threePointersMade 0.4433->0.4432 / 0.4537->0.4537  (rest)
+Gains are <= 0.0002 nats: rest, explicit minutes terms and blowout shrink add almost nothing on top of v3
+(which already has role blend, missing-minutes, margin proxy). Calibration unchanged (bucket gap 0.004-0.006).
+Blowout (stage C) dropped for every stat: no point spreads in the data; the margin proxy adds nothing beyond v3.
