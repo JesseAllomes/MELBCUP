@@ -8,6 +8,7 @@ where to go next.
 from __future__ import annotations
 
 import hashlib
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -408,7 +409,7 @@ class Views:
         preview = (
             [] if state is not None else self._stage_preview(legs_now, nba_challenge, nba_legs)
         )
-        step, games, wait = None, [], None
+        step, games, wait, push = None, [], None, []
         if state is not None:
             x = nba_challenge.next_x(state)
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
@@ -444,6 +445,28 @@ class Views:
                         "alert": 900,
                     }
                 )
+            # the same times, for the phone alerts the Function pushes (melbcup/push_store.py)
+            for a in alerts:
+                when = datetime.fromisoformat(a["t"].replace("Z", "+00:00"))
+                if a["label"].endswith("result due"):
+                    push.append(
+                        {
+                            "at": when.isoformat(),
+                            "title": f"Stage {n} result due",
+                            "body": "Mark it won or lost and the next stage is ready.",
+                            "url": "/nba?tab=challenge",
+                        }
+                    )
+                else:
+                    game = (step or {}).get("game") or "the next game"
+                    push.append(
+                        {
+                            "at": (when - timedelta(minutes=15)).isoformat(),
+                            "title": f"Stage {n} tips off in 15 min",
+                            "body": f"{game}: place it now.",
+                            "url": "/nba?tab=challenge",
+                        }
+                    )
             now = datetime.now(UTC)
             for a in alerts:
                 when = datetime.fromisoformat(a["t"].replace("Z", "+00:00"))
@@ -453,6 +476,8 @@ class Views:
                         key=lambda r: r["t"],
                     )
         return {
+            "push_key": os.environ.get("VAPID_PUBLIC_KEY", ""),
+            "push_reminders": push,
             "ch": state,
             "ch_step": step,
             "ch_games": games,

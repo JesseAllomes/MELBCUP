@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Phone-first web server (Render). Password-protected; pages refresh in place every minute.
 
 Rendering and actions live in views.py, shared with the browser build.
@@ -11,7 +12,13 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
@@ -34,6 +41,28 @@ from melbcup.web.views import (
 )
 
 BASIC_AUTH = HTTPBasic(auto_error=False)
+
+
+SERVICE_WORKER = """// AsynymBet alerts: shows a pushed reminder and opens the page when it is tapped.
+self.addEventListener("install", function () { self.skipWaiting(); });
+self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener("push", function (e) {
+  var d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "AsynymBet", {
+    body: d.body || "", tag: d.title || "asynym", renotify: true, vibrate: [200, 100, 200],
+    data: { url: d.url || "/nba?tab=challenge" }
+  }));
+});
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || "/nba?tab=challenge";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (ws) {
+    for (var i = 0; i < ws.length; i++) { if ("focus" in ws[i]) { ws[i].navigate(url); return ws[i].focus(); } }
+    return self.clients.openWindow(url);
+  }));
+});
+"""
 
 
 def create_app(
@@ -182,6 +211,47 @@ def create_app(
 
         def _placed(p) -> dict:
             return {k: v for k, v in betting.status()["bets"][-1].items()} if p else {}
+
+    if (
+        settings.asynym
+    ):  # phone alerts (owner, 2026-11-04): melbcup/push_store.py, sent by the Function
+        from melbcup.push_store import PushError, PushStore
+
+        push = PushStore()
+
+        @app.get("/sw.js")
+        def service_worker():
+            """The service worker that shows a pushed alert, at the root so it covers every page."""
+            return Response(
+                SERVICE_WORKER,
+                media_type="application/javascript",
+                headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"},
+            )
+
+        def _push(fn):
+            if not push.ready:
+                raise HTTPException(503, "alerts need the Azure storage")
+            try:
+                return JSONResponse(fn(), headers={"Cache-Control": "no-store"})
+            except PushError as exc:
+                raise HTTPException(400, str(exc)) from exc
+
+        @app.post("/api/push/subscribe", dependencies=[Depends(require_login)])
+        async def push_subscribe(request: Request):
+            data = await request.json()
+            return _push(lambda: {"id": push.subscribe(data.get("subscription") or data)})
+
+        @app.post("/api/push/remind", dependencies=[Depends(require_login)])
+        async def push_remind(request: Request):
+            data = await request.json()
+            return _push(
+                lambda: {"saved": push.remind(data.get("id"), data.get("reminders") or [])}
+            )
+
+        @app.post("/api/push/test", dependencies=[Depends(require_login)])
+        async def push_test(request: Request):
+            data = await request.json()
+            return _push(lambda: push.test(data.get("id")) or {"queued": True})
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):

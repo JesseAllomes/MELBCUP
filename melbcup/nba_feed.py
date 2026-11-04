@@ -33,26 +33,38 @@ BOARD_TTL_S = 600
 TIMEOUT_S = 8
 
 
+_TOKEN: dict[str, tuple[float, str]] = {}
+
+
+def _token(client_id: str | None) -> str:
+    """A storage token for the app's managed identity (Container Apps endpoint), kept 30 min."""
+    stamp, tok = _TOKEN.get(client_id or "", (0.0, ""))
+    if tok and time.monotonic() - stamp < 1800:
+        return tok
+    endpoint, secret = os.environ.get("IDENTITY_ENDPOINT"), os.environ.get("IDENTITY_HEADER")
+    if not endpoint or not secret:
+        raise httpx.HTTPError("no managed identity here")
+    params = {"resource": "https://storage.azure.com/", "api-version": "2019-08-01"}
+    if client_id:
+        params["client_id"] = client_id
+    resp = httpx.get(
+        endpoint, params=params, headers={"X-IDENTITY-HEADER": secret}, timeout=TIMEOUT_S
+    )
+    resp.raise_for_status()
+    tok = resp.json()["access_token"]
+    _TOKEN[client_id or ""] = (time.monotonic(), tok)
+    return tok
+
+
 def blob_reader(account: str, client_id: str | None) -> Callable[[str], bytes | None]:
-    """Read a blob of container `nba` with the app's managed identity (Container Apps endpoint)."""
+    """Read a blob of container `nba` with the app's managed identity."""
 
     def read(name: str) -> bytes | None:
-        endpoint, secret = os.environ.get("IDENTITY_ENDPOINT"), os.environ.get("IDENTITY_HEADER")
-        if not endpoint or not secret:
+        if not os.environ.get("IDENTITY_ENDPOINT"):
             return None
-        params = {"resource": "https://storage.azure.com/", "api-version": "2019-08-01"}
-        if client_id:
-            params["client_id"] = client_id
-        tok = httpx.get(
-            endpoint, params=params, headers={"X-IDENTITY-HEADER": secret}, timeout=TIMEOUT_S
-        )
-        tok.raise_for_status()
         resp = httpx.get(
             f"https://{account}.blob.core.windows.net/nba/{name}",
-            headers={
-                "Authorization": f"Bearer {tok.json()['access_token']}",
-                "x-ms-version": "2021-08-06",
-            },
+            headers={"Authorization": f"Bearer {_token(client_id)}", "x-ms-version": "2021-08-06"},
             timeout=TIMEOUT_S,
         )
         if resp.status_code == 404:

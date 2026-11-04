@@ -386,3 +386,6 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .nba-bk a { flex: 1; text-align: center; text-decoration: none; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--rule); color: inherit; font-weight: 700; font-size: 13px; }
 .nba-bk a small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
 .nba-bk a.on { border-color: var(--brand); color: var(--brand); background: var(--chip); }
+.push-card { margin: 12px 0 4px; padding: 10px; border-radius: 12px; background: var(--chip); }
+.push-card button { margin: 6px 8px 0 0; padding: 8px 14px; border-radius: 10px; border: 0; font-weight: 700; background: var(--brand); color: #fff; }
+.push-card #push-test { background: transparent; color: var(--brand); border: 1px solid var(--brand); }

@@ -20,7 +20,7 @@ DOCS = ROOT / "docs"
 # Server-only or offline-only modules the browser never imports.
 # The NBA feed is server only (live HTTP to PointsBet and Azure): the offline copy explains that.
 SKIP = {"melbcup/web/app.py", "melbcup/backtest.py", "melbcup/nba_feed.py", "melbcup/nba_legs.py",
-        "melbcup/nba_challenge.py"}
+        "melbcup/nba_challenge.py", "melbcup/push_store.py", "melbcup/webpush.py"}
 
 
 def wanted() -> dict[str, bytes]:

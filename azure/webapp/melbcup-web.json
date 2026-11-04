@@ -69,6 +69,7 @@
           {"name": "PROMOS", "value": "1"},
           {"name": "ASYNYM", "value": "1"},
           {"name": "NBA_ACCOUNT", "value": "stpersonalv5ethud2i3cfq"},
+          {"name": "VAPID_PUBLIC_KEY", "value": "BDzeLKul0vUgKMwvXO7swS7dGabzm0pAdsiUmyOSQp1RToTb0hubr4nJpCjET2lE6C-T45FlgbVOLJUFTjM1j7o"},
           {"name": "AZURE_CLIENT_ID", "value": "519729c8-1505-4e6b-b7cc-85c29cfc38d5"},
           {"name": "PUBLIC_ACCESS", "value": "1"},
           {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},

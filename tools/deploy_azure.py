@@ -68,7 +68,7 @@ JOB = {
     "live": "job-melbcup-nba.json",
 }
 FUNC_FILES = ["azure/function/function_app.py", "azure/function/collector_runtime.py", "azure/function/racelens.py",
-              "azure/function/nba_probe.py", "azure/function/nba_props.py", "azure/function/host.json",
+              "azure/function/nba_props.py", "azure/function/push_send.py", "azure/function/host.json",
               "azure/function/requirements.txt"]
 
 
@@ -282,6 +282,7 @@ def deploy_function(label):
         shutil.copy(ROOT / f, pkg)
     shutil.copy(ROOT / "tools/live_collector.py", pkg / "tools/live_collector.py")
     shutil.copy(ROOT / "melbcup/nba_legs.py", pkg / "nba_legs.py")
+    shutil.copy(ROOT / "melbcup/webpush.py", pkg / "webpush.py")
     (pkg / "tools/__init__.py").touch()
     subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--no-cache-dir", "--only-binary=:all:",
                     "--platform", "manylinux2014_x86_64", "--python-version", FUNC_PY, "--implementation", "cp",

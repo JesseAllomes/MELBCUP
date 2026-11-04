@@ -19,8 +19,8 @@ from azure.storage.blob import BlobServiceClient, ContentSettings
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-import nba_probe  # noqa: E402
 import nba_props  # noqa: E402
+import push_send  # noqa: E402
 import racelens  # noqa: E402
 from collector_runtime import (  # noqa: E402
     CollectorSession,
@@ -171,35 +171,22 @@ def racelens_snapshot(timer: func.TimerRequest) -> None:
     logging.info("racelens: %d meetings, %d race snapshots", meetings, written)
 
 
-NBA_PROBE_UNTIL = dt.datetime(2026, 11, 10, tzinfo=dt.UTC)  # stops by itself
-
-
 @app.timer_trigger(
-    schedule="0 13 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True
-)
-def nba_probe_run(timer: func.TimerRequest) -> None:
-    """Hourly until NBA_PROBE_UNTIL: which NBA feeds answer from Australia (owner, 2026-11-03)."""
-    moment = now_utc()
-    if moment >= NBA_PROBE_UNTIL or os.environ.get("NBA_PROBE") == "0":
-        return
-    container = blobs().get_container_client("nba-probe")
-    try:
-        container.create_container()
-    except ResourceExistsError:
-        pass
-    body = json.dumps({"at": moment.isoformat(), "probes": nba_probe.run()}, indent=1).encode()
-    for name in (f"{moment:%Y%m%d-%H}.json", "latest.json"):
-        container.get_blob_client(name).upload_blob(body, overwrite=True)
-
-
-@app.timer_trigger(
-    schedule="0 */20 20-23,0-4 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+    schedule="0 */10 20-23,0-7 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
 )
 def nba_props_run(timer: func.TimerRequest) -> None:
-    """NBA player-prop prices from PointsBet, 7am to 3:40pm AEDT (owner, 2026-11-03)."""
+    """Every 10 minutes, 7am to 6:50pm AEDT: push the phone alerts that are due (owner,
+    2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
+    moment = now_utc()
+    key = os.environ.get("VAPID_PRIVATE_KEY")
+    if key:
+        try:
+            sent, dropped = push_send.send_due(blobs().get_container_client("nba"), moment, key)
+            logging.info("push: %d sent, %d phones dropped", sent, dropped)
+        except Exception:  # alerts must never stop the prices
+            logging.exception("push: failed")
     if os.environ.get("NBA_PROPS") == "0":
         return
-    moment = now_utc()
     container = blobs().get_container_client("nba-props")
     try:
         container.create_container()
