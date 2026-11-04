@@ -204,6 +204,10 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     except ResourceExistsError:
         pass
     legs = nba_props.price_legs(nba, snaps, moment)
+    try:
+        legs += "; " + nba_props.build_view(nba, snaps, moment)
+    except Exception:  # the page falls back to working it out itself
+        logging.exception("nba view: failed")
     logging.info("nba props: %d games, %d snapshots; legs %s", games, written, legs)
 
 

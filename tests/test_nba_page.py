@@ -88,20 +88,27 @@ def test_feed_serves_the_cached_copy_while_it_refreshes(bundled, monkeypatch):
     assert len(calls) == 2 and feed._view[1] is not first  # ... while a refresh replaces it
 
 
-def test_cold_start_shows_the_functions_last_pricing_then_goes_live(bundled):
+def test_the_page_reads_the_timers_page_data_and_does_no_work(bundled):
+    import gzip
+
     from melbcup import nba_legs
 
-    saved = nba_legs.report(BOARD, events(1.25)()) | {"pricedAt": "2026-11-04T21:40:00+00:00"}
-    blobs = {"board-latest.json": json.dumps(BOARD).encode(), "legs-latest.json": json.dumps(saved).encode()}
-    feed = NbaFeed(read_blob=blobs.get, events=events(1.40), bundled=bundled, clock=lambda: NOW)
-    first = feed.view()
-    assert first["report"]["all_legs"][0]["price"] == 1.25  # at once, from the Function
-    for _ in range(200):
-        if feed._view[1] is not first:
-            break
-        time.sleep(0.01)
-    assert feed._view[1]["report"]["all_legs"][0]["price"] == 1.40  # then live
+    view = nba_legs.view(BOARD, {"pb": events(1.25)(), "sb": events(1.35)()}, {3: 5.0})
+    view["pricedAt"] = "2026-11-04T21:55:00+00:00"  # 5 minutes before NOW
+    blobs = {"board-latest.json": json.dumps(BOARD).encode(), "view-latest.json.gz": gzip.compress(json.dumps(view).encode())}
+    calls = []
 
+    def fetch():
+        calls.append(1)
+        return events(1.40)()
+
+    feed = NbaFeed(read_blob=blobs.get, events={"pb": fetch}, bundled=bundled, clock=lambda: NOW)
+    v = feed.view()
+    assert v["staged"] and calls == []  # nothing fetched or searched here
+    assert v["agencies"]["sb"]["report"]["all_legs"][0]["price"] == 1.35
+    later = datetime(2026, 11, 4, 22, 40, tzinfo=UTC)  # 45 minutes old: work it out live
+    v = NbaFeed(read_blob=blobs.get, events={"pb": fetch}, bundled=bundled, clock=lambda: later).view()
+    assert calls == [1] and not v.get("staged") and v["report"]["all_legs"][0]["price"] == 1.40
 
 def test_nearest_only_likely_legs():
     legs = [{"chance": 0.9, "ev": -0.01}, {"chance": 0.5, "ev": 0.5}, {"chance": 0.8, "ev": -0.2}]

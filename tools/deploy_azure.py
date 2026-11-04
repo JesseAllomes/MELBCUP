@@ -283,6 +283,7 @@ def deploy_function(label):
     shutil.copy(ROOT / "tools/live_collector.py", pkg / "tools/live_collector.py")
     shutil.copy(ROOT / "melbcup/nba_legs.py", pkg / "nba_legs.py")
     shutil.copy(ROOT / "melbcup/webpush.py", pkg / "webpush.py")
+    shutil.copy(ROOT / "melbcup/nba_challenge.py", pkg / "nba_challenge.py")
     (pkg / "tools/__init__.py").touch()
     subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--no-cache-dir", "--only-binary=:all:",
                     "--platform", "manylinux2014_x86_64", "--python-version", FUNC_PY, "--implementation", "cp",

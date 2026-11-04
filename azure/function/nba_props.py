@@ -18,6 +18,10 @@ import urllib.request
 from zoneinfo import ZoneInfo
 
 try:
+    import nba_challenge  # the deployed package: copied from melbcup/nba_challenge.py
+except ImportError:  # the repository (tests)
+    from melbcup import nba_challenge
+try:
     import nba_legs  # the deployed package: copied from melbcup/nba_legs.py by azure-deploy.yml
 except ImportError:  # the repository (tests)
     from melbcup import nba_legs
@@ -91,6 +95,63 @@ def collect(
     return len(events), written
 
 
+def _events(snaps: list[dict]) -> list[dict]:
+    return [
+        {
+            "event": s["event"],
+            "name": s["name"],
+            "startsAt": s.get("startsAt"),
+            "markets": [
+                {"group": m.get("group"), "outcomes": m.get("outcomes") or []} for m in s["markets"]
+            ],
+        }
+        for s in snaps
+    ]
+
+
+VIEW_BUDGET_S = 40  # the Function stops at 60 s: Sportsbet is skipped if PointsBet took this long
+
+
+def build_view(nba, snaps: list[dict], now: dt.datetime, sb_fetch=None) -> str:
+    """Work out everything the NBA page shows, for both agencies, and save it gzipped as
+    view-latest.json.gz: the web app (a quarter of a CPU) then only reads it, so its pages stay
+    fast (owner, 2026-11-04). The board can be today's or the next game day's."""
+    import gzip
+    import time
+
+    started = time.monotonic()
+    try:
+        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
+    except Exception:  # no board yet
+        return "no board"
+    xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
+    view = nba_legs.view(board, {"pb": _events(snaps)}, xs)
+    sb_error = None
+    if time.monotonic() - started < VIEW_BUDGET_S:
+        try:
+            sb = nba_legs.view(board, {"sb": (sb_fetch or nba_legs.live_sportsbet)()}, xs)
+            view["agencies"].update(sb["agencies"])
+            view["preview"].update(sb["preview"])
+        except Exception as exc:  # Sportsbet down: PointsBet still shows
+            sb_error = f"Sportsbet did not answer ({type(exc).__name__})."
+    else:
+        sb_error = "Sportsbet skipped this round (time)."
+    if sb_error:
+        view["agencies"]["sb"] = {
+            "report": nba_legs.report(board, []),
+            "games": 0,
+            "error": sb_error,
+        }
+    view["pricedAt"] = now.isoformat()
+    view["seconds"] = round(time.monotonic() - started, 1)
+    nba.get_blob_client("view-latest.json.gz").upload_blob(
+        gzip.compress(json.dumps(view).encode()), overwrite=True
+    )
+    return f"view {view['seconds']}s: " + ", ".join(
+        f"{c} {len(a['report']['all_legs'])}" for c, a in view["agencies"].items()
+    )
+
+
 def price_legs(nba, snaps: list[dict], now: dt.datetime) -> str:
     """Turn this run's prices into legs and multis with the day's board (written each morning by the
     melbcup-nba job). Games that have started drop out of PointsBet's list, so their legs from the
@@ -102,17 +163,7 @@ def price_legs(nba, snaps: list[dict], now: dt.datetime) -> str:
     day = now.astimezone(NY).strftime("%Y%m%d")
     if board.get("day") != day:
         return f"board is for {board.get('day')}, not {day}"
-    events = [
-        {
-            "event": s["event"],
-            "name": s["name"],
-            "startsAt": s.get("startsAt"),
-            "markets": [
-                {"group": m.get("group"), "outcomes": m.get("outcomes") or []} for m in s["markets"]
-            ],
-        }
-        for s in snaps
-    ]
+    events = _events(snaps)
     res = nba_legs.report(board, events)
     try:
         prior = json.loads(nba.get_blob_client(f"{day}/legs.json").download_blob().readall())

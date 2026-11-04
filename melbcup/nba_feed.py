@@ -12,12 +12,13 @@ melbcup/nba_legs.py: the same code the Azure Function and the tools run.
 
 from __future__ import annotations
 
+import gzip
 import json
 import os
 import threading
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -28,6 +29,7 @@ from melbcup import nba_legs
 NY = ZoneInfo("America/New_York")
 BUNDLED = Path(__file__).resolve().parents[1] / "data" / "nba" / "board-latest.json"
 PRICES_TTL_S = 90
+STAGED_MAX_AGE = timedelta(minutes=30)  # older than this, the page works prices out itself
 AGENCY_NAMES = {"sb": "Sportsbet", "pb": "PointsBet"}
 BOARD_TTL_S = 600
 TIMEOUT_S = 8
@@ -126,39 +128,48 @@ class NbaFeed:
                 threading.Thread(target=self._refresh_locked, daemon=True).start()
             return cached
         saved = self._saved()
-        if saved is not None:  # a cold start: show the Function's last pricing, refresh live now
-            self._view = (float("-inf"), saved)
-            return self.view()
+        if saved is not None:  # the timer's page data: no work here at all
+            self._view = (time.monotonic(), saved)
+            return saved
         with self._lock:
             if self._view[1] is None:
                 self._compute()
             return self._view[1]
 
     def _saved(self) -> dict | None:
-        """The legs the Azure Function priced on its last run (every 20 minutes), if they are
-        for the board's day: shown at once on a cold start while live prices load."""
+        """The page data the Azure timer worked out on its last run (every 10 minutes, both
+        agencies): used whenever it is under STAGED_MAX_AGE old, so this small web app only
+        reads it and never does the heavy search itself (owner, 2026-11-04: pages must be fast)."""
         if self.read_blob is None:
             return None
         try:
-            raw = self.read_blob("legs-latest.json")
+            raw = self.read_blob("view-latest.json.gz")
             board, source = self.board()
-            rep = json.loads(raw) if raw else None
-        except (httpx.HTTPError, ValueError, KeyError):
+            v = json.loads(gzip.decompress(raw)) if raw else None
+        except (httpx.HTTPError, ValueError, KeyError, OSError):
             return None
-        if not rep or board is None or rep.get("day") != board.get("day") or "stacks" not in rep:
+        if not v or board is None or v.get("day") != board.get("day") or not v.get("agencies"):
             return None
-        priced = datetime.fromisoformat(rep["pricedAt"]) if rep.get("pricedAt") else self.clock()
+        now = self.clock()
+        priced = datetime.fromisoformat(v["pricedAt"]) if v.get("pricedAt") else None
+        if priced is None or now - priced > STAGED_MAX_AGE:
+            return None
+        agencies = v["agencies"]
+        first = agencies.get("pb") or next(iter(agencies.values()))
+        today = now.astimezone(NY).strftime("%Y%m%d")
         return {
-            "today": self.clock().astimezone(NY).strftime("%Y%m%d"),
+            "today": today,
             "source": source,
             "board": board,
             "error": None,
-            "report": rep,
-            "agencies": {"pb": {"report": rep, "games": rep.get("games_priced", 0), "error": None}},
+            "report": first["report"],
+            "agencies": agencies,
+            "preview": v.get("preview") or {},
             "nearest": [],
-            "games": rep.get("games_priced", 0),
+            "games": first.get("games", 0),
             "priced_at": priced,
-            "stale": False,
+            "stale": board.get("day", "") < today,
+            "staged": True,
         }
 
     def _refresh_locked(self) -> None:
@@ -168,6 +179,10 @@ class NbaFeed:
             self._lock.release()
 
     def _compute(self) -> None:
+        saved = self._saved()
+        if saved is not None:  # the timer has fresh page data: read it, do not redo the search
+            self._view = (time.monotonic(), saved)
+            return
         now = self.clock()
         today = now.astimezone(NY).strftime("%Y%m%d")
         board, source = self.board()

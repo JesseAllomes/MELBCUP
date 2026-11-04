@@ -495,15 +495,24 @@ class Views:
         """For each number of stages: the payout per stage ($10 -> $1000, start kept) and, on
         tonight's lines, the best one-game stage's chance and the whole run's (that chance to the
         power of the stages). Kept per pricing, so the page stays fast."""
+        staged = ((self._nba._view[1] or {}).get("preview") or {}) if self._nba else {}
+        chances = staged.get(getattr(self, "_nba_pick", None) or "")
+        if chances:  # worked out by the Azure timer: nothing to do here
+            out = []
+            for n in nba_challenge.STAGES:
+                x = nba_challenge.stage_x(10.0, 1000.0, n, True)
+                p = chances.get(str(n), chances.get(n))
+                out.append({"n": n, "x": x, "stage": p, "run": p**n if p else None})
+            return out
         key = (id(legs), len(legs))
         cached = getattr(self, "_preview_cache", None)
         if cached and cached[0] == key:
             return cached[1]
+        xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
+        many = nba_legs.same_game_many(legs, list(xs.values()))  # one search per game, every size
         out = []
-        for n in nba_challenge.STAGES:
-            x = nba_challenge.stage_x(10.0, 1000.0, n, True)
-            games = nba_legs.same_game_for(legs, x)
-            p = max((g["chance"] for g in games), default=None)
+        for n, x in xs.items():
+            p = max((g["chance"] for g in many[x]), default=None)
             out.append({"n": n, "x": x, "stage": p, "run": p**n if p else None})
         self._preview_cache = (key, out)
         return out
@@ -536,6 +545,7 @@ class Views:
         pick = pick or next((c for c in has if c in on), None) or (has[0] if has else None)
         pick = pick or next(iter(agencies), None)
         chosen = agencies.get(pick) or {}
+        self._nba_pick = pick
         rep = chosen.get("report") or v.get("report") or {}
         games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
         names = {"sb": "Sportsbet", "pb": "PointsBet"}

@@ -79,3 +79,27 @@ def test_price_legs_needs_todays_board_and_carries_started_games_forward():
     assert legs["value_legs"] == [] and legs["verdict"] == "nothing worth taking today"
     assert [g["event"] for g in legs["all_legs"]] == ["1"]
     assert [g["event"] for g in legs["closed_value_legs"]] == ["1"]
+
+
+
+def test_build_view_saves_both_agencies_for_the_page():
+    import gzip
+
+    nba = Container()
+    now = dt.datetime(2026, 11, 4, 23, 0, tzinfo=dt.UTC)
+    assert nba_props.build_view(nba, [], now) == "no board"
+    nba.store["board-latest.json"] = json.dumps(BOARD).encode()
+    game = snap("1", "Philadelphia 76ers @ Detroit Pistons", 1.30)
+    sb = [{"event": "sb1", "name": "Philadelphia 76ers @ Detroit Pistons", "startsAt": "x", "markets": [{"group": "sportsbet", "outcomes": [
+        {"name": "Joel Embiid 10+ Points", "price": 1.4, "player": "Joel Embiid", "stat": "points", "k": 10, "under": False}]}]}]
+    out = nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb)
+    assert out.startswith("view") and "pb 1" in out and "sb 1" in out
+    view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
+    assert view["day"] == "20261104" and view["pricedAt"] == now.isoformat() and set(view["preview"]) == {"pb", "sb"}
+
+    def down():
+        raise OSError("blocked")
+
+    nba_props.build_view(nba, [game], now, sb_fetch=down)
+    view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
+    assert "did not answer" in view["agencies"]["sb"]["error"] and view["agencies"]["pb"]["report"]["all_legs"]
