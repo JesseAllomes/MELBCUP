@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
@@ -63,19 +64,37 @@ class PushStore:
     def _save(self, pid: str, doc: dict) -> None:
         self.write(f"push/{pid}.json", json.dumps(doc).encode())
 
-    def subscribe(self, sub: dict) -> str:
+    def link(self) -> str:
+        """A new id for a phone that wants Telegram alerts before (or without) Chrome alerts."""
+        pid = secrets.token_hex(10)
+        self._save(pid, {"reminders": []})
+        return pid
+
+    def subscribe(self, sub: dict, pid: str | None = None) -> str:
+        """Keep the phone's Chrome push subscription: on its existing id (Telegram linked first)
+        or on one made from the push endpoint."""
         endpoint = str((sub or {}).get("endpoint") or "")
         keys = (sub or {}).get("keys") or {}
         if not endpoint.startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
             raise PushError("not a push subscription")
-        pid = hashlib.sha256(endpoint.encode()).hexdigest()[:20]
-        old = self._load(pid) or {}
+        old = self._load(pid) if pid and ID.match(str(pid)) else None
+        if old is None:
+            pid = hashlib.sha256(endpoint.encode()).hexdigest()[:20]
+            old = self._load(pid) or {}
         clean = {
             "endpoint": endpoint,
             "keys": {"p256dh": str(keys["p256dh"]), "auth": str(keys["auth"])},
         }
-        self._save(pid, {"sub": clean, "reminders": old.get("reminders", [])})
+        self._save(pid, old | {"sub": clean, "reminders": old.get("reminders", [])})
         return pid
+
+    def status(self, pid: str) -> dict:
+        doc = self._load(pid) if ID.match(str(pid or "")) else None
+        return {
+            "known": doc is not None,
+            "web": bool((doc or {}).get("sub")),
+            "telegram": bool((doc or {}).get("tg")),
+        }
 
     def remind(self, pid: str, reminders: list, now: datetime | None = None) -> int:
         if not ID.match(str(pid)):

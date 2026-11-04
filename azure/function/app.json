@@ -20,6 +20,7 @@
       "LOTTO_REENTER_JOB_RESOURCE_ID",
       "RACELENS_PASSWORD",
       "RACELENS_URL",
+      "TELEGRAM_BOT_TOKEN",
       "VAPID_PRIVATE_KEY"
     ],
     "values": {

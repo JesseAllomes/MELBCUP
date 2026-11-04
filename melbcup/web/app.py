@@ -239,7 +239,18 @@ def create_app(
         @app.post("/api/push/subscribe", dependencies=[Depends(require_login)])
         async def push_subscribe(request: Request):
             data = await request.json()
-            return _push(lambda: {"id": push.subscribe(data.get("subscription") or data)})
+            return _push(
+                lambda: {"id": push.subscribe(data.get("subscription") or data, data.get("id"))}
+            )
+
+        @app.post("/api/push/link", dependencies=[Depends(require_login)])
+        async def push_link(request: Request):
+            return _push(lambda: {"id": push.link()})
+
+        @app.post("/api/push/status", dependencies=[Depends(require_login)])
+        async def push_status(request: Request):
+            data = await request.json()
+            return _push(lambda: push.status(data.get("id")))
 
         @app.post("/api/push/remind", dependencies=[Depends(require_login)])
         async def push_remind(request: Request):
