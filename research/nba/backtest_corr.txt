@@ -1,0 +1,19 @@
+Same-game copula backtest (2026-11-04)
+Data: history games.jsonl.gz; correlations fitted on 2018-19..2022-23 only (tools/nba/correlation.py), so both test seasons are out of sample.
+Run: python3 tools/nba/backtest_multis.py GAMES.jsonl.gz --season 00223|00224 [--copula]. Leg prices assumed fair minus 5%.
+
+Same-game stacks (~$30 payout, one leg per player), said vs got up:
+  2023-24  before: 715 stacks, said 28.7%, got 29.0%    after: said 28.5%, got 28.4%
+  2024-25  before: 709 stacks, said 28.7%, got 29.3%    after: said 28.4%, got 29.6%
+  pooled   before: said 28.7%, got 29.2% (gap 0.5)      after: said 28.5%, got 29.0% (gap 0.5)
+  noise: +-3.4 points per season.
+
+Verdict: calibration no worse within noise; kept.
+
+Why so small: model v3 already carries minutes, blowout and opponent effects, so the residual
+correlation between different players is ~0 (teammates -0.01..0.04, opponents 0..0.03). Only the
+same-player cross-stat pairs are large (pts-3pm 0.56, pts-reb 0.35, reb-ast 0.21, pts-ast 0.20),
+and same-game stacks are one leg per player, so the copula moves a stack's chance by 0.2-0.3 points.
+The copula would matter if stacks were allowed two stats per player.
+
+Cross-game stacks are unchanged (independent).

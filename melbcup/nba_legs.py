@@ -25,10 +25,13 @@ import gzip
 import json
 import math
 import os
+import random
 import re
 import unicodedata
 import urllib.request
 from datetime import UTC, datetime
+from operator import mul
+from statistics import NormalDist
 
 PB = "https://api.au.pointsbet.com/api/mes/v3"
 UA = {
@@ -319,12 +322,10 @@ def legs_from(events, board):
     return legs, sorted(unmatched)
 
 
-def multi(legs, stake):
-    c = 1.0
-    price = 1.0
-    for g in legs:
-        c *= g["chance"]
-        price *= g["price"]
+def multi(legs, stake, chance=None):
+    """`chance`: the legs' joint chance when they are correlated; else they multiply."""
+    c = math.prod(g["chance"] for g in legs) if chance is None else chance
+    price = math.prod(g["price"] for g in legs)
     return {
         "legs": len(legs),
         "chance": round(c, 4),
@@ -430,14 +431,8 @@ def _keep(front, cand):
     return front
 
 
-def best_stacks(groups, targets, min_legs=3, max_legs=10) -> dict:
-    """For every payout target at once: the stack most likely to get up whose price reaches it,
-    at most one leg per group. One pass over a 1% log-price grid (prices above the largest
-    target share its top bucket); each bucket keeps the likeliest stacks not beaten on both
-    chance and price (FRONT_CAP of them)."""
-    targets = sorted(set(targets))
-    if not targets:
-        return {}
+def _search(groups, targets, max_legs):
+    """The 1% log-price grid pass: states[k] = {bucket: [(log chance, log price, picks)]}."""
     cap = math.log(targets[-1]) + 1e-9
     top = int(cap / STEP)
     # logs once per leg, not once per partial stack
@@ -455,25 +450,166 @@ def best_stacks(groups, targets, min_legs=3, max_legs=10) -> dict:
                         if b2 >= top:
                             b2, lp2 = top, min(lp2, cap)
                         nxt[b2] = _keep(nxt.get(b2, []), (lc + glc, lp2, picks + (g,)))
+    return states
+
+
+def top_stacks(groups, targets, n=1, min_legs=3, max_legs=10) -> dict:
+    """For every payout target at once: the n likeliest stacks (as the legs multiply) whose price
+    reaches it, at most one leg per group, likeliest first. One pass over a 1% log-price grid
+    (prices above the largest target share its top bucket); each bucket keeps the likeliest
+    stacks not beaten on both chance and price (FRONT_CAP of them)."""
+    targets = sorted(set(targets))
+    if not targets:
+        return {}
+    states = _search(groups, targets, max_legs)
     out = {}
     for t in targets:
         goal = math.log(t) - 1e-9
         lo = int(goal / STEP)
-        best = None
-        for k in range(min_legs, max_legs + 1):
-            for b, front in states[k].items():
-                if b < lo:
-                    continue
-                for c in front:
-                    if c[1] >= goal and (best is None or c[0] > best[0]):
-                        best = c
-        out[t] = list(best[2]) if best else None
+        found = [
+            c
+            for k in range(min_legs, max_legs + 1)
+            for b, front in states[k].items()
+            if b >= lo
+            for c in front
+            if c[1] >= goal
+        ]
+        found.sort(key=lambda c: -c[0])
+        out[t] = [list(c[2]) for c in found[:n]]
     return out
+
+
+def best_stacks(groups, targets, min_legs=3, max_legs=10) -> dict:
+    """For every payout target at once: the stack most likely to get up whose price reaches it
+    (top_stacks with n=1); None when nothing reaches it."""
+    found = top_stacks(groups, targets, 1, min_legs, max_legs)
+    return {t: (v[0] if v else None) for t, v in found.items()}
 
 
 def best_stack(groups, target, min_legs=3, max_legs=10):
     """The likeliest stack reaching one payout target (see best_stacks)."""
     return best_stacks(groups, [target], min_legs, max_legs)[target]
+
+
+# Same-game correlation (Gaussian copula). Legs in one game move together a little: the normal-score
+# correlation of actual vs model-v3-expected counts, by relation (self: one player's two stats;
+# team: two teammates; opp: a player and an opposing player) and stat pair, fitted by
+# tools/nba/correlation.py on seasons 2018-19 to 2022-23 (out of sample for the 2023-24+ backtests).
+CORR = {
+    ("self", "ast", "3pm"): 0.102,
+    ("self", "pts", "3pm"): 0.555,
+    ("self", "pts", "ast"): 0.201,
+    ("self", "pts", "reb"): 0.348,
+    ("self", "reb", "3pm"): 0.132,
+    ("self", "reb", "ast"): 0.211,
+    ("team", "3pm", "3pm"): -0.003,
+    ("team", "ast", "3pm"): 0.03,
+    ("team", "ast", "ast"): -0.005,
+    ("team", "pts", "3pm"): -0.011,
+    ("team", "pts", "ast"): 0.035,
+    ("team", "pts", "pts"): -0.011,
+    ("team", "pts", "reb"): 0.006,
+    ("team", "reb", "3pm"): 0.0,
+    ("team", "reb", "ast"): 0.001,
+    ("team", "reb", "reb"): -0.005,
+    ("opp", "3pm", "3pm"): 0.005,
+    ("opp", "ast", "3pm"): 0.007,
+    ("opp", "ast", "ast"): 0.01,
+    ("opp", "pts", "3pm"): 0.011,
+    ("opp", "pts", "ast"): 0.013,
+    ("opp", "pts", "pts"): 0.026,
+    ("opp", "pts", "reb"): -0.001,
+    ("opp", "reb", "3pm"): -0.003,
+    ("opp", "reb", "ast"): -0.005,
+    ("opp", "reb", "reb"): 0.012,
+}
+SHORT = {"points": "pts", "reboundsTotal": "reb", "assists": "ast", "threePointersMade": "3pm"}
+MC_DRAWS = 4000  # copula draws per re-score (the same draws for every candidate, so they compare fairly)
+MC_SEED = 20261104
+MC_TOP = 20  # same-game candidates per target re-scored by the copula
+_DRAWS: list = []
+
+
+def _rho(a: dict, b: dict) -> float:
+    """Correlation between two legs' normal scores: sign flipped when exactly one is an under."""
+    if a["player"] == b["player"]:
+        rel = "self"
+    elif a.get("team") == b.get("team"):
+        rel = "team"
+    else:
+        rel = "opp"
+    x, y = SHORT.get(a.get("stat"), ""), SHORT.get(b.get("stat"), "")
+    r = CORR.get((rel, x, y), CORR.get((rel, y, x), 0.0))
+    return -r if bool(a.get("under")) != bool(b.get("under")) else r
+
+
+def _cholesky(m):
+    """Lower-triangular L with L L' = m; the off-diagonals are shrunk until m is positive definite."""
+    n = len(m)
+    shrink = 1.0
+    while True:
+        lo = [[0.0] * n for _ in range(n)]
+        try:
+            for i in range(n):
+                for j in range(i + 1):
+                    v = (m[i][j] if i == j else shrink * m[i][j]) - sum(
+                        lo[i][k] * lo[j][k] for k in range(j)
+                    )
+                    if i == j:
+                        if v <= 1e-9:
+                            raise ValueError
+                        lo[i][i] = math.sqrt(v)
+                    else:
+                        lo[i][j] = v / lo[j][j]
+            return lo
+        except ValueError:
+            shrink *= 0.8
+
+
+def joint_chance(legs) -> float:
+    """Chance every leg wins, the legs' normal scores correlated by CORR (a Gaussian copula) and
+    each leg keeping its own chance. Monte Carlo over MC_DRAWS fixed, seeded draws, so the same
+    legs always give the same answer; no correlation at all gives the plain product exactly."""
+    legs = sorted(legs, key=lambda g: g["chance"])  # the least likely first: most draws stop early
+    n = len(legs)
+    prod = math.prod(g["chance"] for g in legs)
+    rho = [[1.0 if i == j else _rho(legs[i], legs[j]) for j in range(n)] for i in range(n)]
+    if n < 2 or all(rho[i][j] == 0 for i in range(n) for j in range(i)):
+        return prod
+    if len(_DRAWS) < MC_DRAWS or len(_DRAWS[0]) < n:
+        rng = random.Random(MC_SEED)
+        _DRAWS[:] = [tuple(rng.gauss(0, 1) for _ in range(max(n, 12))) for _ in range(MC_DRAWS)]
+    lo = _cholesky(rho)
+    nd = NormalDist()
+    # a leg wins when its score clears the point that leaves exactly its chance above it
+    thr = [nd.inv_cdf(1 - min(max(g["chance"], 1e-6), 1 - 1e-6)) for g in legs]
+    rows = list(zip(lo, thr, strict=True))
+    hits = 0
+    for e in _DRAWS:
+        for li, t in rows:
+            if sum(map(mul, li, e)) < t:
+                break
+        else:
+            hits += 1
+    return hits / MC_DRAWS
+
+
+def best_same_game(groups, targets, top=MC_TOP, max_legs=SAME_MAX_LEGS) -> dict:
+    """{target: (legs, joint chance) | None}: the additive search's `top` likeliest stacks per
+    target, re-scored by joint_chance, the likeliest first."""
+    found = top_stacks(groups, targets, top, max_legs=max_legs)
+    cache: dict = {}
+    out = {}
+    for t, cands in found.items():
+        best = None
+        for st in cands:
+            key = tuple(sorted(id(g) for g in st))
+            if key not in cache:
+                cache[key] = joint_chance(st)
+            if best is None or cache[key] > best[1]:
+                best = (st, cache[key])
+        out[t] = best
+    return out
 
 
 LEG_MIN_PRICE = 1.15  # a leg paying less barely moves a multi's price
@@ -520,12 +656,12 @@ def same_game_many(legs, targets, stake=10.0) -> dict:
         by_game.setdefault(g["event"], []).append(g)
     out = {t: [] for t in targets}
     for gs in by_game.values():
-        found = best_stacks(_player_groups(gs), targets, max_legs=SAME_MAX_LEGS)
-        for t, picks in found.items():
-            if picks:
+        found = best_same_game(_player_groups(gs), targets)
+        for t, hit in found.items():
+            if hit:
                 out[t].append(
                     {"target": t, "game": gs[0]["game"], "startsAt": gs[0].get("startsAt")}
-                    | multi(picks, stake)
+                    | multi(hit[0], stake, hit[1])
                 )
     for t in out:
         out[t].sort(key=lambda m: (m["startsAt"] or "", -m["chance"]))

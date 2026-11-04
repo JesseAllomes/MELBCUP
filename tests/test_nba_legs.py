@@ -191,3 +191,54 @@ def test_sportsbet_lines_parse_with_unders_and_settle_both_ways():
     assert abs(over["chance"] + under["chance"] - 1) < 1e-3 and under["under"] and not over["under"]
     rows = {"joel embiid": {"min": 30, "points": 19}}
     assert [x["result"] for x in S.settle([over, under], rows)] == ["lost", "won"]  # 19 points: the under wins
+
+
+def _leg(player, team, stat, chance, price=1.5, under=False):
+    return {"event": "1", "game": "G", "player": player, "team": team, "stat": stat, "line": 10,
+            "under": under, "label": f"{player} {stat}", "chance": chance, "price": price}
+
+
+def test_copula_with_no_correlation_is_the_product(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {})
+    legs = [_leg("A", "X", "points", 0.7), _leg("B", "X", "assists", 0.8), _leg("C", "Y", "points", 0.6)]
+    assert N.joint_chance(legs) == pytest.approx(0.7 * 0.8 * 0.6)
+    monkeypatch.setattr(N, "CORR", {("team", "pts", "ast"): 1e-9})  # forces the draws: still the product
+    assert N.joint_chance(legs) == pytest.approx(0.7 * 0.8 * 0.6, abs=0.03)
+
+
+def test_correlation_moves_the_joint_chance_the_right_way(monkeypatch):
+    from melbcup import nba_legs as N
+
+    legs = [_leg("A", "X", "points", 0.7), _leg("A", "X", "reboundsTotal", 0.7)]
+    monkeypatch.setattr(N, "CORR", {("self", "pts", "reb"): 0.6})
+    assert N.joint_chance(legs) > 0.49 + 0.05
+    over_under = [legs[0], _leg("A", "X", "reboundsTotal", 0.7, under=True)]
+    assert N.joint_chance(over_under) < 0.49  # an under moves against an over
+    monkeypatch.setattr(N, "CORR", {("self", "pts", "reb"): -0.6})
+    assert N.joint_chance(legs) < 0.49 - 0.05
+
+
+def test_joint_chance_is_deterministic_and_a_single_leg_keeps_its_chance(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {("team", "pts", "pts"): 0.3, ("opp", "pts", "pts"): 0.2})
+    legs = [_leg("A", "X", "points", 0.75), _leg("B", "X", "points", 0.65), _leg("C", "Y", "points", 0.7)]
+    first = N.joint_chance(legs)
+    assert N.joint_chance(list(reversed(legs))) == first == N.joint_chance(legs)
+    assert N.joint_chance(legs[:1]) == 0.75
+    assert first > 0.75 * 0.65 * 0.7
+
+
+def test_same_game_multi_chance_is_the_joint_chance(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {("team", "pts", "pts"): 0.5})
+    legs = [_leg(p, "X", "points", c, 1.6) for p, c in (("A", 0.8), ("B", 0.75), ("C", 0.7), ("D", 0.7))]
+    (found,) = N.same_game_many(legs, [3.0])[3.0]
+    independent = 1.0
+    for g in found["detail"]:
+        independent *= g["chance"]
+    assert found["chance"] > independent + 0.02
+    assert found["chance"] == round(N.joint_chance([g for g in legs if g["label"] in found["picks"]]), 4)
