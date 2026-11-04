@@ -21,7 +21,7 @@ def test_a_run_places_rolls_keeps_the_start_and_ends_at_the_goal():
     assert (s["bank"], s["kept"], s["placed"]) == (42.0, 10.0, None)  # the $10 start goes back
     assert s["bets"][-1] | {} == s["bets"][-1] and s["bets"][-1]["state"] == "won" and s["bets"][-1]["ret"] == 52.0
     s = C.apply(place(s, 1), {"ch": "won", "chs": "1", "chr": "210"}, DAY)
-    assert s["bank"] == 210.0 and round(C.next_x(s), 2) == 4.76  # what is left to $1000
+    assert s["bank"] == 210.0 and round(C.next_x(s), 2) == 4.67  # what is left to $980 (2% under $1000)
     s = C.apply(place(s, 2), {"ch": "won", "chs": "2", "chr": "1050"}, DAY)
     assert s["bank"] == 10.0 and s["last_win"] == 1050.0 and s["past"][-1]["made_it"]
 
@@ -103,14 +103,14 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
 
 
 def test_stages_set_the_payout_per_stage_and_rebalance():
-    assert round(C.stage_x(10, 1000, 3, True), 2) == 5.0  # $10 -> $50 (keep $10) -> $200 -> $1000
-    assert round(C.stage_x(10, 1000, 2, False), 2) == 10.0
+    assert round(C.stage_x(10, 1000, 3, True), 2) == 4.97  # aims at $980: $10 -> $49.70 (keep $10) -> ... -> $980
+    assert round(C.stage_x(10, 1000, 2, False), 2) == 9.9
     assert C.stage_x(10, 1000, 5, True) < C.stage_x(10, 1000, 4, True)
     s = C.apply(None, {"ch": "start", "chn": "5"}, DAY)
-    assert s["stages"] == 5 and round(C.next_x(s), 2) == 2.75
+    assert s["stages"] == 5 and round(C.next_x(s), 2) == 2.74
     s = C.apply(place(s, 0), {"ch": "won", "chs": "0", "chr": "40"}, DAY)  # paid more than planned
     assert s["bank"] == 30.0 and C.remaining(s) == 4
-    assert round(C.next_x(s), 2) == round((1000 / 30) ** 0.25, 2)  # the rest re-balance
+    assert round(C.next_x(s), 2) == round((980 / 30) ** 0.25, 2)  # the rest re-balance
     assert C.apply(None, {"ch": "start", "chn": "99"}, DAY)["stages"] == 3  # only 2-8
 
 

@@ -130,7 +130,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     kept, bank = state.get("kept", 0.0), returned
     if state.get("keep", True) and not state["steps"]:  # first win: the starting stake goes back
         kept, bank = state["start"], round(returned - state["start"], 2)
-    if bank >= state["goal"]:
+    if bank >= reach(state["goal"]):
         past = (state.get("past", []) + [{"steps": len(steps), "best": returned, "made_it": True}])[-MAX_HISTORY:]
         return _again(state | {"bets": bets, "past": past}, last_win=returned)
     return state | {"bank": bank, "steps": steps, "kept": kept, "placed": None, "bets": bets}
@@ -198,9 +198,19 @@ def finish_chance(stage_chance: float | None, state: dict) -> float | None:
     return None if stage_chance is None else stage_chance ** remaining(state)
 
 
+GOAL_SLACK = 0.02  # aim 2% under the goal: safer legs beat squeezing out the last $20 (owner, 2026-11-04)
+
+
+def reach(goal: float) -> float:
+    """What the stages actually aim for, and what counts as made it: the goal less GOAL_SLACK."""
+    return round(goal * (1 - GOAL_SLACK), 2)
+
+
 def stage_x(start: float, goal: float, stages: int, keep: bool) -> float:
     """The even payout per stage that turns `start` into `goal` in `stages` wins; with keep the
-    first win also hands the start back: start * (x - 1) * x ** (stages - 1) = goal."""
+    first win also hands the start back: start * (x - 1) * x ** (stages - 1) = goal. The goal
+    here is reach(goal), GOAL_SLACK under the one the owner set."""
+    goal = reach(goal)
     if not keep:
         return (goal / start) ** (1 / stages)
     lo, hi = 1.0, goal / start + 1

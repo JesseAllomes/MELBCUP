@@ -69,7 +69,7 @@
   {% set placed = ch.get('placed') %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>
-  {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b> · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }}</p>{% endif %}
+  {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b> · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }} · aims for ${{ '%.0f' % (ch.goal * 0.98) }} (safer legs than chasing the last 2%)</p>{% endif %}
   {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
   {% if placed %}
   {% set ag = az.get(placed.ag) %}
