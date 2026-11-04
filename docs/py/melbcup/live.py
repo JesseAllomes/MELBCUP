@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
@@ -201,6 +202,11 @@ def grade_check(check: RaceCheck, race: Race) -> RaceCheck:
     )
 
 
+PICKS_CACHE_SIZE = 16  # budgets x agencies in use at once
+_PICKS_CACHE: OrderedDict = OrderedDict()
+_PICKS_LOCK = threading.Lock()
+
+
 @dataclass
 class Snapshot:
     card: Card | None
@@ -222,7 +228,24 @@ class Snapshot:
     checks: dict[int, RaceCheck] = field(default_factory=dict)  # last-minute check per race
 
     def picks(self, budget: float | None, pointsbet: bool = False, promos=None) -> DayPicks:
-        return build_picks(self.models, budget, pointsbet, promos)
+        """The day's picks, worked out once per set of race models and budget: the models only
+        change when prices or form refresh, and the exotics (trifectas, first fours, quaddies)
+        took most of every page's time on a quarter of a CPU (owner, 2026-11-04: pages fast)."""
+        key = (tuple(id(m) for m in self.models), budget, pointsbet, id(promos))
+        with _PICKS_LOCK:
+            hit = _PICKS_CACHE.get(key)
+            if hit is not None and all(a is b for a, b in zip(hit[0], self.models, strict=True)):
+                _PICKS_CACHE.move_to_end(key)
+                return hit[1]
+        picks = build_picks(self.models, budget, pointsbet, promos)
+        with _PICKS_LOCK:
+            _PICKS_CACHE[key] = (
+                tuple(self.models),
+                picks,
+            )  # the models are kept, so ids stay theirs
+            while len(_PICKS_CACHE) > PICKS_CACHE_SIZE:
+                _PICKS_CACHE.popitem(last=False)
+        return picks
 
 
 class LiveBoard:
@@ -242,12 +265,16 @@ class LiveBoard:
         )
         self.clock = clock
         self.archive = archive
-        self.bf = bf if bf is not None else (
-            BetfairClient(
-                settings.betfair_username, settings.betfair_password, settings.betfair_app_key
+        self.bf = (
+            bf
+            if bf is not None
+            else (
+                BetfairClient(
+                    settings.betfair_username, settings.betfair_password, settings.betfair_app_key
+                )
+                if settings.betfair_username and settings.betfair_password
+                else None
             )
-            if settings.betfair_username and settings.betfair_password
-            else None
         )
         self._bf_status: str | None = "waiting for the first price check" if self.bf else None
         self._exchange: dict = {}  # race number -> betfair.RacePrices from the last check
@@ -302,7 +329,8 @@ class LiveBoard:
         """Running totals of the last-minute check over races graded with both snapshots."""
         with self._lock:
             done = [
-                c for c in self._checks.values()
+                c
+                for c in self._checks.values()
                 if c.early is not None and c.late is not None and c.early_back is not None
             ]
         if not done:
@@ -437,7 +465,8 @@ class LiveBoard:
             return
         day = build_picks(models, sum(CHECK_AMOUNTS))
         still = {
-            r.number for r in races
+            r.number
+            for r in races
             if r.result is None and (r.start_time is None or r.start_time > now)
         }
         lines = check_lines(day, allocate_accounts(day, *CHECK_AMOUNTS, races=still))
