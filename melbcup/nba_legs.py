@@ -261,6 +261,64 @@ def find(players, who, teams):
     return None
 
 
+BLEND_W = 0.5  # weight on the model in the blend; tools/nba/tune_blend.py fits it on settled legs
+OVERROUND = 1.07  # a feed's overround when it has no over/under pairs to estimate it from
+
+
+def _logit(p: float) -> float:
+    p = min(max(p, 1e-4), 1 - 1e-4)
+    return math.log(p / (1 - p))
+
+
+def blend(model: float, market: float | None, w: float | None = None) -> float:
+    """sigmoid(w logit(model) + (1-w) logit(market)); no market price keeps the model chance."""
+    if market is None:
+        return model
+    w = BLEND_W if w is None else w
+    return 1 / (1 + math.exp(-(w * _logit(model) + (1 - w) * _logit(market))))
+
+
+def feed_market(legs: list[dict]) -> dict:
+    """One agency's implied chance per bet_key. An over/under pair on the same line has its margin
+    removed; a single-sided leg (an alternate "N+" ladder) is 1/price over the feed's overround,
+    estimated from its own pairs (OVERROUND when it has none)."""
+    sides: dict = {}
+    for g in legs:
+        sides.setdefault((g["player"], g["stat"], g["line"]), {})[bool(g["under"])] = g["price"]
+    books = [1 / v[False] + 1 / v[True] for v in sides.values() if len(v) == 2]
+    over = sum(books) / len(books) if books else OVERROUND
+    out = {}
+    for (who, stat, line), v in sides.items():
+        for under, price in v.items():
+            key = (who, stat, line, under)
+            if len(v) == 2:
+                out[key] = (1 / price) / (1 / v[False] + 1 / v[True])
+            else:
+                out[key] = min((1 / price) / max(over, 1.0), 0.999)
+    return out
+
+
+def market_probs(legs_by_agency: dict) -> dict:
+    """{bet_key: mean implied chance over every agency that prices the bet}."""
+    acc: dict = {}
+    for legs in legs_by_agency.values():
+        for k, p in feed_market(legs).items():
+            acc.setdefault(k, []).append(p)
+    return {k: sum(v) / len(v) for k, v in acc.items()}
+
+
+def apply_market(legs: list[dict], market: dict) -> None:
+    """Blend each leg's model chance with the market's (in place). "model" stays the pure model
+    value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
+    for g in legs:
+        m = market.get(bet_key(g))
+        c = blend(g["model"], m)
+        g["market"] = None if m is None else round(m, 4)
+        g["chance"] = round(c, 4)
+        g["fair"] = round(1 / c, 2)
+        g["ev"] = round(c * g["price"] - 1, 4)
+
+
 def legs_from(events, board):
     players = {norm(p["name"]): p for p in board["players"]}
     gteams = game_teams(board)
@@ -309,6 +367,8 @@ def legs_from(events, board):
                         "under": under,
                         "label": o["name"],
                         "price": price,
+                        "model": round(c, 4),
+                        "market": None,
                         "chance": round(c, 4),
                         "fair": round(1 / c, 2),
                         "ev": round(c * price - 1, 4),
@@ -316,6 +376,7 @@ def legs_from(events, board):
                         "minutes": p["minutes"],
                     }
                 )
+    apply_market(legs, {})
     return legs, sorted(unmatched)
 
 
@@ -565,16 +626,21 @@ def view(board, events_by_agency: dict, xs: dict | None = None) -> dict:
     """Everything the NBA page shows, worked out once (by the Azure timer) so the web app only
     reads it: per agency the report, and the challenge's stage table."""
     out = {"day": board.get("day"), "agencies": {}, "preview": {}}
+    prepared = {code: legs_from(ev, board) for code, ev in events_by_agency.items()}
+    market = market_probs({code: p[0] for code, p in prepared.items()})
     for code, events in events_by_agency.items():
-        rep = report(board, events)
+        rep = report(board, events, prepared=prepared[code], market=market)
         out["agencies"][code] = {"report": rep, "games": len(events), "error": None}
         if xs:
             out["preview"][code] = stage_preview(rep["all_legs"], xs)
     return out
 
 
-def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03):
-    legs, unmatched = legs_from(events, board)
+def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03, prepared=None, market=None):
+    """`prepared`: this agency's legs_from() result when the caller has it; `market`: bet_key to
+    implied chance across all agencies (default: this feed's own prices)."""
+    legs, unmatched = prepared or legs_from(events, board)
+    apply_market(legs, market if market is not None else market_probs({"": legs}))
     ok, cross, same = build(legs, min_chance, stake, min_ev)
     stack_cross, stack_same = stacks(legs, stake)
     return {
