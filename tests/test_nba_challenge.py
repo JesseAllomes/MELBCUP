@@ -170,3 +170,15 @@ def test_finish_chance_uses_a_typical_later_stage():
     s = C.fresh(stages=3)
     assert abs(C.finish_chance(0.6, s) - 0.6**3) < 1e-12
     assert abs(C.finish_chance(0.6, s, 0.5) - 0.6 * 0.25) < 1e-12
+
+
+def test_skip_moves_the_stage_to_a_later_night_and_weak_nights_are_flagged():
+    s = C.apply(None, {"ch": "start", "chn": "4", "chpars": "3:0.40,4:0.50,x:1"}, DAY)
+    assert s["par"] == 0.5 and C.weak(s, 0.44) and not C.weak(s, 0.46)
+    tonight = "2026-11-05T00:10:00Z"  # Thu 5 Nov 11:10am Melbourne
+    tomorrow = "2026-11-06T00:10:00Z"
+    assert C.allowed(s, tonight)
+    s = C.apply(s, {"ch": "skip", "chs": "0", "chnight": "2026-11-05"}, DAY)
+    assert s["skip"] == "2026-11-05" and not C.allowed(s, tonight) and C.allowed(s, tomorrow)
+    assert C.apply(s, {"ch": "skip", "chs": "0", "chnight": "nope"}, DAY) == s
+    assert C.apply(s, {"ch": "reset", "chs": "0"}, DAY)["par"] == 0.5  # the run keeps its par

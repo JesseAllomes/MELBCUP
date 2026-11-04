@@ -18,6 +18,7 @@ stage number it was made on, so reloading a page never counts anything twice.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -48,6 +49,28 @@ def parse(raw: str | None) -> dict | None:
 
 def dump(state: dict | None) -> str | None:
     return None if state is None else json.dumps(state, separators=(",", ":"))
+
+
+def _pars(text: str | None) -> dict[int, float]:
+    """ "3:0.33,4:0.41" (the set-up table's typical stage chances) -> {3: 0.33, 4: 0.41}."""
+    out = {}
+    for part in str(text or "").split(","):
+        n, _, p = part.partition(":")
+        try:
+            if int(n) in STAGES and 0 < float(p) < 1:
+                out[int(n)] = round(float(p), 4)
+        except ValueError:
+            continue
+    return out
+
+
+WEAK = 0.9  # tonight's best under 90% of the run's usual stage chance: suggest skipping
+
+
+def weak(state: dict | None, chance: float | None) -> bool:
+    """Is tonight's best pick clearly weaker than this run's usual stage (its par)?"""
+    par = (state or {}).get("par")
+    return bool(par and chance is not None and chance < par * WEAK)
 
 
 def _money(text: str | None) -> float | None:
@@ -97,6 +120,7 @@ def _again(state: dict, **extra) -> dict:
             state.get("stages", DEFAULT_STAGES),
             state.get("per_night", 1),
         )
+        | ({"par": state["par"]} if state.get("par") else {})
         | extra
     )
 
@@ -129,7 +153,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         old = state or {}
         if old.get("placed") and old.get("active", True):
             return state  # a placed stage settles first
-        return fresh(
+        run = fresh(
             start,
             max(goal, start * 2),
             old.get("past", []),
@@ -139,14 +163,21 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             stages,
             per_night,
         )
+        par = _pars(query.get("chpars")).get(stages)
+        return run | ({"par": par} if par else {})
     if (
         state is None
-        or act not in ("place", "won", "lost", "reset", "new")
+        or act not in ("place", "won", "lost", "reset", "new", "skip")
         or state.get("active") is False
     ):
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
+    if act == "skip":  # a weak night: this stage waits for a later one (owner, 2026-11-05)
+        night_ = str(query.get("chnight") or "")
+        if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
+            return state
+        return state | {"skip": max(night_, state.get("skip") or "")}
     if act == "reset":
         return state if state.get("placed") else _again(state)  # a placed stage settles first
     if act == "new":
@@ -225,15 +256,16 @@ def next_window(state: dict) -> tuple[datetime | None, str | None]:
     """When the next stage's game may tip off: (no earlier than, and not on this night).
     Two a night: the second game tips at least GAP after the first. Once a night's stages are
     used, the next stage waits for a later night. Nothing played yet: no limit."""
+    skip = state.get("skip") or None  # a night the owner skipped: wait for a later one
     tips = [_when(s.get("tip")) for s in state["steps"]]
     tips = [t for t in tips if t]
     if not tips:
-        return None, None
+        return None, skip
     last = tips[-1]
     same_night = sum(1 for t in tips if night(t) == night(last))
     if state.get("mode", "game") == "game" and same_night < state.get("per_night", 1):
-        return last + GAP, None
-    return last + GAP, night(last)
+        return last + GAP, skip
+    return last + GAP, max(night(last), skip or "")
 
 
 def allowed(state: dict, tip_iso: str | None) -> bool:
