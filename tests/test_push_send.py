@@ -71,3 +71,36 @@ def test_due_reminders_go_once_stale_ones_drop_and_gone_phones_are_removed():
     assert "push/b" not in store  # the phone turned alerts off
     calls.clear()
     assert push_send.send_due(Container(store), NOW, "KEY", send) == (0, 0) and calls == []  # nothing twice
+
+
+def test_telegram_links_with_start_and_gets_the_reminders_too():
+    store = {"push/aaaaaaaaaaaaaaaaaaaa.json": json.dumps({"reminders": [
+        {"at": "2026-11-05T00:00:00+00:00", "title": "Stage 1 tips off in 15 min", "body": "G", "url": "/nba?tab=challenge"}]}).encode()}
+    said = []
+
+    def call(token, method, params):
+        if method == "getUpdates":
+            return {"ok": True, "result": [
+                {"update_id": 7, "message": {"text": "/start aaaaaaaaaaaaaaaaaaaa", "chat": {"id": 42}}},
+                {"update_id": 8, "message": {"text": "/start bbbbbbbbbbbbbbbbbbbb", "chat": {"id": 43}}}]}
+        said.append((params["chat_id"], params["text"][:6]))
+        return {"ok": True}
+
+    box = Container(store)
+    assert push_send.link_telegram(box, "T", call) == 1
+    assert json.loads(store["push/aaaaaaaaaaaaaaaaaaaa.json"])["tg"] == 42
+    assert said == [(42, "Linked"), (43, "That l")]  # the unknown code is told to try again
+    assert json.loads(store["push/_telegram.json"]) == {"offset": 9}  # each message read once
+    sent_tg = []
+    sent, dropped = push_send.send_due(box, NOW, None, tg_token="T", tg_send=lambda t, c, m: sent_tg.append((c, m["title"])) or 200)
+    assert (sent, dropped) == (1, 0) and sent_tg == [(42, "Stage 1 tips off in 15 min")]
+
+
+def test_a_blocked_bot_unlinks_and_a_waiting_link_is_kept():
+    store = {
+        "push/aaaaaaaaaaaaaaaaaaaa.json": json.dumps({"tg": 42, "reminders": [{"at": "2026-11-05T00:00:00+00:00", "title": "x"}]}).encode(),
+        "push/cccccccccccccccccccc.json": json.dumps({"reminders": [{"at": "2026-11-04T20:00:00+00:00", "title": "old"}]}).encode(),
+    }
+    sent, dropped = push_send.send_due(Container(store), NOW, None, tg_token="T", tg_send=lambda t, c, m: 403)
+    assert (sent, dropped) == (0, 1) and "push/aaaaaaaaaaaaaaaaaaaa.json" not in store
+    assert "push/cccccccccccccccccccc.json" in store  # not linked yet: kept for its /start

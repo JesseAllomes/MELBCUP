@@ -52,9 +52,12 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
 (function () {
   "use strict";
   var card = document.getElementById("push-card");
-  if (!card || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  if (!card) return;
+  var canPush = ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window);
   var on = document.getElementById("push-on"), test = document.getElementById("push-test");
   var state = document.getElementById("push-state");
+  var tg = document.getElementById("tg-on"), tgNote = document.getElementById("tg-note");
+  var linked = { web: false, telegram: false };
   function get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
   function post(url, body) {
@@ -75,11 +78,35 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     return post("/api/push/remind", { id: id, reminders: list }).catch(function () { /* next visit */ });
   }
   function show() {
-    var ok = get("push_id") && Notification.permission === "granted";
-    state.textContent = ok ? "on ✓" : (Notification.permission === "denied" ? "blocked in Chrome settings" : "off");
-    on.hidden = !!ok || Notification.permission === "denied";
-    test.hidden = !ok;
+    var web = canPush && get("push_id") && Notification.permission === "granted" && linked.web;
+    var bits = [];
+    if (web) bits.push("Chrome ✓");
+    if (linked.telegram) bits.push("Telegram ✓");
+    state.textContent = bits.length ? bits.join(" · ") : (canPush && Notification.permission === "denied" ? "Chrome alerts blocked in settings" : "off");
+    on.hidden = !canPush || !!web || Notification.permission === "denied";
+    tg.hidden = linked.telegram;
+    test.hidden = !(web || linked.telegram);
   }
+  function refresh() {
+    var id = get("push_id");
+    if (!id) { show(); return; }
+    post("/api/push/status", { id: id }).then(function (s) {
+      if (!s.known) { try { window.localStorage.removeItem("push_id"); } catch (e) { /* ignore */ } }
+      linked = { web: !!s.web, telegram: !!s.telegram };
+    }).catch(function () {}).then(show);
+  }
+  tg.addEventListener("click", function () {
+    var win = window.open("about:blank", "_blank");  // opened on the tap, so it is not blocked
+    var id = get("push_id");
+    (id ? Promise.resolve(id) : post("/api/push/link", {}).then(function (r) { set("push_id", r.id); return r.id; }))
+      .then(function (pid) {
+        var url = "https://t.me/AsynymBetBot?start=" + pid;
+        if (win) win.location = url; else window.location = url;
+        tgNote.hidden = false;
+        return reminders();
+      })
+      .catch(function () { if (win) win.close(); state.textContent = "could not start the Telegram link"; });
+  });
   on.addEventListener("click", function () {
     on.disabled = true;
     navigator.serviceWorker.register("/sw.js", { scope: "/" })
@@ -89,17 +116,17 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         return navigator.serviceWorker.ready;
       })
       .then(function (reg) { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key(card.dataset.key) }); })
-      .then(function (sub) { return post("/api/push/subscribe", { subscription: sub.toJSON() }); })
-      .then(function (r) { set("push_id", r.id); return reminders(); })
+      .then(function (sub) { return post("/api/push/subscribe", { subscription: sub.toJSON(), id: get("push_id") }); })
+      .then(function (r) { set("push_id", r.id); linked.web = true; return reminders(); })
       .catch(function (e) { state.textContent = "could not turn on (" + e.message + ")"; })
       .then(function () { on.disabled = false; show(); });
   });
   test.addEventListener("click", function () {
     post("/api/push/test", { id: get("push_id") })
-      .then(function () { state.textContent = "test on its way (within 10 min, 7am-7pm)"; })
+      .then(function () { state.textContent = "test on its way (within 10 min, 7am to 7pm)"; })
       .catch(function () { state.textContent = "test failed: turn alerts on again"; });
   });
-  if (get("push_id")) navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
-  show();
+  if (canPush && get("push_id")) navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+  refresh();
   reminders();
 })();

@@ -62,3 +62,8 @@ def test_routes(monkeypatch):
         assert c.post("/api/push/remind", json={"id": pid, "reminders": []}).json() == {"saved": 0}
         assert c.post("/api/push/test", json={"id": pid}).json() == {"queued": True}
         assert c.post("/api/push/remind", json={"id": "bad", "reminders": []}).status_code == 400
+        assert c.post("/api/push/status", json={"id": pid}).json() == {"known": True, "web": True, "telegram": False}
+        tid = c.post("/api/push/link").json()["id"]  # Telegram first, Chrome later: one id
+        assert c.post("/api/push/status", json={"id": tid}).json() == {"known": True, "web": False, "telegram": False}
+        other = {"endpoint": "https://fcm.googleapis.com/fcm/send/xyz", "keys": {"p256dh": "P", "auth": "A"}}
+        assert c.post("/api/push/subscribe", json={"subscription": other, "id": tid}).json()["id"] == tid

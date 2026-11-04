@@ -178,13 +178,17 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     """Every 10 minutes, 7am to 6:50pm AEDT: push the phone alerts that are due (owner,
     2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
     moment = now_utc()
-    key = os.environ.get("VAPID_PRIVATE_KEY")
-    if key:
+    key, tg = os.environ.get("VAPID_PRIVATE_KEY"), os.environ.get("TELEGRAM_BOT_TOKEN")
+    if key or tg:
         try:
-            sent, dropped = push_send.send_due(blobs().get_container_client("nba"), moment, key)
-            logging.info("push: %d sent, %d phones dropped", sent, dropped)
+            nba = blobs().get_container_client("nba")
+            linked = push_send.link_telegram(nba, tg) if tg else 0
+            sent, dropped = push_send.send_due(nba, moment, key, tg_token=tg)
+            logging.info(
+                "alerts: %d sent, %d phones dropped, %d telegram links", sent, dropped, linked
+            )
         except Exception:  # alerts must never stop the prices
-            logging.exception("push: failed")
+            logging.exception("alerts: failed")
     if os.environ.get("NBA_PROPS") == "0":
         return
     container = blobs().get_container_client("nba-props")

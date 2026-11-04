@@ -113,9 +113,11 @@
   {% if push_key %}
   <div class="push-card" id="push-card" data-key="{{ push_key }}">
     <div class="sec"><span>Phone alerts</span><span id="push-state"></span></div>
-    <p class="note">A buzz 15 minutes before a stage's game tips off, and when its result is due, even with Chrome closed.</p>
-    <button type="button" id="push-on" hidden>Turn on alerts</button>
+    <p class="note">A buzz 15 minutes before a stage's game tips off, and when its result is due, even with the app closed: in Chrome, on Telegram, or both.</p>
+    <button type="button" id="push-on" hidden>Turn on Chrome alerts</button>
+    <button type="button" id="tg-on">Get alerts on Telegram</button>
     <button type="button" id="push-test" hidden>Send a test</button>
+    <p class="note" id="tg-note" hidden>In Telegram press Start. The link is made within 10 minutes (7am to 7pm) and the bot replies "Linked".</p>
   </div>
   <script type="application/json" id="push-reminders">{{ push_reminders | tojson }}</script>
   {% endif %}
