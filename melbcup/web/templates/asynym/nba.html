@@ -66,7 +66,6 @@
     <label class="ch-mode">Stages a night <select name="chpn"><option value="1" selected>1 (one a game day)</option><option value="2">2 (an early game, then one at least 3.5 h later)</option></select></label>
     <label class="ch-mode"><input type="radio" name="chmode" value="game" checked> One game per stage</label>
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
-    <input type="hidden" name="chpars" value="{{ ch_pars }}">
     <button type="submit" name="ch" value="start">Start</button>
   </form>
   {% else %}
@@ -112,7 +111,6 @@
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
   {% if not placed and ch_night %}
-  {% if ch_weak %}<p class="say ch-weak">Tonight's best ({{ '%.0f' % (ch_step.chance * 100) if ch_step else '–' }}%) is well under this run's usual stage ({{ '%.0f' % (ch.par * 100) }}%). Skipping to the next game night is the safer play: the run waits, nothing is lost.</p>{% endif %}
   <p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=skip&chs={{ ch.steps | length }}&chnight={{ ch_night }}">Skip tonight · find a better game next night</a></p>
   {% endif %}
   {% if not placed %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a class="act" href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>

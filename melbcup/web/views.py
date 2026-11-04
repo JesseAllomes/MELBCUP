@@ -489,8 +489,6 @@ class Views:
             "ch_games": games,
             "ch_preview": preview,
             "ch_best": best,
-            "ch_pars": ",".join(f"{o['n']}:{o['typical']:.4f}" for o in preview if o["typical"]),
-            "ch_weak": nba_challenge.weak(state, step["chance"]) if (state and step) else False,
             "ch_night": nba_challenge.night(nba_challenge._when(step.get("startsAt")))
             if (state and step and nba_challenge._when(step.get("startsAt")))
             else None,

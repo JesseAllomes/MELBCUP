@@ -51,28 +51,6 @@ def dump(state: dict | None) -> str | None:
     return None if state is None else json.dumps(state, separators=(",", ":"))
 
 
-def _pars(text: str | None) -> dict[int, float]:
-    """ "3:0.33,4:0.41" (the set-up table's typical stage chances) -> {3: 0.33, 4: 0.41}."""
-    out = {}
-    for part in str(text or "").split(","):
-        n, _, p = part.partition(":")
-        try:
-            if int(n) in STAGES and 0 < float(p) < 1:
-                out[int(n)] = round(float(p), 4)
-        except ValueError:
-            continue
-    return out
-
-
-WEAK = 0.9  # tonight's best under 90% of the run's usual stage chance: suggest skipping
-
-
-def weak(state: dict | None, chance: float | None) -> bool:
-    """Is tonight's best pick clearly weaker than this run's usual stage (its par)?"""
-    par = (state or {}).get("par")
-    return bool(par and chance is not None and chance < par * WEAK)
-
-
 def _money(text: str | None) -> float | None:
     try:
         v = round(float(str(text).replace("$", "").replace(",", "")), 2)
@@ -120,7 +98,6 @@ def _again(state: dict, **extra) -> dict:
             state.get("stages", DEFAULT_STAGES),
             state.get("per_night", 1),
         )
-        | ({"par": state["par"]} if state.get("par") else {})
         | extra
     )
 
@@ -163,8 +140,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             stages,
             per_night,
         )
-        par = _pars(query.get("chpars")).get(stages)
-        return run | ({"par": par} if par else {})
+        return run
     if (
         state is None
         or act not in ("place", "won", "lost", "reset", "new", "skip")
