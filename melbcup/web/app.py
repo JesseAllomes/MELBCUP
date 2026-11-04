@@ -48,9 +48,54 @@ from melbcup.web.views import (
 BASIC_AUTH = HTTPBasic(auto_error=False)
 
 
-SERVICE_WORKER = """// AsynymBet alerts: shows a pushed reminder and opens the page when it is tapped.
+SERVICE_WORKER = """// AsynymBet: alerts, and a saved copy of each page (owner, 2026-11-04: the app sleeps when idle,
+// so a page that takes over WAIT_MS shows the phone's last copy at once and the fresh one follows).
+var PAGES = "pages-v1", STATIC = "static-v1", WAIT_MS = 1500, KEEP = 40;
 self.addEventListener("install", function () { self.skipWaiting(); });
 self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
+function plain(u) {  // only plain views are kept; an action link (any other query key) always asks the server
+  if (u.pathname.indexOf("/api/") === 0 || u.pathname.indexOf("/actions") === 0) return false;
+  var ok = true;
+  u.searchParams.forEach(function (v, k) { if (k !== "tab" && k !== "date") ok = false; });
+  return ok;
+}
+function save(url, r) {
+  if (!r || !r.ok || (r.headers.get("content-type") || "").indexOf("text/html") !== 0) return null;
+  var copy = r.clone();
+  return caches.open(PAGES).then(function (c) {
+    return copy.text().then(function (t) {
+      return c.put(url, new Response(t, { headers: { "content-type": "text/html; charset=utf-8", "x-saved": String(Date.now()) } }));
+    }).then(function () { return c.keys(); }).then(function (ks) {
+      return Promise.all(ks.slice(0, Math.max(0, ks.length - KEEP)).map(function (k) { return c.delete(k); }));
+    });
+  });
+}
+self.addEventListener("fetch", function (e) {
+  var req = e.request, u = new URL(req.url);
+  if (req.method !== "GET" || u.origin !== self.location.origin) return;
+  if (u.pathname.indexOf("/static/") === 0 && u.search) {  // versioned (?v=): never changes
+    e.respondWith(caches.open(STATIC).then(function (c) {
+      return c.match(req).then(function (hit) {
+        return hit || fetch(req).then(function (r) { if (r.ok) c.put(req, r.clone()); return r; });
+      });
+    }));
+    return;
+  }
+  if (req.mode !== "navigate" || !plain(u)) return;
+  var net = fetch(req);
+  e.waitUntil(net.then(function (r) { return save(req.url, r); }).catch(function () {}));
+  e.respondWith(caches.open(PAGES).then(function (c) { return c.match(req.url); }).then(function (hit) {
+    if (!hit) return net;
+    var wait = new Promise(function (res) { setTimeout(res, WAIT_MS, null); });
+    return Promise.race([net.catch(function () { return null; }), wait]).then(function (r) {
+      if (r && r.status < 500) return r;
+      var at = hit.headers.get("x-saved") || "0";
+      return hit.text().then(function (t) {
+        return new Response(t.replace("<body", '<body data-saved="' + at + '"'), { headers: { "content-type": "text/html; charset=utf-8" } });
+      });
+    });
+  }));
+});
 self.addEventListener("push", function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }

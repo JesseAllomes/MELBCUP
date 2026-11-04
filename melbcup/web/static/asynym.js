@@ -141,7 +141,36 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       .catch(function () { state.textContent = "test failed: turn alerts on again"; refresh(); })
       .then(function () { test.disabled = false; });
   });
-  if (canPush && get("push_id")) navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
   refresh();
   reminders();
+})();
+
+// Saved copy (owner, 2026-11-04): the service worker keeps every page, so a sleeping server never
+// leaves a blank screen. When this page is that saved copy, say so and swap in the fresh one.
+(function () {
+  "use strict";
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+  var at = document.body && document.body.getAttribute("data-saved");
+  if (!at) return;
+  var pill = document.createElement("button");
+  pill.type = "button";
+  pill.className = "saved-pill";
+  var when = new Date(Number(at)).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+  pill.textContent = "Saved copy " + when + " · updating…";
+  pill.addEventListener("click", function () { location.reload(); });
+  document.body.appendChild(pill);
+  var touched = false;
+  ["click", "touchstart", "keydown", "wheel"].forEach(function (ev) {
+    window.addEventListener(ev, function () { touched = true; }, { once: true, passive: true });
+  });
+  (function poll(n) {
+    fetch(location.href, { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        if (!touched) { location.reload(); return; }
+        pill.textContent = "Fresh prices ready · tap";
+        pill.classList.add("ready");
+      })
+      .catch(function () { if (n < 20) window.setTimeout(function () { poll(n + 1); }, 3000); });
+  })(0);
 })();

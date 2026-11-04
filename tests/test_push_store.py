@@ -57,7 +57,7 @@ def test_routes(monkeypatch):
     monkeypatch.setattr(push_store.PushStore.__init__, "__defaults__", (blobs.get, blobs.__setitem__) + defaults[2:])
     with make(ON) as c:
         sw = c.get("/sw.js")
-        assert sw.status_code == 200 and "showNotification" in sw.text
+        assert sw.status_code == 200 and "showNotification" in sw.text and "pages-v1" in sw.text
         assert sw.headers["service-worker-allowed"] == "/"
         pid = c.post("/api/push/subscribe", json={"subscription": SUB}).json()["id"]
         assert c.post("/api/push/remind", json={"id": pid, "reminders": []}).json() == {"saved": 0}
