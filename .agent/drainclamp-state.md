@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=173 -->
+<!-- drainclamp-build: state; schema=1; generation=174 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T12:28:36+00:00 d6219689 NBA v2 full tune (69k tune rows, 2014-15..2022-23): validate 2023-24 / check 2024-25 log loss v1->v2 points .3336->.3273/.3475->.3409, rebounds .3533->.3484/.3687->.3616, assists .3172->.3106/.3236->.3167, threes .4520->.4428/.4684->.4575. Back-to-back effect ~0. 80-89% bucket hits 84-85%, 90-99% 93-94%. Params tools/nba/model_v2.json. Next levers: starter/role change, usage redistribution, game script (spread), pace, per-player spread, SGM correlation, GBM; rolling validation; 2025-26 sealed.
 - 2026-11-03T12:38:55+00:00 5be6da2c Owner: milestone lm1 (looser markets) after NBA live and tested.
 - 2026-11-03T12:40:49+00:00 d61ab05f Owner: NBA loose markets now. Unders, alt-line tails, SGM linked legs moved into nba3; quarter/first basket stay lm1. New arb1: arbitrage + promo lay-off (matched betting) finder.
 - 2026-11-03T12:50:02+00:00 465b6464 mkt1 v1 football (286 league-seasons, 2012-25): favourites under ~1.50 happen more than margin-free price says (home 1.20-1.35: 78.7% vs 74.1%; away 1.20-1.35: 78.3% vs 73.9%) and paid at the BEST price in both halves (+2 to +6%). Caveats: best price = max across many books (some offshore/exchange), ~40 bands tested so some positives are chance. research/markets/football_scan_v1.txt
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T21:28:16+00:00 2149370d 2026-11-04 challenge isolated to its tab (top card removed; _challenge only on tab=challenge; alerts only there). Deployed web.
 - 2026-11-03T23:21:28+00:00 80c51b13 2026-11-04 kids' bets card removed (asynym Mine + race). Deployed. Owner asked about sharing with a friend: per-person state is cookies (separate per phone); shared: picks + server-side Betfair auto-bet API (/api/betting public read; PIN-guarded actions; BET_MODE not live) + Load card/Auto on buttons (server-wide).
 - 2026-11-03T23:56:59+00:00 e3eeeb79 2026-11-04 autobet OFF (owner): settings.autobet (AUTOBET=1 to enable), no loop/routes; BET_PIN removed from melbcup-web.json (KV secret melbcup-bet-pin untouched). Deployed web; /api/betting 404.
+- 2026-11-04T07:35:23+00:00 ba394214 2026-11-04 Sportsbet props LIVE (3760 lines; alt + O/U, unders; agency switch, SB first if on). Push alerts built (webpush/push_store/push_send/sw.js, Challenge tab card, beforeinstallprompt blocked) committed on branch e3ac8a5d? NOT deployed: needs owner approval for C10 loosening nba_props_run 27->72/day (deploy with LIMITS_APPROVED blocked by classifier without owner OK). Function app setting VAPID_PRIVATE_KEY already set; public key in melbcup-web.json; keys in scratch vapid.env. nba_probe_run removed from code/limits (still live on Function until next function deploy).
 <!-- /DC:LOG -->
