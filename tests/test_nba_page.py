@@ -224,5 +224,7 @@ def test_a_stage_that_is_likelier_at_the_other_agency_is_pointed_out():
     me = SimpleNamespace(_nba=SimpleNamespace(_view=(0, {"agencies": {"sb": legs(0.60), "pb": legs(0.70)}})), _nba_pick="sb", _agencies_on={"sb"})
     state = nba_challenge.fresh(stages=4)
     best = Views._best_elsewhere(me, state, 2.4, {"chance": 0.60}, nba_challenge, fake_legs)
-    assert best["code"] == "pb" and best["chance"] == 0.70 and best["on"] is False
+    assert best["code"] == "pb" and best["chance"] == 0.70 and best["on"] is False and best["funded"] is False
+    me._agency_left = {"pb": 25.0}
+    assert Views._best_elsewhere(me, state, 2.4, {"chance": 0.60}, nba_challenge, fake_legs)["funded"] is True  # $25 there covers the $10 stake
     assert Views._best_elsewhere(me, state, 2.4, {"chance": 0.695}, nba_challenge, fake_legs) is None  # within 1 point: stay

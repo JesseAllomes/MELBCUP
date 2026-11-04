@@ -525,10 +525,13 @@ class Views:
             found = nba_legs.same_game_for(legs, x, stake=state["bank"])
             top = max(found, key=lambda m: m["chance"]) if found else None
             if top and (best is None or top["chance"] > best["chance"]):
+                left = getattr(self, "_agency_left", {}).get(code, 0.0)
                 best = top | {
                     "code": code,
                     "name": names.get(code, code),
                     "on": code in self._agencies_on,
+                    # money already there: switching is practical; else it means moving money
+                    "funded": left >= state["bank"],
                 }
         if best and (step is None or best["chance"] > step["chance"] + 0.01):
             return best
@@ -796,6 +799,7 @@ class Views:
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
+            self._agency_left = {a.code: a.left for a in ctx["az"].on} if ctx.get("az") else {}
             t0 = time.perf_counter()
             ctx.update(self._nba_view(query))
             self.timing["nba"] = time.perf_counter() - t0
