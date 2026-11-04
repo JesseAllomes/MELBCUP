@@ -741,9 +741,13 @@ class Views:
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
+            t0 = time.perf_counter()
             ctx.update(self._nba_view(query))
+            self.timing["nba"] = time.perf_counter() - t0
             if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
+                t0 = time.perf_counter()
                 ctx.update(self._challenge(query, ctx))
+                self.timing["challenge"] = time.perf_counter() - t0
             return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))
