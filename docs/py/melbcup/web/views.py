@@ -325,7 +325,6 @@ def make_env(new_ui: bool = False) -> Environment:
     env.globals["shown"] = history.shown
     env.globals["asset_v"] = asset_version(new_ui)
     env.filters.update(
-        day_label=lambda d: datetime.fromisoformat(d).strftime("%a %-d") if d else "",
         one_in=racecard.one_in,
         signed=signed,
         dollars=racecard.dollars,
@@ -417,7 +416,7 @@ class Views:
             else self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep)
         )
         best, why = nba_challenge.recommend(preview) if preview else (None, "")
-        step, games, wait, push, ch_week = None, [], None, [], None
+        step, games, wait, push = None, [], None, []
         if state is not None:
             x = nba_challenge.next_x(state)
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
@@ -428,15 +427,6 @@ class Views:
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"])
             earliest, not_night = nba_challenge.next_window(state)
-            when = nba_challenge._when(step.get("startsAt")) if step else None
-            if games and when:  # the rest of the run over the week's best nights (owner)
-                ch_week = nba_challenge.week(
-                    [g["chance"] for g in games],
-                    nba_challenge.night(when),
-                    self._nba.schedule() if self._nba else {},
-                    nba_challenge.remaining(state),
-                    state.get("per_night", 1),
-                )
             if not step and (earliest or not_night):
                 wait = {"after": earliest, "night": not_night}
             n = len(state["steps"]) + 1
@@ -500,18 +490,14 @@ class Views:
             "ch_preview": preview,
             "ch_best": best,
             "ch_pars": ",".join(f"{o['n']}:{o['typical']:.4f}" for o in preview if o["typical"]),
-            "ch_weak": bool(ch_week and not ch_week["tonight_in"])
-            or (nba_challenge.weak(state, step["chance"]) if (state and step) else False),
-            "ch_week": ch_week,
+            "ch_weak": nba_challenge.weak(state, step["chance"]) if (state and step) else False,
             "ch_night": nba_challenge.night(nba_challenge._when(step.get("startsAt")))
             if (state and step and nba_challenge._when(step.get("startsAt")))
             else None,
             "ch_why": why,
             "ch_plan": {"start": p_start, "goal": p_goal, "keep": p_keep},
             "ch_wait": wait,
-            "ch_finish": ch_week["chance"]
-            if ch_week
-            else nba_challenge.finish_chance(
+            "ch_finish": nba_challenge.finish_chance(
                 step["chance"], state, nba_challenge.typical([g["chance"] for g in games])
             )
             if (state and step)
@@ -535,11 +521,7 @@ class Views:
 
             if len(cache) > 8:
                 cache.clear()
-            tips = sorted(g["startsAt"] for g in legs if g.get("startsAt"))
-            when = nba_challenge._when(tips[0]) if tips else None
-            tonight = nba_challenge.night(when) if when else ""
-            sched = self._nba.schedule() if self._nba else {}
-            cache[key] = nba_challenge.week_plan(start, goal, keep, chances_for, tonight, sched)
+            cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
         return cache[key]
 
     def warm_nba(self) -> None:

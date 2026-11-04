@@ -18,7 +18,6 @@ stage number it was made on, so reloading a page never counts anything twice.
 from __future__ import annotations
 
 import json
-import random
 import re
 from collections.abc import Mapping
 from datetime import datetime, timedelta
@@ -322,7 +321,6 @@ def plan(start: float, goal: float, keep: bool, chances_for) -> list[dict]:
                 "stage": max(cs) if cs else None,
                 "typical": t,
                 "run": t**n if t else None,
-                "chances": cs,
             }
         )
     return out
@@ -356,10 +354,6 @@ def recommend(options: list[dict]) -> tuple[dict | None, str]:
             f"a row, each paying the bookmaker's margin. {best['n']} is where the two balance "
             "on tonight's lines."
         )
-    w = best.get("week")
-    if w:
-        days = ", ".join(_day(n) for n in w["nights"])
-        why += f" Best nights this week: {days}; start {_day(w['start'])}."
     if close:
         why += " Close: " + ", ".join(f"{o['n']} stages {o['run']:.1%}" for o in close) + "."
     return best, why
@@ -399,79 +393,3 @@ def next_x(state: dict) -> float:
     keep_now = state.get("keep", True) and not state["steps"]
     x = stage_x(state["bank"], state["goal"], remaining(state), keep_now)
     return max(MIN_X, x)
-
-
-# -- the week ahead (owner, 2026-11-05) -----------------------------------------------------------
-# Bookmakers post player props about a day ahead, so later nights have no prices yet. A later
-# night is forecast from tonight's games (how likely each game's best multi is) and how many games
-# that night has: more games, more choice, a stronger best pick.
-WEEK_DAYS = 7
-SAMPLES = 300
-
-
-def strength(chances: list[float], games: int, seed: int = 7) -> float:
-    """A night with `games` games, its games like tonight's: the expected mean of its
-    TYPICAL_OF best (all of them on a small night). Seeded, so the page never flickers."""
-    if not chances or games <= 0:
-        return 0.0
-    k = min(TYPICAL_OF, games)
-    rng = random.Random(seed * 1000 + games)
-    total = 0.0
-    for _ in range(SAMPLES):
-        draw = sorted((rng.choice(chances) for _ in range(games)), reverse=True)[:k]
-        total += sum(draw) / k
-    return total / SAMPLES
-
-
-def slots(sched: dict, first: str, per_night: int, days: int = WEEK_DAYS) -> list[tuple[str, int]]:
-    """(night, games to choose from) for each stage that could be played from night `first` on:
-    one a night, or two (an early and a later game, each from about half the night's games)."""
-    out = []
-    for night_, tips in sorted(sched.items()):
-        if night_ < first or len(out) and night_ > _plus(first, days - 1):
-            continue
-        g = len(tips)
-        if per_night == 2 and g >= 2:
-            out += [(night_, max(1, g // 2)), (night_, max(1, g - g // 2))]
-        elif g:
-            out.append((night_, g))
-    return out
-
-
-def _day(night_: str) -> str:
-    """'2026-11-06' -> 'Fri 6'."""
-    return datetime.fromisoformat(night_).strftime("%a %-d")
-
-
-def _plus(day: str, n: int) -> str:
-    return (datetime.fromisoformat(day) + timedelta(days=n)).date().isoformat()
-
-
-def week(chances: list[float], tonight: str, sched: dict, need: int, per_night: int) -> dict | None:
-    """The best `need` stage slots over the coming week, tonight's at its real chance (typical of
-    its games), later nights forecast: {"chance", "nights", "start", "tonight_in"}. None when the
-    week has too few game nights."""
-    sl = slots(sched or {tonight: ["x"] * len(chances)}, tonight, per_night)
-    if not any(n == tonight for n, _ in sl) and chances:
-        sl = [(tonight, len(chances))] + sl
-    scored = []
-    for i, (n, g) in enumerate(sl):
-        s = typical(chances) if n == tonight else strength(chances, g)
-        scored.append((s, -i, n))
-    if len(scored) < need or not chances:
-        return None
-    best = sorted(scored, reverse=True)[:need]
-    p = 1.0
-    for s, _, _ in best:
-        p *= s
-    nights = sorted(n for _, _, n in best)
-    return {"chance": p, "nights": nights, "start": nights[0], "tonight_in": tonight in nights}
-
-
-def week_plan(start, goal, keep, chances_for, tonight, sched, per_night=1) -> list[dict]:
-    """plan(), with each stage count's chance to finish over the coming week's best nights."""
-    out = []
-    for o in plan(start, goal, keep, chances_for):
-        w = week(o.get("chances") or [], tonight, sched, o["n"], per_night)
-        out.append(o | {"week": w, "run": w["chance"] if w else o["run"]})
-    return out

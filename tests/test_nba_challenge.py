@@ -182,18 +182,3 @@ def test_skip_moves_the_stage_to_a_later_night_and_weak_nights_are_flagged():
     assert s["skip"] == "2026-11-05" and not C.allowed(s, tonight) and C.allowed(s, tomorrow)
     assert C.apply(s, {"ch": "skip", "chs": "0", "chnight": "nope"}, DAY) == s
     assert C.apply(s, {"ch": "reset", "chs": "0"}, DAY)["par"] == 0.5  # the run keeps its par
-
-
-def test_week_forecast_picks_the_best_nights_and_flags_a_weak_tonight():
-    tonight = ["a"] * 3
-    sched = {"2026-11-05": tonight, "2026-11-06": ["a"] * 12, "2026-11-07": ["a"] * 10, "2026-11-08": ["a"] * 2}
-    chances = [0.2, 0.3, 0.5, 0.6, 0.7, 0.4]
-    assert C.strength(chances, 12) > C.strength(chances, 2) > 0  # more games, better best pick
-    assert C.strength(chances, 12) == C.strength(chances, 12)  # seeded: no flicker
-    small = [0.2, 0.3, 0.25]  # tonight's three games are weak
-    w = C.week(small + [0.7], "2026-11-05", sched, 2, 1)
-    assert w["nights"] == ["2026-11-06", "2026-11-07"] and not w["tonight_in"] and w["start"] == "2026-11-06"
-    assert 0 < w["chance"] < 1
-    assert C.week(chances, "2026-11-05", sched, 9, 1) is None  # not enough nights this week
-    two = C.slots(sched, "2026-11-05", 2)
-    assert two[:2] == [("2026-11-05", 1), ("2026-11-05", 2)]  # two a night: each from part of the games

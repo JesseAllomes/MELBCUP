@@ -74,7 +74,7 @@
   {% set placed = ch.get('placed') %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>
-  {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b>{% if ch_week %} over the week's best nights ({{ ch_week.nights | map('day_label') | join(', ') }}){% endif %} · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }} · aims for ${{ '%.0f' % (ch.goal * 0.98) }} (safer legs than chasing the last 2%)</p>{% endif %}
+  {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b> · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }} · aims for ${{ '%.0f' % (ch.goal * 0.98) }} (safer legs than chasing the last 2%)</p>{% endif %}
   {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
   {% if placed %}
   {% set ag = az.get(placed.ag) %}
@@ -112,7 +112,7 @@
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
   {% if not placed and ch_night %}
-  {% if ch_weak %}<p class="say ch-weak">Tonight isn't one of the week's best nights for this stage{% if ch_week %}: {{ ch_week.nights | map('day_label') | join(', ') }} look stronger (more games to choose from){% endif %}. Skipping is the safer play: the run waits, nothing is lost.</p>{% endif %}
+  {% if ch_weak %}<p class="say ch-weak">Tonight's best ({{ '%.0f' % (ch_step.chance * 100) if ch_step else '–' }}%) is well under this run's usual stage ({{ '%.0f' % (ch.par * 100) }}%). Skipping to the next game night is the safer play: the run waits, nothing is lost.</p>{% endif %}
   <p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=skip&chs={{ ch.steps | length }}&chnight={{ ch_night }}">Skip tonight · find a better game next night</a></p>
   {% endif %}
   {% if not placed %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a class="act" href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>
