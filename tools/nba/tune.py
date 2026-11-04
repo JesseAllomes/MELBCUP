@@ -70,6 +70,7 @@ def build(games):
         miss = {}
         miss_use = {}
         b2b = {}
+        trest = {}
         for t in teams:
             regs = defaultdict(int)
             for s_ in team_recent[t]:
@@ -86,12 +87,14 @@ def build(games):
             miss[t] = missing / 240.0
             last = team_last.get(t)
             b2b[t] = 1.0 if last is not None and (day - last).days == 1 else 0.0
+            trest[t] = float(min((day - last).days, 7)) if last is not None else 4.0
         for t in teams:
             opp = teams[1] if t == teams[0] else teams[0]
             for p in by_team[t]:
                 st = P.get(p["id"])
                 if st and st["n"] >= MIN_HISTORY:
-                    rows["season"].append(season); rows["miss"].append(miss[t]); rows["b2b"].append(b2b[t]); rows["n"].append(st["n"])
+                    rows["season"].append(season); rows["miss"].append(miss[t]); rows["b2b"].append(b2b[t]); rows["opp_b2b"].append(b2b[opp]); rows["trest"].append(trest[t]); rows["orest"].append(trest[opp])
+                    rows["prest"].append(float(min((day - st["last"]).days, 14)) if st.get("last") else 4.0); rows["n"].append(st["n"])
                     rows["pid"].append(p["id"]); rows["team"].append(t); rows["opp"].append(opp); rows["when"].append(when)
                     for h in HLS:
                         rows[f"m{h}"].append(st["m"][h] / st["w"][h])
@@ -142,7 +145,7 @@ def build(games):
                         st["r"][s][h] = st["r"][s][h] * k + p[s] / p["min"]
                 for s in STATS:
                     st["tot"][s] += p[s]; st["sum"][s] += p[s]; st["sq"][s] += p[s] ** 2
-                st["totm"] += p["min"]; st["n"] += 1
+                st["totm"] += p["min"]; st["n"] += 1; st["last"] = day
             team_last[t] = day
             team_recent[t].append(present[t])
     return {k: np.array(v) for k, v in rows.items()}
