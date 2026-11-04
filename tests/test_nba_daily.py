@@ -81,3 +81,27 @@ def test_a_night_off_builds_the_next_game_day(tmp_path):
     now = dt.datetime(2026, 11, 3, 22, 30, tzinfo=dt.UTC)  # 3 Nov in New York: no games
     daily.run(store, now, fake_espn("20261102"))
     assert json.loads(store.read("board-latest.json"))["day"] == "20261104"
+
+
+def test_settles_agency_logs_legs_and_multis_and_reports(tmp_path):
+    import forward_report
+    from settle import settle_multi
+
+    rows = {"joel embiid": {"min": 30, "points": 30}, "cade cunningham": {"min": 30, "points": 10}}
+    a = {"player": "Joel Embiid", "stat": "points", "line": 25, "under": False, "price": 1.5, "chance": 0.7, "label": "a"}
+    b = {"player": "Cade Cunningham", "stat": "points", "line": 20, "under": False, "price": 1.8, "chance": 0.6, "label": "b"}
+    c = {"player": "Cade Cunningham", "stat": "points", "line": 20, "under": True, "price": 2.0, "chance": 0.4, "label": "c"}
+    d = {"player": "No Show", "stat": "points", "line": 5, "under": False, "price": 1.2, "chance": 0.9, "label": "d"}
+    assert settle_multi({"price": 2.7, "detail": [a, b]}, rows)["result"] == "lost"
+    assert settle_multi({"price": 3.0, "detail": [a, c]}, rows)["result"] == "won"  # the under wins
+    v = settle_multi({"price": 1.8, "detail": [a, d]}, rows)
+    assert v["result"] == "won" and v["price"] == 1.5  # the void leg drops out
+    store = daily.LocalStore(str(tmp_path))
+    for ag in ("pb", "sb"):
+        log = {"agency": ag, "day": "20261103", "legs": [a | {"event": "e"}, b | {"event": "e"}],
+               "multis": [{"kind": "stacks", "price": 3.0, "chance": 0.28, "picks": ["a", "c"], "detail": [a, c]}]}
+        store.write(f"20261103/log-{ag}.json", json.dumps(log).encode())
+    n = daily.settle_day(store, "20261103", {"Joel Embiid": rows["joel embiid"], "Cade Cunningham": rows["cade cunningham"]})
+    assert n == 6
+    text = forward_report.report(forward_report.load(str(tmp_path / "forward.jsonl")))
+    assert "legs / agency sb" in text and "multis / kind stacks" in text and "stat points" in text

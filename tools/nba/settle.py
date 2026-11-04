@@ -45,7 +45,35 @@ def settle(legs: list[dict], rows: dict) -> list[dict]:
     return out
 
 
+def settle_multi(m: dict, rows: dict) -> dict:
+    """A multi wins only if every leg wins; one lost leg loses it. A void leg is dropped (the price
+    shrinks by that leg's price); if every leg is void the multi is void."""
+    legs = settle([d | {"line": d.get("line", d.get("k"))} for d in m["detail"]], rows)
+    live = [d for d in legs if d["result"] != "void"]
+    if not live:
+        res, price = "void", m["price"]
+    else:
+        res = "won" if all(d["result"] == "won" for d in live) else "lost"
+        price = m["price"]
+        for d in legs:
+            if d["result"] == "void" and d.get("price"):
+                price /= d["price"]
+    return m | {"detail": legs, "result": res, "price": round(price, 2), "stake_price": m["price"]}
+
+
+def settle_log(log: dict, rows: dict) -> list[dict]:
+    """Settle one agency's day log ({"agency", "day", "legs", "multis"}) into forward-log rows."""
+    ag, day = log.get("agency"), log.get("day")
+    out = [x | {"kind": "leg", "agency": ag, "day": day} for x in settle(log.get("legs", []), rows)]
+    out += [
+        settle_multi(m, rows) | {"agency": ag, "day": day, "mkind": m.get("kind"), "kind": "multi"}
+        for m in log.get("multis", [])
+    ]
+    return out
+
+
 def summary(log: list[dict]) -> None:
+    log = [x for x in log if x.get("kind", "leg") == "leg"]
     done = [x for x in log if x["result"] != "void"]
     print(f"settled legs {len(done)} (void {len(log) - len(done)})")
     bands = defaultdict(lambda: [0, 0, 0.0, 0.0])  # n, won, model chance sum, book chance sum

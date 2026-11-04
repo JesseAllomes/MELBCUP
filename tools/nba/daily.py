@@ -27,7 +27,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board import load_v3, make_board  # noqa: E402
 from espn_history import API, game_rows, get  # noqa: E402
-from settle import settle  # noqa: E402
+from settle import settle, settle_log  # noqa: E402
 
 NY = ZoneInfo("America/New_York")
 LOOKBACK_DAYS = 3
@@ -103,16 +103,22 @@ def add_recent(store, hist, today, fetch=get):
 
 def settle_day(store, day, rows_by_name):
     """Settle every priced leg of `day` once. Returns the number of legs settled (0 if none or done)."""
-    from legs import norm
     if store.read(f"{day}/settled.jsonl") is not None:
         return 0
-    raw = store.read(f"{day}/legs.json")
-    if raw is None or not rows_by_name:
-        return 0
-    d = json.loads(raw)
-    value = {(g["event"], g["label"]) for g in d.get("value_legs", []) + d.get("closed_value_legs", [])}
+    from legs import norm
     rows = {norm(n): r for n, r in rows_by_name.items()}
-    done = [x | {"day": day, "value": (x["event"], x["label"]) in value} for x in settle(d.get("all_legs", []), rows)]
+    logs = [json.loads(raw) for ag in ("pb", "sb") if (raw := store.read(f"{day}/log-{ag}.json"))]
+    if not rows_by_name:
+        return 0
+    if logs:  # the agencies' logs: legs and multis
+        done = [x for lg in logs for x in settle_log(lg, rows)]
+    else:  # a day logged before the logs existed: PointsBet legs only
+        raw = store.read(f"{day}/legs.json")
+        if raw is None:
+            return 0
+        d = json.loads(raw)
+        value = {(g["event"], g["label"]) for g in d.get("value_legs", []) + d.get("closed_value_legs", [])}
+        done = [x | {"day": day, "agency": "pb", "kind": "leg", "value": (x["event"], x["label"]) in value} for x in settle(d.get("all_legs", []), rows)]
     body = "".join(json.dumps(x) + "\n" for x in done).encode()
     store.write(f"{day}/settled.jsonl", body)
     store.write("forward.jsonl", (store.read("forward.jsonl") or b"") + body)
