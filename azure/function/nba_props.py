@@ -285,18 +285,13 @@ def build_view(nba, snaps: list[dict], now: dt.datetime, sb_fetch=None, inj_fetc
         return "no board"
     xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
     inj = injuries(inj_fetch) if time.monotonic() - started < VIEW_BUDGET_S / 2 else {}
-    view = nba_legs.view(board, {"pb": drop_out(_events(snaps), inj)}, xs)
+    events = {"pb": drop_out(_events(snaps), inj)}
     sb_error = None
-    if time.monotonic() - started < VIEW_BUDGET_S:
-        try:
-            sb_events = drop_out((sb_fetch or nba_legs.live_sportsbet)(), inj)
-            sb = nba_legs.view(board, {"sb": sb_events}, xs)
-            view["agencies"].update(sb["agencies"])
-            view["preview"].update(sb["preview"])
-        except Exception as exc:  # Sportsbet down: PointsBet still shows
-            sb_error = f"Sportsbet did not answer ({type(exc).__name__})."
-    else:
-        sb_error = "Sportsbet skipped this round (time)."
+    try:  # one view over both agencies, so each leg's market price uses every bookmaker's
+        events["sb"] = drop_out((sb_fetch or nba_legs.live_sportsbet)(), inj)
+    except Exception as exc:  # Sportsbet down: PointsBet still shows
+        sb_error = f"Sportsbet did not answer ({type(exc).__name__})."
+    view = nba_legs.view(board, events, xs)
     if sb_error:
         view["agencies"]["sb"] = {
             "report": nba_legs.report(board, []),

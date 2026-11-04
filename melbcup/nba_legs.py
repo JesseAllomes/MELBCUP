@@ -556,6 +556,7 @@ def best_stack(groups, target, min_legs=3, max_legs=10):
 # correlation of actual vs model-v3-expected counts, by relation (self: one player's two stats;
 # team: two teammates; opp: a player and an opposing player) and stat pair, fitted by
 # tools/nba/correlation.py on seasons 2018-19 to 2022-23 (out of sample for the 2023-24+ backtests).
+MIN_CORR = 0.05  # |r| below this fitted as indistinguishable from 0 (2023-25 box scores)
 CORR = {
     ("self", "ast", "3pm"): 0.102,
     ("self", "pts", "3pm"): 0.555,
@@ -601,6 +602,8 @@ def _rho(a: dict, b: dict) -> float:
         rel = "opp"
     x, y = SHORT.get(a.get("stat"), ""), SHORT.get(b.get("stat"), "")
     r = CORR.get((rel, x, y), CORR.get((rel, y, x), 0.0))
+    if abs(r) < MIN_CORR:  # fitted noise: treat as independent and skip the Monte Carlo
+        return 0.0
     return -r if bool(a.get("under")) != bool(b.get("under")) else r
 
 
