@@ -59,8 +59,8 @@
   <p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>
   {% endif %}
   {% if ch_preview and ch_preview[0].typical is not none %}
-  <div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.per_stage * 100) if o.per_stage else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>
-  <p class="note">Tonight's lines, priced 3.5% under the legs multiplied (the bookmaker's same-game price), spread over the best nights in the next 9 days: later nights forecast from how many games they have. "A stage" is the average over those nights; "–" means too few game nights for that many stages.</p>
+  <div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>
+  <p class="note">On tonight's lines, priced 3.5% under the legs multiplied (the bookmaker's same-game price): a stage at about the 3 best games' chance, and the run if every stage is like that.</p>
   {% endif %}
     <label class="ch-mode">Stages <select name="chn">{% for o in ch_preview or [] %}<option value="{{ o.n }}"{{ ' selected' if (ch_best and o.n == ch_best.n) or (not ch_best and o.n == 3) }}>{{ o.n }} · about {{ '%.1f' % o.x }}x each{% if o.run %} · {{ '%.1f' % (o.run * 100) }}% to finish{% endif %}</option>{% else %}{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}{% endfor %}</select></label>
     <label class="ch-mode">Stages a night <select name="chpn"><option value="1" selected>1 (one a game day)</option><option value="2">2 (an early game, then one at least 3.5 h later)</option></select></label>

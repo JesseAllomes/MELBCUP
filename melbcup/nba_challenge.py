@@ -336,8 +336,7 @@ def recommend(options: list[dict]) -> tuple[dict | None, str]:
     best = max(ok, key=lambda o: (round(o["run"], 4), -o["n"]))
     close = [o for o in ok if o is not best and o["run"] >= best["run"] * 0.9]
     head = (
-        f"{best['n']} stages: about {best['x']:.1f}x a stage, each about "
-        f"{best.get('per_stage') or best['typical']:.0%} to "
+        f"{best['n']} stages: about {best['x']:.1f}x a stage, each about {best['typical']:.0%} to "
         f"get up, so {best['run']:.1%} to finish. "
     )
     ns = [o["n"] for o in ok]
@@ -406,7 +405,7 @@ def next_x(state: dict) -> float:
 # Bookmakers post player props about a day ahead, so later nights have no prices yet. A later
 # night is forecast from tonight's games (how likely each game's best multi is) and how many games
 # that night has: more games, more choice, a stronger best pick.
-WEEK_DAYS = 9  # every night the daily job's schedule holds
+WEEK_DAYS = 7
 SAMPLES = 300
 
 
@@ -474,13 +473,5 @@ def week_plan(start, goal, keep, chances_for, tonight, sched, per_night=1) -> li
     out = []
     for o in plan(start, goal, keep, chances_for):
         w = week(o.get("chances") or [], tonight, sched, o["n"], per_night)
-        # too few game nights for this many stages: no honest figure, so none (owner, 2026-11-05)
-        out.append(
-            o
-            | {
-                "week": w,
-                "run": w["chance"] if w else None,
-                "per_stage": w["chance"] ** (1 / o["n"]) if w else None,
-            }
-        )
+        out.append(o | {"week": w, "run": w["chance"] if w else o["run"]})
     return out
