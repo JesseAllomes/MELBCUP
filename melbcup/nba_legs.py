@@ -28,6 +28,7 @@ import os
 import re
 import unicodedata
 import urllib.request
+from datetime import UTC, datetime
 
 PB = "https://api.au.pointsbet.com/api/mes/v3"
 UA = {
@@ -113,6 +114,73 @@ def live_events():
         return list(pool.map(one, listing[:20]))
 
 
+SB = "https://www.sportsbet.com.au/apigw/sportsbook-sports/Sportsbook/Sports"
+SB_NBA = "6927"
+SB_STAT = {"Points": "points", "Rebounds": "reboundsTotal", "Assists": "assists", "Made Threes": "threePointersMade"}
+SB_ALT = re.compile(r"^(?:To (?:Score|Record) )?(?P<k>\d+)\+ (?P<what>Points|Rebounds|Assists|Made Threes)$")
+SB_OU = re.compile(r"^(?P<who>.+?) - (?P<what>Points|Rebounds|Assists|Made Threes)$")
+WORD = {"points": "Points", "reboundsTotal": "Rebounds", "assists": "Assists", "threePointersMade": "Threes"}
+
+
+def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
+    """Sportsbet's player markets as parsed outcomes. Two kinds: alternate lines ("To Score 20+
+    Points", one selection per player) and over/under lines ("Joel Embiid - Points", Over and
+    Under 19.5). Combined stats (Pts + Reb) are left out: the model prices single stats only."""
+    out = []
+    for m in markets:
+        if m.get("statusCode", "A") != "A":
+            continue
+        name = m.get("name") or ""
+        alt, ou = SB_ALT.match(name), SB_OU.match(name)
+        for sel in m.get("selections") or []:
+            price = (sel.get("price") or {}).get("winPrice")
+            if sel.get("statusCode", "A") != "A" or not price or price <= 1:
+                continue
+            if alt:
+                k, stat, who = int(alt["k"]), SB_STAT[alt["what"]], sel.get("name") or ""
+                out.append({"name": f"{who} {k}+ {WORD[stat]}", "price": price, "player": who, "stat": stat, "k": k, "under": False})
+            elif ou:
+                try:
+                    line = float(sel.get("unformattedHandicap"))
+                except (TypeError, ValueError):
+                    continue
+                under = (sel.get("name") or "").strip().endswith("Under")
+                stat, who = SB_STAT[ou["what"]], ou["who"]
+                side = "Under" if under else "Over"
+                out.append({"name": f"{who} {side} {line:g} {WORD[stat]}", "price": price, "player": who,
+                            "stat": stat, "k": math.floor(line) + 1, "under": under})
+    return out
+
+
+def sportsbet_events(competition: dict, markets_by_event: dict) -> list[dict]:
+    """Sportsbet's NBA games that have not started, in the shape legs_from reads."""
+    out = []
+    for e in competition.get("events") or []:
+        if e.get("bettingStatus") not in (None, "PRICED") or str(e["id"]) not in markets_by_event:
+            continue
+        start = e.get("startTime")
+        when = datetime.fromtimestamp(start, UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if isinstance(start, (int, float)) else start
+        name = re.sub(r" At ", " @ ", e.get("name") or "")
+        out.append({"event": f"sb{e['id']}", "name": name, "startsAt": when,
+                    "markets": [{"group": "sportsbet", "outcomes": sportsbet_outcomes(markets_by_event[str(e["id"])])}]})
+    return out
+
+
+def live_sportsbet():
+    """Sportsbet's NBA games and their player markets, fetched in parallel. Sportsbet answers
+    Australian addresses only (the web app and the Function run in Australia East)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    comp = get(f"{SB}/Competitions/{SB_NBA}?displayType=default&includeTopMarkets=false")
+    ids = [str(e["id"]) for e in comp.get("events") or [] if e.get("bettingStatus") in (None, "PRICED")][:20]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        markets = dict(zip(ids, pool.map(lambda i: get(f"{SB}/Events/{i}/Markets"), ids), strict=True))
+    return sportsbet_events(comp, markets)
+
+
+AGENCY_EVENTS = {"pb": live_events, "sb": live_sportsbet}  # the agencies with NBA player lines
+
+
 def saved_events(snapdir):
     latest = {}
     for p in sorted(glob.glob(os.path.join(snapdir, "**", "*.json*"), recursive=True)):
@@ -158,19 +226,23 @@ def legs_from(events, board):
             for o in m["outcomes"]:
                 if o.get("isOpenForBetting") is False or not o.get("price"):
                     continue
-                hit = LEG.match(o.get("name") or "")
-                if not hit:
-                    continue
-                s = stat_of(hit["what"], o.get("unitType"))
-                p = find(players, hit["who"], teams)
+                if "stat" in o:  # already parsed (Sportsbet): player, stat, k, under
+                    who, s, k, under = o["player"], o["stat"], int(o["k"]), bool(o.get("under"))
+                else:  # "X To Score 20+ Points" (PointsBet)
+                    hit = LEG.match(o.get("name") or "")
+                    if not hit:
+                        continue
+                    who, s, k, under = hit["who"], stat_of(hit["what"], o.get("unitType")), int(hit["k"]), False
+                p = find(players, who, teams)
                 if s is None:
                     continue
                 if p is None or s not in p["mu"]:
-                    unmatched.add(hit["who"])
+                    unmatched.add(who)
                     continue
-                k = int(hit["k"])
                 q = prm[s]
                 c = chance(p["mu"][s], q["phi"], q["ca"], q["cb"], k)
+                if under:  # "Under 19.5" wins on 19 or fewer: the other side of "20+"
+                    c = 1 - c
                 price = float(o["price"])
                 legs.append(
                     {
@@ -181,6 +253,7 @@ def legs_from(events, board):
                         "team": p["team"],
                         "stat": s,
                         "line": k,
+                        "under": under,
                         "label": o["name"],
                         "price": price,
                         "chance": round(c, 4),

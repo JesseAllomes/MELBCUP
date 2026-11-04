@@ -393,6 +393,7 @@ class Views:
         self.browser = browser  # no threads: loads run to completion before the page renders
         self.env = make_env(settings.asynym)
         self._nba = None  # NbaFeed, made on the first visit to /nba
+        self._agencies_on: set[str] = set()
 
     def _challenge(self, query: Mapping[str, str], ctx: dict) -> dict:
         """The $10 -> $1000 challenge (cookie on the phone; app.py saves the change)."""
@@ -500,9 +501,40 @@ class Views:
         v = self._nba.view()
         tab = query.get("tab")
         tab = tab if tab in ("stacks", "challenge", "games", "same", "all") else "stacks"
-        rep = v.get("report") or {}
+        # Prices from the agency picked here (?bk=), else the first agency switched ON in Agencies
+        # that has NBA lines (Sportsbet first), else whichever has lines: the chances are the
+        # model's either way; the lines and prices are that agency's.
+        agencies = v.get("agencies") or {}
+        on = self._agencies_on
+        has = [c for c in ("sb", "pb") if (agencies.get(c) or {}).get("report", {}).get("all_legs")]
+        pick = query.get("bk") if query.get("bk") in agencies else None
+        pick = pick or next((c for c in has if c in on), None) or (has[0] if has else None)
+        pick = pick or next(iter(agencies), None)
+        chosen = agencies.get(pick) or {}
+        rep = chosen.get("report") or v.get("report") or {}
         games = {g["name"].replace(" at ", " @ "): g for g in (v["board"] or {}).get("games", [])}
-        return {"nba": v, "nba_tab": tab, "nba_rep": rep, "nba_games": games}
+        names = {"sb": "Sportsbet", "pb": "PointsBet"}
+        chips = [
+            {
+                "code": c,
+                "name": names.get(c, c),
+                "lines": len((agencies[c].get("report") or {}).get("all_legs") or []),
+                "on": c in on,
+            }
+            for c in ("sb", "pb")
+            if c in agencies
+        ]
+        return {
+            "nba": v,
+            "nba_tab": tab,
+            "nba_rep": rep,
+            "nba_games": games,
+            "nba_agency": pick,
+            "nba_agency_name": names.get(pick, "PointsBet"),
+            "nba_chips": chips,
+            "nba_agency_games": chosen.get("games", v.get("games")),
+            "nba_agency_error": chosen.get("error"),
+        }
 
     def _context(
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
@@ -662,6 +694,7 @@ class Views:
         ctx["keep"] = {k: query[k] for k in ("tab", "date") if k in query}
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
+            self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
             ctx.update(self._nba_view(query))
             if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
                 ctx.update(self._challenge(query, ctx))

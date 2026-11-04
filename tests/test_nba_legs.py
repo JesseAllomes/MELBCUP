@@ -168,3 +168,26 @@ def test_every_stat_is_priced_with_the_boards_names(label, unit, stat):
     ev = [event("1", "Philadelphia 76ers @ Detroit Pistons", [out(label, 1.5, unit)])]
     legs, unmatched = L.legs_from(ev, BOARD)
     assert unmatched == [] and [g["stat"] for g in legs] == [stat]
+
+
+def test_sportsbet_lines_parse_with_unders_and_settle_both_ways():
+    import json
+    from pathlib import Path
+
+    f = json.loads((Path(__file__).parent / "fixtures" / "sportsbet_nba_sample.json").read_text())
+    ev = L.sportsbet_events(f["competition"], f["markets"])
+    assert len(ev) == 1 and ev[0]["name"] == "Philadelphia 76ers @ Detroit Pistons"
+    assert ev[0]["startsAt"] == "2026-11-05T00:10:00Z"
+    outs = ev[0]["markets"][0]["outcomes"]
+    assert not any("Pts" in o["name"] for o in outs)  # combined stats (Pts + Reb) left out
+    ou = [o for o in outs if o["name"].startswith("Joel Embiid") and "Points" in o["name"] and ("Over" in o["name"] or "Under" in o["name"])]
+    assert {(o["k"], o["under"]) for o in ou} == {(20, False), (20, True)}  # Over/Under 19.5 -> the 20 line
+    board = {"day": "20261104", "params": PARAMS,
+             "games": [{"name": "Philadelphia 76ers at Detroit Pistons", "teams": {"home": "DET", "away": "PHI"}}],
+             "players": [player("Joel Embiid", "PHI", 24.0)]}
+    legs, _ = L.legs_from(ev, board)
+    over = next(g for g in legs if g["label"] == "Joel Embiid Over 19.5 Points")
+    under = next(g for g in legs if g["label"] == "Joel Embiid Under 19.5 Points")
+    assert abs(over["chance"] + under["chance"] - 1) < 1e-3 and under["under"] and not over["under"]
+    rows = {"joel embiid": {"min": 30, "points": 19}}
+    assert [x["result"] for x in S.settle([over, under], rows)] == ["lost", "won"]  # 19 points: the under wins

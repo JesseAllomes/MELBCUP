@@ -1,0 +1,2832 @@
+{
+"competition": {
+"events": [
+{
+"id": 11121680,
+"name": "Philadelphia 76ers At Detroit Pistons",
+"startTime": 1793837400,
+"participant1": "Philadelphia 76ers",
+"participant2": "Detroit Pistons",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121682,
+"name": "Atlanta Hawks At Washington Wizards",
+"startTime": 1793837400,
+"participant1": "Atlanta Hawks",
+"participant2": "Washington Wizards",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121676,
+"name": "Chicago Bulls At New York Knicks",
+"startTime": 1793839200,
+"participant1": "Chicago Bulls",
+"participant2": "New York Knicks",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121679,
+"name": "Milwaukee Bucks At Boston Celtics",
+"startTime": 1793839200,
+"participant1": "Milwaukee Bucks",
+"participant2": "Boston Celtics",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121681,
+"name": "Charlotte Hornets At Brooklyn Nets",
+"startTime": 1793839200,
+"participant1": "Charlotte Hornets",
+"participant2": "Brooklyn Nets",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121674,
+"name": "Cleveland Cavaliers At Oklahoma City Thunder",
+"startTime": 1793841000,
+"participant1": "Cleveland Cavaliers",
+"participant2": "Oklahoma City Thunder",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121677,
+"name": "Utah Jazz At New Orleans Pelicans",
+"startTime": 1793841000,
+"participant1": "Utah Jazz",
+"participant2": "New Orleans Pelicans",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121685,
+"name": "Indiana Pacers At Memphis Grizzlies",
+"startTime": 1793841000,
+"participant1": "Indiana Pacers",
+"participant2": "Memphis Grizzlies",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121683,
+"name": "Minnesota Timberwolves At Houston Rockets",
+"startTime": 1793842800,
+"participant1": "Minnesota Timberwolves",
+"participant2": "Houston Rockets",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121675,
+"name": "Portland Trail Blazers At Phoenix Suns",
+"startTime": 1793844600,
+"participant1": "Portland Trail Blazers",
+"participant2": "Phoenix Suns",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121678,
+"name": "Toronto Raptors At Denver Nuggets",
+"startTime": 1793844600,
+"participant1": "Toronto Raptors",
+"participant2": "Denver Nuggets",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121673,
+"name": "Dallas Mavericks At San Antonio Spurs",
+"startTime": 1793846400,
+"participant1": "Dallas Mavericks",
+"participant2": "San Antonio Spurs",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121672,
+"name": "Los Angeles Lakers At Sacramento Kings",
+"startTime": 1793848200,
+"participant1": "Los Angeles Lakers",
+"participant2": "Sacramento Kings",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+},
+{
+"id": 11121684,
+"name": "Miami Heat At Los Angeles Clippers",
+"startTime": 1793850000,
+"participant1": "Miami Heat",
+"participant2": "Los Angeles Clippers",
+"bettingStatus": "PRICED",
+"statusCode": "A"
+}
+]
+},
+"markets": {
+"11121680": [
+{
+"id": 258804713,
+"name": "Joel Embiid - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Joel Embiid Over",
+"statusCode": "A",
+"unformattedHandicap": "19.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Joel Embiid Under",
+"statusCode": "A",
+"unformattedHandicap": "19.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258804742,
+"name": "LeBron James - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "LeBron James Over",
+"statusCode": "A",
+"unformattedHandicap": "14.5",
+"price": {
+"winPrice": 1.78
+}
+},
+{
+"name": "LeBron James Under",
+"statusCode": "A",
+"unformattedHandicap": "14.5",
+"price": {
+"winPrice": 2
+}
+}
+]
+},
+{
+"id": 258804764,
+"name": "VJ Edgecombe - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "VJ Edgecombe Over",
+"statusCode": "A",
+"unformattedHandicap": "10.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "VJ Edgecombe Under",
+"statusCode": "A",
+"unformattedHandicap": "10.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258804787,
+"name": "Tyrese Maxey - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Tyrese Maxey Over",
+"statusCode": "A",
+"unformattedHandicap": "23.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Tyrese Maxey Under",
+"statusCode": "A",
+"unformattedHandicap": "23.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258804808,
+"name": "Jaylen Brown - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Jaylen Brown Over",
+"statusCode": "A",
+"unformattedHandicap": "19.5",
+"price": {
+"winPrice": 1.88
+}
+},
+{
+"name": "Jaylen Brown Under",
+"statusCode": "A",
+"unformattedHandicap": "19.5",
+"price": {
+"winPrice": 1.88
+}
+}
+]
+},
+{
+"id": 258806957,
+"name": "Cade Cunningham - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Cade Cunningham Over",
+"statusCode": "A",
+"unformattedHandicap": "23.5",
+"price": {
+"winPrice": 1.87
+}
+},
+{
+"name": "Cade Cunningham Under",
+"statusCode": "A",
+"unformattedHandicap": "23.5",
+"price": {
+"winPrice": 1.89
+}
+}
+]
+},
+{
+"id": 258810361,
+"name": "Paul Reed - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Paul Reed Over",
+"statusCode": "A",
+"unformattedHandicap": "12.5",
+"price": {
+"winPrice": 1.83
+}
+},
+{
+"name": "Paul Reed Under",
+"statusCode": "A",
+"unformattedHandicap": "12.5",
+"price": {
+"winPrice": 1.93
+}
+}
+]
+},
+{
+"id": 258810768,
+"name": "Duncan Robinson - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Duncan Robinson Over",
+"statusCode": "A",
+"unformattedHandicap": "13.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Duncan Robinson Under",
+"statusCode": "A",
+"unformattedHandicap": "13.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258812280,
+"name": "John Collins - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "John Collins Over",
+"statusCode": "A",
+"unformattedHandicap": "11.5",
+"price": {
+"winPrice": 1.78
+}
+},
+{
+"name": "John Collins Under",
+"statusCode": "A",
+"unformattedHandicap": "11.5",
+"price": {
+"winPrice": 2
+}
+}
+]
+},
+{
+"id": 258813445,
+"name": "Ausar Thompson - Points",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Ausar Thompson Over",
+"statusCode": "A",
+"unformattedHandicap": "10.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Ausar Thompson Under",
+"statusCode": "A",
+"unformattedHandicap": "10.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258804711,
+"name": "To Score 40+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 14
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+}
+]
+},
+{
+"id": 258804719,
+"name": "Joel Embiid - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Joel Embiid Over",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Joel Embiid Under",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258804724,
+"name": "To Score 25+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.16
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.69
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.98
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.5
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.07
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 9.5
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 17
+}
+}
+]
+},
+{
+"id": 258804727,
+"name": "LeBron James - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "LeBron James Over",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.64
+}
+},
+{
+"name": "LeBron James Under",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 2.15
+}
+}
+]
+},
+{
+"id": 258804743,
+"name": "To Score 10+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.03
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.04
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.14
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.01
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.59
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.59
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.25
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.38
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.3
+}
+}
+]
+},
+{
+"id": 258804748,
+"name": "LeBron James - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "LeBron James Over",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 2.08
+}
+},
+{
+"name": "LeBron James Under",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 1.72
+}
+}
+]
+},
+{
+"id": 258804752,
+"name": "To Score 35+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.5
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 14
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 15
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7.75
+}
+}
+]
+},
+{
+"id": 258804753,
+"name": "Jaylen Brown - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Jaylen Brown Over",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.68
+}
+},
+{
+"name": "Jaylen Brown Under",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 2.1
+}
+}
+]
+},
+{
+"id": 258804762,
+"name": "VJ Edgecombe - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "VJ Edgecombe Over",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.92
+}
+},
+{
+"name": "VJ Edgecombe Under",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.84
+}
+}
+]
+},
+{
+"id": 258804763,
+"name": "LeBron James - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "LeBron James Over",
+"statusCode": "A",
+"unformattedHandicap": "0.5",
+"price": {
+"winPrice": 1.56
+}
+},
+{
+"name": "LeBron James Under",
+"statusCode": "A",
+"unformattedHandicap": "0.5",
+"price": {
+"winPrice": 2.3
+}
+}
+]
+},
+{
+"id": 258804766,
+"name": "Tyrese Maxey - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Tyrese Maxey Over",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 2.1
+}
+},
+{
+"name": "Tyrese Maxey Under",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 1.68
+}
+}
+]
+},
+{
+"id": 258804780,
+"name": "To Score 30+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.25
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7.75
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.5
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 21
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 34
+}
+}
+]
+},
+{
+"id": 258804785,
+"name": "Tyrese Maxey - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Tyrese Maxey Over",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.86
+}
+},
+{
+"name": "Tyrese Maxey Under",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.9
+}
+}
+]
+},
+{
+"id": 258804786,
+"name": "To Score 15+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.22
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.25
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.76
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.1
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.45
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.08
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.05
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.84
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.47
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.7
+}
+}
+]
+},
+{
+"id": 258804789,
+"name": "VJ Edgecombe - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "VJ Edgecombe Over",
+"statusCode": "A",
+"unformattedHandicap": "1.5",
+"price": {
+"winPrice": 2.1
+}
+},
+{
+"name": "VJ Edgecombe Under",
+"statusCode": "A",
+"unformattedHandicap": "1.5",
+"price": {
+"winPrice": 1.68
+}
+}
+]
+},
+{
+"id": 258804790,
+"name": "Tyrese Maxey - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Tyrese Maxey Over",
+"statusCode": "A",
+"unformattedHandicap": "4.5",
+"price": {
+"winPrice": 1.92
+}
+},
+{
+"name": "Tyrese Maxey Under",
+"statusCode": "A",
+"unformattedHandicap": "4.5",
+"price": {
+"winPrice": 1.83
+}
+}
+]
+},
+{
+"id": 258804791,
+"name": "Joel Embiid - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Joel Embiid Over",
+"statusCode": "A",
+"unformattedHandicap": "0.5",
+"price": {
+"winPrice": 1.4
+}
+},
+{
+"name": "Joel Embiid Under",
+"statusCode": "A",
+"unformattedHandicap": "0.5",
+"price": {
+"winPrice": 2.75
+}
+}
+]
+},
+{
+"id": 258804805,
+"name": "Jaylen Brown - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Jaylen Brown Over",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Jaylen Brown Under",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258804811,
+"name": "Jaylen Brown - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Jaylen Brown Over",
+"statusCode": "A",
+"unformattedHandicap": "1.5",
+"price": {
+"winPrice": 2.5
+}
+},
+{
+"name": "Jaylen Brown Under",
+"statusCode": "A",
+"unformattedHandicap": "1.5",
+"price": {
+"winPrice": 1.48
+}
+}
+]
+},
+{
+"id": 258804814,
+"name": "Joel Embiid - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Joel Embiid Over",
+"statusCode": "A",
+"unformattedHandicap": "7.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Joel Embiid Under",
+"statusCode": "A",
+"unformattedHandicap": "7.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258804821,
+"name": "To Score 20+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.87
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.93
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.37
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.7
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.5
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.33
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.25
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7.5
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 9.5
+}
+}
+]
+},
+{
+"id": 258807326,
+"name": "Cade Cunningham - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Cade Cunningham Over",
+"statusCode": "A",
+"unformattedHandicap": "8.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Cade Cunningham Under",
+"statusCode": "A",
+"unformattedHandicap": "8.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258807327,
+"name": "Cade Cunningham - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Cade Cunningham Over",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 2.25
+}
+},
+{
+"name": "Cade Cunningham Under",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 1.58
+}
+}
+]
+},
+{
+"id": 258807328,
+"name": "Cade Cunningham - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Cade Cunningham Over",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Cade Cunningham Under",
+"statusCode": "A",
+"unformattedHandicap": "5.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258810351,
+"name": "Paul Reed - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Paul Reed Over",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 2.4
+}
+},
+{
+"name": "Paul Reed Under",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 1.52
+}
+}
+]
+},
+{
+"id": 258810367,
+"name": "Paul Reed - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Paul Reed Over",
+"statusCode": "A",
+"unformattedHandicap": "7.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Paul Reed Under",
+"statusCode": "A",
+"unformattedHandicap": "7.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258810762,
+"name": "Duncan Robinson - Made Threes",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Duncan Robinson Over",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 2.25
+}
+},
+{
+"name": "Duncan Robinson Under",
+"statusCode": "A",
+"unformattedHandicap": "3.5",
+"price": {
+"winPrice": 1.58
+}
+}
+]
+},
+{
+"id": 258810765,
+"name": "Duncan Robinson - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Duncan Robinson Over",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 2.45
+}
+},
+{
+"name": "Duncan Robinson Under",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 1.5
+}
+}
+]
+},
+{
+"id": 258810766,
+"name": "Duncan Robinson - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Duncan Robinson Over",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 2.15
+}
+},
+{
+"name": "Duncan Robinson Under",
+"statusCode": "A",
+"unformattedHandicap": "2.5",
+"price": {
+"winPrice": 1.64
+}
+}
+]
+},
+{
+"id": 258812281,
+"name": "John Collins - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "John Collins Over",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 2.15
+}
+},
+{
+"name": "John Collins Under",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 1.64
+}
+}
+]
+},
+{
+"id": 258813439,
+"name": "Ausar Thompson - Assists",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Ausar Thompson Over",
+"statusCode": "A",
+"unformattedHandicap": "4.5",
+"price": {
+"winPrice": 2.05
+}
+},
+{
+"name": "Ausar Thompson Under",
+"statusCode": "A",
+"unformattedHandicap": "4.5",
+"price": {
+"winPrice": 1.74
+}
+}
+]
+},
+{
+"id": 258813443,
+"name": "Ausar Thompson - Rebounds",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Ausar Thompson Over",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 2.1
+}
+},
+{
+"name": "Ausar Thompson Under",
+"statusCode": "A",
+"unformattedHandicap": "6.5",
+"price": {
+"winPrice": 1.68
+}
+}
+]
+},
+{
+"id": 258804716,
+"name": "To Score 5+ Points",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.06
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.06
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.02
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.03
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.02
+}
+}
+]
+},
+{
+"id": 258804721,
+"name": "To Record 14+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+}
+]
+},
+{
+"id": 258804729,
+"name": "To Record 6+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.66
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.22
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.65
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.9
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.8
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.62
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.66
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.25
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+}
+]
+},
+{
+"id": 258804756,
+"name": "To Record 8+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.77
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.25
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.32
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.25
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.92
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.07
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.18
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.25
+}
+}
+]
+},
+{
+"id": 258804775,
+"name": "To Record 16+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 34
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 41
+}
+}
+]
+},
+{
+"id": 258804777,
+"name": "To Record 10+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.92
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.5
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.25
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 5.4
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8
+}
+}
+]
+},
+{
+"id": 258804798,
+"name": "To Record 12+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 5.9
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 21
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 21
+}
+}
+]
+},
+{
+"id": 258804823,
+"name": "To Record 4+ Rebounds",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.13
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.03
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.13
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.85
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.2
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.13
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.2
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.14
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.04
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4
+}
+}
+]
+},
+{
+"id": 258804718,
+"name": "To Record 10+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 5.5
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 14
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.42
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+}
+]
+},
+{
+"id": 258804720,
+"name": "To Record 4+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.93
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.78
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.11
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.4
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.47
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.02
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.6
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.6
+}
+}
+]
+},
+{
+"id": 258804732,
+"name": "To Record 12+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 5.2
+}
+}
+]
+},
+{
+"id": 258804736,
+"name": "To Record 2+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.11
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.08
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.03
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.05
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.46
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.45
+}
+}
+]
+},
+{
+"id": 258804765,
+"name": "To Record 14+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 10
+}
+}
+]
+},
+{
+"id": 258804809,
+"name": "To Record 6+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.55
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.94
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.6
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 5.2
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.14
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.09
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 12
+}
+},
+{
+"name": "Paul Reed",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+}
+]
+},
+{
+"id": 258804816,
+"name": "To Record 8+ Assists",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.91
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 11
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 13
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.55
+}
+},
+{
+"name": "Ausar Thompson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7
+}
+}
+]
+},
+{
+"id": 258804712,
+"name": "6+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 18
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 7.5
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 19
+}
+}
+]
+},
+{
+"id": 258804728,
+"name": "2+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.37
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.5
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.12
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.15
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.8
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.41
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.15
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 3.5
+}
+}
+]
+},
+{
+"id": 258804747,
+"name": "5+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 8.25
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 9
+}
+}
+]
+},
+{
+"id": 258804774,
+"name": "4+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 11
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 16
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.3
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.3
+}
+}
+]
+},
+{
+"id": 258804806,
+"name": "7+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 15
+}
+}
+]
+},
+{
+"id": 258804812,
+"name": "8+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 34
+}
+}
+]
+},
+{
+"id": 258804815,
+"name": "3+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.12
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 4.6
+}
+},
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 6
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.53
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 2.25
+}
+}
+]
+},
+{
+"id": 258804831,
+"name": "1+ Made Threes",
+"statusCode": "A",
+"marketType": "-",
+"selections": [
+{
+"name": "Jaylen Brown",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.32
+}
+},
+{
+"name": "Joel Embiid",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.43
+}
+},
+{
+"name": "LeBron James",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.57
+}
+},
+{
+"name": "Tyrese Maxey",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.06
+}
+},
+{
+"name": "VJ Edgecombe",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.22
+}
+},
+{
+"name": "Cade Cunningham",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.06
+}
+},
+{
+"name": "Duncan Robinson",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.02
+}
+},
+{
+"name": "John Collins",
+"statusCode": "A",
+"unformattedHandicap": null,
+"price": {
+"winPrice": 1.51
+}
+}
+]
+},
+{
+"id": 258804802,
+"name": "Tyrese Maxey - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Tyrese Maxey Over",
+"statusCode": "A",
+"unformattedHandicap": "26.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Tyrese Maxey Under",
+"statusCode": "A",
+"unformattedHandicap": "26.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+},
+{
+"id": 258804755,
+"name": "Jaylen Brown - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Jaylen Brown Over",
+"statusCode": "A",
+"unformattedHandicap": "25.5",
+"price": {
+"winPrice": 1.85
+}
+},
+{
+"name": "Jaylen Brown Under",
+"statusCode": "A",
+"unformattedHandicap": "25.5",
+"price": {
+"winPrice": 1.91
+}
+}
+]
+},
+{
+"id": 258804726,
+"name": "Joel Embiid - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Joel Embiid Over",
+"statusCode": "A",
+"unformattedHandicap": "27.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Joel Embiid Under",
+"statusCode": "A",
+"unformattedHandicap": "27.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258804817,
+"name": "LeBron James - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "LeBron James Over",
+"statusCode": "A",
+"unformattedHandicap": "21.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "LeBron James Under",
+"statusCode": "A",
+"unformattedHandicap": "21.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258804769,
+"name": "VJ Edgecombe - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "VJ Edgecombe Over",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.93
+}
+},
+{
+"name": "VJ Edgecombe Under",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.83
+}
+}
+]
+},
+{
+"id": 258807324,
+"name": "Cade Cunningham - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Cade Cunningham Over",
+"statusCode": "A",
+"unformattedHandicap": "29.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Cade Cunningham Under",
+"statusCode": "A",
+"unformattedHandicap": "29.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258810364,
+"name": "Paul Reed - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Paul Reed Over",
+"statusCode": "A",
+"unformattedHandicap": "20.5",
+"price": {
+"winPrice": 1.91
+}
+},
+{
+"name": "Paul Reed Under",
+"statusCode": "A",
+"unformattedHandicap": "20.5",
+"price": {
+"winPrice": 1.85
+}
+}
+]
+},
+{
+"id": 258810767,
+"name": "Duncan Robinson - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Duncan Robinson Over",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "Duncan Robinson Under",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258812282,
+"name": "John Collins - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "John Collins Over",
+"statusCode": "A",
+"unformattedHandicap": "18.5",
+"price": {
+"winPrice": 1.96
+}
+},
+{
+"name": "John Collins Under",
+"statusCode": "A",
+"unformattedHandicap": "18.5",
+"price": {
+"winPrice": 1.8
+}
+}
+]
+},
+{
+"id": 258813444,
+"name": "Ausar Thompson - Pts + Reb",
+"statusCode": "A",
+"marketType": "L",
+"selections": [
+{
+"name": "Ausar Thompson Over",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.8
+}
+},
+{
+"name": "Ausar Thompson Under",
+"statusCode": "A",
+"unformattedHandicap": "16.5",
+"price": {
+"winPrice": 1.96
+}
+}
+]
+}
+]
+}
+}

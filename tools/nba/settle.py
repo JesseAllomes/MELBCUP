@@ -39,7 +39,8 @@ def settle(legs: list[dict], rows: dict) -> list[dict]:
         if r is None or not r.get("min"):
             res = "void"
         else:
-            res = "won" if r[FIELD[g["stat"]]] >= g["line"] else "lost"
+            over = r[FIELD[g["stat"]]] >= g["line"]
+            res = "won" if over != bool(g.get("under")) else "lost"  # an under wins below the line
         out.append(g | {"result": res, "actual": None if r is None else r.get(FIELD[g["stat"]])})
     return out
 

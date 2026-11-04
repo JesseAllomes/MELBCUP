@@ -6,8 +6,9 @@
 {% set v = nba %}{% set rep = nba_rep %}
 <section class="card nba-head">
   <h2>NBA player props</h2>
-  <small>{% if v.board %}{{ v.board.games | length }} games, first tip-off {{ (v.board.games | map(attribute='when') | select | min) | when }} · {{ v.games or 0 }} with PointsBet lines · {% endif %}{% if v.priced_at %}prices {{ v.priced_at | when }}{% endif %}</small>
-  {% if v.error %}<p class="note warn">{{ v.error }}</p>{% endif %}
+  <small>{% if v.board %}{{ v.board.games | length }} games, first tip-off {{ (v.board.games | map(attribute='when') | select | min) | when }} · {{ nba_agency_games or 0 }} with {{ nba_agency_name or 'PointsBet' }} lines · {% endif %}{% if v.priced_at %}prices {{ v.priced_at | when }}{% endif %}</small>
+  {% if nba_chips %}<div class="nba-bk" role="group" aria-label="Prices from">{% for c in nba_chips %}<a href="/nba?bk={{ c.code }}&tab={{ nba_tab }}" class="{{ 'on' if c.code == nba_agency }}"{% if c.code == nba_agency %} aria-current="true"{% endif %}>{{ c.name }}<small>{{ c.lines if c.lines else 'no lines yet' }}</small></a>{% endfor %}</div>{% endif %}
+  {% set err = nba_agency_error or v.error %}{% if err %}<p class="note warn">{{ err }}</p>{% endif %}
   {% if v.stale %}<p class="note warn">The model's board is from {{ v.board.day }}: today's has not been built yet, so no game matches.</p>{% endif %}
   {% if v.source == 'bundled' %}<p class="note">Using the model board shipped with the app: Azure's daily board could not be read just now.</p>{% endif %}
 </section>
@@ -15,7 +16,7 @@
 {% if rep %}
 <nav class="rtabs" aria-label="NBA tabs">
   {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('challenge', 'Challenge', None), ('games', 'Games', (rep.by_game or []) | length), ('same', 'SGM', rep.stacks_same | length), ('all', 'All', rep.all_legs | length)] %}
-  <a href="/nba?tab={{ key }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}{% if n is not none %}<small>{{ n }}</small>{% endif %}</a>
+  <a href="/nba?tab={{ key }}{{ '&bk=' ~ nba_agency if nba_agency }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}{% if n is not none %}<small>{{ n }}</small>{% endif %}</a>
   {% endfor %}
 </nav>
 
@@ -27,7 +28,7 @@
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}
-  <p class="say">A multi needs lines in at least 3 games; PointsBet has {{ v.games or 0 }} so far.</p>
+  <p class="say">A multi needs lines in at least 3 games; {{ nba_agency_name or 'PointsBet' }} has {{ nba_agency_games or 0 }} so far.</p>
   {% endfor %}
   <p class="note">For each payout, the combination with the highest chance of getting up: one leg per game (a normal multi), 3 to 10 legs. Games don't affect each other, so the chance is the legs' chances multiplied.</p>
 </section>
@@ -39,7 +40,7 @@
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
-  <p class="note">Same-game multi: PointsBet prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
+  <p class="note">Same-game multi: {{ nba_agency_name or 'PointsBet' }} prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
 </section>
 {% elif nba_tab == 'challenge' %}
 <section class="card nba-ch">
@@ -83,12 +84,12 @@
   {% elif ch_step %}{% set m = ch_step %}
   <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b><span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>
   <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
-  {% if one_game %}<p class="note">Build it as a Same Game Multi at PointsBet; their price is usually below the legs multiplied, so put in the price you got.</p>{% endif %}
+  {% if one_game %}<p class="note">Build it as a Same Game Multi at {{ nba_agency_name or 'PointsBet' }}; its price is usually below the legs multiplied, so put in the price you got.</p>{% endif %}
   <form method="get" action="/nba" class="ch-act">
     <input type="hidden" name="tab" value="challenge"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <input type="hidden" name="chl" value="{{ (m.game ~ ': ' if one_game else '') ~ (m.picks | join(', ')) }}">
     <input type="hidden" name="chtip" value="{{ m.tip }}">
-    <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == ('sb' if 'sb' in az.codes_on else 'pb') }}>{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
+    <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == (nba_agency if nba_agency in az.codes_on else ('sb' if 'sb' in az.codes_on else 'pb')) }}>{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
   </form>
@@ -99,9 +100,9 @@
   {% endif %}{% endfor %}
   {% endif %}
   {% elif ch_wait %}
-  <p class="say">Next stage: {% if ch_wait.night %}the next game day (after this night's {{ ch.get('per_night', 1) }} stage{{ 's' if ch.get('per_night', 1) != 1 }}). PointsBet posts its lines that morning{% else %}a game tipping off after <b>{{ ch_wait.after | when }}</b>, so this result is in and there is time to place it. None on tonight's card pays {{ '%.1f' % ch_x }}x yet{% endif %}.</p>
+  <p class="say">Next stage: {% if ch_wait.night %}the next game day (after this night's {{ ch.get('per_night', 1) }} stage{{ 's' if ch.get('per_night', 1) != 1 }}). {{ nba_agency_name or 'PointsBet' }} posts its lines that morning{% else %}a game tipping off after <b>{{ ch_wait.after | when }}</b>, so this result is in and there is time to place it. None on tonight's card pays {{ '%.1f' % ch_x }}x yet{% endif %}.</p>
   {% else %}
-  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': PointsBet needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
+  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': ' ~ (nba_agency_name or 'PointsBet') ~ ' needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
   {% if not placed %}<p class="note ch-links"><a href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>
@@ -118,16 +119,16 @@
   <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}</span></div>
   {% endfor %}
 </section>
-{% else %}<section class="card"><p class="say">PointsBet has no player lines posted yet.</p></section>{% endfor %}
+{% else %}<section class="card"><p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p></section>{% endfor %}
 <p class="note">Each player's surest line that still pays $1.15 or more (a shorter leg barely moves a multi). Green: 75%+.</p>
 {% else %}
 <section class="card rows">
   {% for g in rep.all_legs | sort(attribute='chance', reverse=True) %}{% if loop.index <= 120 %}
   <div class="brow nba-leg{{ ' val' if g.chance >= rep.min_chance and g.ev >= rep.min_ev }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }}</small></span><span class="a">${{ '%.2f' % g.price }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
-  {% endif %}{% else %}<p class="say">PointsBet has no player lines posted yet.</p>{% endfor %}
+  {% endif %}{% else %}<p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p>{% endfor %}
   {% if rep.all_legs | length > 120 %}<p class="note">Showing the 120 most likely of {{ rep.all_legs | length }} lines.</p>{% endif %}
 </section>
 {% endif %}
 {% endif %}
-<p class="note">The chance is the model's (v3, tested on past seasons). Whether it beats PointsBet's prices is being measured from today: every line is settled against the real box score.</p>
+<p class="note">The chance is the model's (v3, tested on past seasons). Whether it beats the bookmakers' prices is being measured from today: every line is settled against the real box score.</p>
 {% endblock %}

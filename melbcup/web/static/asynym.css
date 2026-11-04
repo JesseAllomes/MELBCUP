@@ -382,3 +382,7 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .ch-preview { display: grid; gap: 4px; margin: 8px 0; font-size: 13px; }
 .ch-preview div { display: grid; grid-template-columns: 28px 1fr 1.4fr 1.4fr; gap: 6px; padding: 4px 8px; border-radius: 8px; background: var(--chip); }
 .ch-preview b { color: var(--brand); }
+.nba-bk { display: flex; gap: 6px; margin: 8px 0 2px; }
+.nba-bk a { flex: 1; text-align: center; text-decoration: none; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--rule); color: inherit; font-weight: 700; font-size: 13px; }
+.nba-bk a small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
+.nba-bk a.on { border-color: var(--brand); color: var(--brand); background: var(--chip); }

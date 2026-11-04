@@ -28,6 +28,7 @@ from melbcup import nba_legs
 NY = ZoneInfo("America/New_York")
 BUNDLED = Path(__file__).resolve().parents[1] / "data" / "nba" / "board-latest.json"
 PRICES_TTL_S = 90
+AGENCY_NAMES = {"sb": "Sportsbet", "pb": "PointsBet"}
 BOARD_TTL_S = 600
 TIMEOUT_S = 8
 
@@ -72,12 +73,16 @@ class NbaFeed:
     def __init__(
         self,
         read_blob: Callable[[str], bytes | None] | None = None,
-        events: Callable[[], list[dict]] = nba_legs.live_events,
+        events: Callable[[], list[dict]] | dict | None = None,
         bundled: Path = BUNDLED,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ):
         if read_blob is None and os.environ.get("NBA_ACCOUNT"):
             read_blob = blob_reader(os.environ["NBA_ACCOUNT"], os.environ.get("AZURE_CLIENT_ID"))
+        if events is None:
+            events = dict(nba_legs.AGENCY_EVENTS)  # every agency with NBA player lines
+        elif callable(events):
+            events = {"pb": events}
         self.read_blob, self.events, self.bundled, self.clock = read_blob, events, bundled, clock
         self._lock = threading.Lock()
         self._board: tuple[float, dict | None, str] = (0.0, None, "")
@@ -137,6 +142,7 @@ class NbaFeed:
             "board": board,
             "error": None,
             "report": rep,
+            "agencies": {"pb": {"report": rep, "games": rep.get("games_priced", 0), "error": None}},
             "nearest": [],
             "games": rep.get("games_priced", 0),
             "priced_at": priced,
@@ -157,16 +163,33 @@ class NbaFeed:
         if board is None:
             out["error"] = "No board yet: the model has not priced today's games."
         else:
-            try:
-                events = self.events()
-            except (OSError, ValueError, KeyError) as exc:
-                events = []
-                out["error"] = f"PointsBet did not answer ({type(exc).__name__})."
-            out["report"] = nba_legs.report(board, events)
-            out["nearest"] = (
-                [] if out["report"]["value_legs"] else nearest(out["report"]["all_legs"])
+            from concurrent.futures import ThreadPoolExecutor
+
+            def one(code):
+                try:
+                    events, error = self.events[code](), None
+                except (OSError, ValueError, KeyError) as exc:
+                    events, error = (
+                        [],
+                        f"{AGENCY_NAMES.get(code, code)} did not answer ({type(exc).__name__}).",
+                    )
+                return code, {
+                    "report": nba_legs.report(board, events),
+                    "games": len(events),
+                    "error": error,
+                }
+
+            with ThreadPoolExecutor(max_workers=len(self.events)) as pool:
+                out["agencies"] = dict(pool.map(one, self.events))
+            first = out["agencies"].get("pb") or next(iter(out["agencies"].values()))
+            out["report"], out["games"], out["error"] = (
+                first["report"],
+                first["games"],
+                first["error"],
             )
-            out["games"] = len(events)
+            out["nearest"] = (
+                [] if first["report"]["value_legs"] else nearest(first["report"]["all_legs"])
+            )
         out["priced_at"] = now
         # a board for tonight's or tomorrow's US games is current; one for an earlier day is not
         out["stale"] = board is not None and board.get("day", "") < today

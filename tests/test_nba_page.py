@@ -157,3 +157,22 @@ def test_times_carry_their_day(monkeypatch):
     assert views.when("2026-11-04T01:30:00Z") == "Today 12:30pm"
     assert views.when("2026-11-07T08:00:00Z") == "Sat 7 Nov 7:00pm"
     assert views.when(None) == "–"
+
+
+def test_prices_come_from_the_agency_switched_on(bundled, monkeypatch):
+    def sb_events():
+        return [{"event": f"sb{i}", "name": f"{a} @ {h}", "startsAt": "2026-11-05T00:10:00Z",
+                 "markets": [{"group": "sportsbet", "outcomes": [
+                     {"name": f"{p} 10+ Points", "price": 1.4, "player": p, "stat": "points", "k": 10, "under": False}]}]}
+                for i, (a, _, h, _, p) in enumerate(GAMES)]
+
+    agencies = {"pb": events(1.30), "sb": sb_events}
+    monkeypatch.setattr(nba_feed.NbaFeed.__init__, "__defaults__", (None, agencies, bundled, lambda: NOW))
+    with make(ON) as c:
+        c.get("/?ag=1&on_sb=1&on_bf=1")  # Sportsbet and Betfair on, PointsBet off
+        html = c.get("/nba?tab=all").text
+        assert "with Sportsbet lines" in html and "$1.40" in html and 'aria-label="Prices from"' in html
+        html = c.get("/nba?tab=all&bk=pb").text  # switch to PointsBet's prices
+        assert "with PointsBet lines" in html and "$1.30" in html
+        c.get("/?ag=1&on_pb=1")  # only PointsBet on
+        assert "with PointsBet lines" in c.get("/nba?tab=all").text
