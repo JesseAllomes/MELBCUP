@@ -21,12 +21,13 @@
   <form class="agp" id="agp" method="get" action="{{ path }}">
     {% if push_key %}
     <div class="push-card" id="push-card" data-key="{{ push_key }}">
-      <div class="sec"><span>Phone alerts</span><span id="push-state"></span></div>
+      <div class="sec"><span>Phone alerts</span></div>
+      <p class="push-state" id="push-state"></p>
       <p class="note">Stage tip-offs and results, even with the app closed.</p>
       <button type="button" id="push-on" hidden>Chrome alerts</button>
       <button type="button" id="tg-on">Telegram alerts</button>
       <button type="button" id="push-test" hidden>Send a test</button>
-      <p class="note" id="tg-note" hidden>Press Start in Telegram; linked within 10 min (7am-7pm).</p>
+      <p class="note" id="tg-note" hidden>Press Start in Telegram: it links straight away.</p>
     </div>
     {% endif %}
     <div class="sec"><span>Agencies</span></div>

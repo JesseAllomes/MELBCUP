@@ -182,11 +182,8 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     if key or tg:
         try:
             nba = blobs().get_container_client("nba")
-            linked = push_send.link_telegram(nba, tg) if tg else 0
             sent, dropped = push_send.send_due(nba, moment, key, tg_token=tg)
-            logging.info(
-                "alerts: %d sent, %d phones dropped, %d telegram links", sent, dropped, linked
-            )
+            logging.info("alerts: %d sent, %d phones dropped", sent, dropped)
         except Exception:  # alerts must never stop the prices
             logging.exception("alerts: failed")
     if os.environ.get("NBA_PROPS") == "0":

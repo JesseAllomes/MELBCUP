@@ -6,6 +6,8 @@ Rendering and actions live in views.py, shared with the browser build.
 
 from __future__ import annotations
 
+import hmac
+import os
 import secrets
 import threading
 import time
@@ -23,6 +25,7 @@ from fastapi.responses import (
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 from melbcup import nba_challenge
 from melbcup.archive import Archive
@@ -266,7 +269,19 @@ def create_app(
         @app.post("/api/push/test", dependencies=[Depends(require_login)])
         async def push_test(request: Request):
             data = await request.json()
-            return _push(lambda: push.test(data.get("id")) or {"queued": True})
+            return _push(lambda: push.test(data.get("id")))
+
+        @app.post("/api/telegram")
+        async def telegram_hook(request: Request):
+            """@AsynymBetBot's webhook: links a chat the moment Start is pressed. Telegram sends the
+            secret set with setWebhook in a header; anything else is refused."""
+            secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
+            given = request.headers.get("x-telegram-bot-api-secret-token", "")
+            if not secret or not push.ready or not hmac.compare_digest(given, secret):
+                raise HTTPException(404)
+            update = await request.json()
+            done = await run_in_threadpool(push.telegram, update)
+            return JSONResponse({"ok": True, "done": done})
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):
@@ -279,7 +294,9 @@ def create_app(
         # where the server's time went, for the browser's network panel and for tuning
         timing = dict(getattr(views, "timing", {}) or {})
         timing["total"] = time.perf_counter() - started
-        response.headers["Server-Timing"] = ", ".join(f"{k};dur={v * 1000:.0f}" for k, v in timing.items())
+        response.headers["Server-Timing"] = ", ".join(
+            f"{k};dur={v * 1000:.0f}" for k, v in timing.items()
+        )
         query = request.query_params
         keep = {"max_age": 365 * 86400, "samesite": "lax", "httponly": True}
         if "budget" in query:  # the old single budget: remembered for /api/offer too

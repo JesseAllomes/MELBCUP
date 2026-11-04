@@ -401,3 +401,5 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .agp .save { padding: 7px 10px; font-size: 13px; min-height: 0; }
 .push-card { padding: 8px; }
 .push-card button { padding: 5px 10px; font-size: 12px; }
+.push-state { margin: 0 0 2px; font-size: 12px; font-weight: 700; color: var(--ink); }
+.push-state:empty { display: none; }

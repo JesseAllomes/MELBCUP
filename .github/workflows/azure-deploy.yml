@@ -117,6 +117,7 @@ jobs:
           cp tools/live_collector.py build/pkg/tools/live_collector.py
           cp melbcup/nba_legs.py build/pkg/nba_legs.py
           cp melbcup/webpush.py build/pkg/webpush.py
+          cp melbcup/tgbot.py build/pkg/tgbot.py
           cp melbcup/nba_challenge.py build/pkg/nba_challenge.py
           touch build/pkg/tools/__init__.py
           pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages

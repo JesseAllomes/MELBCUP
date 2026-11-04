@@ -95,6 +95,16 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       linked = { web: !!s.web, telegram: !!s.telegram };
     }).catch(function () {}).then(show);
   }
+  function watch(n) {  // after Start in Telegram the link is instant: show it as soon as it lands
+    if (n > 40 || linked.telegram) return;
+    window.setTimeout(function () {
+      post("/api/push/status", { id: get("push_id") }).then(function (s) {
+        linked = { web: !!s.web, telegram: !!s.telegram };
+        if (linked.telegram) { tgNote.hidden = true; show(); } else watch(n + 1);
+      }).catch(function () { watch(n + 1); });
+    }, 3000);
+  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   tg.addEventListener("click", function () {
     var win = window.open("about:blank", "_blank");  // opened on the tap, so it is not blocked
     var id = get("push_id");
@@ -103,6 +113,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         var url = "https://t.me/AsynymBetBot?start=" + pid;
         if (win) win.location = url; else window.location = url;
         tgNote.hidden = false;
+        watch(0);
         return reminders();
       })
       .catch(function () { if (win) win.close(); state.textContent = "could not start the Telegram link"; });
@@ -122,9 +133,13 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       .then(function () { on.disabled = false; show(); });
   });
   test.addEventListener("click", function () {
+    test.disabled = true;
     post("/api/push/test", { id: get("push_id") })
-      .then(function () { state.textContent = "test on its way (within 10 min, 7am to 7pm)"; })
-      .catch(function () { state.textContent = "test failed: turn alerts on again"; });
+      .then(function (r) {
+        state.textContent = r.sent ? "test sent ✓ (" + r.sent.join(", ") + ")" : "test on its way";
+      })
+      .catch(function () { state.textContent = "test failed: turn alerts on again"; refresh(); })
+      .then(function () { test.disabled = false; });
   });
   if (canPush && get("push_id")) navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
   refresh();
