@@ -191,3 +191,38 @@ def test_sportsbet_lines_parse_with_unders_and_settle_both_ways():
     assert abs(over["chance"] + under["chance"] - 1) < 1e-3 and under["under"] and not over["under"]
     rows = {"joel embiid": {"min": 30, "points": 19}}
     assert [x["result"] for x in S.settle([over, under], rows)] == ["lost", "won"]  # 19 points: the under wins
+
+
+def _leg(player_, line, under, price, model=0.5):
+    return {"player": player_, "stat": "points", "line": line, "under": under, "price": price, "model": model}
+
+
+def test_devig_of_a_pair():
+    m = L.feed_market([_leg("A", 20, False, 1.8), _leg("A", 20, True, 2.0)])
+    assert m[("A", "points", 20, False)] == pytest.approx((1 / 1.8) / (1 / 1.8 + 0.5))
+    assert sum(m.values()) == pytest.approx(1.0)
+
+
+def test_ladder_uses_the_feeds_overround():
+    legs = [_leg("A", 20, False, 1.9), _leg("A", 20, True, 1.9), _leg("A", 25, False, 4.0)]
+    m = L.feed_market(legs)
+    assert m[("A", "points", 25, False)] == pytest.approx(0.25 / (2 / 1.9))
+    only = L.feed_market([_leg("B", 25, False, 4.0)])  # no pairs: the 1.07 default
+    assert only[("B", "points", 25, False)] == pytest.approx(0.25 / 1.07)
+
+
+def test_market_is_averaged_over_agencies():
+    m = L.market_probs({"pb": [_leg("A", 25, False, 4.0)], "sb": [_leg("A", 25, False, 5.0)]})
+    assert m[("A", "points", 25, False)] == pytest.approx((0.25 + 0.2) / 2 / 1.07)
+
+
+def test_blend_math_and_no_market_fallback():
+    assert L.blend(0.7, 0.7) == pytest.approx(0.7)
+    assert L.blend(0.7, 0.4, w=1.0) == pytest.approx(0.7)
+    assert L.blend(0.7, 0.4, w=0.0) == pytest.approx(0.4)
+    assert 0.5 < L.blend(0.8, 0.5) < 0.8
+    legs = [_leg("A", 25, False, 4.0, model=0.3), _leg("B", 10, False, 1.5, model=0.8)]
+    L.apply_market(legs, {("A", "points", 25, False): 0.2})
+    assert legs[0]["market"] == 0.2 and legs[0]["model"] == 0.3 and legs[0]["chance"] < 0.3
+    assert legs[1]["market"] is None and legs[1]["chance"] == 0.8
+    assert legs[1]["ev"] == pytest.approx(0.8 * 1.5 - 1)
