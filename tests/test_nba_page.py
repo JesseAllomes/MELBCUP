@@ -209,3 +209,20 @@ def test_a_bubble_shows_when_the_other_agency_pays_more(bundled, monkeypatch):
         assert 'class="alt-pay"' not in c.get("/nba?tab=all&bk=sb").text  # PointsBet pays less: no bubble
         c.get("/?ag=1&on_pb=1")  # Sportsbet off: no comparison
         assert 'class="alt-pay"' not in c.get("/nba?tab=all&bk=pb").text
+
+
+def test_a_stage_that_is_likelier_at_the_other_agency_is_pointed_out():
+    from types import SimpleNamespace
+
+    from melbcup import nba_challenge
+    from melbcup.web.views import Views
+
+    def legs(c):
+        return {"report": {"all_legs": [{"c": c, "startsAt": "2026-11-06T00:10:00Z"}]}}
+
+    fake_legs = SimpleNamespace(same_game_for=lambda ls, x, stake: [{"chance": ls[0]["c"], "game": "G", "price": 2.4}] if ls else [])
+    me = SimpleNamespace(_nba=SimpleNamespace(_view=(0, {"agencies": {"sb": legs(0.60), "pb": legs(0.70)}})), _nba_pick="sb", _agencies_on={"sb"})
+    state = nba_challenge.fresh(stages=4)
+    best = Views._best_elsewhere(me, state, 2.4, {"chance": 0.60}, nba_challenge, fake_legs)
+    assert best["code"] == "pb" and best["chance"] == 0.70 and best["on"] is False
+    assert Views._best_elsewhere(me, state, 2.4, {"chance": 0.695}, nba_challenge, fake_legs) is None  # within 1 point: stay

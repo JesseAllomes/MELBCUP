@@ -416,7 +416,7 @@ class Views:
             else self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep)
         )
         best, why = nba_challenge.recommend(preview) if preview else (None, "")
-        step, games, wait, push = None, [], None, []
+        step, games, wait, push, alt_agency = None, [], None, [], None
         if state is not None:
             x = nba_challenge.next_x(state)
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
@@ -424,6 +424,7 @@ class Views:
             if state.get("mode", "game") == "game":
                 games = nba_legs.same_game_for(legs, x, stake=state["bank"])
                 step = max(games, key=lambda m: m["chance"]) if games else None
+                alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"])
             earliest, not_night = nba_challenge.next_window(state)
@@ -486,6 +487,7 @@ class Views:
             "push_reminders": push,
             "ch": state,
             "ch_step": step,
+            "ch_alt_agency": alt_agency,
             "ch_games": games,
             "ch_preview": preview,
             "ch_best": best,
@@ -504,6 +506,33 @@ class Views:
             "ch_x": nba_challenge.next_x(state) if state else None,
             "ch_left": nba_challenge.remaining(state) if state else None,
         }
+
+    def _best_elsewhere(self, state, x, step, nba_challenge, nba_legs) -> dict | None:
+        """The same stage at the other agencies: their likeliest same-game multi for this payout.
+        Returned when one beats the shown pick (owner, 2026-11-05: place where it pays most, as a
+        better price means safer legs for the same stage)."""
+        view = (self._nba._view[1] or {}) if self._nba else {}
+        names = {"sb": "Sportsbet", "pb": "PointsBet"}
+        best = None
+        for code, a in (view.get("agencies") or {}).items():
+            if code == getattr(self, "_nba_pick", None):
+                continue
+            legs = [
+                g
+                for g in ((a.get("report") or {}).get("all_legs") or [])
+                if nba_challenge.allowed(state, g.get("startsAt"))
+            ]
+            found = nba_legs.same_game_for(legs, x, stake=state["bank"])
+            top = max(found, key=lambda m: m["chance"]) if found else None
+            if top and (best is None or top["chance"] > best["chance"]):
+                best = top | {
+                    "code": code,
+                    "name": names.get(code, code),
+                    "on": code in self._agencies_on,
+                }
+        if best and (step is None or best["chance"] > step["chance"] + 0.01):
+            return best
+        return None
 
     def _stage_preview(self, legs, nba_challenge, nba_legs, start=10.0, goal=1000.0, keep=True):
         """The set-up table for this start and goal (nba_challenge.plan): per stage count, the
