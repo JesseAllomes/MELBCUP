@@ -9,3 +9,4 @@ dist/
 .env
 .env.*
 research/m7/forward/obs_cache/
+.claude/worktrees/
