@@ -63,7 +63,8 @@ def snap(event, name, price):
     }
 
 
-def test_price_legs_needs_todays_board_and_carries_started_games_forward():
+def test_price_legs_needs_todays_board_and_carries_started_games_forward(monkeypatch):
+    monkeypatch.setattr(nba_props.nba_legs, "BLEND_W", 0.5)  # the old blend: this fixture's value leg
     nba = Container()
     now = dt.datetime(2026, 11, 4, 23, 0, tzinfo=dt.UTC)  # 7pm 4 Nov in New York
     game = snap("1", "Philadelphia 76ers @ Detroit Pistons", 1.30)

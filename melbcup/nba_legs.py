@@ -264,7 +264,7 @@ def find(players, who, teams):
     return None
 
 
-BLEND_W = 0.5  # weight on the model in the blend; tools/nba/tune_blend.py fits it on settled legs
+BLEND_W = 0.0  # real prices (research/nba/dunk_real_prices.txt): the market beat the model, best weight 0
 OVERROUND = 1.07  # a feed's overround when it has no over/under pairs to estimate it from
 
 

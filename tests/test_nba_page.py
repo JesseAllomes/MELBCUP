@@ -44,7 +44,10 @@ def bundled(tmp_path):
     return path
 
 
-def test_feed_uses_azure_board_first_then_the_bundled_one(bundled):
+def test_feed_uses_azure_board_first_then_the_bundled_one(bundled, monkeypatch):
+    from melbcup import nba_legs
+
+    monkeypatch.setattr(nba_legs, "BLEND_W", 0.5)  # the old blend, so this fixture still has value legs
     feed = NbaFeed(read_blob=lambda name: None, events=events(), bundled=bundled, clock=lambda: NOW)
     v = feed.view()
     assert v["source"] == "bundled" and not v["stale"] and v["error"] is None

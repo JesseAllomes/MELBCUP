@@ -1,0 +1,17 @@
+Real-price check, DunkAPI free tier (2026-11-05): 2024-25 top 12 scorers x 4 stats, 2025-02-20..04-13, consensus main over/under of ~7 books
+bets: 1079 (players x stats: 47), over hit rate 47.5%
+  model        log loss 0.7091
+  market       log loss 0.6874
+  50/50 blend  log loss 0.6942
+  best model weight: 0.0
+  market better than model by +0.0218 ± 0.0119 per bet
+  calibration (model said -> over came in):
+    0.0+  n   55  said 0.24  got 0.44  market said 0.42
+    0.3+  n  223  said 0.36  got 0.49  market said 0.46
+    0.4+  n  444  said 0.45  got 0.46  market said 0.49
+    0.5+  n  281  said 0.54  got 0.49  market said 0.52
+    0.6+  n   70  said 0.63  got 0.50  market said 0.54
+    0.7+  n    6  said 0.77  got 0.33  market said 0.54
+  bet the model's side when it differs by 3%+: 736 bets, return -7.0% a bet at real prices
+  bet the model's side when it differs by 5%+: 552 bets, return -3.9% a bet at real prices
+  bet the model's side when it differs by 8%+: 364 bets, return -5.8% a bet at real prices

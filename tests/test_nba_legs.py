@@ -306,7 +306,7 @@ def test_blend_math_and_no_market_fallback():
     assert L.blend(0.7, 0.7) == pytest.approx(0.7)
     assert L.blend(0.7, 0.4, w=1.0) == pytest.approx(0.7)
     assert L.blend(0.7, 0.4, w=0.0) == pytest.approx(0.4)
-    assert 0.5 < L.blend(0.8, 0.5) < 0.8
+    assert 0.5 < L.blend(0.8, 0.5, w=0.5) < 0.8
     legs = [_leg("A", 25, False, 4.0, model=0.3), _leg("B", 10, False, 1.5, model=0.8)]
     L.apply_market(legs, {("A", "points", 25, False): 0.2})
     assert legs[0]["market"] == 0.2 and legs[0]["model"] == 0.3 and legs[0]["chance"] < 0.3
