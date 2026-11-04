@@ -11,3 +11,5 @@
 - Be mindful of credits.
 - Push to main with `git push origin build/cup-day:main`.
 - Keep API keys out of the repository.
+- **Any secret the owner sends goes straight into Key Vault** (`kv-personal-v5ethud2i3cf`) under a
+  plain name (e.g. `dunkapi-key`), never into the repo, and is read from there afterwards.
