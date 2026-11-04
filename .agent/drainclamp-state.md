@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=175 -->
+<!-- drainclamp-build: state; schema=1; generation=176 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T12:40:49+00:00 d61ab05f Owner: NBA loose markets now. Unders, alt-line tails, SGM linked legs moved into nba3; quarter/first basket stay lm1. New arb1: arbitrage + promo lay-off (matched betting) finder.
 - 2026-11-03T12:50:02+00:00 465b6464 mkt1 v1 football (286 league-seasons, 2012-25): favourites under ~1.50 happen more than margin-free price says (home 1.20-1.35: 78.7% vs 74.1%; away 1.20-1.35: 78.3% vs 73.9%) and paid at the BEST price in both halves (+2 to +6%). Caveats: best price = max across many books (some offshore/exchange), ~40 bands tested so some positives are chance. research/markets/football_scan_v1.txt
 - 2026-11-03T12:52:38+00:00 565cd2fd Owner: hold mkt1 except data-pull scripts; finish NBA. nba1: PointsBet prop price collector on Azure (nba_props_run every 20 min 7am-3:40pm AEDT, changed snapshots to blob nba-props); props not posted 37 h before tip, captured when they appear. nba_history timer removed (ESPN replaces it). Worst case $24.27.
 - 2026-11-03T12:54:49+00:00 ac4d7204 NBA v3 rolling validation (folds 2021-22, 2022-23, 2023-24; each tuned on earlier seasons): beats v2 in 12/12 fold-stat pairs. Check 2024-25 log loss v1/v2/v3: points .3475/.3409/.3341, rebounds .3687/.3616/.3547, assists .3236/.3167/.3117, threes .4684/.4575/.4538. Role minutes weight g ~0.8, usage share 0.5-1.0, blowout ~0. v3 frozen in tools/nba/model_v3.json. 2025-26 still sealed.
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-03T23:56:59+00:00 e3eeeb79 2026-11-04 autobet OFF (owner): settings.autobet (AUTOBET=1 to enable), no loop/routes; BET_PIN removed from melbcup-web.json (KV secret melbcup-bet-pin untouched). Deployed web; /api/betting 404.
 - 2026-11-04T07:35:23+00:00 ba394214 2026-11-04 Sportsbet props LIVE (3760 lines; alt + O/U, unders; agency switch, SB first if on). Push alerts built (webpush/push_store/push_send/sw.js, Challenge tab card, beforeinstallprompt blocked) committed on branch e3ac8a5d? NOT deployed: needs owner approval for C10 loosening nba_props_run 27->72/day (deploy with LIMITS_APPROVED blocked by classifier without owner OK). Function app setting VAPID_PRIVATE_KEY already set; public key in melbcup-web.json; keys in scratch vapid.env. nba_probe_run removed from code/limits (still live on Function until next function deploy).
 - 2026-11-04T08:17:22+00:00 91c5fb57 2026-11-04 owner idea (LATER, not now): cost monitor at monitor.asynym.dev reporting all Azure usage and costs across the tenant (Cost Management query by RG/meter; usage Nov 1-4: functions 0.88 GB-h, tenant ~A$4.80 mostly rg-parlebros-fleet VM + E6 disk). Agency bubble committed f42bf317 (branch, not deployed). Still pending owner: approve nba_props_run 27->72/day to deploy alerts + bubble.
+- 2026-11-04T08:27:50+00:00 b9652955 2026-11-04 DEPLOYED cce33561 (owner approved timer 72/day): Chrome push + Telegram alerts (t.me/AsynymBetBot, token in Function setting TELEGRAM_BOT_TOKEN + scratch telegram.env; owner pasted token in chat -> suggest /revoke later), agency bubble, nba_probe retired. Live: sw.js 200, push card, nba_props_run every 10 min 20-23,0-7 UTC. Owner: follow DC output rules, terse.
 <!-- /DC:LOG -->
