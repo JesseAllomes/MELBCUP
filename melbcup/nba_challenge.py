@@ -116,6 +116,8 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     `new` ends the run (keeping the history and bet log) so a challenge can be set up afresh.
     `today` (Melbourne date, ISO) stamps a placed bet for the day's money."""
     act = query.get("ch")
+    if act in ("bet", "betwon", "betlost"):  # any multi the owner placed, outside the challenge
+        return _own_bet(state, act, query, today)
     if act == "start" or (act and state is None):
         start = _money(query.get("chstart")) or 10.0
         goal = _money(query.get("chgoal")) or 1000.0
@@ -199,6 +201,64 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         ]
         return _again(state | {"bets": bets, "past": past}, last_win=returned)
     return state | {"bank": bank, "steps": steps, "kept": kept, "placed": None, "bets": bets}
+
+
+MAX_OWN = 20  # bets kept in the cookie (a cookie holds about 4 KB)
+
+
+def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str) -> dict:
+    """Log a multi from the Multis / SGM / Games tabs (owner, 2026-11-05): placed at an agency
+    for a stake at the price got, then won (it paid $x) or lost. It counts in the day's money
+    like a challenge stage; no run is started."""
+    base = state if state is not None else fresh() | {"active": False}
+    bets = [dict(b) for b in base.get("bets", [])]
+    if act == "bet":
+        stake, price = _money(query.get("nbs")) or 10.0, _money(query.get("nbp"))
+        label = (query.get("nbl") or "")[:90]
+        key = f"{today}|{label}|{stake}|{price}"
+        if any(b.get("k") == key for b in bets):
+            return base  # the same page reloaded
+        bets.append(
+            {
+                "id": max([b.get("id", 0) for b in bets], default=0) + 1,
+                "own": 1,
+                "k": key,
+                "day": today,
+                "ag": query.get("nbag") or "sb",
+                "stake": stake,
+                "price": price,
+                "label": label,
+                "state": "placed",
+                "ret": 0.0,
+                "tip": (query.get("nbtip") or "")[:32],
+            }
+        )
+    else:
+        for b in bets:
+            if (
+                b.get("own")
+                and str(b.get("id")) == str(query.get("nbid"))
+                and b["state"] == "placed"
+            ):
+                if act == "betwon":
+                    b["state"] = "won"
+                    b["ret"] = _money(query.get("nbr")) or round(
+                        b["stake"] * (b.get("price") or 1), 2
+                    )
+                else:
+                    b["state"] = "lost"
+    own = [b for b in bets if b.get("own")][-MAX_OWN:]
+    run = [b for b in bets if not b.get("own")]
+    return base | {"bets": run[-(MAX_BETS - len(own)) :] + own if len(own) < MAX_BETS else own}
+
+
+def own_bets(state: dict | None, today: str) -> list[dict]:
+    """The owner's own bets to show: every one still open, and today's settled ones."""
+    return [
+        b
+        for b in (state or {}).get("bets", [])
+        if b.get("own") and (b["state"] == "placed" or b.get("day") == today)
+    ]
 
 
 def today_money(state: dict | None, today: str) -> tuple[dict[str, float], float]:

@@ -388,6 +388,14 @@ def _nba_money(path, query, cookies, today):
     return state, used, profit
 
 
+def _own_bets(state, today) -> list[dict]:
+    try:
+        from melbcup import nba_challenge
+    except ImportError:  # the phone's offline copy leaves the NBA code out
+        return []
+    return nba_challenge.own_bets(state, today.isoformat())
+
+
 class Views:
     def __init__(self, settings: Settings, board: LiveBoard, *, browser: bool = False):
         self.settings = settings
@@ -706,6 +714,7 @@ class Views:
             "push_key": os.environ.get("VAPID_PUBLIC_KEY", ""),  # phone alerts, in Settings
             "day_pnl": day_pnl,
             "ch_state": ch_state,
+            "nba_own": _own_bets(ch_state, today),
             "az": az,
             "settings": self.settings,
             "browser": self.browser,

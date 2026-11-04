@@ -410,3 +410,11 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .ch-preview .best { outline: 2px solid var(--good); border-radius: 8px; }
 .ch-start .ghost { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
 .ch-why { margin-top: 8px; }
+/* Your bets: log any multi placed (owner, 2026-11-05) */
+.nb-place { margin: 6px 0 2px; }
+.nb-place summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--brand); }
+.nb-own .nb-bet { border-top: 1px solid var(--rule); padding: 8px 0; }
+.nb-own .nb-bet:first-of-type { border-top: 0; }
+.nb-own .nb-bet p { margin: 0 0 4px; }
+.nb-own .ok { color: var(--good); } .nb-own .bad { color: var(--bad); }
+.ch-act .won { background: var(--good); color: #08130e; } .ch-act .lost { background: var(--bad); color: #fff; }

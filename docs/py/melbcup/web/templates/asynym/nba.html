@@ -1,5 +1,12 @@
 {% extends "asynym/base.html" %}
 {% from "asynym/_parts.html" import ring %}
+{% macro placed(m, game='') %}<details class="nb-place"><summary>I placed this</summary><form method="get" action="/nba" class="ch-act">
+  <input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="ch" value="bet">
+  <input type="hidden" name="nbl" value="{{ (game ~ ': ' if game else '') ~ (m.picks | join(', ')) }}"><input type="hidden" name="nbtip" value="{{ m.tip }}">
+  <label>At <select name="nbag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == nba_agency }}>{{ a.name }}</option>{% endfor %}</select></label>
+  <label>Stake $<input name="nbs" inputmode="decimal" value="10"></label>
+  <label>Price got $<input name="nbp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
+  <button type="submit">Save bet</button></form></details>{% endmacro %}
 {% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
 {% block title %}NBA · AsynymBet{% endblock %}
 {% block refresh %}0{% endblock %}
@@ -14,6 +21,18 @@
   {% if v.source == 'bundled' %}<p class="note">Using the model board shipped with the app: Azure's daily board could not be read just now.</p>{% endif %}
 </section>
 
+{% if nba_own %}
+<section class="card nb-own">
+  <div class="vlabel">Your bets</div>
+  {% for b in nba_own %}
+  <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
+  {% if b.state == 'placed' %}<form method="get" action="/nba" class="ch-act"><input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="nbid" value="{{ b.id }}">
+    <label>It paid $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
+    <button type="submit" name="ch" value="betwon" class="won">Won</button><button type="submit" name="ch" value="betlost" class="lost">Lost</button></form>{% endif %}</div>
+  {% endfor %}
+</section>
+{% endif %}
+
 {% if rep %}
 <nav class="rtabs" aria-label="NBA tabs">
   {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('challenge', 'Challenge', None), ('games', 'Games', (rep.by_game or []) | length), ('same', 'SGM', rep.stacks_same | length), ('all', 'All', rep.all_legs | length)] %}
@@ -27,6 +46,7 @@
   <div class="nba-multi">
     <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
+    {{ placed(m) }}
   </div>
   {% else %}
   <p class="say">A multi needs lines in at least 3 games; {{ nba_agency_name or 'PointsBet' }} has {{ nba_agency_games or 0 }} so far.</p>
@@ -39,6 +59,7 @@
   <div class="nba-multi">
     <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b>{{ alt(m) }}<span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
+    {{ placed(m, m.game) }}
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
   <p class="note">Same-game multi: {{ nba_agency_name or 'PointsBet' }} prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>

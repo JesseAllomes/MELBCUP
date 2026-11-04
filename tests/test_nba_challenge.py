@@ -219,3 +219,19 @@ def test_skip_moves_the_stage_to_a_later_night():
     s = C.apply(s, {"ch": "skip", "chs": "0", "chnight": "2026-11-05"}, DAY)
     assert s["skip"] == "2026-11-05" and not C.allowed(s, tonight) and C.allowed(s, tomorrow)
     assert C.apply(s, {"ch": "skip", "chs": "0", "chnight": "nope"}, DAY) == s
+
+
+def test_own_bets_are_logged_counted_in_the_day_and_settled():
+    q = {"ch": "bet", "nbag": "sb", "nbs": "10", "nbp": "5.03", "nbl": "Bucks @ Celtics: A, B, C, D"}
+    s = C.apply(None, q, DAY)
+    assert s["active"] is False and C.own_bets(s, DAY)[0]["state"] == "placed"
+    assert C.apply(s, q, DAY) == s  # a reload saves nothing twice
+    assert C.today_money(s, DAY) == ({"sb": 10.0}, 0.0)  # off the Sportsbet balance
+    bid = str(C.own_bets(s, DAY)[0]["id"])
+    won = C.apply(s, {"ch": "betwon", "nbid": bid, "nbr": "50.30"}, DAY)
+    assert C.today_money(won, DAY) == ({"sb": -40.3}, 40.3)
+    lost = C.apply(s, {"ch": "betlost", "nbid": bid}, DAY)
+    assert C.today_money(lost, DAY) == ({"sb": 10.0}, -10.0)
+    assert C.own_bets(lost, "2099-01-01") == []  # settled on an earlier day: off the list
+    run = C.apply(s, {"ch": "start", "chn": "3"}, DAY)  # starting a challenge keeps the bet
+    assert C.own_bets(run, DAY) and run.get("active", True) is not False
