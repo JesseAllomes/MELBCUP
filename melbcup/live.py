@@ -52,6 +52,9 @@ if TYPE_CHECKING:
 log = logging.getLogger("melbcup.live")
 
 QUOTA_BACKOFF = timedelta(minutes=15)
+AUTH_BACKOFF = timedelta(
+    minutes=2
+)  # racing.com's public key refused: usually a brief block (owner, 2026-11-04)
 OUTAGE_BACKOFF = timedelta(minutes=1)  # Auto retries a failing racing.com call no faster than this
 MIN_REFRESH_GAP = timedelta(seconds=60)  # a manual price or results refresh, however often tapped
 FIELD_PUBLISHED = timedelta(days=3)  # Racing Australia publishes acceptances about two days out
@@ -356,8 +359,10 @@ class LiveBoard:
             log.warning("source error (%s): %s", exc.kind, exc)
             errors.append(str(exc))
             if exc.kind in ("quota", "rate_limit", "auth"):
-                self._paused_until = now + QUOTA_BACKOFF
-                msg = f"Paused automatic racing.com calls for 15 minutes ({exc.kind})."
+                wait = AUTH_BACKOFF if exc.kind == "auth" else QUOTA_BACKOFF
+                self._paused_until = now + wait
+                mins = wait.seconds // 60
+                msg = f"Paused automatic racing.com calls for {mins} minutes ({exc.kind})."
                 log.warning(msg)
                 errors.append(msg)
             elif exc.kind in ("unavailable", "bad_response"):
@@ -625,6 +630,7 @@ class LiveBoard:
             self._form_at = self._priced_at = self._updated_at = self._results_at = None
             self._price_try = self._results_try = None
             self._errors = []
+            self._paused_until = None  # a new meeting is a fresh try
         return True
 
     def find_meetings(self, race_date: date) -> list[str]:
