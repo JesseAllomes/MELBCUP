@@ -106,8 +106,13 @@ def test_the_page_reads_the_timers_page_data_and_does_no_work(bundled):
     v = feed.view()
     assert v["staged"] and calls == []  # nothing fetched or searched here
     assert v["agencies"]["sb"]["report"]["all_legs"][0]["price"] == 1.35
-    later = datetime(2026, 11, 4, 22, 40, tzinfo=UTC)  # 45 minutes old: work it out live
-    v = NbaFeed(read_blob=blobs.get, events={"pb": fetch}, bundled=bundled, clock=lambda: later).view()
+    later = datetime(2026, 11, 4, 22, 40, tzinfo=UTC)  # 45 minutes old: shown at once, redone behind
+    old = NbaFeed(read_blob=blobs.get, events={"pb": fetch}, bundled=bundled, clock=lambda: later)
+    v = old.view()
+    assert v["staged"] and v["agencies"]["sb"]["report"]["all_legs"][0]["price"] == 1.35
+    old._lock.acquire()  # wait for the background refresh
+    old._lock.release()
+    v = old.view()
     assert calls == [1] and not v.get("staged") and v["report"]["all_legs"][0]["price"] == 1.40
 
 def test_nearest_only_likely_legs():

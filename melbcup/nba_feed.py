@@ -127,16 +127,20 @@ class NbaFeed:
             if time.monotonic() - stamp >= PRICES_TTL_S and self._lock.acquire(blocking=False):
                 threading.Thread(target=self._refresh_locked, daemon=True).start()
             return cached
-        saved = self._saved()
-        if saved is not None:  # the timer's page data: no work here at all
+        saved = self._saved(max_age=None)
+        if (
+            saved is not None
+        ):  # the timer's page data, however old: shown at once (owner, 2026-11-04)
             self._view = (time.monotonic(), saved)
+            if saved["age"] > STAGED_MAX_AGE and self._lock.acquire(blocking=False):
+                threading.Thread(target=self._refresh_locked, daemon=True).start()
             return saved
         with self._lock:
             if self._view[1] is None:
                 self._compute()
             return self._view[1]
 
-    def _saved(self) -> dict | None:
+    def _saved(self, max_age: timedelta | None = STAGED_MAX_AGE) -> dict | None:
         """The page data the Azure timer worked out on its last run (every 10 minutes, both
         agencies): used whenever it is under STAGED_MAX_AGE old, so this small web app only
         reads it and never does the heavy search itself (owner, 2026-11-04: pages must be fast)."""
@@ -152,7 +156,7 @@ class NbaFeed:
             return None
         now = self.clock()
         priced = datetime.fromisoformat(v["pricedAt"]) if v.get("pricedAt") else None
-        if priced is None or now - priced > STAGED_MAX_AGE:
+        if priced is None or (max_age is not None and now - priced > max_age):
             return None
         agencies = v["agencies"]
         first = agencies.get("pb") or next(iter(agencies.values()))
@@ -170,6 +174,7 @@ class NbaFeed:
             "priced_at": priced,
             "stale": board.get("day", "") < today,
             "staged": True,
+            "age": now - priced,
         }
 
     def _refresh_locked(self) -> None:
