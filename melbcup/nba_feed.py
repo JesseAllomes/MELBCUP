@@ -192,22 +192,23 @@ class NbaFeed:
         else:
             from concurrent.futures import ThreadPoolExecutor
 
+            from melbcup import nba_challenge
+
             def one(code):
                 try:
-                    events, error = self.events[code](), None
+                    return code, self.events[code](), None
                 except (OSError, ValueError, KeyError) as exc:
-                    events, error = (
-                        [],
-                        f"{AGENCY_NAMES.get(code, code)} did not answer ({type(exc).__name__}).",
-                    )
-                return code, {
-                    "report": nba_legs.report(board, events),
-                    "games": len(events),
-                    "error": error,
-                }
+                    name = AGENCY_NAMES.get(code, code)
+                    return code, [], f"{name} did not answer ({type(exc).__name__})."
 
             with ThreadPoolExecutor(max_workers=len(self.events)) as pool:
-                out["agencies"] = dict(pool.map(one, self.events))
+                got = list(pool.map(one, self.events))
+            xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
+            # one view over every agency: each leg's market price uses all the bookmakers
+            v = nba_legs.view(board, {code: ev for code, ev, _ in got}, xs)
+            out["agencies"], out["preview"] = v["agencies"], v.get("preview") or {}
+            for code, _, error in got:
+                out["agencies"][code]["error"] = error
             first = out["agencies"].get("pb") or next(iter(out["agencies"].values()))
             out["report"], out["games"], out["error"] = (
                 first["report"],
