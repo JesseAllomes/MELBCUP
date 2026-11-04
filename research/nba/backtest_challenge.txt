@@ -1,0 +1,119 @@
+NBA "$10 -> goal" challenge backtest (tools/nba/backtest_challenge.py). Seasons 2023-24 + 2024-25 pooled.
+Every game night is a start date (step 1), 315 runs per row (165 nights/season less the last 8); runs are overlapping windows, so they are correlated.
+Window = calendar nights from the start (owner cap 5; 3 and 7 shown for S0/S1). A run not finished in its window = not finished.
+Price = fair x 0.95 per leg; same-game multi pays product x 0.965; cross-game pays the full product. Model v3 chances, keep=True, stage_x slack 2%, per_night=1.
+S0 next game night; S1 skip unless tonight is in the best `stages left` of the window's nights (9-night forecast, nba_challenge.strength); S2 skip nights under 5 games (S1/S2 must play once no spare night is left).
+fin% = every stage won; used = mean calendar nights used (window if unfinished); pred% = product of picked chances (0 if no multi reached the stage payout in the window).
+multi mode: stack_for finds NO stack for big stage payouts (x of about 4+) -> pred 0, used = window. That is the search's limit (max 10 legs, legs >= 50%), not bad luck.
+
+goal mode strat win stg runs fin% used pred%
+  250  game  S0   3   2   315   4.1  1.21   2.0
+  250  game  S0   3   3   315   1.3  1.49   1.5
+  250  game  S0   5   2   315   4.1  1.19   2.1
+  250  game  S0   5   3   315   1.3  1.42   1.6
+  250  game  S0   5   4   315   3.2  1.66   1.2
+  250  game  S0   5   5   315   1.3  2.24   1.0
+  250  game  S0   7   2   315   4.1  1.19   2.1
+  250  game  S0   7   3   315   1.3  1.41   1.7
+  250  game  S0   7   4   315   3.2  1.64   1.2
+  250  game  S0   7   5   315   1.3  1.95   1.1
+  250  game  S0   7   6   315   0.0  1.93   0.9
+  250  game  S1   3   2   315   3.8  1.50   2.0
+  250  game  S1   3   3   315   1.3  1.49   1.5
+  250  game  S1   5   2   315   4.4  1.84   2.1
+  250  game  S1   5   3   315   2.2  2.02   1.6
+  250  game  S1   5   4   315   2.9  1.90   1.2
+  250  game  S1   5   5   315   1.3  2.24   1.0
+  250  game  S1   7   2   315   6.0  2.17   2.1
+  250  game  S1   7   3   315   3.2  2.46   1.7
+  250  game  S1   7   4   315   3.2  2.34   1.2
+  250  game  S1   7   5   315   2.5  2.34   1.1
+  250  game  S1   7   6   315   0.0  2.05   0.9
+  250  game  S2   5   2   315   4.4  1.45   2.1
+  250  game  S2   5   3   315   1.6  1.68   1.6
+  250  game  S2   5   4   315   3.2  1.93   1.2
+  250  game  S2   5   5   315   1.3  2.24   1.0
+  250 multi  S0   3   2   315   0.0  3.00   0.0
+  250 multi  S0   3   3   315   1.0  2.71   0.4
+  250 multi  S0   5   2   315   0.0  4.98   0.0
+  250 multi  S0   5   3   315   1.6  3.74   1.0
+  250 multi  S0   5   4   315   0.3  5.00   0.0
+  250 multi  S0   5   5   315   0.6  3.19   0.9
+  250 multi  S0   7   2   315   0.0  6.92   0.0
+  250 multi  S0   7   3   315   2.2  4.43   1.5
+  250 multi  S0   7   4   315   0.6  6.94   0.0
+  250 multi  S0   7   5   315   0.6  2.30   1.4
+  250 multi  S0   7   6   315   1.6  3.15   1.3
+  250 multi  S1   3   2   315   0.0  3.00   0.0
+  250 multi  S1   3   3   315   1.0  2.71   0.4
+  250 multi  S1   5   2   315   0.0  4.98   0.0
+  250 multi  S1   5   3   315   0.3  4.01   0.9
+  250 multi  S1   5   4   315   0.3  5.00   0.0
+  250 multi  S1   5   5   315   0.6  3.19   0.9
+  250 multi  S1   7   2   315   0.0  6.94   0.0
+  250 multi  S1   7   3   315   1.0  5.26   1.2
+  250 multi  S1   7   4   315   0.3  6.96   0.0
+  250 multi  S1   7   5   315   0.6  2.51   1.4
+  250 multi  S1   7   6   315   1.3  3.27   1.4
+  250 multi  S2   5   2   315   0.0  4.98   0.0
+  250 multi  S2   5   3   315   0.6  3.84   1.0
+  250 multi  S2   5   4   315   0.3  5.00   0.0
+  250 multi  S2   5   5   315   0.6  3.19   0.9
+ 1000  game  S0   3   2   315   0.6  1.31   0.4
+ 1000  game  S0   3   3   315   0.6  1.34   0.4
+ 1000  game  S0   5   2   315   0.6  1.22   0.5
+ 1000  game  S0   5   3   315   0.6  1.26   0.4
+ 1000  game  S0   5   4   315   0.0  1.52   0.3
+ 1000  game  S0   5   5   315   0.6  2.04   0.2
+ 1000  game  S0   7   2   315   0.6  1.20   0.5
+ 1000  game  S0   7   3   315   0.6  1.27   0.4
+ 1000  game  S0   7   4   315   0.0  1.50   0.3
+ 1000  game  S0   7   5   315   0.6  1.73   0.3
+ 1000  game  S0   7   6   315   1.0  1.99   0.3
+ 1000  game  S1   3   2   315   0.3  1.99   0.4
+ 1000  game  S1   3   3   315   0.6  1.34   0.4
+ 1000  game  S1   5   2   315   0.3  3.42   0.4
+ 1000  game  S1   5   3   315   0.0  1.73   0.4
+ 1000  game  S1   5   4   315   1.0  1.73   0.3
+ 1000  game  S1   5   5   315   0.6  2.04   0.2
+ 1000  game  S1   7   2   315   0.3  4.86   0.4
+ 1000  game  S1   7   3   315   0.0  2.05   0.4
+ 1000  game  S1   7   4   315   0.6  2.14   0.4
+ 1000  game  S1   7   5   315   0.6  2.16   0.3
+ 1000  game  S1   7   6   315   1.3  2.17   0.3
+ 1000  game  S2   5   2   315   0.6  1.45   0.5
+ 1000  game  S2   5   3   315   1.0  1.49   0.4
+ 1000  game  S2   5   4   315   0.6  1.71   0.3
+ 1000  game  S2   5   5   315   0.6  2.04   0.2
+ 1000 multi  S0   3   2   315   1.0  2.04   0.3
+ 1000 multi  S0   3   3   315   0.6  1.70   0.4
+ 1000 multi  S0   5   2   315   1.0  2.12   0.5
+ 1000 multi  S0   5   3   315   0.6  1.50   0.5
+ 1000 multi  S0   5   4   315   0.0  4.91   0.0
+ 1000 multi  S0   5   5   315   0.0  4.88   0.0
+ 1000 multi  S0   7   2   315   1.0  1.88   0.6
+ 1000 multi  S0   7   3   315   0.6  1.42   0.5
+ 1000 multi  S0   7   4   315   0.0  6.66   0.0
+ 1000 multi  S0   7   5   315   0.3  5.89   0.1
+ 1000 multi  S0   7   6   315   0.0  7.00   0.0
+ 1000 multi  S1   3   2   315   0.6  2.55   0.2
+ 1000 multi  S1   3   3   315   0.6  1.70   0.4
+ 1000 multi  S1   5   2   315   1.0  4.27   0.3
+ 1000 multi  S1   5   3   315   0.3  1.93   0.5
+ 1000 multi  S1   5   4   315   0.0  4.93   0.0
+ 1000 multi  S1   5   5   315   0.0  4.88   0.0
+ 1000 multi  S1   7   2   315   1.6  6.10   0.3
+ 1000 multi  S1   7   3   315   0.3  2.25   0.6
+ 1000 multi  S1   7   4   315   0.0  6.83   0.0
+ 1000 multi  S1   7   5   315   0.3  6.50   0.0
+ 1000 multi  S1   7   6   315   0.0  7.00   0.0
+ 1000 multi  S2   5   2   315   1.0  2.31   0.5
+ 1000 multi  S2   5   3   315   0.3  1.66   0.5
+ 1000 multi  S2   5   4   315   0.0  4.93   0.0
+ 1000 multi  S2   5   5   315   0.0  4.88   0.0
+Conclusions (95% ranges are unpaired binomial, rough; overlapping runs make them a little wider)
+1. Mode: game (same-game) beats multi. W5 S0 $250: 2.5% vs 0.6% finish (+-0.9, +-0.4); $1000 both under 0.5%. Multi finds no stack for high payouts.
+2. Stages: 2 is best ($250 game W5 S0 4.1%, pred 2.1%; 3 stages 1.3%, 4 3.2%, 5 1.3%); model pred falls 2.1 -> 1.0% by 5 stages. $1000 is under 1% at any count: not realistic.
+3. Window: 3 nights loses nothing vs 5 or 7 for 2-3 stages (game S0 $250, 2 stages: 4.1% at 3, 5 and 7 nights, used 1.2 nights); a longer window only helps skipping strategies.
+4. S1/S2 vs S0 (game, W5, both goals): 1.59% / 1.67% vs 1.47%, i.e. +0.1 / +0.2 pt, 95% range about -0.7 to +0.9: within noise. S1 wins only at W7 2 stages ($250: 6.0% vs 4.1%, +-2.7), also noise.
+5. Calibration: actual finish roughly matches or exceeds pred (2 stages $250: 4.1% vs 2.1%, 13 vs ~6.6 runs, p about 0.03); $1000 0.5% vs 0.4% matches. Expect about 2-4% for $250 in 2 stages, not more.
