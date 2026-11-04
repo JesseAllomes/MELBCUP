@@ -412,40 +412,49 @@ def frontier(legs):
     return out
 
 
+FRONT_CAP = 3  # partial stacks kept per 1% price step (the likeliest); keeps the search fast
+
+
 def _keep(front, cand):
     """Add cand to a bucket's list unless one there is at least as likely AND pays at least as
-    much; drop the ones cand beats on both. Exact: no stack that could still win is thrown away."""
-    if any(o[0] >= cand[0] and o[1] >= cand[1] for o in front):
-        return front
-    return [o for o in front if not (cand[0] >= o[0] and cand[1] >= o[1])] + [cand]
+    much; drop the ones cand beats on both; keep the FRONT_CAP likeliest."""
+    lc, lp = cand[0], cand[1]
+    for o in front:
+        if o[0] >= lc and o[1] >= lp:
+            return front
+    front = [o for o in front if not (lc >= o[0] and lp >= o[1])]
+    front.append(cand)
+    if len(front) > FRONT_CAP:
+        front.sort(key=lambda o: -o[0])
+        del front[FRONT_CAP:]
+    return front
 
 
 def best_stacks(groups, targets, min_legs=3, max_legs=10) -> dict:
     """For every payout target at once: the stack most likely to get up whose price reaches it,
     at most one leg per group. One pass over a 1% log-price grid (prices above the largest
-    target share its top bucket); each bucket keeps only the stacks not beaten on both chance and
-    price, so the answer per target is exact."""
+    target share its top bucket); each bucket keeps the likeliest stacks not beaten on both
+    chance and price (FRONT_CAP of them)."""
     targets = sorted(set(targets))
     if not targets:
         return {}
-    top = int((math.log(targets[-1]) + 1e-9) / STEP)
-    states = [
-        dict() for _ in range(max_legs + 1)
-    ]  # k legs -> {bucket: [(log chance, log price, picks)]}
+    cap = math.log(targets[-1]) + 1e-9
+    top = int(cap / STEP)
+    # logs once per leg, not once per partial stack
+    lgroups = [[(math.log(g["chance"]), math.log(g["price"]), g) for g in group] for group in groups]
+    states = [dict() for _ in range(max_legs + 1)]  # k legs -> {bucket: [(log chance, log price, picks)]}
     states[0][0] = [(0.0, 0.0, ())]
-    for group in groups:
+    for group in lgroups:
         for k in range(max_legs - 1, -1, -1):  # downwards: one leg per group
+            nxt = states[k + 1]
             for front in list(states[k].values()):
                 for lc, lp, picks in front:
-                    for g in group:
-                        lp2 = lp + math.log(g["price"])
-                        b2 = min(top, int(lp2 / STEP))
-                        cand = (
-                            lc + math.log(g["chance"]),
-                            min(lp2, math.log(targets[-1]) + 1e-9) if b2 == top else lp2,
-                            picks + (g,),
-                        )
-                        states[k + 1][b2] = _keep(states[k + 1].get(b2, []), cand)
+                    for glc, glp, g in group:
+                        lp2 = lp + glp
+                        b2 = int(lp2 / STEP)
+                        if b2 >= top:
+                            b2, lp2 = top, min(lp2, cap)
+                        nxt[b2] = _keep(nxt.get(b2, []), (lc + glc, lp2, picks + (g,)))
     out = {}
     for t in targets:
         goal = math.log(t) - 1e-9

@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """NBA prop price collector (azure/function/nba_props.py): writes a game only when prices change."""
 
 import datetime as dt
