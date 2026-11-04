@@ -154,6 +154,8 @@ def function_cost(limits: dict, host_timeout_s: int, memory_mb: int) -> dict[str
     for name, spec in fn["allowed_functions"].items():  # any other timer counts at its full rate
         if name not in runs and "timer_max_per_day" in spec:
             runs[name] = spec["timer_max_per_day"] * days
+        elif name not in runs and "queue_max_per_day" in spec:  # capped by its sender
+            runs[name] = spec["queue_max_per_day"] * days
     gb_s = sum(count * host_timeout_s * gb for count in runs.values())
     executions = sum(runs.values())
     window = max(0.0, gb_s - prices["flex_free_gb_s"]) * prices["flex_gb_s"]
@@ -482,6 +484,19 @@ def check_function_app(rep: Report, limits: dict, path: Path, shown: str, now: d
                         where,
                         f"{name}: timer fires {per_day}/day, "
                         f"limit {spec.get('timer_max_per_day', 0)}",
+                    )
+            elif kind == "queue_trigger":
+                queue = kws.get("queue_name")
+                if not (
+                    spec.get("queue")
+                    and spec.get("queue_max_per_day")
+                    and isinstance(queue, ast.Constant)
+                    and queue.value == spec["queue"]
+                ):
+                    rep.fail(
+                        "C5",
+                        where,
+                        f"{name}: queue must be {spec.get('queue')!r} with a queue_max_per_day",
                     )
             elif kind == "route":
                 auth = ast.unparse(kws["auth_level"]) if "auth_level" in kws else ""

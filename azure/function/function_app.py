@@ -208,6 +208,20 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     logging.info("nba props: %d games, %d snapshots; legs %s", games, written, legs)
 
 
+@app.queue_trigger(arg_name="msg", queue_name="alerts", connection="AzureWebJobsStorage")
+def alerts_due(msg: func.QueueMessage) -> None:
+    """On demand (owner, 2026-11-04): the web app queues each timed alert hidden until its time;
+    this wakes then and sends that phone's due alerts. Runs only when there is an alert."""
+    try:
+        pid = json.loads(msg.get_body())["id"]
+    except (ValueError, KeyError, TypeError):
+        return
+    key, tg = os.environ.get("VAPID_PRIVATE_KEY"), os.environ.get("TELEGRAM_BOT_TOKEN")
+    nba = blobs().get_container_client("nba")
+    sent, dropped = push_send.send_one(nba, pid, now_utc(), key, tg_token=tg)
+    logging.info("alerts (queue): %d sent, %d phones dropped", sent, dropped)
+
+
 def take_start_slot(moment: dt.datetime) -> bool:
     """Count a start attempt in a per-hour counter blob; False once MAX_STARTS_PER_HOUR is used."""
     client = blobs().get_blob_client("webhook-replays", f"rate-{moment:%Y%m%d%H}")

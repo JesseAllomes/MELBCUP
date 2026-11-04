@@ -12,6 +12,7 @@ moment Start is pressed. The Function's timer sends only the timed reminders.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -27,6 +28,9 @@ from melbcup.nba_feed import TIMEOUT_S, _token, blob_reader
 
 ID = re.compile(r"^[0-9a-f]{20}$")
 MAX_REMINDERS = 10
+QUEUE = "alerts"  # storage queue: each timed reminder wakes the Function's alerts_due at its time
+QUEUE_MAX_PER_DAY = 40  # azure/limits.json alerts_due.queue_max_per_day (the cost guard's count)
+MAX_DELAY_S = 7 * 86400 - 60  # a queue message can stay hidden at most 7 days
 CHATS = "push/_chats.json"  # Telegram chat -> phone id, for /stop
 TEST = {
     "title": "AsynymBet test",
@@ -57,6 +61,27 @@ def blob_writer(account: str, client_id: str | None) -> Callable[[str, bytes], N
     return write
 
 
+def queue_sender(account: str, client_id: str | None) -> Callable[[dict, int], None]:
+    """Put a message on the storage queue `alerts`, hidden for `delay_s` seconds."""
+
+    def put(message: dict, delay_s: int) -> None:
+        text = base64.b64encode(json.dumps(message).encode()).decode()
+        resp = httpx.post(
+            f"https://{account}.queue.core.windows.net/{QUEUE}/messages",
+            params={"visibilitytimeout": delay_s, "messagettl": delay_s + 86400},
+            content=f"<QueueMessage><MessageText>{text}</MessageText></QueueMessage>",
+            headers={
+                "Authorization": f"Bearer {_token(client_id)}",
+                "x-ms-version": "2021-08-06",
+                "Content-Type": "application/xml",
+            },
+            timeout=TIMEOUT_S,
+        )
+        resp.raise_for_status()
+
+    return put
+
+
 class PushStore:
     def __init__(
         self,
@@ -66,11 +91,13 @@ class PushStore:
         tg_token: str | None = None,
         send_web=webpush.send,
         tg_api=tgbot.call,
+        enqueue=None,
     ):
         if read is None and os.environ.get("NBA_ACCOUNT"):
             account, client = os.environ["NBA_ACCOUNT"], os.environ.get("AZURE_CLIENT_ID")
             read, write = blob_reader(account, client), blob_writer(account, client)
-        self.read, self.write = read, write
+            enqueue = enqueue or queue_sender(account, client)
+        self.read, self.write, self.enqueue = read, write, enqueue
         self.private_key = private_key or os.environ.get("VAPID_PRIVATE_KEY")
         self.tg_token = tg_token or os.environ.get("TELEGRAM_BOT_TOKEN")
         self.send_web, self.tg_api = send_web, tg_api
@@ -126,6 +153,7 @@ class PushStore:
             raise PushError("this phone has no alerts on")
         now = now or datetime.now(UTC)
         sent = {(r.get("at"), r.get("title")): r.get("sent") for r in doc.get("reminders", [])}
+        queued = {(r.get("at"), r.get("title")) for r in doc.get("reminders", []) if r.get("q")}
         out = []
         for r in (reminders or [])[:MAX_REMINDERS]:
             try:
@@ -143,10 +171,40 @@ class PushStore:
             }
             if sent.get((item["at"], item["title"])):
                 item["sent"] = sent[(item["at"], item["title"])]
+            if (item["at"], item["title"]) in queued:
+                item["q"] = True
             out.append(item)
         doc["reminders"] = out
+        self._queue(pid, out, now)
         self._save(pid, doc)
         return len(out)
+
+    def _queue(self, pid: str, reminders: list[dict], now: datetime) -> None:
+        """Wake the Function at each new reminder's time (marked "q"). Anything not queued (no
+        queue here, over 7 days out, the day's cap used, the queue down) is sent by its timer."""
+        if self.enqueue is None:
+            return
+        for r in reminders:
+            if r.get("sent") or r.get("q"):
+                continue
+            delay = int((datetime.fromisoformat(r["at"]) - now).total_seconds())
+            if delay > MAX_DELAY_S or not self._take_slot(now):
+                continue
+            try:
+                self.enqueue({"id": pid}, max(0, delay))
+            except httpx.HTTPError:
+                return
+            r["q"] = True
+
+    def _take_slot(self, now: datetime) -> bool:
+        """At most QUEUE_MAX_PER_DAY queued alerts a day across every phone (the cost cap)."""
+        name = f"push/_q-{now:%Y%m%d}.json"
+        raw = self.read(name)
+        used = json.loads(raw).get("n", 0) if raw else 0
+        if used >= QUEUE_MAX_PER_DAY:
+            return False
+        self.write(name, json.dumps({"n": used + 1}).encode())
+        return True
 
     def send_now(self, pid: str, message: dict) -> list[str]:
         """Send one alert at once to every channel the phone has; returns the channels that took
@@ -190,6 +248,7 @@ class PushStore:
         now = now or datetime.now(UTC)
         doc["reminders"] = [r for r in doc.get("reminders", []) if r.get("title") != TEST["title"]]
         doc["reminders"].append({"at": now.isoformat()} | TEST)
+        self._queue(pid, doc["reminders"], now)
         self._save(pid, doc)
         return {"queued": True}
 

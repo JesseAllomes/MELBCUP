@@ -121,3 +121,28 @@ def test_telegram_route_needs_the_secret(monkeypatch):
         r = c.post("/api/telegram", json=update, headers={"X-Telegram-Bot-Api-Secret-Token": "s3cret"})
         assert r.json() == {"ok": True, "done": "linked"}
         assert c.post("/api/push/status", json={"id": pid}).json()["telegram"] is True
+
+
+def test_new_reminders_are_queued_once_to_wake_at_their_time():
+    blobs, queued = {}, []
+    s = PushStore(blobs.get, blobs.__setitem__, enqueue=lambda m, d: queued.append((m["id"], d)))
+    pid = s.subscribe(SUB)
+    soon = {"at": "2026-11-04T23:15:00+00:00", "title": "Stage 1 tips off in 15 min"}
+    far = {"at": "2026-11-12T23:00:00+00:00", "title": "Over 7 days out"}
+    assert s.remind(pid, [soon, far], NOW) == 2
+    assert queued == [(pid, 900)]  # 15 min; the far one is left to the timer
+    assert s.remind(pid, [soon], NOW) == 1 and len(queued) == 1  # page reloads queue nothing new
+    assert json.loads(blobs[f"push/{pid}.json"])["reminders"][0]["q"] is True
+    assert s.test(pid, NOW) == {"queued": True} and queued[-1] == (pid, 0)  # no keys here: test via the queue
+
+
+def test_the_daily_queue_cap_holds():
+    from melbcup import push_store
+
+    blobs, queued = {}, []
+    s = PushStore(blobs.get, blobs.__setitem__, enqueue=lambda m, d: queued.append(d))
+    pid = s.subscribe(SUB)
+    many = [{"at": f"2026-11-04T23:{m:02d}:00+00:00", "title": f"r{m}"} for m in range(10, 20)]
+    blobs[f"push/_q-{NOW:%Y%m%d}.json"] = json.dumps({"n": push_store.QUEUE_MAX_PER_DAY - 3}).encode()
+    s.remind(pid, many, NOW)
+    assert len(queued) == 3

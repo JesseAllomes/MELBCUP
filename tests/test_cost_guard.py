@@ -201,6 +201,28 @@ def test_c5_timer_rate(tree, capsys):
     expect(tree, capsys, "C5")
 
 
+def test_c5_queue_trigger_only_on_its_queue(tree, capsys):
+    edit(app(tree), 'queue_name="alerts"', 'queue_name="other"')
+    expect(tree, capsys, "C5")
+
+
+def test_queue_alerts_are_counted_at_their_cap():
+    limits = json.loads((Path(__file__).resolve().parents[1] / "azure/limits.json").read_text())
+    with_q = cost_guard.function_cost(limits, 55, 512)["function_window_worst_case"]
+    del limits["function"]["allowed_functions"]["alerts_due"]
+    without = cost_guard.function_cost(limits, 55, 512)["function_window_worst_case"]
+    assert with_q > without
+
+
+def test_the_web_app_queues_no_more_than_the_guard_counts():
+    from melbcup import push_store
+
+    limits = json.loads((Path(__file__).resolve().parents[1] / "azure/limits.json").read_text())
+    spec = limits["function"]["allowed_functions"]["alerts_due"]
+    assert push_store.QUEUE_MAX_PER_DAY <= spec["queue_max_per_day"]
+    assert push_store.QUEUE == spec["queue"]
+
+
 def test_c5_anonymous_on_the_wrong_route(tree, capsys):
     edit(app(tree), 'route="github/reenter"', 'route="github/other"')
     expect(tree, capsys, "C5")

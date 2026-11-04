@@ -89,3 +89,19 @@ def test_a_blocked_bot_unlinks_and_a_waiting_link_is_kept():
     sent, dropped = push_send.send_due(Container(store), NOW, None, tg_token="T", tg_send=lambda t, c, m: 403)
     assert (sent, dropped) == (0, 1) and "push/aaaaaaaaaaaaaaaaaaaa.json" not in store
     assert "push/cccccccccccccccccccc.json" in store  # not linked yet: kept for its /start
+
+
+def test_the_queue_wakes_one_phone_on_time_and_the_timer_only_backs_it_up():
+    pid = "aaaaaaaaaaaaaaaaaaaa"
+    at = "2026-11-05T00:00:30+00:00"  # due 30 s after NOW
+    store = {f"push/{pid}.json": json.dumps({"tg": 42, "reminders": [{"at": at, "title": "Stage 1 tips off", "q": True}]}).encode()}
+    said = []
+    tg = lambda t, c, m: said.append(m["title"]) or 200  # noqa: E731
+    assert push_send.send_due(Container(store), NOW, None, tg_token="T", tg_send=tg) == (0, 0)  # the queue owns it
+    assert push_send.send_one(Container(store), pid, NOW, None, tg_token="T", tg_send=tg) == (1, 0)
+    assert push_send.send_one(Container(store), pid, NOW, None, tg_token="T", tg_send=tg) == (0, 0)  # once
+    assert said == ["Stage 1 tips off"]
+    assert push_send.send_one(Container(store), "nope", NOW, None) == (0, 0)
+    assert push_send.send_one(Container(store), "b" * 20, NOW, None) == (0, 0)  # no such phone
+    late = {f"push/{pid}.json": json.dumps({"tg": 42, "reminders": [{"at": "2026-11-04T23:57:00+00:00", "title": "missed by the queue", "q": True}]}).encode()}
+    assert push_send.send_due(Container(late), NOW, None, tg_token="T", tg_send=tg) == (1, 0)

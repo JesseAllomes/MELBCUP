@@ -136,6 +136,9 @@ def azure_stubs() -> dict[str, types.ModuleType]:
         def route(self, **_):
             return lambda fn: fn
 
+        def queue_trigger(self, **_):
+            return lambda fn: fn
+
     class DefaultAzureCredential:
         def get_token(self, *_):
             return types.SimpleNamespace(token="arm-token")
@@ -161,6 +164,7 @@ def azure_stubs() -> dict[str, types.ModuleType]:
             HttpRequest=HttpRequest,
             HttpResponse=HttpResponse,
             TimerRequest=object,
+            QueueMessage=object,
             AuthLevel=types.SimpleNamespace(ANONYMOUS="anonymous"),
         ),
     }
