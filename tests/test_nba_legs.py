@@ -13,11 +13,19 @@ pytest.importorskip("scipy")
 import legs as L  # noqa: E402
 import settle as S  # noqa: E402
 
-PARAMS = {s: {"phi": 1.2, "ca": 1.0, "cb": 0.0} for s in ("points", "reboundsTotal", "assists", "threePointersMade")}
+PARAMS = {
+    s: {"phi": 1.2, "ca": 1.0, "cb": 0.0}
+    for s in ("points", "reboundsTotal", "assists", "threePointersMade")
+}
 
 
 def player(name, team, pts):
-    return {"name": name, "team": team, "minutes": 32.0, "mu": {"points": pts, "reboundsTotal": 6.0, "assists": 4.0, "threePointersMade": 2.0}}
+    return {
+        "name": name,
+        "team": team,
+        "minutes": 32.0,
+        "mu": {"points": pts, "reboundsTotal": 6.0, "assists": 4.0, "threePointersMade": 2.0},
+    }
 
 
 BOARD = {
@@ -43,20 +51,40 @@ def out(name, price, unit="Points"):
 
 
 def event(key, name, outcomes):
-    return {"event": key, "name": name, "markets": [{"group": "Player Points Markets", "outcomes": outcomes}]}
+    return {
+        "event": key,
+        "name": name,
+        "markets": [{"group": "Player Points Markets", "outcomes": outcomes}],
+    }
 
 
 EVENTS = [
-    event("1", "Philadelphia 76ers @ Detroit Pistons", [out("Joel Embiid To Score 10+ Points", 1.20), out("Cade Cunningham To Score 10+ Points", 1.01)]),
+    event(
+        "1",
+        "Philadelphia 76ers @ Detroit Pistons",
+        [
+            out("Joel Embiid To Score 10+ Points", 1.20),
+            out("Cade Cunningham To Score 10+ Points", 1.01),
+        ],
+    ),
     event("2", "Charlotte Hornets @ Brooklyn Nets", [out("L. Ball To Score 10+ Points", 1.20)]),
-    event("3", "Dallas Mavericks @ San Antonio Spurs", [out("Victor Wembanyama To Score 10+ Points", 1.20), out("S. Gilgeous-Alexander To Score 10+ Points", 1.5)]),
+    event(
+        "3",
+        "Dallas Mavericks @ San Antonio Spurs",
+        [
+            out("Victor Wembanyama To Score 10+ Points", 1.20),
+            out("S. Gilgeous-Alexander To Score 10+ Points", 1.5),
+        ],
+    ),
 ]
 
 
 def test_parses_lines_matches_initials_and_guards_team():
     legs, unmatched = L.legs_from(EVENTS, BOARD)
     labels = {g["label"]: g for g in legs}
-    assert labels["L. Ball To Score 10+ Points"]["player"] == "LaMelo Ball"  # initial + surname, same game
+    assert (
+        labels["L. Ball To Score 10+ Points"]["player"] == "LaMelo Ball"
+    )  # initial + surname, same game
     assert "S. Gilgeous-Alexander" in unmatched  # OKC is not in that game: never priced
     g = labels["Joel Embiid To Score 10+ Points"]
     assert g["line"] == 10 and g["stat"] == "points"
@@ -71,13 +99,19 @@ def test_value_needs_likely_and_above_fair_and_cross_multi_is_one_leg_per_game()
     assert all(g["chance"] >= 0.75 and g["ev"] >= 0.03 for g in ok)
     assert len(cross) == 1 and cross[0]["legs"] == 3
     m = cross[0]
-    assert m["returns"] == round(10 * 1.2 ** 3, 2)  # $10 on three $1.20 legs
+    assert m["returns"] == round(10 * 1.2**3, 2)  # $10 on three $1.20 legs
     assert len({p.split(" To ")[0] for p in m["picks"]}) == 3
     assert same == []  # no game has 3 value legs
 
 
 def test_nothing_worth_taking_when_prices_are_short():
-    short = [event("1", "Philadelphia 76ers @ Detroit Pistons", [out("Joel Embiid To Score 10+ Points", 1.01)])]
+    short = [
+        event(
+            "1",
+            "Philadelphia 76ers @ Detroit Pistons",
+            [out("Joel Embiid To Score 10+ Points", 1.01)],
+        )
+    ]
     legs, _ = L.legs_from(short, BOARD)
     ok, cross, same = L.build(legs, 0.75, 10.0, 0.03)
     assert ok == [] and cross == [] and same == []
@@ -109,7 +143,13 @@ def test_best_stack_is_the_most_likely_combination_that_pays_the_target():
             legs = []
             for _li in range(4):
                 c = rnd.uniform(0.3, 0.97)
-                legs.append({"chance": c, "price": round(max(1.01, rnd.uniform(0.8, 1.2) / c), 2), "game": str(gi)})
+                legs.append(
+                    {
+                        "chance": c,
+                        "price": round(max(1.01, rnd.uniform(0.8, 1.2) / c), 2),
+                        "game": str(gi),
+                    }
+                )
             groups.append(L.frontier(legs))
         target = rnd.choice([2.0, 3.0, 5.0])
         got = L.best_stack(groups, target)
@@ -124,7 +164,9 @@ def test_best_stack_is_the_most_likely_combination_that_pays_the_target():
             continue
         assert len({g["game"] for g in got}) == len(got) >= 3  # one leg per game
         assert math.prod(g["price"] for g in got) >= target - 1e-9
-        assert math.prod(g["chance"] for g in got) >= best - 1e-9  # nothing likelier reaches the target
+        assert (
+            math.prod(g["chance"] for g in got) >= best - 1e-9
+        )  # nothing likelier reaches the target
 
 
 def test_frontier_drops_a_leg_that_pays_less_and_is_no_more_likely():
@@ -135,8 +177,19 @@ def test_frontier_drops_a_leg_that_pays_less_and_is_no_more_likely():
 
 
 def test_stacks_reach_each_payout_with_three_games():
-    legs = [{"event": e, "game": e, "player": f"{e}{i}", "label": f"{e}{i}", "team": "T", "chance": c, "price": p}
-            for e in "ABC" for i, (c, p) in enumerate([(0.9, 1.15), (0.7, 1.5), (0.62, 1.9)])]
+    legs = [
+        {
+            "event": e,
+            "game": e,
+            "player": f"{e}{i}",
+            "label": f"{e}{i}",
+            "team": "T",
+            "chance": c,
+            "price": p,
+        }
+        for e in "ABC"
+        for i, (c, p) in enumerate([(0.9, 1.15), (0.7, 1.5), (0.62, 1.9)])
+    ]
     cross, same = L.stacks(legs)
     assert [m["target"] for m in cross] == [2.0, 3.0, 5.0]  # 1.9 x 1.9 x 1.9 = 6.86: no $100
     for m in cross:
@@ -144,7 +197,10 @@ def test_stacks_reach_each_payout_with_three_games():
     # $20 on $10: 0.9 x 0.9 x 0.7 at $1.15 x $1.15 x $1.5 = $1.98 falls just short; the likeliest
     # stack that pays is 0.9 x 0.9 x 0.62 ($2.51), ahead of 0.9 x 0.7 x 0.7 ($2.59)
     assert cross[0]["chance"] == round(0.9 * 0.9 * 0.62, 4)
-    assert [m["target"] for m in same] == [2.0, 3.0]  # one game: 3 players, at most $1.15 x $1.5 x $1.9
+    assert [m["target"] for m in same] == [
+        2.0,
+        3.0,
+    ]  # one game: 3 players, at most $1.15 x $1.5 x $1.9
 
 
 def test_by_game_shows_each_players_surest_line_that_still_pays():
@@ -158,12 +214,15 @@ def test_by_game_shows_each_players_surest_line_that_still_pays():
     assert [g["label"] for g in game["legs"]] == ["B 8+", "A 10+"]  # A 5+ pays too little
 
 
-@pytest.mark.parametrize("label,unit,stat", [
-    ("Joel Embiid To Get 8+ Rebounds", "Rebounds", "reboundsTotal"),
-    ("Joel Embiid To Get 5+ Assists", "Assists", "assists"),
-    ("Joel Embiid To Make 2+ Threes", "Threes", "threePointersMade"),
-    ("Joel Embiid To Score 20+ Points", "Points", "points"),
-])
+@pytest.mark.parametrize(
+    "label,unit,stat",
+    [
+        ("Joel Embiid To Get 8+ Rebounds", "Rebounds", "reboundsTotal"),
+        ("Joel Embiid To Get 5+ Assists", "Assists", "assists"),
+        ("Joel Embiid To Make 2+ Threes", "Threes", "threePointersMade"),
+        ("Joel Embiid To Score 20+ Points", "Points", "points"),
+    ],
+)
 def test_every_stat_is_priced_with_the_boards_names(label, unit, stat):
     ev = [event("1", "Philadelphia 76ers @ Detroit Pistons", [out(label, 1.5, unit)])]
     legs, unmatched = L.legs_from(ev, BOARD)
@@ -180,21 +239,48 @@ def test_sportsbet_lines_parse_with_unders_and_settle_both_ways():
     assert ev[0]["startsAt"] == "2026-11-05T00:10:00Z"
     outs = ev[0]["markets"][0]["outcomes"]
     assert not any("Pts" in o["name"] for o in outs)  # combined stats (Pts + Reb) left out
-    ou = [o for o in outs if o["name"].startswith("Joel Embiid") and "Points" in o["name"] and ("Over" in o["name"] or "Under" in o["name"])]
-    assert {(o["k"], o["under"]) for o in ou} == {(20, False), (20, True)}  # Over/Under 19.5 -> the 20 line
-    board = {"day": "20261104", "params": PARAMS,
-             "games": [{"name": "Philadelphia 76ers at Detroit Pistons", "teams": {"home": "DET", "away": "PHI"}}],
-             "players": [player("Joel Embiid", "PHI", 24.0)]}
+    ou = [
+        o
+        for o in outs
+        if o["name"].startswith("Joel Embiid")
+        and "Points" in o["name"]
+        and ("Over" in o["name"] or "Under" in o["name"])
+    ]
+    assert {(o["k"], o["under"]) for o in ou} == {
+        (20, False),
+        (20, True),
+    }  # Over/Under 19.5 -> the 20 line
+    board = {
+        "day": "20261104",
+        "params": PARAMS,
+        "games": [
+            {
+                "name": "Philadelphia 76ers at Detroit Pistons",
+                "teams": {"home": "DET", "away": "PHI"},
+            }
+        ],
+        "players": [player("Joel Embiid", "PHI", 24.0)],
+    }
     legs, _ = L.legs_from(ev, board)
     over = next(g for g in legs if g["label"] == "Joel Embiid Over 19.5 Points")
     under = next(g for g in legs if g["label"] == "Joel Embiid Under 19.5 Points")
     assert abs(over["chance"] + under["chance"] - 1) < 1e-3 and under["under"] and not over["under"]
     rows = {"joel embiid": {"min": 30, "points": 19}}
-    assert [x["result"] for x in S.settle([over, under], rows)] == ["lost", "won"]  # 19 points: the under wins
+    assert [x["result"] for x in S.settle([over, under], rows)] == [
+        "lost",
+        "won",
+    ]  # 19 points: the under wins
 
 
 def _leg(player_, line, under, price, model=0.5):
-    return {"player": player_, "stat": "points", "line": line, "under": under, "price": price, "model": model}
+    return {
+        "player": player_,
+        "stat": "points",
+        "line": line,
+        "under": under,
+        "price": price,
+        "model": model,
+    }
 
 
 def test_devig_of_a_pair():
@@ -226,3 +312,78 @@ def test_blend_math_and_no_market_fallback():
     assert legs[0]["market"] == 0.2 and legs[0]["model"] == 0.3 and legs[0]["chance"] < 0.3
     assert legs[1]["market"] is None and legs[1]["chance"] == 0.8
     assert legs[1]["ev"] == pytest.approx(0.8 * 1.5 - 1)
+
+
+def _cleg(player, team, stat, chance, price=1.5, under=False):
+    return {
+        "event": "1",
+        "game": "G",
+        "player": player,
+        "team": team,
+        "stat": stat,
+        "line": 10,
+        "under": under,
+        "label": f"{player} {stat}",
+        "chance": chance,
+        "price": price,
+    }
+
+
+def test_copula_with_no_correlation_is_the_product(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {})
+    legs = [
+        _cleg("A", "X", "points", 0.7),
+        _cleg("B", "X", "assists", 0.8),
+        _cleg("C", "Y", "points", 0.6),
+    ]
+    assert N.joint_chance(legs) == pytest.approx(0.7 * 0.8 * 0.6)
+    monkeypatch.setattr(
+        N, "CORR", {("team", "pts", "ast"): 1e-9}
+    )  # forces the draws: still the product
+    assert N.joint_chance(legs) == pytest.approx(0.7 * 0.8 * 0.6, abs=0.03)
+
+
+def test_correlation_moves_the_joint_chance_the_right_way(monkeypatch):
+    from melbcup import nba_legs as N
+
+    legs = [_cleg("A", "X", "points", 0.7), _cleg("A", "X", "reboundsTotal", 0.7)]
+    monkeypatch.setattr(N, "CORR", {("self", "pts", "reb"): 0.6})
+    assert N.joint_chance(legs) > 0.49 + 0.05
+    over_under = [legs[0], _cleg("A", "X", "reboundsTotal", 0.7, under=True)]
+    assert N.joint_chance(over_under) < 0.49  # an under moves against an over
+    monkeypatch.setattr(N, "CORR", {("self", "pts", "reb"): -0.6})
+    assert N.joint_chance(legs) < 0.49 - 0.05
+
+
+def test_joint_chance_is_deterministic_and_a_single_leg_keeps_its_chance(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {("team", "pts", "pts"): 0.3, ("opp", "pts", "pts"): 0.2})
+    legs = [
+        _cleg("A", "X", "points", 0.75),
+        _cleg("B", "X", "points", 0.65),
+        _cleg("C", "Y", "points", 0.7),
+    ]
+    first = N.joint_chance(legs)
+    assert N.joint_chance(list(reversed(legs))) == first == N.joint_chance(legs)
+    assert N.joint_chance(legs[:1]) == 0.75
+    assert first > 0.75 * 0.65 * 0.7
+
+
+def test_same_game_multi_chance_is_the_joint_chance(monkeypatch):
+    from melbcup import nba_legs as N
+
+    monkeypatch.setattr(N, "CORR", {("team", "pts", "pts"): 0.5})
+    legs = [
+        _cleg(p, "X", "points", c, 1.6) for p, c in (("A", 0.8), ("B", 0.75), ("C", 0.7), ("D", 0.7))
+    ]
+    (found,) = N.same_game_many(legs, [3.0])[3.0]
+    independent = 1.0
+    for g in found["detail"]:
+        independent *= g["chance"]
+    assert found["chance"] > independent + 0.02
+    assert found["chance"] == round(
+        N.joint_chance([g for g in legs if g["label"] in found["picks"]]), 4
+    )

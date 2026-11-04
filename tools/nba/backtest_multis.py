@@ -28,10 +28,11 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", ".."))
+from correlation import load_jsonl  # noqa: E402
 from tune import LINES, STATS, build, load  # noqa: E402
 from tune_v3 import predict  # noqa: E402
 
-from melbcup.nba_legs import best_stack, frontier  # noqa: E402
+from melbcup.nba_legs import best_same_game, best_stack, frontier  # noqa: E402
 
 TARGETS = (2.0, 3.0, 5.0, 10.0)
 
@@ -52,7 +53,7 @@ def nights(R, season, v3, margin):
                 night = str(R["when"][ix])[:10]
                 game = "|".join(sorted((str(R["team"][ix]), str(R["opp"][ix]))))
                 out[night][game].append({"player": R["pid"][ix], "label": f"{R['pid'][ix]} {s} {k}+", "chance": c,
-                                         "price": max(1.01, round(1 / (c * (1 + margin)), 2)), "won": bool(hit[j]), "game": game})
+                                         "price": max(1.01, round(1 / (c * (1 + margin)), 2)), "won": bool(hit[j]), "game": game, "stat": s, "team": str(R["team"][ix])})
     return out
 
 
@@ -77,14 +78,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("boxdir"); ap.add_argument("--season", default="00224")
     ap.add_argument("--margin", type=float, default=0.05); ap.add_argument("--out")
+    ap.add_argument("--copula", action="store_true", help="same-game stacks re-scored by the copula (melbcup.nba_legs.joint_chance)")
     a = ap.parse_args()
     if a.season >= "00225":
         raise SystemExit("2025-26 and later stay sealed")
-    games = [g for g in load(a.boxdir) if g[1] <= a.season]
+    games = [g for g in (load_jsonl(a.boxdir) if os.path.isfile(a.boxdir) else load(a.boxdir)) if g[1] <= a.season]
     R = build(games)
     v3 = json.load(open(os.path.join(HERE, "model_v3.json")))
     N = nights(R, a.season, v3, a.margin)
-    cross, same, picks_log = [], [], []
+    cross, same, same_indep, picks_log = [], [], [], []
     by_target = defaultdict(list)
     step_results = []  # (night, said chance, price, won) for the ~5x step, in date order
     for night in sorted(N):
@@ -102,9 +104,17 @@ def main():
             for g in legs:
                 byp[g["player"]].append(g)
             pg = [frontier([g for g in x if g["chance"] >= 0.6]) for x in byp.values()]
-            st = best_stack([x for x in pg if x], 3.0, max_legs=6)
+            pg = [x for x in pg if x]
+            if a.copula:
+                hit = best_same_game(pg, [3.0])[3.0]
+                st, said = hit if hit else (None, 0.0)
+                if st:
+                    same_indep.append((math.prod(g["chance"] for g in st), all(g["won"] for g in st)))
+            else:
+                st = best_stack(pg, 3.0, max_legs=6)
+                said = math.prod(g["chance"] for g in st) if st else 0.0
             if st:
-                same.append((math.prod(g["chance"] for g in st), all(g["won"] for g in st)))
+                same.append((said, all(g["won"] for g in st)))
     print(f"season {a.season}: {len(N)} nights; leg prices assumed fair minus {a.margin:.0%}")
     table(cross, "1. Stacks across games (one leg per game), all payout targets")
     for t in TARGETS:
@@ -113,7 +123,9 @@ def main():
             n = len(xs); got = sum(x[1] for x in xs) / n; said = sum(x[0] for x in xs) / n
             ret = sum(x[2] for x in xs if x[1]) / n
             print(f"   $10 -> ${10*t:.0f}: {n} nights, said {100*said:.1f}%, got up {100*got:.1f}%, return per $1 at assumed prices {ret:.2f}")
-    table(same, "2. Same-game stacks ($10 -> ~$30, one leg per player): legs treated as separate")
+    table(same, "2. Same-game stacks ($10 -> ~$30, one leg per player): " + ("joint chance from the copula" if a.copula else "legs treated as separate"))
+    if a.copula:
+        table(same_indep, "2b. the same copula-picked stacks, chance as if legs were separate")
     # 3. challenges: start with $10, each night stake the whole bank on the ~5x stack; $1000 = done
     runs, bank, nights_used, lengths = [], 10.0, 0, []
     for _night, _said, price, won in step_results:
