@@ -150,3 +150,23 @@ def test_a_new_challenge_keeps_the_history_and_waits_for_a_placed_stage():
     again = C.apply(ended, {"ch": "start", "chn": "2", "chpn": "2"}, DAY)
     assert (again["stages"], again["per_night"], again.get("active", True)) == (2, 2, True)
     assert len(again["bets"]) == 2  # today's money still counts the earlier stages
+
+
+def test_plan_recommends_the_stage_count_most_likely_to_finish():
+    def chances_for(xmap):  # a bigger payout a stage is harder: chance ~ 0.9 / price per game
+        return {n: [min(0.95, 0.9 / x), min(0.95, 0.85 / x), min(0.95, 0.8 / x), 0.1] for n, x in xmap.items()}
+
+    opts = C.plan(10, 250, True, chances_for)
+    assert [o["n"] for o in opts] == list(C.STAGES)
+    for o in opts:  # typical = the mean of the 3 best games, searched HAIRCUT above the payout
+        assert abs(o["typical"] - sum(c / (o["x"] / (1 - C.HAIRCUT)) for c in (0.9, 0.85, 0.8)) / 3) < 1e-9
+        assert abs(o["run"] - o["typical"] ** o["n"]) < 1e-12
+    best, why = C.recommend(opts)
+    assert best["run"] == max(o["run"] for o in opts) and f"{best['n']} stages" in why
+    assert C.recommend([]) == (None, "")
+
+
+def test_finish_chance_uses_a_typical_later_stage():
+    s = C.fresh(stages=3)
+    assert abs(C.finish_chance(0.6, s) - 0.6**3) < 1e-12
+    assert abs(C.finish_chance(0.6, s, 0.5) - 0.6 * 0.25) < 1e-12

@@ -58,16 +58,47 @@ def _money(text: str | None) -> float | None:
     return v if 0 < v < 1_000_000 else None
 
 
-def fresh(start=10.0, goal=1000.0, past=None, mode="game", keep=True, bets=None, stages=DEFAULT_STAGES, per_night=1) -> dict:
-    return {"start": start, "goal": goal, "bank": start, "steps": [], "past": past or [], "mode": mode,
-            "keep": keep, "kept": 0.0, "placed": None, "bets": bets or [], "stages": stages, "per_night": per_night}
+def fresh(
+    start=10.0,
+    goal=1000.0,
+    past=None,
+    mode="game",
+    keep=True,
+    bets=None,
+    stages=DEFAULT_STAGES,
+    per_night=1,
+) -> dict:
+    return {
+        "start": start,
+        "goal": goal,
+        "bank": start,
+        "steps": [],
+        "past": past or [],
+        "mode": mode,
+        "keep": keep,
+        "kept": 0.0,
+        "placed": None,
+        "bets": bets or [],
+        "stages": stages,
+        "per_night": per_night,
+    }
 
 
 def _again(state: dict, **extra) -> dict:
     """A new run with the same settings, history and bet log."""
-    return fresh(state["start"], state["goal"], state.get("past", []), state.get("mode", "game"),
-                 state.get("keep", True), state.get("bets", []), state.get("stages", DEFAULT_STAGES),
-                 state.get("per_night", 1)) | extra
+    return (
+        fresh(
+            state["start"],
+            state["goal"],
+            state.get("past", []),
+            state.get("mode", "game"),
+            state.get("keep", True),
+            state.get("bets", []),
+            state.get("stages", DEFAULT_STAGES),
+            state.get("per_night", 1),
+        )
+        | extra
+    )
 
 
 def _settle(state: dict, result: str, returned: float = 0.0) -> list:
@@ -98,8 +129,21 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         old = state or {}
         if old.get("placed") and old.get("active", True):
             return state  # a placed stage settles first
-        return fresh(start, max(goal, start * 2), old.get("past", []), mode, keep, old.get("bets", []), stages, per_night)
-    if state is None or act not in ("place", "won", "lost", "reset", "new") or state.get("active") is False:
+        return fresh(
+            start,
+            max(goal, start * 2),
+            old.get("past", []),
+            mode,
+            keep,
+            old.get("bets", []),
+            stages,
+            per_night,
+        )
+    if (
+        state is None
+        or act not in ("place", "won", "lost", "reset", "new")
+        or state.get("active") is False
+    ):
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
@@ -112,26 +156,40 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     if act == "place":
         if state.get("placed"):
             return state
-        bet = {"id": max([b.get("id", 0) for b in state.get("bets", [])], default=0) + 1, "day": today,
-               "ag": query.get("chag") or "sb", "stake": state["bank"], "price": _money(query.get("chp")),
-               "label": (query.get("chl") or "")[:120], "state": "placed", "ret": 0.0,
-               "tip": (query.get("chtip") or "")[:32]}
+        bet = {
+            "id": max([b.get("id", 0) for b in state.get("bets", [])], default=0) + 1,
+            "day": today,
+            "ag": query.get("chag") or "sb",
+            "stake": state["bank"],
+            "price": _money(query.get("chp")),
+            "label": (query.get("chl") or "")[:120],
+            "state": "placed",
+            "ret": 0.0,
+            "tip": (query.get("chtip") or "")[:32],
+        }
         return state | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first
     if act == "lost":
-        past = (state.get("past", []) + [{"steps": len(state["steps"]), "best": state["bank"], "made_it": False}])[-MAX_HISTORY:]
+        past = (
+            state.get("past", [])
+            + [{"steps": len(state["steps"]), "best": state["bank"], "made_it": False}]
+        )[-MAX_HISTORY:]
         return _again(state | {"bets": _settle(state, "lost"), "past": past})
     returned = _money(query.get("chr"))
     if returned is None or returned <= state["placed"]["stake"]:
         return state
     bets = _settle(state, "won", returned)
-    steps = state["steps"] + [{"from": state["bank"], "to": returned, "tip": state["placed"].get("tip", "")}]
+    steps = state["steps"] + [
+        {"from": state["bank"], "to": returned, "tip": state["placed"].get("tip", "")}
+    ]
     kept, bank = state.get("kept", 0.0), returned
     if state.get("keep", True) and not state["steps"]:  # first win: the starting stake goes back
         kept, bank = state["start"], round(returned - state["start"], 2)
     if bank >= reach(state["goal"]):
-        past = (state.get("past", []) + [{"steps": len(steps), "best": returned, "made_it": True}])[-MAX_HISTORY:]
+        past = (state.get("past", []) + [{"steps": len(steps), "best": returned, "made_it": True}])[
+            -MAX_HISTORY:
+        ]
         return _again(state | {"bets": bets, "past": past}, last_win=returned)
     return state | {"bank": bank, "steps": steps, "kept": kept, "placed": None, "bets": bets}
 
@@ -193,12 +251,85 @@ def result_due(state: dict) -> datetime | None:
     return tip + GAME if tip else None
 
 
-def finish_chance(stage_chance: float | None, state: dict) -> float | None:
-    """The chance of winning every stage still to play, if each is about as likely as this one."""
-    return None if stage_chance is None else stage_chance ** remaining(state)
+HAIRCUT = 0.035  # a same-game multi pays about this much under its legs multiplied (Sportsbet: $2.30 for $2.38)
+TYPICAL_OF = 3  # a later stage is about as likely as tonight's third-best games, not the very best
 
 
-GOAL_SLACK = 0.02  # aim 2% under the goal: safer legs beat squeezing out the last $20 (owner, 2026-11-04)
+def typical(chances: list[float]) -> float | None:
+    """What a later stage is likely to offer: the mean of tonight's TYPICAL_OF best games."""
+    top = sorted(chances, reverse=True)[:TYPICAL_OF]
+    return sum(top) / len(top) if top else None
+
+
+def finish_chance(
+    stage_chance: float | None, state: dict, later: float | None = None
+) -> float | None:
+    """The chance of winning every stage still to play: this stage at its own chance, the rest at
+    `later` (a typical stage, see typical()); without `later`, all at this one's."""
+    if stage_chance is None:
+        return None
+    rest = remaining(state) - 1
+    return stage_chance * (later if later is not None else stage_chance) ** rest
+
+
+def plan(start: float, goal: float, keep: bool, chances_for) -> list[dict]:
+    """For each stage count: the payout a stage, tonight's best and typical stage chance (searched
+    HAIRCUT above the payout, as the bookmaker prices the multi lower), and the chance to finish
+    at the typical one. chances_for({n: price}) -> {n: [one chance per game]}."""
+    xs = {n: stage_x(start, goal, n, keep) for n in STAGES}
+    got = chances_for({n: x / (1 - HAIRCUT) for n, x in xs.items()})
+    out = []
+    for n, x in xs.items():
+        cs = got.get(n) or []
+        t = typical(cs)
+        out.append(
+            {
+                "n": n,
+                "x": x,
+                "stage": max(cs) if cs else None,
+                "typical": t,
+                "run": t**n if t else None,
+            }
+        )
+    return out
+
+
+def recommend(options: list[dict]) -> tuple[dict | None, str]:
+    """The stage count with the best chance to finish (fewer stages on a near tie), and why."""
+    ok = [o for o in options if o["run"]]
+    if not ok:
+        return None, ""
+    best = max(ok, key=lambda o: (round(o["run"], 4), -o["n"]))
+    close = [o for o in ok if o is not best and o["run"] >= best["run"] * 0.9]
+    head = (
+        f"{best['n']} stages: about {best['x']:.1f}x a stage, each about {best['typical']:.0%} to "
+        f"get up, so {best['run']:.1%} to finish. "
+    )
+    ns = [o["n"] for o in ok]
+    if best["n"] == min(ns):
+        why = head + (
+            "Fewest stages wins tonight: every extra stage takes the bookmaker's margin again, "
+            "and that costs more than the easier multis gain."
+        )
+    elif best["n"] == max(ns):
+        why = head + (
+            "Most stages wins tonight: the big multis that fewer stages need rarely get up, "
+            "more than the extra wins in a row cost."
+        )
+    else:
+        why = head + (
+            "Fewer stages need bigger multis that rarely get up; more stages need more wins in "
+            f"a row, each paying the bookmaker's margin. {best['n']} is where the two balance "
+            "on tonight's lines."
+        )
+    if close:
+        why += " Close: " + ", ".join(f"{o['n']} stages {o['run']:.1%}" for o in close) + "."
+    return best, why
+
+
+GOAL_SLACK = (
+    0.02  # aim 2% under the goal: safer legs beat squeezing out the last $20 (owner, 2026-11-04)
+)
 
 
 def reach(goal: float) -> float:

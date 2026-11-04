@@ -407,9 +407,15 @@ class Views:
         if state is not None and state.get("active") is False:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
         legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
+        p_start = nba_challenge._money(query.get("chstart")) or 10.0
+        p_goal = max(nba_challenge._money(query.get("chgoal")) or 1000.0, p_start * 2)
+        p_keep = query.get("chkeep", "1") == "1" if query.get("chplan") else True
         preview = (
-            [] if state is not None else self._stage_preview(legs_now, nba_challenge, nba_legs)
+            []
+            if state is not None
+            else self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep)
         )
+        best, why = nba_challenge.recommend(preview) if preview else (None, "")
         step, games, wait, push = None, [], None, []
         if state is not None:
             x = nba_challenge.next_x(state)
@@ -482,8 +488,13 @@ class Views:
             "ch_step": step,
             "ch_games": games,
             "ch_preview": preview,
+            "ch_best": best,
+            "ch_why": why,
+            "ch_plan": {"start": p_start, "goal": p_goal, "keep": p_keep},
             "ch_wait": wait,
-            "ch_finish": nba_challenge.finish_chance(step["chance"], state)
+            "ch_finish": nba_challenge.finish_chance(
+                step["chance"], state, nba_challenge.typical([g["chance"] for g in games])
+            )
             if (state and step)
             else None,
             "ch_due": nba_challenge.result_due(state) if state else None,
@@ -491,31 +502,22 @@ class Views:
             "ch_left": nba_challenge.remaining(state) if state else None,
         }
 
-    def _stage_preview(self, legs, nba_challenge, nba_legs) -> list[dict]:
-        """For each number of stages: the payout per stage ($10 -> $1000, start kept) and, on
-        tonight's lines, the best one-game stage's chance and the whole run's (that chance to the
-        power of the stages). Kept per pricing, so the page stays fast."""
-        staged = ((self._nba._view[1] or {}).get("preview") or {}) if self._nba else {}
-        chances = staged.get(getattr(self, "_nba_pick", None) or "")
-        if chances:  # worked out by the Azure timer: nothing to do here
-            out = []
-            for n in nba_challenge.STAGES:
-                x = nba_challenge.stage_x(10.0, 1000.0, n, True)
-                p = chances.get(str(n), chances.get(n))
-                out.append({"n": n, "x": x, "stage": p, "run": p**n if p else None})
-            return out
-        key = (id(legs), len(legs))
-        cached = getattr(self, "_preview_cache", None)
-        if cached and cached[0] == key:
-            return cached[1]
-        xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
-        many = nba_legs.same_game_many(legs, list(xs.values()))  # one search per game, every size
-        out = []
-        for n, x in xs.items():
-            p = max((g["chance"] for g in many[x]), default=None)
-            out.append({"n": n, "x": x, "stage": p, "run": p**n if p else None})
-        self._preview_cache = (key, out)
-        return out
+    def _stage_preview(self, legs, nba_challenge, nba_legs, start=10.0, goal=1000.0, keep=True):
+        """The set-up table for this start and goal (nba_challenge.plan): per stage count, the
+        payout a stage, tonight's best and typical stage chance and the run's. Kept per lines and
+        goal, so only a new goal does the search (about a second)."""
+        key = (id(legs), len(legs), round(goal / start, 3), keep)
+        cache = self.__dict__.setdefault("_plan_cache", {})
+        if key not in cache:
+
+            def chances_for(xmap):
+                many = nba_legs.same_game_many(legs, list(set(xmap.values())))
+                return {n: [g["chance"] for g in many[x]] for n, x in xmap.items()}
+
+            if len(cache) > 8:
+                cache.clear()
+            cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
+        return cache[key]
 
     def warm_nba(self) -> None:
         """Load the NBA page data in the background when the app starts (owner: fast pages)."""
