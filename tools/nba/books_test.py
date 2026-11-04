@@ -167,12 +167,17 @@ def report(rows: list[dict]) -> str:
 def score(paths: list[str]) -> None:
     from settle import box
 
-    rows: list[dict] = []
+    latest: dict = {}  # one snapshot per night: the latest (closest to tip-off)
     for p in paths:
         snap = json.loads(Path(p).read_text())
+        day = snap["board"]["day"]
+        if day not in latest or snap["at"] > latest[day]["at"]:
+            latest[day] = snap
+    rows: list[dict] = []
+    for day, snap in sorted(latest.items()):
         board = snap["board"]
         legs = {b: L.legs_from(evs, board)[0] for b, evs in snap["books"].items()}
-        rows += rows_for(snap, legs, box(board["day"]))
+        rows += rows_for(snap, legs, box(day))
     print(report(rows) if rows else "nothing settled yet")
 
 
