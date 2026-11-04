@@ -119,6 +119,22 @@ class NbaFeed:
         self._board = (time.monotonic(), board, source)
         return board, source
 
+    def schedule(self) -> dict:
+        """{Melbourne night: [tip-offs]} for the coming week (the daily job's schedule.json),
+        kept an hour; {} when it cannot be read."""
+        stamp, sched = getattr(self, "_sched", (0.0, None))
+        if sched is not None and time.monotonic() - stamp < 3600:
+            return sched
+        sched = {}
+        if self.read_blob is not None:
+            try:
+                raw = self.read_blob("schedule.json")
+                sched = json.loads(raw) if raw else {}
+            except (httpx.HTTPError, ValueError, KeyError):
+                sched = {}
+        self._sched = (time.monotonic(), sched)
+        return sched
+
     def view(self) -> dict:
         """The page's data. A copy older than PRICES_TTL_S is still served at once while a
         background refresh fetches new prices, so only the very first visit waits."""

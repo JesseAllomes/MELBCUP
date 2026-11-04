@@ -144,6 +144,27 @@ def books_snapshot(store, board, now, snap=None) -> str:
         return f"books snapshot failed ({type(exc).__name__}); "
 
 
+SCHEDULE_DAYS = 9
+MEL = ZoneInfo("Australia/Melbourne")
+
+
+def schedule(today, fetch=get, days: int = SCHEDULE_DAYS) -> dict:
+    """{Melbourne night (ISO date): [tip-off ISO, ...]} for the coming US dates: the challenge's
+    week forecast counts each night's games (owner, 2026-11-05)."""
+    out: dict = {}
+    for ahead in range(days):
+        day = (today + dt.timedelta(days=ahead)).strftime("%Y%m%d")
+        for ev in fetch(f"{API}/scoreboard?dates={day}").get("events", []):
+            when = ev.get("date")
+            if not when:
+                continue
+            tip = dt.datetime.fromisoformat(when.replace("Z", "+00:00"))
+            out.setdefault(tip.astimezone(MEL).date().isoformat(), []).append(
+                tip.strftime("%Y-%m-%dT%H:%M:%SZ")
+            )
+    return {k: sorted(v) for k, v in sorted(out.items())}
+
+
 def run(store, now, fetch=get):
     today = now.astimezone(NY).date()
     hist = read_history(store)
@@ -162,6 +183,10 @@ def run(store, now, fetch=get):
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
+    try:
+        store.write("schedule.json", json.dumps(schedule(today, fetch)).encode())
+    except Exception as exc:  # the forecast falls back to tonight only
+        print(f"schedule failed ({type(exc).__name__})", flush=True)
     msg = books_snapshot(store, board, now) + f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg
