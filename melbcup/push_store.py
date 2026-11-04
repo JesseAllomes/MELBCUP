@@ -23,7 +23,7 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 
-from melbcup import tgbot, webpush
+from melbcup import tgbot
 from melbcup.nba_feed import TIMEOUT_S, _token, blob_reader
 
 ID = re.compile(r"^[0-9a-f]{20}$")
@@ -89,7 +89,7 @@ class PushStore:
         write=None,
         private_key: str | None = None,
         tg_token: str | None = None,
-        send_web=webpush.send,
+        send_web=None,
         tg_api=tgbot.call,
         enqueue=None,
     ):
@@ -206,6 +206,17 @@ class PushStore:
         self.write(name, json.dumps({"n": used + 1}).encode())
         return True
 
+    def _web_sender(self):
+        """Chrome push needs `cryptography`, which the web image may not have: then the Function
+        (which has it) sends Chrome alerts, woken through the queue."""
+        if self.send_web is None:
+            try:
+                from melbcup import webpush
+            except ImportError:
+                return None
+            self.send_web = webpush.send
+        return self.send_web
+
     def send_now(self, pid: str, message: dict) -> list[str]:
         """Send one alert at once to every channel the phone has; returns the channels that took
         it. A channel that refuses for good (push 404/410, bot blocked) is removed."""
@@ -215,7 +226,7 @@ class PushStore:
         if doc is None:
             raise PushError("this phone has no alerts on")
         took, changed = [], False
-        if doc.get("sub") and self.private_key:
+        if doc.get("sub") and self.private_key and self._web_sender():
             status = self.send_web(doc["sub"], message, self.private_key)
             if status in (200, 201, 202):
                 took.append("chrome")
@@ -234,17 +245,20 @@ class PushStore:
         return took
 
     def test(self, pid: str, now: datetime | None = None) -> dict:
-        """Send the test now when this app holds the keys; otherwise leave it for the timer."""
-        if self.private_key or self.tg_token:
-            took = self.send_now(pid, TEST)
-            if not took:
-                raise PushError("no channel took the test: turn alerts on again")
-            return {"sent": took}
+        """Send the test now when this app can reach every channel the phone has; otherwise the
+        queue wakes the Function to send it (seconds)."""
         if not ID.match(str(pid)):
             raise PushError("bad id")
         doc = self._load(pid)
         if doc is None:
             raise PushError("this phone has no alerts on")
+        web_ok = not doc.get("sub") or (self.private_key and self._web_sender())
+        tg_ok = not doc.get("tg") or self.tg_token
+        if web_ok and tg_ok and (doc.get("sub") or doc.get("tg")):
+            took = self.send_now(pid, TEST)
+            if not took:
+                raise PushError("no channel took the test: turn alerts on again")
+            return {"sent": took}
         now = now or datetime.now(UTC)
         doc["reminders"] = [r for r in doc.get("reminders", []) if r.get("title") != TEST["title"]]
         doc["reminders"].append({"at": now.isoformat()} | TEST)

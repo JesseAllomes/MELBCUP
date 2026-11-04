@@ -146,3 +146,16 @@ def test_the_daily_queue_cap_holds():
     blobs[f"push/_q-{NOW:%Y%m%d}.json"] = json.dumps({"n": push_store.QUEUE_MAX_PER_DAY - 3}).encode()
     s.remind(pid, many, NOW)
     assert len(queued) == 3
+
+
+def test_without_cryptography_a_chrome_test_goes_through_the_queue(monkeypatch):
+    import sys
+
+    import melbcup
+
+    monkeypatch.setitem(sys.modules, "melbcup.webpush", None)  # the web image has no cryptography
+    monkeypatch.delattr(melbcup, "webpush", raising=False)
+    blobs, queued = {}, []
+    s = PushStore(blobs.get, blobs.__setitem__, "KEY", "T", enqueue=lambda m, d: queued.append(d))
+    pid = s.subscribe(SUB)
+    assert s.test(pid, NOW) == {"queued": True} and queued == [0]
