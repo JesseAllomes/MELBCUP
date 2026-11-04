@@ -517,6 +517,17 @@ class Views:
         self._preview_cache = (key, out)
         return out
 
+    def warm_nba(self) -> None:
+        """Load the NBA page data in the background when the app starts (owner: fast pages)."""
+        try:
+            from melbcup.nba_feed import NbaFeed
+
+            if self._nba is None:
+                self._nba = NbaFeed()
+            self._nba.view()
+        except Exception:  # the page loads it on first visit instead
+            pass
+
     def _nba_view(self, query: Mapping[str, str]) -> dict:
         try:
             from melbcup.nba_feed import NbaFeed

@@ -119,3 +119,8 @@ def test_alerts_live_in_settings_on_every_page(on, monkeypatch):
     for path in ("/", "/mine", "/nba?tab=stacks"):
         html = on.get(path).text
         assert 'id="push-card"' in html and 'data-key="BKEY"' in html and ">Settings<" in html
+
+
+def test_tabs_preload_but_action_links_never_do(on):
+    html = on.get("/").text
+    assert '<script type="speculationrules">' in html and '"selector_matches": ".act"' in html

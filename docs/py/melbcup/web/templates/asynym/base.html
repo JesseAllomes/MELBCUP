@@ -11,6 +11,13 @@
   <link rel="stylesheet" href="/static/asynym.css?v={{ asset_v }}">
   <script src="/static/app.js?v={{ asset_v }}" defer></script>
   <script src="/static/asynym.js?v={{ asset_v }}" defer></script>
+  {# Chrome pre-loads a page when a link is about to be tapped, so tabs open at once. Links that
+     change something (an action in the query) are never pre-loaded. #}
+  <script type="speculationrules">
+  {"prerender": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"selector_matches": ".act"}},
+    {"not": {"href_matches": "/actions/*"}}, {"not": {"href_matches": "/api/*"}}]},
+    "eagerness": "moderate"}]}
+  </script>
 </head>
 <body class="az">
   <main id="main" class="app" data-refresh="{% block refresh %}30{% endblock %}">

@@ -106,7 +106,7 @@
   <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': ' ~ (nba_agency_name or 'PointsBet') ~ ' needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
-  {% if not placed %}<p class="note ch-links"><a href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>
+  {% if not placed %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a class="act" href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>
   {% else %}<p class="note">To restart or change the settings, mark this stage won or lost first (its stake is real money).</p>{% endif %}
   {% endif %}
   {% if ch and ch.past %}<p class="note">Earlier runs: {% for r in ch.past[-8:] %}{{ '✓ $%.0f' % r.best if r.made_it else '✗ at stage %d' % (r.steps + 1) }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}

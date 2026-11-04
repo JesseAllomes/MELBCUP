@@ -7,6 +7,7 @@ Rendering and actions live in views.py, shared with the browser build.
 from __future__ import annotations
 
 import secrets
+import threading
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -93,6 +94,8 @@ def create_app(
         if start_background:
             board.start()
             stop_auto = start_loop(betting) if betting is not None else None
+            if settings.asynym:  # warm the NBA page data while the first visitor waits for nothing
+                threading.Thread(target=views.warm_nba, daemon=True).start()
         yield
         if stop_auto is not None:
             stop_auto.set()

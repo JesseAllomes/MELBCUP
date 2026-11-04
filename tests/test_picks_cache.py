@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """The day's picks are worked out once per set of race models and budget (melbcup/live.py)."""
 
 from conftest import Router
