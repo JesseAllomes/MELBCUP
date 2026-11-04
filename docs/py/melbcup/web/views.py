@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -683,7 +684,9 @@ class Views:
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
     ) -> str:
         """HTML for a page path; raises NotFound. ``cookies`` carries the remembered budget."""
+        t0 = time.perf_counter()
         ctx = self._context(path, query, cookies)
+        self.timing = {"context": time.perf_counter() - t0}
         ctx["cookies"] = cookies or {}
         if self.settings.asynym and path != "/history":
             return self._asynym_page(path, query, ctx)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -683,7 +684,9 @@ class Views:
         self, path: str, query: Mapping[str, str], cookies: Mapping[str, str] | None = None
     ) -> str:
         """HTML for a page path; raises NotFound. ``cookies`` carries the remembered budget."""
+        t0 = time.perf_counter()
         ctx = self._context(path, query, cookies)
+        self.timing = {"context": time.perf_counter() - t0}
         ctx["cookies"] = cookies or {}
         if self.settings.asynym and path != "/history":
             return self._asynym_page(path, query, ctx)
@@ -738,9 +741,13 @@ class Views:
         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
         if path == "/nba":
             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
+            t0 = time.perf_counter()
             ctx.update(self._nba_view(query))
+            self.timing["nba"] = time.perf_counter() - t0
             if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
+                t0 = time.perf_counter()
                 ctx.update(self._challenge(query, ctx))
+                self.timing["challenge"] = time.perf_counter() - t0
             return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))

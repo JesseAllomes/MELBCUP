@@ -19,6 +19,16 @@
     {% endfor %}
   </div>
   <form class="agp" id="agp" method="get" action="{{ path }}">
+    {% if push_key %}
+    <div class="push-card" id="push-card" data-key="{{ push_key }}">
+      <div class="sec"><span>Phone alerts</span><span id="push-state"></span></div>
+      <p class="note">Stage tip-offs and results, even with the app closed.</p>
+      <button type="button" id="push-on" hidden>Chrome alerts</button>
+      <button type="button" id="tg-on">Telegram alerts</button>
+      <button type="button" id="push-test" hidden>Send a test</button>
+      <p class="note" id="tg-note" hidden>Press Start in Telegram; linked within 10 min (7am-7pm).</p>
+    </div>
+    {% endif %}
     <div class="sec"><span>Agencies</span></div>
     <p class="note">The model always reads every agency's prices. Switch one on when you have money in it, so the app tracks your balance and sends bets there.</p>
     <input type="hidden" name="ag" value="1">
@@ -31,16 +41,6 @@
     </div>
     {% endfor %}
     <button type="submit" class="save">Save</button>
-    {% if push_key %}
-    <div class="push-card" id="push-card" data-key="{{ push_key }}">
-      <div class="sec"><span>Phone alerts</span><span id="push-state"></span></div>
-      <p class="note">Stage tip-offs and results, even with the app closed.</p>
-      <button type="button" id="push-on" hidden>Chrome alerts</button>
-      <button type="button" id="tg-on">Telegram alerts</button>
-      <button type="button" id="push-test" hidden>Send a test</button>
-      <p class="note" id="tg-note" hidden>Press Start in Telegram; linked within 10 min (7am-7pm).</p>
-    </div>
-    {% endif %}
   </form>
   {% if countdown %}
   {% set first = countdown[0] %}

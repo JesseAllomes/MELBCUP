@@ -7,6 +7,7 @@ Rendering and actions live in views.py, shared with the browser build.
 from __future__ import annotations
 
 import secrets
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
@@ -266,11 +267,16 @@ def create_app(
 
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):
+        started = time.perf_counter()
         try:
             html = views.page("/" + path, request.query_params, request.cookies)
         except NotFound as exc:
             raise HTTPException(404, str(exc)) from exc
         response = HTMLResponse(html)
+        # where the server's time went, for the browser's network panel and for tuning
+        timing = dict(getattr(views, "timing", {}) or {})
+        timing["total"] = time.perf_counter() - started
+        response.headers["Server-Timing"] = ", ".join(f"{k};dur={v * 1000:.0f}" for k, v in timing.items())
         query = request.query_params
         keep = {"max_age": 365 * 86400, "samesite": "lax", "httponly": True}
         if "budget" in query:  # the old single budget: remembered for /api/offer too
