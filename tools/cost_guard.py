@@ -313,9 +313,10 @@ def check_job(rep: Report, limits: dict, doc, where: str) -> float:
         )
         timeout = cfg["max_replica_timeout_s"]
     secrets = [x.get("name") for x in conf.get("secrets") or []]
-    if [x for x in secrets if x != "ghcr-token"]:
+    allowed_secrets = {"ghcr-token", *cfg.get("secrets", [])}  # owner-approved, named in limits
+    if [x for x in secrets if x not in allowed_secrets]:
         rep.fail(
-            "C12", where, f"secrets {secrets!r}: only the registry token ghcr-token is allowed"
+            "C12", where, f"secrets {secrets!r}: only {sorted(allowed_secrets)!r} are allowed"
         )
     containers = (props.get("template") or {}).get("containers") or []
     if not containers:
@@ -328,7 +329,7 @@ def check_job(rep: Report, limits: dict, doc, where: str) -> float:
         rep.fail("C12", where, f"memory {mem:g}Gi must be <= {cfg['max_memory_gi']:g}Gi")
     for c in containers:
         for env in c.get("env") or []:
-            if "secretRef" in env:
+            if "secretRef" in env and env["secretRef"] not in cfg.get("secrets", []):
                 rep.fail("C12", where, f"env {env.get('name')!r} reads a secret")
     prices = limits["prices"]
     seconds = runs * 30 * timeout

@@ -88,12 +88,15 @@ def us_books(key: str, hours: float = 36) -> dict:
     return books
 
 
+def snapshot(board: dict, key: str) -> dict:
+    books = {"pb": L.live_events()} | us_books(key)
+    return {"at": dt.datetime.now(dt.UTC).isoformat(), "board": board, "books": books}
+
+
 def pull(board_path: str, out_path: str) -> None:
-    board = json.loads(Path(board_path).read_text())
-    books = {"pb": L.live_events()} | us_books(os.environ["ODDS_API_KEY"])
-    snap = {"at": dt.datetime.now(dt.UTC).isoformat(), "board": board, "books": books}
+    snap = snapshot(json.loads(Path(board_path).read_text()), os.environ["ODDS_API_KEY"])
     Path(out_path).write_text(json.dumps(snap))
-    print(out_path, {b: len(v) for b, v in books.items()})
+    print(out_path, {b: len(v) for b, v in snap["books"].items()})
 
 
 def _ll(p: float, y: int) -> float:

@@ -63,7 +63,7 @@ JOB = {
     "repo": "jesseallomes/melbcup-nba",
     "url": f"{ARM}/Microsoft.App/jobs/melbcup-nba?api-version=2025-01-01",
     "spec": "azure/jobs/melbcup-nba.json",
-    "files": [(f"tools/nba/{n}", f"app/tools/nba/{n}") for n in ("board.py", "tune.py", "tune_v4.py", "settle.py", "espn_history.py", "daily.py", "legs.py", "model_v3.json", "model_v4.json", "forward_report.py")]
+    "files": [(f"tools/nba/{n}", f"app/tools/nba/{n}") for n in ("board.py", "tune.py", "tune_v4.py", "settle.py", "espn_history.py", "daily.py", "legs.py", "model_v3.json", "model_v4.json", "forward_report.py", "books_test.py")]
     + [("melbcup/__init__.py", "app/melbcup/__init__.py"), ("melbcup/nba_legs.py", "app/melbcup/nba_legs.py")],
     "live": "job-melbcup-nba.json",
 }

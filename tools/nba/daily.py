@@ -125,6 +125,25 @@ def settle_day(store, day, rows_by_name):
     return len(done)
 
 
+BOOKS_TEST_UNTIL = "2026-11-08"  # US-books test (owner, 2026-11-04): ~56 Odds API credits a night
+
+
+def books_snapshot(store, board, now, snap=None) -> str:
+    """US books' prices next to PointsBet for the coming slate (tools/nba/books_test.py), while
+    the test runs and the job has ODDS_API_KEY. Never stops the board."""
+    key = os.environ.get("ODDS_API_KEY")
+    if not key or now.date().isoformat() > os.environ.get("BOOKS_TEST_UNTIL", BOOKS_TEST_UNTIL):
+        return ""
+    try:
+        if snap is None:
+            from books_test import snapshot as snap
+        body = json.dumps(snap(board, key)).encode()
+        store.write(f"bookstest/books-{now:%Y%m%dT%H%M}.json", body)
+        return "books snapshot saved; "
+    except Exception as exc:  # the Odds API down or out of credits
+        return f"books snapshot failed ({type(exc).__name__}); "
+
+
 def run(store, now, fetch=get):
     today = now.astimezone(NY).date()
     hist = read_history(store)
@@ -143,7 +162,7 @@ def run(store, now, fetch=get):
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
-    msg = f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
+    msg = books_snapshot(store, board, now) + f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg
 

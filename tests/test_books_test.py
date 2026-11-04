@@ -41,3 +41,21 @@ def test_report_compares_the_ways():
     text = B.report(rows)
     assert "bets settled: 10" in text and "model+all" in text
     assert "best model weight with all books: 0.0" in text  # a perfect market wins
+
+
+def test_the_daily_job_saves_a_snapshot_only_while_the_test_runs(monkeypatch):
+    import datetime as dt
+
+    import daily
+
+    saved = {}
+    store = type("S", (), {"write": lambda self, k, v: saved.__setitem__(k, v)})()
+    now = dt.datetime(2026, 11, 5, 22, 30, tzinfo=dt.UTC)
+    monkeypatch.delenv("ODDS_API_KEY", raising=False)
+    assert daily.books_snapshot(store, {}, now, lambda b, k: {}) == "" and saved == {}
+    monkeypatch.setenv("ODDS_API_KEY", "K")
+    assert daily.books_snapshot(store, {}, now, lambda b, k: {"k": k}) == "books snapshot saved; "
+    assert list(saved) == ["bookstest/books-20261105T2230.json"]
+    late = dt.datetime(2026, 11, 9, 22, 30, tzinfo=dt.UTC)
+    assert daily.books_snapshot(store, {}, late, lambda b, k: {}) == ""
+    assert "failed" in daily.books_snapshot(store, {}, now, lambda b, k: 1 / 0)
