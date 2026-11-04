@@ -2,6 +2,7 @@
 """NBA prop price collector (azure/function/nba_props.py): writes a game only when prices change."""
 
 import datetime as dt
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -84,16 +85,15 @@ def test_price_legs_needs_todays_board_and_carries_started_games_forward():
 
 
 def test_build_view_saves_both_agencies_for_the_page():
-    import gzip
 
     nba = Container()
     now = dt.datetime(2026, 11, 4, 23, 0, tzinfo=dt.UTC)
-    assert nba_props.build_view(nba, [], now) == "no board"
+    assert nba_props.build_view(nba, [], now, inj_fetch=lambda u: {}) == "no board"
     nba.store["board-latest.json"] = json.dumps(BOARD).encode()
     game = snap("1", "Philadelphia 76ers @ Detroit Pistons", 1.30)
     sb = [{"event": "sb1", "name": "Philadelphia 76ers @ Detroit Pistons", "startsAt": "x", "markets": [{"group": "sportsbet", "outcomes": [
         {"name": "Joel Embiid 10+ Points", "price": 1.4, "player": "Joel Embiid", "stat": "points", "k": 10, "under": False}]}]}]
-    out = nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb)
+    out = nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb, inj_fetch=lambda u: {})
     assert out.startswith("view") and "pb 1" in out and "sb 1" in out
     view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
     assert view["day"] == "20261104" and view["pricedAt"] == now.isoformat() and set(view["preview"]) == {"pb", "sb"}
@@ -101,6 +101,37 @@ def test_build_view_saves_both_agencies_for_the_page():
     def down():
         raise OSError("blocked")
 
-    nba_props.build_view(nba, [game], now, sb_fetch=down)
+    nba_props.build_view(nba, [game], now, sb_fetch=down, inj_fetch=lambda u: {})
     view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
     assert "did not answer" in view["agencies"]["sb"]["error"] and view["agencies"]["pb"]["report"]["all_legs"]
+
+
+def test_injuries_drop_out_players_mark_doubtful_and_log_both_agencies():
+
+    nba = Container()
+    now = dt.datetime(2026, 11, 4, 23, 0, tzinfo=dt.UTC)
+    nba.store["board-latest.json"] = json.dumps(BOARD).encode()
+    game = snap("1", "Philadelphia 76ers @ Detroit Pistons", 1.30)
+    sb = [{"event": "sb1", "name": "Philadelphia 76ers @ Detroit Pistons", "startsAt": "x", "markets": [{"group": "sportsbet", "outcomes": [
+        {"name": "Joel Embiid 10+ Points", "price": 1.4, "player": "Joel Embiid", "stat": "points", "k": 10, "under": False}]}]}]
+
+    def espn(status):
+        return lambda u: {"injuries": [{"injuries": [{"status": status, "athlete": {"displayName": "Joel Embiid"}}]}]}
+
+    nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb, inj_fetch=espn("Out"))
+    view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
+    assert view["agencies"]["pb"]["report"]["all_legs"] == [] and view["agencies"]["sb"]["report"]["all_legs"] == []
+    assert view["injuries"] == 1
+    nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb, inj_fetch=espn("Doubtful"))
+    view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
+    assert view["agencies"]["pb"]["report"]["all_legs"][0]["injury"] == "doubtful"
+    for ag in ("pb", "sb"):
+        log = json.loads(nba.store[f"20261104/log-{ag}.json"])
+        leg = log["legs"][0]
+        assert leg["agency"] == ag and leg["k"] == 10 and leg["player"] == "Joel Embiid" and leg["injury"] == "doubtful"
+        assert {"price", "chance", "under", "stat"} <= set(leg)
+        assert any(m["kind"] == "by_game" for m in log["multis"])
+    # ESPN down: no change
+    nba_props.build_view(nba, [game], now, sb_fetch=lambda: sb, inj_fetch=lambda u: 1 / 0)
+    view = json.loads(gzip.decompress(nba.store["view-latest.json.gz"]))
+    assert "injury" not in view["agencies"]["pb"]["report"]["all_legs"][0]
