@@ -391,3 +391,13 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .push-card button { margin: 6px 8px 0 0; padding: 8px 14px; border-radius: 10px; border: 0; font-weight: 700; background: var(--brand); color: #fff; }
 .push-card #push-test { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
 .alt-pay { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--good); background: var(--good-wash); border: 1px solid var(--good); vertical-align: middle; white-space: nowrap; }
+/* Settings panel: compact type (owner) */
+.agp { font-size: 12px; padding: 10px 12px !important; }
+.agp .sec span { font-size: 10.5px; }
+.agp .note { font-size: 11px; line-height: 1.35; }
+.agrow { padding: 4px 7px; min-height: 30px; }
+.agrow .nm b { font-size: 12px; font-weight: 700; }
+.bal, .bal input { font-size: 11.5px; }
+.agp .save { padding: 7px 10px; font-size: 13px; min-height: 0; }
+.push-card { padding: 8px; }
+.push-card button { padding: 5px 10px; font-size: 12px; }
