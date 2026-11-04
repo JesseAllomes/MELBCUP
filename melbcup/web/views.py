@@ -476,7 +476,6 @@ class Views:
                         key=lambda r: r["t"],
                     )
         return {
-            "push_key": os.environ.get("VAPID_PUBLIC_KEY", ""),
             "push_reminders": push,
             "ch": state,
             "ch_step": step,
@@ -645,6 +644,7 @@ class Views:
                 a.used = (a.used if racing_today else 0.0) + nba_used.get(a.code, 0.0)
         day_pnl = TodayMoney((day_bets.profit if racing_today else 0.0) + nba_profit)
         return {
+            "push_key": os.environ.get("VAPID_PUBLIC_KEY", ""),  # phone alerts, in Settings
             "day_pnl": day_pnl,
             "ch_state": ch_state,
             "az": az,

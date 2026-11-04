@@ -112,3 +112,10 @@ def test_autobet_is_off_unless_switched_on(on):
     """The owner does not use auto-betting (2026-11-04): no betting routes while AUTOBET is unset."""
     assert on.get("/api/betting").status_code == 404
     assert on.post("/api/betting/bet", json={"race": 1, "runner": 1, "stake": 5, "pin": "x"}).status_code in (404, 405)
+
+
+def test_alerts_live_in_settings_on_every_page(on, monkeypatch):
+    monkeypatch.setenv("VAPID_PUBLIC_KEY", "BKEY")
+    for path in ("/", "/mine", "/nba?tab=stacks"):
+        html = on.get(path).text
+        assert 'id="push-card"' in html and 'data-key="BKEY"' in html and ">Settings<" in html

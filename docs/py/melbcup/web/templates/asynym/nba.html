@@ -110,17 +110,8 @@
   {% else %}<p class="note">To restart or change the settings, mark this stage won or lost first (its stake is real money).</p>{% endif %}
   {% endif %}
   {% if ch and ch.past %}<p class="note">Earlier runs: {% for r in ch.past[-8:] %}{{ '✓ $%.0f' % r.best if r.made_it else '✗ at stage %d' % (r.steps + 1) }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
-  {% if push_key %}
-  <div class="push-card" id="push-card" data-key="{{ push_key }}">
-    <div class="sec"><span>Phone alerts</span><span id="push-state"></span></div>
-    <p class="note">A buzz 15 minutes before a stage's game tips off, and when its result is due, even with the app closed: in Chrome, on Telegram, or both.</p>
-    <button type="button" id="push-on" hidden>Turn on Chrome alerts</button>
-    <button type="button" id="tg-on">Get alerts on Telegram</button>
-    <button type="button" id="push-test" hidden>Send a test</button>
-    <p class="note" id="tg-note" hidden>In Telegram press Start. The link is made within 10 minutes (7am to 7pm) and the bot replies "Linked".</p>
-  </div>
   <script type="application/json" id="push-reminders">{{ push_reminders | tojson }}</script>
-  {% endif %}
+  <p class="note">Alerts for these stages: Settings (top of the page), Phone alerts.</p>
   <p class="note">Each stage uses the multi most likely to pay that stage's share of the goal, from the model's chances; legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
 </section>
 {% elif nba_tab == 'games' %}
