@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=177 -->
+<!-- drainclamp-build: state; schema=1; generation=178 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -112,7 +112,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T12:52:38+00:00 565cd2fd Owner: hold mkt1 except data-pull scripts; finish NBA. nba1: PointsBet prop price collector on Azure (nba_props_run every 20 min 7am-3:40pm AEDT, changed snapshots to blob nba-props); props not posted 37 h before tip, captured when they appear. nba_history timer removed (ESPN replaces it). Worst case $24.27.
 - 2026-11-03T12:54:49+00:00 ac4d7204 NBA v3 rolling validation (folds 2021-22, 2022-23, 2023-24; each tuned on earlier seasons): beats v2 in 12/12 fold-stat pairs. Check 2024-25 log loss v1/v2/v3: points .3475/.3409/.3341, rebounds .3687/.3616/.3547, assists .3236/.3167/.3117, threes .4684/.4575/.4538. Role minutes weight g ~0.8, usage share 0.5-1.0, blowout ~0. v3 frozen in tools/nba/model_v3.json. 2025-26 still sealed.
 - 2026-11-03T13:00:18+00:00 cbab9663 nba2 live: tools/nba/board.py prices a day's games with v3 through the backtest feature code (build() now takes 'upcoming' fixtures). Dry run 2026-11-04: 14 games, 336 players. Expected line-up = 2 of last 5 games, starters = last game's, ESPN injury Out removed. Current season 00226 pulled (107 games). PointsBet props collector live in Azure (deploy 41639467183). NEXT CHUNK: parse PointsBet prop outcomes (posted game day) -> legs with chance + EV; nba3 multi builder (3-10 legs, likely AND >= fair, cross-game, same-game penalty); nightly ESPN settle + forward log; then Azure board timer + AsynymBet NBA tab.
 - 2026-11-03T19:15:26+00:00 2a05aace 2026-11-04 nba1+nba3+settle built: legs (azure/function/nba_legs.py, PB 'X To Score N+' -> chance/fair/EV; value = chance>=75% AND EV>=+3%; cross-game 1 leg/game 3-10; same-game list), settle.py + forward.jsonl, daily job tools/nba/daily.py (ACA job melbcup-nba 22:30 UTC, 1vCPU/2GiB/300s, C12 in cost guard, $24.54/$25). Pushed to branch ccr-63b3240a-qdwy3g (commit ec676e33), NOT main: needs owner OK for (a) Storage Blob Data Contributor on container nba for UAI e533dd19 + owner SP (classifier blocked the grant), (b) deploy dispatch with limits_approved (C10: jobs added). Then: upload history pack (scratch nba/store/history/games.jsonl.gz), push main, dispatch. Next after: nba4 NBA tab in AsynymBet.
@@ -132,4 +131,5 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-04T08:17:22+00:00 91c5fb57 2026-11-04 owner idea (LATER, not now): cost monitor at monitor.asynym.dev reporting all Azure usage and costs across the tenant (Cost Management query by RG/meter; usage Nov 1-4: functions 0.88 GB-h, tenant ~A$4.80 mostly rg-parlebros-fleet VM + E6 disk). Agency bubble committed f42bf317 (branch, not deployed). Still pending owner: approve nba_props_run 27->72/day to deploy alerts + bubble.
 - 2026-11-04T08:27:50+00:00 b9652955 2026-11-04 DEPLOYED cce33561 (owner approved timer 72/day): Chrome push + Telegram alerts (t.me/AsynymBetBot, token in Function setting TELEGRAM_BOT_TOKEN + scratch telegram.env; owner pasted token in chat -> suggest /revoke later), agency bubble, nba_probe retired. Live: sw.js 200, push card, nba_props_run every 10 min 20-23,0-7 UTC. Owner: follow DC output rules, terse.
 - 2026-11-04T08:32:46+00:00 c28436f0 2026-11-04 alerts moved to header Settings panel (global, every page); Agencies button renamed Settings. Deployed web.
+- 2026-11-04T09:05:17+00:00 6cfe336d 2026-11-04 st1 speed: NBA view staged by Function (view-latest.json.gz, both agencies, 9.6s build), best_stacks one pass + FRONT_CAP 3, racing picks cache, NBA warm-up at start, speculationrules prerender (.act excluded), Server-Timing header.
 <!-- /DC:LOG -->
