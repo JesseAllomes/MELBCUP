@@ -116,10 +116,22 @@ def live_events():
 
 SB = "https://www.sportsbet.com.au/apigw/sportsbook-sports/Sportsbook/Sports"
 SB_NBA = "6927"
-SB_STAT = {"Points": "points", "Rebounds": "reboundsTotal", "Assists": "assists", "Made Threes": "threePointersMade"}
-SB_ALT = re.compile(r"^(?:To (?:Score|Record) )?(?P<k>\d+)\+ (?P<what>Points|Rebounds|Assists|Made Threes)$")
+SB_STAT = {
+    "Points": "points",
+    "Rebounds": "reboundsTotal",
+    "Assists": "assists",
+    "Made Threes": "threePointersMade",
+}
+SB_ALT = re.compile(
+    r"^(?:To (?:Score|Record) )?(?P<k>\d+)\+ (?P<what>Points|Rebounds|Assists|Made Threes)$"
+)
 SB_OU = re.compile(r"^(?P<who>.+?) - (?P<what>Points|Rebounds|Assists|Made Threes)$")
-WORD = {"points": "Points", "reboundsTotal": "Rebounds", "assists": "Assists", "threePointersMade": "Threes"}
+WORD = {
+    "points": "Points",
+    "reboundsTotal": "Rebounds",
+    "assists": "Assists",
+    "threePointersMade": "Threes",
+}
 
 
 def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
@@ -138,7 +150,16 @@ def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
                 continue
             if alt:
                 k, stat, who = int(alt["k"]), SB_STAT[alt["what"]], sel.get("name") or ""
-                out.append({"name": f"{who} {k}+ {WORD[stat]}", "price": price, "player": who, "stat": stat, "k": k, "under": False})
+                out.append(
+                    {
+                        "name": f"{who} {k}+ {WORD[stat]}",
+                        "price": price,
+                        "player": who,
+                        "stat": stat,
+                        "k": k,
+                        "under": False,
+                    }
+                )
             elif ou:
                 try:
                     line = float(sel.get("unformattedHandicap"))
@@ -147,8 +168,16 @@ def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
                 under = (sel.get("name") or "").strip().endswith("Under")
                 stat, who = SB_STAT[ou["what"]], ou["who"]
                 side = "Under" if under else "Over"
-                out.append({"name": f"{who} {side} {line:g} {WORD[stat]}", "price": price, "player": who,
-                            "stat": stat, "k": math.floor(line) + 1, "under": under})
+                out.append(
+                    {
+                        "name": f"{who} {side} {line:g} {WORD[stat]}",
+                        "price": price,
+                        "player": who,
+                        "stat": stat,
+                        "k": math.floor(line) + 1,
+                        "under": under,
+                    }
+                )
     return out
 
 
@@ -159,10 +188,25 @@ def sportsbet_events(competition: dict, markets_by_event: dict) -> list[dict]:
         if e.get("bettingStatus") not in (None, "PRICED") or str(e["id"]) not in markets_by_event:
             continue
         start = e.get("startTime")
-        when = datetime.fromtimestamp(start, UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if isinstance(start, (int, float)) else start
+        when = (
+            datetime.fromtimestamp(start, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if isinstance(start, (int, float))
+            else start
+        )
         name = re.sub(r" At ", " @ ", e.get("name") or "")
-        out.append({"event": f"sb{e['id']}", "name": name, "startsAt": when,
-                    "markets": [{"group": "sportsbet", "outcomes": sportsbet_outcomes(markets_by_event[str(e["id"])])}]})
+        out.append(
+            {
+                "event": f"sb{e['id']}",
+                "name": name,
+                "startsAt": when,
+                "markets": [
+                    {
+                        "group": "sportsbet",
+                        "outcomes": sportsbet_outcomes(markets_by_event[str(e["id"])]),
+                    }
+                ],
+            }
+        )
     return out
 
 
@@ -172,9 +216,13 @@ def live_sportsbet():
     from concurrent.futures import ThreadPoolExecutor
 
     comp = get(f"{SB}/Competitions/{SB_NBA}?displayType=default&includeTopMarkets=false")
-    ids = [str(e["id"]) for e in comp.get("events") or [] if e.get("bettingStatus") in (None, "PRICED")][:20]
+    ids = [
+        str(e["id"]) for e in comp.get("events") or [] if e.get("bettingStatus") in (None, "PRICED")
+    ][:20]
     with ThreadPoolExecutor(max_workers=8) as pool:
-        markets = dict(zip(ids, pool.map(lambda i: get(f"{SB}/Events/{i}/Markets"), ids), strict=True))
+        markets = dict(
+            zip(ids, pool.map(lambda i: get(f"{SB}/Events/{i}/Markets"), ids), strict=True)
+        )
     return sportsbet_events(comp, markets)
 
 
@@ -232,7 +280,12 @@ def legs_from(events, board):
                     hit = LEG.match(o.get("name") or "")
                     if not hit:
                         continue
-                    who, s, k, under = hit["who"], stat_of(hit["what"], o.get("unitType")), int(hit["k"]), False
+                    who, s, k, under = (
+                        hit["who"],
+                        stat_of(hit["what"], o.get("unitType")),
+                        int(hit["k"]),
+                        False,
+                    )
                 p = find(players, who, teams)
                 if s is None:
                     continue
@@ -281,9 +334,26 @@ def multi(legs, stake):
         "returns": round(stake * price, 2),
         "picks": [g["label"] for g in legs],
         "detail": [
-            {k: g.get(k) for k in ("label", "chance", "price", "game", "team", "startsAt")} for g in legs
+            {
+                k: g.get(k)
+                for k in (
+                    "label",
+                    "chance",
+                    "price",
+                    "game",
+                    "team",
+                    "startsAt",
+                    "player",
+                    "stat",
+                    "line",
+                    "under",
+                )
+            }
+            for g in legs
         ],
-        "tip": max((g.get("startsAt") or "" for g in legs), default=""),  # when the last leg tips off
+        "tip": max(
+            (g.get("startsAt") or "" for g in legs), default=""
+        ),  # when the last leg tips off
     }
 
 
@@ -310,6 +380,26 @@ TARGETS = (2.0, 3.0, 5.0, 10.0, 20.0)  # payouts: $10 returns $20, $30, $50, $10
 STEP = 0.01  # price grid on a log scale (1% steps)
 SAME_MAX_LEGS = 6  # a same-game multi longer than this almost never gets up
 SAME_FLOOR = 0.6
+
+
+def bet_key(g: dict) -> tuple:
+    """The same bet at any agency: player, stat, line and side."""
+    return (g.get("player"), g.get("stat"), g.get("line"), bool(g.get("under")))
+
+
+def better_elsewhere(item: dict, prices: dict, code: str) -> dict | None:
+    """Does another agency pay more for this exact leg, or for every leg of this multi?
+    `prices`: that agency's {bet_key: price}. Returns {"code", "diff"} when it pays more."""
+    legs = item.get("detail") or [item]
+    mine, theirs = 1.0, 1.0
+    for g in legs:
+        other = prices.get(bet_key(g))
+        if other is None:
+            return None  # a leg it does not offer: not the same bet
+        mine *= g["price"]
+        theirs *= other
+    diff = round(theirs - mine, 2)
+    return {"code": code, "diff": diff} if diff > 0 else None
 
 
 def frontier(legs):

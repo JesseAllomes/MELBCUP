@@ -549,7 +549,25 @@ class Views:
             for c in ("sb", "pb")
             if c in agencies
         ]
+        # With both agencies switched on: a bubble when the other one pays more for the same bet
+        alt_prices, alt_code = {}, None
+        other = next((c for c in ("sb", "pb") if c != pick and c in agencies), None)
+        if other and other in on and pick in on:
+            from melbcup.nba_legs import bet_key, better_elsewhere
+
+            alt_code = other.upper()
+            for g in (agencies[other].get("report") or {}).get("all_legs") or []:
+                alt_prices[bet_key(g)] = max(g["price"], alt_prices.get(bet_key(g), 0))
+
+            def alt_pay(item):
+                return better_elsewhere(item, alt_prices, alt_code) if item else None
+        else:
+
+            def alt_pay(item):
+                return None
+
         return {
+            "alt_pay": alt_pay,
             "nba": v,
             "nba_tab": tab,
             "nba_rep": rep,

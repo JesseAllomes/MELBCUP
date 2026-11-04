@@ -176,3 +176,21 @@ def test_prices_come_from_the_agency_switched_on(bundled, monkeypatch):
         assert "with PointsBet lines" in html and "$1.30" in html
         c.get("/?ag=1&on_pb=1")  # only PointsBet on
         assert "with PointsBet lines" in c.get("/nba?tab=all").text
+
+
+def test_a_bubble_shows_when_the_other_agency_pays_more(bundled, monkeypatch):
+    def sb_events():
+        return [{"event": f"sb{i}", "name": f"{a} @ {h}", "startsAt": "2026-11-05T00:10:00Z",
+                 "markets": [{"group": "sportsbet", "outcomes": [
+                     {"name": f"{p} 10+ Points", "price": 1.4, "player": p, "stat": "points", "k": 10, "under": False}]}]}
+                for i, (a, _, h, _, p) in enumerate(GAMES)]
+
+    monkeypatch.setattr(nba_feed.NbaFeed.__init__, "__defaults__", (None, {"pb": events(1.30), "sb": sb_events}, bundled, lambda: NOW))
+    with make(ON) as c:
+        c.get("/?ag=1&on_sb=1&on_pb=1")
+        on_pb = c.get("/nba?tab=all&bk=pb").text
+        assert 'class="alt-pay"' in on_pb and "SB +0.10" in on_pb  # $1.40 at Sportsbet vs $1.30
+        assert "SB +0.55" in c.get("/nba?tab=stacks&bk=pb").text  # 1.4^3 - 1.3^3 on the 3-leg multi
+        assert 'class="alt-pay"' not in c.get("/nba?tab=all&bk=sb").text  # PointsBet pays less: no bubble
+        c.get("/?ag=1&on_pb=1")  # Sportsbet off: no comparison
+        assert 'class="alt-pay"' not in c.get("/nba?tab=all&bk=pb").text

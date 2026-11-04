@@ -1,5 +1,6 @@
 {% extends "asynym/base.html" %}
 {% from "asynym/_parts.html" import ring %}
+{% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
 {% block title %}NBA · AsynymBet{% endblock %}
 {% block refresh %}0{% endblock %}
 {% block content %}
@@ -24,7 +25,7 @@
 <section class="card">
   {% for m in rep.stacks %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b><span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
+    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}
@@ -36,7 +37,7 @@
 <section class="card">
   {% for m in rep.stacks_same %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b><span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
+    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b>{{ alt(m) }}<span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
@@ -82,7 +83,7 @@
   {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | when }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
   <p class="note">A win pays back into {{ ag.name }}; a loss ends the run.{% if ch.get('keep', True) and not ch.steps %} After this win ${{ '%.0f' % ch.start }} goes back to your pool and the rest rolls on.{% endif %}</p>
   {% elif ch_step %}{% set m = ch_step %}
-  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b><span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>
+  <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>
   <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
   {% if one_game %}<p class="note">Build it as a Same Game Multi at {{ nba_agency_name or 'PointsBet' }}; its price is usually below the legs multiplied, so put in the price you got.</p>{% endif %}
   <form method="get" action="/nba" class="ch-act">
@@ -96,7 +97,7 @@
   {% if one_game and ch_games | length > 1 %}
   <div class="sec"><span>Other games for this stage, by tip-off</span></div>
   {% for g in ch_games %}{% if g is not sameas m %}
-  <div class="brow nba-leg">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }}</small></span><span class="a">${{ '%.2f' % g.price }}</span></div>
+  <div class="brow nba-leg">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></div>
   {% endif %}{% endfor %}
   {% endif %}
   {% elif ch_wait %}
@@ -125,7 +126,7 @@
 <section class="card rows">
   <div class="sec"><span>{{ gm.game }}{% if gm.startsAt %} · {{ gm.startsAt | iso_time }}{% endif %}</span></div>
   {% for g in gm.legs %}
-  <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}</span></div>
+  <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></div>
   {% endfor %}
 </section>
 {% else %}<section class="card"><p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p></section>{% endfor %}
@@ -133,7 +134,7 @@
 {% else %}
 <section class="card rows">
   {% for g in rep.all_legs | sort(attribute='chance', reverse=True) %}{% if loop.index <= 120 %}
-  <div class="brow nba-leg{{ ' val' if g.chance >= rep.min_chance and g.ev >= rep.min_ev }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }}</small></span><span class="a">${{ '%.2f' % g.price }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
+  <div class="brow nba-leg{{ ' val' if g.chance >= rep.min_chance and g.ev >= rep.min_ev }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
   {% endif %}{% else %}<p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p>{% endfor %}
   {% if rep.all_legs | length > 120 %}<p class="note">Showing the 120 most likely of {{ rep.all_legs | length }} lines.</p>{% endif %}
 </section>
