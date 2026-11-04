@@ -96,26 +96,27 @@ body.az {
   border: 1px solid var(--rule); border-radius: 12px; padding: 8px 10px; }
 .agt:checked ~ .agp { display: block; }
 .agp .note { margin: 0 0 4px; }
-.agrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center;
-  padding: 9px 0; border-top: 1px solid var(--rule); }
-.agrow .nm b { font-size: 15px; display: block; }
-.agrow .nm small { color: var(--muted); font-size: 11.5px; }
-.sw { appearance: none; -webkit-appearance: none; width: 46px; height: 26px; border-radius: 13px;
-  background: var(--rule); border: 0; position: relative; margin: 0; cursor: pointer; }
-.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+.agrows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 6px 0 8px; }
+.agrow { display: grid; grid-template-columns: auto 1fr; gap: 4px 6px; align-items: center;
+  padding: 6px 8px; border-radius: 10px; background: var(--chip); min-height: 38px; min-width: 0; }
+.agrow .nm { min-width: 0; }
+.agrow .nm b { font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw { appearance: none; -webkit-appearance: none; width: 34px; height: 20px; border-radius: 10px;
+  background: var(--rule); border: 0; position: relative; margin: 0; cursor: pointer; flex: 0 0 auto; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px;
   border-radius: 50%; background: var(--muted); transition: left .15s; }
 .sw:checked { background: var(--accent2); }
-.sw:checked::after { left: 23px; background: #fff; }
+.sw:checked::after { left: 17px; background: #fff; }
 @media (prefers-reduced-motion: reduce) { .sw::after { transition: none; } }
-.bal { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; font-size: 12.5px;
-  color: var(--muted); }
+.bal { grid-column: 1 / -1; display: flex; gap: 4px; align-items: center; font-size: 12px; color: var(--muted); }
+.bal input { flex: 1; }
 .agrow.off .bal, .agrow:has(.sw:not(:checked)) .bal { display: none; }
 .az input[type=text], .az input[type=number], .az input:not([type]), .az select,
 .az input[type=date], .az input[inputmode] {
   background: var(--chip); border: 1px solid var(--rule); border-radius: 8px; color: var(--ink);
   padding: 6px 8px; min-width: 0;
 }
-.bal input { width: 96px; }
+.bal input { width: auto; min-width: 0; padding: 3px 6px !important; font-size: 12.5px; }
 .save, .wide-btn, .az form button.wide, .az .datepick button, .az .record-bet button[type=submit],
 .az .record-extra button[type=submit] {
   border: 0; background: var(--brand); color: var(--brand-ink); border-radius: 9px;

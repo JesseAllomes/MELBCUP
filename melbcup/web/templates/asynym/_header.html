@@ -30,16 +30,18 @@
     </div>
     {% endif %}
     <div class="sec"><span>Agencies</span></div>
-    <p class="note">The model always reads every agency's prices. Switch one on when you have money in it, so the app tracks your balance and sends bets there.</p>
+    <p class="note">On = you have money there (tracked). Prices always come from every agency.</p>
     <input type="hidden" name="ag" value="1">
     {% for k, v in keep.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <div class="agrows">
     {% for a in az.agencies %}
     <div class="agrow{{ '' if a.on else ' off' }}">
-      <label class="nm" for="on_{{ a.code }}"><b>{{ a.name }}</b><small>{{ 'Bets are sent here' if a.routed else 'Display only for now' }}</small></label>
       <input type="checkbox" class="sw" role="switch" id="on_{{ a.code }}" name="on_{{ a.code }}" value="1" {{ 'checked' if a.on }} aria-label="Track money in {{ a.name }}">
-      <label class="bal" for="m_{{ a.code }}">Today's money $<input id="m_{{ a.code }}" name="{{ {'sb':'sb','bf':'bf','pb':'pb','tab':'tb','lb':'lb','neds':'ne'}[a.code] }}" inputmode="decimal" autocomplete="off" value="{{ '%g' % a.amount }}"></label>
+      <label class="nm" for="on_{{ a.code }}"><b>{{ a.name }}</b></label>
+      <label class="bal" for="m_{{ a.code }}" aria-label="Today's money at {{ a.name }}">$<input id="m_{{ a.code }}" name="{{ {'sb':'sb','bf':'bf','pb':'pb','tab':'tb','lb':'lb','neds':'ne'}[a.code] }}" inputmode="decimal" autocomplete="off" value="{{ '%g' % a.amount }}"></label>
     </div>
     {% endfor %}
+    </div>
     <button type="submit" class="save">Save</button>
   </form>
   {% if countdown %}
