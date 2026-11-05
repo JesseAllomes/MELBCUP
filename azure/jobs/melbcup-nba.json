@@ -12,10 +12,10 @@
     "workloadProfileName": "Consumption",
     "configuration": {
       "triggerType": "Schedule",
-      "replicaTimeout": 300,
+      "replicaTimeout": 150,
       "replicaRetryLimit": 0,
       "scheduleTriggerConfig": {
-        "cronExpression": "30 22 * * *",
+        "cronExpression": "30 6,22 * * *",
         "parallelism": 1,
         "replicaCompletionCount": 1
       },

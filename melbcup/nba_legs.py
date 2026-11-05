@@ -264,7 +264,9 @@ def find(players, who, teams):
     return None
 
 
-BLEND_W = 0.0  # real prices (research/nba/dunk_real_prices.txt): the market beat the model, best weight 0
+BLEND_W = (
+    0.0  # real prices (research/nba/dunk_real_prices.txt): the market beat the model, best weight 0
+)
 OVERROUND = 1.07  # a feed's overround when it has no over/under pairs to estimate it from
 
 
@@ -315,7 +317,12 @@ def apply_market(legs: list[dict], market: dict) -> None:
     value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
     for g in legs:
         m = market.get(bet_key(g))
-        c = blend(g["model"], m)
+        if (
+            g["model"] is None
+        ):  # no board for this player: the market's chance, else its own price's
+            c = m if m is not None else g["chance"]
+        else:
+            c = blend(g["model"], m)
         g["market"] = None if m is None else round(m, 4)
         g["chance"] = round(c, 4)
         g["fair"] = round(1 / c, 2)
@@ -328,9 +335,9 @@ def legs_from(events, board):
     prm = board["params"]
     legs, unmatched = [], set()
     for ev in events:
-        teams = gteams.get(norm((ev.get("name") or "").replace(" @ ", " ")))
-        if not teams:
-            continue  # not one of the board's games (another day's game, or a name we cannot place)
+        # a game the board has not got (built for another day): its legs still show, priced by
+        # the market alone (owner, 2026-11-06: never clear the board)
+        teams = gteams.get(norm((ev.get("name") or "").replace(" @ ", " "))) or set()
         for m in ev["markets"]:
             for o in m["outcomes"]:
                 if o.get("isOpenForBetting") is False or not o.get("price"):
@@ -347,17 +354,23 @@ def legs_from(events, board):
                         int(hit["k"]),
                         False,
                     )
-                p = find(players, who, teams)
+                p = find(players, who, teams) if teams else None
                 if s is None:
                     continue
+                price = float(o["price"])
                 if p is None or s not in p["mu"]:
                     unmatched.add(who)
-                    continue
-                q = prm[s]
-                c = chance(p["mu"][s], q["phi"], q["ca"], q["cb"], k)
-                if under:  # "Under 19.5" wins on 19 or fewer: the other side of "20+"
-                    c = 1 - c
-                price = float(o["price"])
+                    p = {"name": who, "team": "", "mu": {}, "minutes": None}
+                    c, model = (
+                        min(1 / price / OVERROUND, 0.999),
+                        None,
+                    )  # the market's, refined in view()
+                else:
+                    q = prm[s]
+                    c = chance(p["mu"][s], q["phi"], q["ca"], q["cb"], k)
+                    if under:  # "Under 19.5" wins on 19 or fewer: the other side of "20+"
+                        c = 1 - c
+                    model = round(c, 4)
                 legs.append(
                     {
                         "game": ev["name"],
@@ -370,12 +383,12 @@ def legs_from(events, board):
                         "under": under,
                         "label": o["name"],
                         "price": price,
-                        "model": round(c, 4),
+                        "model": model,
                         "market": None,
                         "chance": round(c, 4),
                         "fair": round(1 / c, 2),
                         "ev": round(c * price - 1, 4),
-                        "expected": p["mu"][s],
+                        "expected": p["mu"].get(s),
                         "minutes": p["minutes"],
                     }
                 )
@@ -497,8 +510,12 @@ def _search(groups, targets, max_legs):
     cap = math.log(targets[-1]) + 1e-9
     top = int(cap / STEP)
     # logs once per leg, not once per partial stack
-    lgroups = [[(math.log(g["chance"]), math.log(g["price"]), g) for g in group] for group in groups]
-    states = [dict() for _ in range(max_legs + 1)]  # k legs -> {bucket: [(log chance, log price, picks)]}
+    lgroups = [
+        [(math.log(g["chance"]), math.log(g["price"]), g) for g in group] for group in groups
+    ]
+    states = [
+        dict() for _ in range(max_legs + 1)
+    ]  # k legs -> {bucket: [(log chance, log price, picks)]}
     states[0][0] = [(0.0, 0.0, ())]
     for group in lgroups:
         for k in range(max_legs - 1, -1, -1):  # downwards: one leg per group
@@ -586,7 +603,9 @@ CORR = {
     ("opp", "reb", "reb"): 0.012,
 }
 SHORT = {"points": "pts", "reboundsTotal": "reb", "assists": "ast", "threePointersMade": "3pm"}
-MC_DRAWS = 4000  # copula draws per re-score (the same draws for every candidate, so they compare fairly)
+MC_DRAWS = (
+    4000  # copula draws per re-score (the same draws for every candidate, so they compare fairly)
+)
 MC_SEED = 20261104
 MC_TOP = 20  # same-game candidates per target re-scored by the copula
 _DRAWS: list = []

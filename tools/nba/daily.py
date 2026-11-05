@@ -132,6 +132,8 @@ def books_snapshot(store, board, now, snap=None) -> str:
     """US books' prices next to PointsBet for the coming slate (tools/nba/books_test.py), while
     the test runs and the job has ODDS_API_KEY. Never stops the board."""
     key = os.environ.get("ODDS_API_KEY")
+    if now.hour < 18:  # the morning run (22:30 UTC) only: the 06:30 UTC board run spends no credits
+        return ""
     if not key or now.date().isoformat() > os.environ.get("BOOKS_TEST_UNTIL", BOOKS_TEST_UNTIL):
         return ""
     try:
