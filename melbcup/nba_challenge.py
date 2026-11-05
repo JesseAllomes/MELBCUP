@@ -147,7 +147,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage")
+        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best")
         or state.get("active") is False
     ):
         return state
@@ -158,6 +158,10 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
             return state
         return state | {"skip": max(night_, state.get("skip") or "")}
+    if act == "pick":  # stick to this game for the stage (owner, 2026-11-06)
+        return state | {"pick": str(query.get("chpick") or "")[:80]} if not state.get("placed") else state
+    if act == "best":  # back to the best multi on the current prices
+        return {k: v for k, v in state.items() if k != "pick"}
     if act in ("addstage", "dropstage"):  # change the plan mid-run (owner, 2026-11-05)
         n = state.get("stages", DEFAULT_STAGES) + (1 if act == "addstage" else -1)
         done = len(state["steps"]) + (1 if state.get("placed") else 0)
@@ -200,7 +204,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         }
         if state.get("bonus") or query.get("chbonus") == "1":  # staked with a bonus bet
             bet["bonus"] = 1
-        rest = {k: v for k, v in state.items() if k != "bonus"}
+        rest = {k: v for k, v in state.items() if k not in ("bonus", "pick")}
         return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first

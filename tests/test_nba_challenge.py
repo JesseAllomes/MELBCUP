@@ -285,3 +285,12 @@ def test_stages_can_be_added_or_removed_mid_run():
     for _ in range(9):
         s = C.apply(s, {"ch": "addstage", "chs": "0"}, DAY)
     assert s["stages"] == max(C.STAGES)
+
+
+def test_a_picked_game_sticks_until_find_best():
+    s = C.apply(None, {"ch": "start", "chn": "3"}, DAY)
+    s = C.apply(s, {"ch": "pick", "chs": "0", "chpick": "A @ B"}, DAY)
+    assert s["pick"] == "A @ B"
+    assert "pick" not in C.apply(s, {"ch": "best", "chs": "0"}, DAY)
+    placed = C.apply(s, {"ch": "place", "chs": "0", "chp": "2.4"}, DAY)
+    assert "pick" not in placed  # the next stage starts from the best again

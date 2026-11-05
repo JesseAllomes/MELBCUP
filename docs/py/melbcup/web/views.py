@@ -432,7 +432,7 @@ class Views:
             if state.get("mode", "game") == "game":
                 games = nba_legs.same_game_for(legs, x, stake=state["bank"])
                 step = max(games, key=lambda m: m["chance"]) if games else None
-                chosen = query.get("chpick")  # another game picked for this stage (owner)
+                chosen = state.get("pick")  # a game the owner stuck to for this stage
                 if chosen:
                     step = next((m for m in games if m.get("game") == chosen), step)
                 alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)

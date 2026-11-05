@@ -98,6 +98,7 @@
   {% set one_game = ch.get('mode', 'game') == 'game' %}
   {% set placed = ch.get('placed') %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
+  {% if not ch.get('placed') %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% if ch.get('pick') %} · stuck to {{ ch.pick }}{% endif %}</p>{% endif %}
   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>
   {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b> · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }} · aims for ${{ '%.0f' % (ch.goal * 0.98) }} (safer legs than chasing the last 2%)</p>{% endif %}
   {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
@@ -133,7 +134,7 @@
   {% if one_game and ch_games | length > 1 %}
   <div class="sec"><span>Other games for this stage, by tip-off · tap one to use it</span></div>
   {% for g in ch_games %}{% if g is not sameas m %}
-  <a class="brow nba-leg pick-other" href="/nba?tab=challenge&chpick={{ g.game | urlencode }}{{ '&bk=' ~ nba_agency if nba_agency }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }} · <u>use this game</u></small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></a>
+  <a class="brow nba-leg pick-other" href="/nba?tab=challenge&ch=pick&chs={{ ch.steps | length }}&chpick={{ g.game | urlencode }}{{ '&bk=' ~ nba_agency if nba_agency }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }} · <u>use this game</u></small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></a>
   {% endif %}{% endfor %}
   {% endif %}
   {% elif ch_wait %}
