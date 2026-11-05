@@ -780,12 +780,16 @@ def stage_preview(legs, xs: dict) -> dict:
     return {n: max((g["chance"] for g in many[x]), default=None) for n, x in xs.items()}
 
 
-def view(board, events_by_agency: dict, xs: dict | None = None) -> dict:
+def view(
+    board, events_by_agency: dict, xs: dict | None = None, market_only: dict | None = None
+) -> dict:
     """Everything the NBA page shows, worked out once (by the Azure timer) so the web app only
     reads it: per agency the report, and the challenge's stage table."""
     out = {"day": board.get("day"), "agencies": {}, "preview": {}}
     prepared = {code: legs_from(ev, board) for code, ev in events_by_agency.items()}
-    market = market_probs({code: p[0] for code, p in prepared.items()})
+    # market_only: books whose prices only sharpen the chances (US books: not bettable here)
+    extra = {f"x:{b}": legs_from(ev, board)[0] for b, ev in (market_only or {}).items()}
+    market = market_probs({code: p[0] for code, p in prepared.items()} | extra)
     for code, events in events_by_agency.items():
         rep = report(board, events, prepared=prepared[code], market=market)
         out["agencies"][code] = {"report": rep, "games": len(events), "error": None}

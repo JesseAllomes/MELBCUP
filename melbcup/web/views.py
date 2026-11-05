@@ -610,6 +610,14 @@ class Views:
         if self._nba is None:
             self._nba = NbaFeed()
         v = self._nba.view()
+        us_key = os.environ.get("ODDS_API_KEY")
+        us_note = None
+        if getattr(self, "_us_on", False) and us_key:  # US books, on request (owner, 2026-11-06)
+            uv = self._nba.us_view(us_key)
+            if uv is not None:
+                v = uv
+            else:
+                us_note = "The US books could not be read just now (or the credits ran out)."
         tab = query.get("tab")
         tab = tab if tab in ("stacks", "challenge", "games", "same", "all") else "stacks"
         # Prices from the agency picked here (?bk=), else the first agency switched ON in Agencies
@@ -656,6 +664,7 @@ class Views:
         return {
             "alt_pay": alt_pay,
             "nba": v,
+            "nba_us_note": us_note,
             "nba_tab": tab,
             "nba_rep": rep,
             "nba_games": games,
@@ -736,6 +745,7 @@ class Views:
             "day_pnl": day_pnl,
             "ch_state": ch_state,
             "nba_own": _own_bets(ch_state, today),
+            "nba_us_cookie": (cookies or {}).get("nba_us"),
             "az": az,
             "settings": self.settings,
             "browser": self.browser,
@@ -831,7 +841,10 @@ class Views:
             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
             self._agency_left = {a.code: a.left for a in ctx["az"].on} if ctx.get("az") else {}
             t0 = time.perf_counter()
+            self._us_on = (query.get("us") or ctx.get("nba_us_cookie")) == "1"
             ctx.update(self._nba_view(query))
+            ctx["nba_us_on"] = self._us_on
+            ctx["nba_us_ready"] = bool(os.environ.get("ODDS_API_KEY"))
             self.timing["nba"] = time.perf_counter() - t0
             if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
                 t0 = time.perf_counter()

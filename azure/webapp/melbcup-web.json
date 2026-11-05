@@ -8,7 +8,12 @@
       "targetPort": 8000,
       "transport": "auto",
       "allowInsecure": false,
-      "traffic": [{"latestRevision": true, "weight": 100}],
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ],
       "customDomains": [
         {
           "name": "cup.asynym.dev",
@@ -69,6 +74,11 @@
         "name": "telegram-webhook-secret",
         "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/melbcup-telegram-webhook-secret",
         "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
+      },
+      {
+        "name": "odds-api-key",
+        "keyVaultUrl": "https://kv-personal-v5ethud2i3cf.vault.azure.net/secrets/odds-api-key",
+        "identity": "/subscriptions/78e367c0-cd4d-4334-8c02-69fa04c8bffd/resourceGroups/rg-personal-automation-aue/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-personal-v5ethud2i3cfq"
       }
     ]
   },
@@ -77,42 +87,103 @@
       {
         "name": "melbcup-web",
         "image": "IMAGE",
-        "resources": {"cpu": 0.25, "memory": "0.5Gi"},
+        "resources": {
+          "cpu": 0.25,
+          "memory": "0.5Gi"
+        },
         "env": [
-          {"name": "PRICE_MODE", "value": "auto"},
-          {"name": "POINTSBET", "value": "1"},
-          {"name": "PROMOS", "value": "1"},
-          {"name": "ASYNYM", "value": "1"},
-          {"name": "NBA_ACCOUNT", "value": "stpersonalv5ethud2i3cfq"},
-          {"name": "VAPID_PUBLIC_KEY", "value": "BDzeLKul0vUgKMwvXO7swS7dGabzm0pAdsiUmyOSQp1RToTb0hubr4nJpCjET2lE6C-T45FlgbVOLJUFTjM1j7o"},
-          {"name": "AZURE_CLIENT_ID", "value": "519729c8-1505-4e6b-b7cc-85c29cfc38d5"},
-          {"name": "PUBLIC_ACCESS", "value": "1"},
-          {"name": "FORMFAV_API_KEY", "secretRef": "formfav-api-key"},
-          {"name": "APP_PASSWORD", "secretRef": "app-password"},
-          {"name": "BETFAIR_USERNAME", "secretRef": "betfair-username"},
-          {"name": "BETFAIR_PASSWORD", "secretRef": "betfair-password"},
-          {"name": "VAPID_PRIVATE_KEY", "secretRef": "vapid-private"},
-          {"name": "TELEGRAM_BOT_TOKEN", "secretRef": "telegram-bot-token"},
-          {"name": "TELEGRAM_WEBHOOK_SECRET", "secretRef": "telegram-webhook-secret"}
+          {
+            "name": "PRICE_MODE",
+            "value": "auto"
+          },
+          {
+            "name": "POINTSBET",
+            "value": "1"
+          },
+          {
+            "name": "PROMOS",
+            "value": "1"
+          },
+          {
+            "name": "ASYNYM",
+            "value": "1"
+          },
+          {
+            "name": "NBA_ACCOUNT",
+            "value": "stpersonalv5ethud2i3cfq"
+          },
+          {
+            "name": "VAPID_PUBLIC_KEY",
+            "value": "BDzeLKul0vUgKMwvXO7swS7dGabzm0pAdsiUmyOSQp1RToTb0hubr4nJpCjET2lE6C-T45FlgbVOLJUFTjM1j7o"
+          },
+          {
+            "name": "AZURE_CLIENT_ID",
+            "value": "519729c8-1505-4e6b-b7cc-85c29cfc38d5"
+          },
+          {
+            "name": "PUBLIC_ACCESS",
+            "value": "1"
+          },
+          {
+            "name": "FORMFAV_API_KEY",
+            "secretRef": "formfav-api-key"
+          },
+          {
+            "name": "APP_PASSWORD",
+            "secretRef": "app-password"
+          },
+          {
+            "name": "BETFAIR_USERNAME",
+            "secretRef": "betfair-username"
+          },
+          {
+            "name": "BETFAIR_PASSWORD",
+            "secretRef": "betfair-password"
+          },
+          {
+            "name": "VAPID_PRIVATE_KEY",
+            "secretRef": "vapid-private"
+          },
+          {
+            "name": "TELEGRAM_BOT_TOKEN",
+            "secretRef": "telegram-bot-token"
+          },
+          {
+            "name": "TELEGRAM_WEBHOOK_SECRET",
+            "secretRef": "telegram-webhook-secret"
+          },
+          {
+            "name": "ODDS_API_KEY",
+            "secretRef": "odds-api-key"
+          }
         ],
         "probes": [
           {
             "type": "Startup",
-            "httpGet": {"path": "/healthz", "port": 8000},
+            "httpGet": {
+              "path": "/healthz",
+              "port": 8000
+            },
             "periodSeconds": 3,
             "timeoutSeconds": 3,
             "failureThreshold": 20
           },
           {
             "type": "Liveness",
-            "httpGet": {"path": "/healthz", "port": 8000},
+            "httpGet": {
+              "path": "/healthz",
+              "port": 8000
+            },
             "periodSeconds": 30,
             "timeoutSeconds": 5,
             "failureThreshold": 3
           },
           {
             "type": "Readiness",
-            "httpGet": {"path": "/healthz", "port": 8000},
+            "httpGet": {
+              "path": "/healthz",
+              "port": 8000
+            },
             "periodSeconds": 10,
             "timeoutSeconds": 5,
             "failureThreshold": 3
@@ -125,7 +196,14 @@
       "cooldownPeriod": 10800,
       "maxReplicas": 1,
       "rules": [
-        {"name": "http", "http": {"metadata": {"concurrentRequests": "50"}}}
+        {
+          "name": "http",
+          "http": {
+            "metadata": {
+              "concurrentRequests": "50"
+            }
+          }
+        }
       ]
     }
   }

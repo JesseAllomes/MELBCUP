@@ -387,3 +387,15 @@ def test_same_game_multi_chance_is_the_joint_chance(monkeypatch):
     assert found["chance"] == round(
         N.joint_chance([g for g in legs if g["label"] in found["picks"]]), 4
     )
+
+
+def test_market_only_books_sharpen_the_chance_but_get_no_tab():
+    board = {"day": "20261106", "params": {}, "games": [], "players": []}
+    ev = lambda price, k: [{"event": "1", "name": "A @ B", "startsAt": "2026-11-06T02:00:00Z", "markets": [{"group": "g", "outcomes": [  # noqa: E731
+        {"name": f"P Over {k}", "player": "P", "stat": "points", "k": 20, "under": False, "price": price},
+        {"name": f"P Under {k}", "player": "P", "stat": "points", "k": 20, "under": True, "price": 1.9}]}]}]
+    plain = L.view(board, {"pb": ev(1.9, 19.5)})
+    sharp = L.view(board, {"pb": ev(1.9, 19.5)}, market_only={"dk": ev(1.5, 19.5)})
+    assert list(sharp["agencies"]) == ["pb"]  # a US book is no bettable tab
+    over = lambda v: next(g for g in v["agencies"]["pb"]["report"]["all_legs"] if not g["under"])  # noqa: E731
+    assert over(plain)["chance"] == pytest.approx(0.5, abs=0.01) and over(sharp)["chance"] > 0.52  # averaged with the US book
