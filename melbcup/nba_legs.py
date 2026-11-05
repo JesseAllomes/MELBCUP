@@ -332,12 +332,12 @@ def apply_market(legs: list[dict], market: dict) -> None:
     value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
     for g in legs:
         m = market.get(bet_key(g))
-        if (
-            g["model"] is None
-        ):  # no board for this player: the market's chance, else its own price's
-            c = m if m is not None else g["chance"]
+        if g["model"] is None:  # no board for this player: the market's, else its own price's
+            c = m if m is not None else g.get("raw", g["chance"])
         else:
             c = blend(g["model"], m)
+        g["raw"] = round(c, 4)  # before the over/under lean
+        c = shade(c, bool(g["under"]))
         g["market"] = None if m is None else round(m, 4)
         g["chance"] = round(c, 4)
         g["fair"] = round(1 / c, 2)

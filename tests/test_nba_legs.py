@@ -310,8 +310,10 @@ def test_blend_math_and_no_market_fallback():
     legs = [_leg("A", 25, False, 4.0, model=0.3), _leg("B", 10, False, 1.5, model=0.8)]
     L.apply_market(legs, {("A", "points", 25, False): 0.2})
     assert legs[0]["market"] == 0.2 and legs[0]["model"] == 0.3 and legs[0]["chance"] < 0.3
-    assert legs[1]["market"] is None and legs[1]["chance"] == 0.8
-    assert legs[1]["ev"] == pytest.approx(0.8 * 1.5 - 1)
+    assert (
+        legs[1]["market"] is None and legs[1]["raw"] == 0.8 and legs[1]["chance"] < 0.8
+    )  # an over: shaded
+    assert legs[1]["ev"] == pytest.approx(legs[1]["chance"] * 1.5 - 1, abs=2e-4)
 
 
 def _cleg(player, team, stat, chance, price=1.5, under=False):
@@ -377,7 +379,8 @@ def test_same_game_multi_chance_is_the_joint_chance(monkeypatch):
 
     monkeypatch.setattr(N, "CORR", {("team", "pts", "pts"): 0.5})
     legs = [
-        _cleg(p, "X", "points", c, 1.6) for p, c in (("A", 0.8), ("B", 0.75), ("C", 0.7), ("D", 0.7))
+        _cleg(p, "X", "points", c, 1.6)
+        for p, c in (("A", 0.8), ("B", 0.75), ("C", 0.7), ("D", 0.7))
     ]
     (found,) = N.same_game_many(legs, [3.0])[3.0]
     independent = 1.0
@@ -391,14 +394,43 @@ def test_same_game_multi_chance_is_the_joint_chance(monkeypatch):
 
 def test_market_only_books_sharpen_the_chance_but_get_no_tab():
     board = {"day": "20261106", "params": {}, "games": [], "players": []}
-    ev = lambda price, k: [{"event": "1", "name": "A @ B", "startsAt": "2026-11-06T02:00:00Z", "markets": [{"group": "g", "outcomes": [  # noqa: E731
-        {"name": f"P Over {k}", "player": "P", "stat": "points", "k": 20, "under": False, "price": price},
-        {"name": f"P Under {k}", "player": "P", "stat": "points", "k": 20, "under": True, "price": 1.9}]}]}]
+    ev = lambda price, k: [  # noqa: E731
+        {
+            "event": "1",
+            "name": "A @ B",
+            "startsAt": "2026-11-06T02:00:00Z",
+            "markets": [
+                {
+                    "group": "g",
+                    "outcomes": [  # noqa: E731
+                        {
+                            "name": f"P Over {k}",
+                            "player": "P",
+                            "stat": "points",
+                            "k": 20,
+                            "under": False,
+                            "price": price,
+                        },
+                        {
+                            "name": f"P Under {k}",
+                            "player": "P",
+                            "stat": "points",
+                            "k": 20,
+                            "under": True,
+                            "price": 1.9,
+                        },
+                    ],
+                }
+            ],
+        }
+    ]
     plain = L.view(board, {"pb": ev(1.9, 19.5)})
     sharp = L.view(board, {"pb": ev(1.9, 19.5)}, market_only={"dk": ev(1.5, 19.5)})
     assert list(sharp["agencies"]) == ["pb"]  # a US book is no bettable tab
     over = lambda v: next(g for g in v["agencies"]["pb"]["report"]["all_legs"] if not g["under"])  # noqa: E731
-    assert over(plain)["chance"] == pytest.approx(0.5, abs=0.01) and over(sharp)["chance"] > 0.52  # averaged with the US book
+    assert (
+        over(plain)["raw"] == pytest.approx(0.5, abs=0.01) and over(sharp)["raw"] > 0.52
+    )  # averaged with the US book
 
 
 def test_overs_are_shaded_down_and_unders_up_most_at_even_money():
