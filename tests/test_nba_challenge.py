@@ -272,3 +272,16 @@ def test_undo_puts_a_mistyped_result_back_to_placed():
     assert back["placed"]["state"] == "placed" and back["bank"] == 10.0 and back["steps"] == [] and back["kept"] == 0.0
     fixed = C.apply(back, {"ch": "won", "chs": "0", "chr": "42.50"}, DAY)
     assert fixed["bank"] == 42.5 and C.today_money(fixed, DAY) == ({"sb": -42.5}, 42.5)
+
+
+def test_stages_can_be_added_or_removed_mid_run():
+    s = C.apply(None, {"ch": "start", "chn": "2", "chgoal": "200"}, DAY)
+    x2 = C.next_x(s)
+    s = C.apply(s, {"ch": "addstage", "chs": "0"}, DAY)
+    assert s["stages"] == 3 and C.next_x(s) < x2  # more stages: a smaller payout a stage
+    s = C.apply(s, {"ch": "dropstage", "chs": "0"}, DAY)
+    s = C.apply(s, {"ch": "dropstage", "chs": "0"}, DAY)
+    assert s["stages"] == 2  # never fewer than the next stage plus one more... or 2
+    for _ in range(9):
+        s = C.apply(s, {"ch": "addstage", "chs": "0"}, DAY)
+    assert s["stages"] == max(C.STAGES)

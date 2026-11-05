@@ -147,7 +147,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo")
+        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage")
         or state.get("active") is False
     ):
         return state
@@ -158,6 +158,10 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
             return state
         return state | {"skip": max(night_, state.get("skip") or "")}
+    if act in ("addstage", "dropstage"):  # change the plan mid-run (owner, 2026-11-05)
+        n = state.get("stages", DEFAULT_STAGES) + (1 if act == "addstage" else -1)
+        done = len(state["steps"]) + (1 if state.get("placed") else 0)
+        return state | {"stages": max(min(n, max(STAGES)), done + 1, min(STAGES))}
     if act == "undo":  # the last stage's result was put in wrong: back to placed (owner, 2026-11-05)
         if state.get("placed") or not state["steps"]:
             return state
