@@ -28,7 +28,9 @@ MIN_X = 1.2
 STAGES = (2, 3, 4, 5, 6, 7, 8)
 DEFAULT_STAGES = 3
 PER_NIGHT = (1, 2)  # stages a night: 1 (one a game day) or 2 (an early game, then a later one)
-GAME = timedelta(hours=2, minutes=30)  # a game's usual length, for "result due about"
+GAME = timedelta(
+    hours=2, minutes=15
+)  # an NBA game's usual length (owner, 2026-11-05: 2h30 was too long)
 BUFFER = timedelta(hours=1)  # after the result: time to be told, mark it and place the next (owner)
 GAP = GAME + BUFFER  # tip to tip for two stages on one night
 MELBOURNE = ZoneInfo("Australia/Melbourne")
@@ -145,7 +147,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "reset", "new", "skip")
+        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip")
         or state.get("active") is False
     ):
         return state
@@ -176,24 +178,36 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             "ret": 0.0,
             "tip": (query.get("chtip") or "")[:32],
         }
-        return state | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
+        if state.get("bonus"):  # this stage is played with the bonus bet a one-leg loss gave back
+            bet["bonus"] = 1
+        rest = {k: v for k, v in state.items() if k != "bonus"}
+        return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first
-    if act == "lost":
+    if act == "lost1" and not state["placed"].get("bonus"):
+        # one leg failed on a 'money back as a bonus bet' multi (owner, 2026-11-05): the stage is
+        # played again with the bonus bet, which pays its winnings only
+        return state | {
+            "bets": _settle(state, "lost"),
+            "placed": None,
+            "bonus": state["placed"]["stake"],
+        }
+    if act in ("lost", "lost1"):
         past = (
             state.get("past", [])
             + [{"steps": len(state["steps"]), "best": state["bank"], "made_it": False}]
         )[-MAX_HISTORY:]
         return _again(state | {"bets": _settle(state, "lost"), "past": past})
     returned = _money(query.get("chr"))
-    if returned is None or returned <= state["placed"]["stake"]:
+    bonus = bool(state["placed"].get("bonus"))  # a bonus bet pays its winnings only
+    if returned is None or returned <= (0 if bonus else state["placed"]["stake"]):
         return state
     bets = _settle(state, "won", returned)
     steps = state["steps"] + [
         {"from": state["bank"], "to": returned, "tip": state["placed"].get("tip", "")}
     ]
     kept, bank = state.get("kept", 0.0), returned
-    if state.get("keep", True) and not state["steps"]:  # first win: the starting stake goes back
+    if state.get("keep", True) and not state["steps"] and not bonus:  # first win: start goes back
         kept, bank = state["start"], round(returned - state["start"], 2)
     if bank >= reach(state["goal"]):
         past = (state.get("past", []) + [{"steps": len(steps), "best": returned, "made_it": True}])[
@@ -268,11 +282,12 @@ def today_money(state: dict | None, today: str) -> tuple[dict[str, float], float
     for b in (state or {}).get("bets", []):
         if b.get("day") != today:
             continue
-        used[b["ag"]] = round(used.get(b["ag"], 0.0) + b["stake"] - (b.get("ret") or 0.0), 2)
+        cash = 0.0 if b.get("bonus") else b["stake"]  # a bonus bet's stake is not money
+        used[b["ag"]] = round(used.get(b["ag"], 0.0) + cash - (b.get("ret") or 0.0), 2)
         if b["state"] == "won":
-            profit += b["ret"] - b["stake"]
+            profit += b["ret"] - cash
         elif b["state"] == "lost":
-            profit -= b["stake"]
+            profit -= cash
     return used, round(profit, 2)
 
 
@@ -427,5 +442,7 @@ def next_x(state: dict) -> float:
     """The payout to aim for on the next stage: what is left to the goal spread evenly over the
     stages left (so a stage that paid more or less than planned re-balances the rest)."""
     keep_now = state.get("keep", True) and not state["steps"]
-    x = stage_x(state["bank"], state["goal"], remaining(state), keep_now)
+    x = stage_x(state["bank"], state["goal"], remaining(state), keep_now and not state.get("bonus"))
+    if state.get("bonus"):  # a bonus bet pays winnings only: one more unit of price for the same return
+        x += 1
     return max(MIN_X, x)

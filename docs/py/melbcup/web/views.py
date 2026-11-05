@@ -515,6 +515,27 @@ class Views:
             "ch_left": nba_challenge.remaining(state) if state else None,
         }
 
+    @staticmethod
+    def _track(ctx: dict) -> dict:
+        """Leg-by-leg results of the placed challenge stage and your own bets, once their game
+        has tipped off ({bet id: nba_live.track()}; owner, 2026-11-05)."""
+        try:
+            from melbcup import nba_challenge, nba_live
+        except ImportError:  # the phone's offline copy leaves the NBA code out
+            return {}
+        state = ctx.get("ch_state") or {}
+        bets = list(ctx.get("nba_own") or [])
+        if state.get("placed"):
+            bets.append(state["placed"])
+        now, out = datetime.now(UTC), {}
+        for b in bets:
+            tip = nba_challenge._when(b.get("tip"))
+            if b.get("state") == "placed" and (tip is None or tip <= now):
+                t = nba_live.track(b.get("label", ""), now)
+                if t:
+                    out[b["id"]] = t
+        return out
+
     def _best_elsewhere(self, state, x, step, nba_challenge, nba_legs) -> dict | None:
         """The same stage at the other agencies: their likeliest same-game multi for this payout.
         Returned when one beats the shown pick (owner, 2026-11-05: place where it pays most, as a
@@ -816,6 +837,7 @@ class Views:
                 t0 = time.perf_counter()
                 ctx.update(self._challenge(query, ctx))
                 self.timing["challenge"] = time.perf_counter() - t0
+            ctx["track"] = self._track(ctx)
             return self.env.get_template("asynym/nba.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))

@@ -144,7 +144,7 @@ def test_two_a_night_spaces_games_and_then_waits_for_the_next_night():
     )
     assert not C.allowed(s, "2026-11-05T01:30:00Z")  # overlaps the first game
     assert not C.allowed(s, "2026-11-05T03:00:00Z")  # game over ~2:30, but no hour to place
-    assert C.allowed(s, "2026-11-05T03:30:00Z")  # 2.5 h of game + 1 h to see it and place
+    assert C.allowed(s, "2026-11-05T03:30:00Z")  # 2h15 of game + 1 h to see it and place
     s = C.apply(
         C.apply(s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-05T03:30:00Z"}, DAY),
         {"ch": "won", "chs": "1", "chr": "200"},
@@ -167,7 +167,7 @@ def test_one_a_night_waits_and_the_chance_to_finish_grows_with_each_win():
     placed = C.apply(
         s, {"ch": "place", "chs": "1", "chp": "5", "chtip": "2026-11-06T00:30:00Z"}, DAY
     )
-    assert C.result_due(placed).isoformat() == "2026-11-06T03:00:00+00:00"
+    assert C.result_due(placed).isoformat() == "2026-11-06T02:45:00+00:00"
 
 
 def test_a_new_challenge_keeps_the_history_and_waits_for_a_placed_stage():
@@ -235,3 +235,18 @@ def test_own_bets_are_logged_counted_in_the_day_and_settled():
     assert C.own_bets(lost, "2099-01-01") == []  # settled on an earlier day: off the list
     run = C.apply(s, {"ch": "start", "chn": "3"}, DAY)  # starting a challenge keeps the bet
     assert C.own_bets(run, DAY) and run.get("active", True) is not False
+
+
+def test_lost_by_one_leg_replays_the_stage_with_the_bonus_bet():
+    s = C.apply(None, {"ch": "start", "chn": "3"}, DAY)
+    s = C.apply(s, {"ch": "place", "chs": "0", "chp": "2.62", "chag": "sb"}, DAY)
+    b = C.apply(s, {"ch": "lost1", "chs": "0"}, DAY)
+    assert b["bonus"] == 10.0 and b["placed"] is None and not b["steps"] and b.get("active", True)
+    assert C.next_x(b) == round(C.next_x(C.fresh(stages=3)) + 1, 6) or C.next_x(b) > C.next_x(C.fresh(stages=3))
+    b = C.apply(b, {"ch": "place", "chs": "0", "chp": "2.62", "chag": "sb"}, DAY)
+    assert b["placed"]["bonus"] and "bonus" not in b
+    assert C.apply(b, {"ch": "lost1", "chs": "0"}, DAY)["past"][-1]["made_it"] is False  # no second refund
+    won = C.apply(b, {"ch": "won", "chs": "0", "chr": "16.20"}, DAY)  # winnings only
+    assert won["bank"] == 16.2 and won["kept"] == 0.0  # no stake back from a bonus bet
+    used, profit = C.today_money(won, DAY)
+    assert used == {"sb": -6.2} and profit == 6.2  # $10 lost, then $16.20 from the bonus bet

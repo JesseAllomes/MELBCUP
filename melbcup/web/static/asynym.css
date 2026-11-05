@@ -418,3 +418,7 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .nb-own .nb-bet p { margin: 0 0 4px; }
 .nb-own .ok { color: var(--good); } .nb-own .bad { color: var(--bad); }
 .ch-act .won { background: var(--good); color: #08130e; } .ch-act .lost { background: var(--bad); color: #fff; }
+/* Leg tracker (owner, 2026-11-05) */
+.nb-track ul { list-style: none; margin: 4px 0; padding: 0; font-size: 13px; }
+.nb-track li.ok { color: var(--good); } .nb-track li.bad { color: var(--bad); }
+.nb-track small { color: var(--muted); }
