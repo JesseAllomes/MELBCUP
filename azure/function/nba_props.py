@@ -343,3 +343,35 @@ def price_legs(nba, snaps: list[dict], now: dt.datetime) -> str:
     nba.get_blob_client(f"{day}/legs.json").upload_blob(body, overwrite=True)
     nba.get_blob_client("legs-latest.json").upload_blob(body, overwrite=True)
     return f"{day}: {res['legs_seen']} legs, {len(res['value_legs'])} value, {res['verdict']}"
+
+
+SITE = "https://bet.asynym.dev"
+
+
+def pretip_ping(nba, now: dt.datetime, get=None) -> str:
+    """About 30 min before the slate's first tip, ask the web app to pull the US books (it pulls
+    only if they are switched on and due; owner, 2026-11-06). The Function runs every 10 min, so
+    one run lands in the 25-35 min window."""
+    import urllib.request
+
+    try:
+        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
+    except Exception:  # no board yet
+        return "no board"
+    tips = []
+    for g in board.get("games", []):
+        try:
+            tips.append(dt.datetime.fromisoformat(str(g.get("when")).replace("Z", "+00:00")))
+        except ValueError:
+            continue
+    ahead = sorted(t for t in tips if t > now)
+    if not ahead or not (dt.timedelta(minutes=25) < ahead[0] - now <= dt.timedelta(minutes=35)):
+        return "not yet"
+    url = SITE + "/api/nba/us-pretip"
+    try:
+        if get is not None:
+            return f"pre-tip: {get(url)}"
+        with urllib.request.urlopen(url, timeout=60) as r:
+            return f"pre-tip: {r.read()[:80].decode()}"
+    except Exception as exc:  # the web app asleep or down: the 6-hourly pull still comes
+        return f"pre-tip failed ({type(exc).__name__})"

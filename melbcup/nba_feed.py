@@ -126,11 +126,51 @@ class NbaFeed:
     def set_us(self, on: bool, force: bool = False) -> None:
         """US books in the market or not; `force` (switched on just now) pulls on the next refresh
         and starts that refresh at once."""
+        if force or on != getattr(self, "us_on", None):  # remember it for the pre-tip pull
+            self._us_on_save(on)
         self.us_on = on
         if on and force:
             self._us_force = True
             if self._lock.acquire(blocking=False):
                 threading.Thread(target=self._refresh_locked, daemon=True).start()
+
+    def _us_on_save(self, on: bool) -> None:
+        if not os.environ.get("NBA_ACCOUNT"):
+            return
+        try:
+            from melbcup.push_store import blob_writer
+
+            write = blob_writer(os.environ["NBA_ACCOUNT"], os.environ.get("AZURE_CLIENT_ID"))
+            write("us-on.json", json.dumps({"on": on}).encode())
+        except Exception:  # the pre-tip pull then waits for a page load
+            pass
+
+    def us_pretip(self) -> bool:
+        """The Function's call about 30 min before a slate's first tip: pull the US books then if
+        they are switched on (saved by the last page load) and the pull is due. True if pulled."""
+        if not getattr(self, "us_on", False) and self.read_blob is not None:
+            try:
+                raw = self.read_blob("us-on.json")
+                self.us_on = bool(raw and json.loads(raw).get("on"))
+            except (httpx.HTTPError, ValueError):
+                return False
+        before = (getattr(self, "_us", None) or {}).get("at")
+        us = self._us_books()
+        pulled = bool(us and us.get("at") and us.get("at") != before)
+        if pulled and self._lock.acquire(blocking=False):  # the page gets the new prices
+            threading.Thread(target=self._refresh_locked, daemon=True).start()
+        return pulled
+
+    def _first_tip(self, now: datetime) -> datetime | None:
+        board, _ = self.board()
+        tips = []
+        for g in (board or {}).get("games", []):
+            try:
+                tips.append(datetime.fromisoformat(str(g.get("when")).replace("Z", "+00:00")))
+            except ValueError:
+                continue
+        ahead = [t for t in tips if t > now]
+        return min(ahead) if ahead else None
 
     def _us_books(self) -> dict | None:
         """The US books' events to add to the market: the last pull (memory, else the saved one in
@@ -153,7 +193,13 @@ class NbaFeed:
         age = (now - datetime.fromisoformat(at)).total_seconds() if at else None
         force = getattr(self, "_us_force", False)
         self._us_force = False
-        if force or age is None or (age >= US_EVERY_S and pulls < US_PER_DAY):
+        tip = self._first_tip(now)
+        pretip = (  # half an hour before the slate's first tip, unless pulled since (owner)
+            tip is not None
+            and tip - timedelta(minutes=35) <= now < tip
+            and (at is None or datetime.fromisoformat(at) < tip - timedelta(minutes=35))
+        )
+        if force or age is None or ((age >= US_EVERY_S or pretip) and pulls < US_PER_DAY):
             from melbcup import us_books
 
             try:

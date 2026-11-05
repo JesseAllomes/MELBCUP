@@ -390,3 +390,33 @@ def test_us_books_are_pulled_on_switching_on_and_at_most_four_times_a_day(bundle
     assert len(pulls) == 4 and us["books"] and "did not answer" in us["error"]
     feed._view = (0.0, None)
     assert feed.view()["agencies"]["pb"]["report"]["all_legs"]
+
+
+def test_us_books_pull_half_an_hour_before_the_first_tip(tmp_path, monkeypatch):
+    from datetime import timedelta
+
+    from melbcup import us_books
+
+    board = dict(BOARD) | {"games": [g | {"when": "2026-11-05T00:00Z"} for g in BOARD["games"]]}
+    path = tmp_path / "board.json"
+    path.write_text(json.dumps(board))
+    pulls, clock = [], [datetime(2026, 11, 4, 20, 0, tzinfo=UTC)]
+    monkeypatch.setattr(
+        us_books, "us_books", lambda key, hours=36: pulls.append(clock[0]) or {"dk": []}
+    )
+    monkeypatch.setenv("ODDS_API_KEY", "K")
+    monkeypatch.delenv("NBA_ACCOUNT", raising=False)
+    feed = NbaFeed(
+        read_blob=None, events={"pb": events(1.30)}, bundled=path, clock=lambda: clock[0]
+    )
+    feed.us_on = True
+    feed._us_books()  # 4 h before tip: the first pull
+    clock[0] = datetime(
+        2026, 11, 4, 23, 0, tzinfo=UTC
+    )  # 1 h before: not due (3 h since, no window)
+    feed._us_books()
+    assert len(pulls) == 1
+    clock[0] = datetime(2026, 11, 4, 23, 30, tzinfo=UTC)  # 30 min before: the pre-tip pull
+    assert feed.us_pretip() is True and len(pulls) == 2
+    clock[0] += timedelta(minutes=10)
+    assert feed.us_pretip() is False and len(pulls) == 2  # once

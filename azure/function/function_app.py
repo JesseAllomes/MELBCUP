@@ -206,6 +206,7 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     except Exception:  # the page falls back to working it out itself
         logging.exception("nba view: failed")
     logging.info("nba props: %d games, %d snapshots; legs %s", games, written, legs)
+    logging.info("us books %s", nba_props.pretip_ping(nba, moment))
 
 
 @app.queue_trigger(arg_name="msg", queue_name="alerts", connection="AzureWebJobsStorage")

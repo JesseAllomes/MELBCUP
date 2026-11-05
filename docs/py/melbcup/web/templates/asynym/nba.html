@@ -131,9 +131,9 @@
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
   </form>
   {% if one_game and ch_games | length > 1 %}
-  <div class="sec"><span>Other games for this stage, by tip-off</span></div>
+  <div class="sec"><span>Other games for this stage, by tip-off · tap one to use it</span></div>
   {% for g in ch_games %}{% if g is not sameas m %}
-  <div class="brow nba-leg">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></div>
+  <a class="brow nba-leg pick-other" href="/nba?tab=challenge&chpick={{ g.game | urlencode }}{{ '&bk=' ~ nba_agency if nba_agency }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }} · <u>use this game</u></small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></a>
   {% endif %}{% endfor %}
   {% endif %}
   {% elif ch_wait %}

@@ -328,6 +328,12 @@ def create_app(
             done = await run_in_threadpool(push.telegram, update)
             return JSONResponse({"ok": True, "done": done})
 
+    @app.get("/api/nba/us-pretip")
+    def nba_us_pretip():
+        """The Function calls this about 30 min before a slate's first tip: the US books are pulled
+        then if they are on and due (a pull not due costs nothing, so anyone may call it)."""
+        return JSONResponse({"pulled": views.nba_us_pretip()}, headers={"Cache-Control": "no-store"})
+
     @app.get("/api/nba/stamp", dependencies=[Depends(require_login)])
     def nba_stamp():
         """When the NBA prices on the server were worked out: the page swaps in fresher ones."""

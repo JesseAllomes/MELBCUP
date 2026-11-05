@@ -432,6 +432,9 @@ class Views:
             if state.get("mode", "game") == "game":
                 games = nba_legs.same_game_for(legs, x, stake=state["bank"])
                 step = max(games, key=lambda m: m["chance"]) if games else None
+                chosen = query.get("chpick")  # another game picked for this stage (owner)
+                if chosen:
+                    step = next((m for m in games if m.get("game") == chosen), step)
                 alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"])
@@ -582,6 +585,15 @@ class Views:
                 cache.clear()
             cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
         return cache[key]
+
+    def nba_us_pretip(self) -> bool:
+        try:
+            from melbcup.nba_feed import NbaFeed
+        except ImportError:
+            return False
+        if self._nba is None:
+            self._nba = NbaFeed()
+        return self._nba.us_pretip()
 
     def nba_stamp(self) -> str:
         """When the NBA page's prices were worked out (the page checks this to swap in fresher)."""
