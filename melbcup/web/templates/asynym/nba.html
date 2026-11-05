@@ -20,7 +20,7 @@
   {% if nba_chips %}<div class="nba-bk" role="group" aria-label="Prices from">{% for c in nba_chips %}<a href="/nba?bk={{ c.code }}&tab={{ nba_tab }}" class="{{ 'on' if c.code == nba_agency }}"{% if c.code == nba_agency %} aria-current="true"{% endif %}>{{ c.name }}<small>{{ c.lines if c.lines else 'no lines yet' }}</small></a>{% endfor %}</div>{% endif %}
   {% if nba_us_ready %}<p class="note nb-us"><a class="act" href="/nba?us={{ '0' if nba_us_on else '1' }}&tab={{ nba_tab }}">US books: <b>{{ 'On' if nba_us_on else 'Off' }}</b></a> · {% if nba_us_on and v.us %}DraftKings, FanDuel and others in the chances ({{ v.us.books | length }} books{% if v.us.credits is not none %}, {{ v.us.credits }} credits left{% endif %}; refreshed at most every 30 min){% elif nba_us_on %}{{ nba_us_note or 'loading…' }}{% else %}the sharpest prices; each refresh costs Odds API credits (about 4 a game){% endif %}</p>{% endif %}
   {% set err = nba_agency_error or v.error %}{% if err %}<p class="note warn">{{ err }}</p>{% endif %}
-  {% if v.stale %}<p class="note warn">The model's board is from {{ v.board.day }}: today's has not been built yet, so no game matches.</p>{% endif %}
+  {% if v.stale %}<p class="note warn">The model's board is from {{ v.board.day }}: the new slate's comes at 5:30pm or 9:30am; until then its lines are priced by the market alone.</p>{% endif %}
   {% if v.source == 'bundled' %}<p class="note">Using the model board shipped with the app: Azure's daily board could not be read just now.</p>{% endif %}
 </section>
 
