@@ -399,3 +399,12 @@ def test_market_only_books_sharpen_the_chance_but_get_no_tab():
     assert list(sharp["agencies"]) == ["pb"]  # a US book is no bettable tab
     over = lambda v: next(g for g in v["agencies"]["pb"]["report"]["all_legs"] if not g["under"])  # noqa: E731
     assert over(plain)["chance"] == pytest.approx(0.5, abs=0.01) and over(sharp)["chance"] > 0.52  # averaged with the US book
+
+
+def test_overs_are_shaded_down_and_unders_up_most_at_even_money():
+    assert L.shade(0.5, False) == pytest.approx(0.5 - L.OVER_SHADE, abs=0.001)
+    assert L.shade(0.5, True) == pytest.approx(0.5 + L.OVER_SHADE, abs=0.001)
+    assert 0 < 0.9 - L.shade(0.9, False) < 0.006  # a short leg barely moves
+    legs = [_leg("A", 20, False, 1.9, model=0.5), _leg("A", 20, True, 1.9, model=0.5)]
+    L.apply_market(legs, {("A", "points", 20, False): 0.5, ("A", "points", 20, True): 0.5})
+    assert legs[0]["chance"] < 0.5 < legs[1]["chance"] and legs[0]["raw"] == 0.5

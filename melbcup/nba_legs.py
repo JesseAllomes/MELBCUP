@@ -312,6 +312,21 @@ def market_probs(legs_by_agency: dict) -> dict:
     return {k: sum(v) / len(v) for k, v in acc.items()}
 
 
+# Overs land slightly less often than the market says, unders slightly more (owner, 2026-11-06):
+# pooled over 3,275 real over/unders (research/nba/dunk_real_prices.txt + the US-books test), overs
+# came in 1.3 points under the market's chance (95% range about +/-1.7: a lean, re-tuned from the
+# forward log). Applied as a logit shift, so a 50/50 line moves most and a short leg barely at all.
+OVER_SHADE = 0.013
+_SHIFT = OVER_SHADE / 0.25  # in logit units, at p = 0.5
+
+
+def shade(c: float, under: bool) -> float:
+    """The chance with the over/under lean taken off overs and given to unders."""
+    c = min(max(c, 1e-4), 1 - 1e-4)
+    lg = math.log(c / (1 - c)) + (_SHIFT if under else -_SHIFT)
+    return 1 / (1 + math.exp(-lg))
+
+
 def apply_market(legs: list[dict], market: dict) -> None:
     """Blend each leg's model chance with the market's (in place). "model" stays the pure model
     value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
