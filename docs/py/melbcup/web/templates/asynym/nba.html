@@ -143,6 +143,7 @@
   {% if not placed and ch_night %}
   <p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=skip&chs={{ ch.steps | length }}&chnight={{ ch_night }}">Skip tonight · find a better game next night</a></p>
   {% endif %}
+  {% if not placed and ch.steps %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=undo&chs={{ ch.steps | length }}">Undo the last result</a> (put it in wrong? back to placed, then mark it again)</p>{% endif %}
   {% if not placed %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=reset&chs={{ ch.steps | length }}">Start this run again</a> · <a class="act" href="/nba?tab=challenge&ch=new&chs={{ ch.steps | length }}">New challenge (change the settings)</a></p>
   {% else %}<p class="note">To restart or change the settings, mark this stage won or lost first (its stake is real money).</p>{% endif %}
   {% endif %}

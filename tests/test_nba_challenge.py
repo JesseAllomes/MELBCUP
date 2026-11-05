@@ -261,3 +261,14 @@ def test_a_placed_stage_can_be_marked_as_a_bonus_bet():
     assert won["bank"] == 42.5 and C.today_money(won, DAY) == ({"sb": -42.5}, 42.5)
     b = C.apply(C.apply(None, {"ch": "start"}, DAY), {"ch": "place", "chs": "0", "chp": "3", "chbonus": "1"}, DAY)
     assert b["placed"]["bonus"]
+
+
+def test_undo_puts_a_mistyped_result_back_to_placed():
+    s = C.apply(None, {"ch": "start", "chn": "2", "chgoal": "200"}, DAY)
+    s = C.apply(s, {"ch": "place", "chs": "0", "chp": "5.25", "chag": "sb", "chbonus": "1"}, DAY)
+    typo = C.apply(s, {"ch": "won", "chs": "0", "chr": "5.25"}, DAY)  # the odds, not the dollars
+    assert typo["bank"] == 5.25 and len(typo["steps"]) == 1
+    back = C.apply(typo, {"ch": "undo", "chs": "1"}, DAY)
+    assert back["placed"]["state"] == "placed" and back["bank"] == 10.0 and back["steps"] == [] and back["kept"] == 0.0
+    fixed = C.apply(back, {"ch": "won", "chs": "0", "chr": "42.50"}, DAY)
+    assert fixed["bank"] == 42.5 and C.today_money(fixed, DAY) == ({"sb": -42.5}, 42.5)

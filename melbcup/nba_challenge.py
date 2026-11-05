@@ -147,7 +147,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus")
+        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo")
         or state.get("active") is False
     ):
         return state
@@ -158,6 +158,22 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
             return state
         return state | {"skip": max(night_, state.get("skip") or "")}
+    if act == "undo":  # the last stage's result was put in wrong: back to placed (owner, 2026-11-05)
+        if state.get("placed") or not state["steps"]:
+            return state
+        won = [b for b in state.get("bets", []) if not b.get("own") and b["state"] == "won"]
+        if not won:
+            return state
+        last = won[-1] | {"state": "placed", "ret": 0.0}
+        bets = [last if b.get("id") == last["id"] and not b.get("own") else b for b in state["bets"]]
+        steps = state["steps"][:-1]
+        return state | {
+            "placed": last,
+            "bets": bets,
+            "steps": steps,
+            "bank": state["steps"][-1]["from"],
+            "kept": state.get("kept", 0.0) if steps else 0.0,
+        }
     if act == "reset":
         return state if state.get("placed") else _again(state)  # a placed stage settles first
     if act == "new":
