@@ -147,7 +147,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip")
+        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus")
         or state.get("active") is False
     ):
         return state
@@ -178,12 +178,16 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             "ret": 0.0,
             "tip": (query.get("chtip") or "")[:32],
         }
-        if state.get("bonus"):  # this stage is played with the bonus bet a one-leg loss gave back
+        if state.get("bonus") or query.get("chbonus") == "1":  # staked with a bonus bet
             bet["bonus"] = 1
         rest = {k: v for k, v in state.items() if k != "bonus"}
         return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first
+    if act == "isbonus":  # the stake was a bonus bet after all: not money, and it pays winnings only
+        placed = state["placed"] | {"bonus": 1}
+        bets = [b | {"bonus": 1} if b.get("id") == placed.get("id") else b for b in state.get("bets", [])]
+        return state | {"placed": placed, "bets": bets}
     if act == "lost1" and not state["placed"].get("bonus"):
         # one leg failed on a 'money back as a bonus bet' multi (owner, 2026-11-05): the stage is
         # played again with the bonus bet, which pays its winnings only

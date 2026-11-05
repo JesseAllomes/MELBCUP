@@ -102,6 +102,7 @@
   {% if placed %}
   {% set ag = az.get(placed.ag) %}
   <p class="say"><b>Placed: ${{ '%.2f' % placed.stake }} at {{ ag.name }}</b>{% if placed.price %} · ${{ '%.2f' % placed.price }}{% endif %}{% if placed.bonus %} · bonus bet (pays winnings only){% endif %}<br><small>{{ placed.label }}</small></p>
+  {% if not placed.bonus %}<p class="note"><a class="act" href="/nba?tab=challenge&ch=isbonus&chs={{ ch.steps | length }}">Staked with a bonus bet? Mark it</a> (not your money; it pays winnings only)</p>{% endif %}
   {{ tracked((track or {}).get(placed.id), not placed.bonus) }}
   <form method="get" action="/nba" class="ch-act">
     <input type="hidden" name="tab" value="challenge"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
@@ -124,6 +125,7 @@
     <input type="hidden" name="chtip" value="{{ m.tip }}">
     <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == (nba_agency if nba_agency in az.codes_on else ('sb' if 'sb' in az.codes_on else 'pb')) }}>{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
+    {% if not ch.get('bonus') %}<label class="ch-mode"><input type="checkbox" name="chbonus" value="1"> Staked with a bonus bet</label>{% endif %}
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
   </form>
   {% if one_game and ch_games | length > 1 %}

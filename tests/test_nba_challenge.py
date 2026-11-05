@@ -250,3 +250,14 @@ def test_lost_by_one_leg_replays_the_stage_with_the_bonus_bet():
     assert won["bank"] == 16.2 and won["kept"] == 0.0  # no stake back from a bonus bet
     used, profit = C.today_money(won, DAY)
     assert used == {"sb": -6.2} and profit == 6.2  # $10 lost, then $16.20 from the bonus bet
+
+
+def test_a_placed_stage_can_be_marked_as_a_bonus_bet():
+    s = C.apply(None, {"ch": "start", "chn": "2", "chgoal": "200"}, DAY)
+    s = C.apply(s, {"ch": "place", "chs": "0", "chp": "5.25", "chag": "sb"}, DAY)
+    s = C.apply(s, {"ch": "isbonus", "chs": "0"}, DAY)
+    assert s["placed"]["bonus"] and C.today_money(s, DAY) == ({"sb": 0.0}, 0.0)  # no cash out
+    won = C.apply(s, {"ch": "won", "chs": "0", "chr": "42.50"}, DAY)
+    assert won["bank"] == 42.5 and C.today_money(won, DAY) == ({"sb": -42.5}, 42.5)
+    b = C.apply(C.apply(None, {"ch": "start"}, DAY), {"ch": "place", "chs": "0", "chp": "3", "chbonus": "1"}, DAY)
+    assert b["placed"]["bonus"]
