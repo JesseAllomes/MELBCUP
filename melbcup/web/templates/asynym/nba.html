@@ -8,7 +8,7 @@
   <label>Price got $<input name="nbp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
   <button type="submit">Save bet</button></form></details>{% endmacro %}
 {% macro tracked(t, bonus_ok=false) %}{% if t %}<div class="nb-track"><small>{{ t.clock }}</small><ul>{% for l in t.legs %}<li class="{{ 'ok' if l.ok == true else ('bad' if l.ok == false else '') }}">{{ '✓' if l.ok == true else ('✗' if l.ok == false else '·') }} {{ l.label }} <b>{{ l.now if l.now is not none else '–' }}{% if not l.under %}/{{ l.k }}{% else %} (under {{ l.k }}){% endif %}</b></li>{% endfor %}</ul>
-{% if t.verdict == 'won' %}<p class="say">All legs won: tap <b>Won</b> and put in what it paid.</p>{% elif t.verdict == 'lost1' %}<p class="say">One leg failed{% if bonus_ok %}: if you used money back, tap <b>Lost by one leg</b>{% endif %}.</p>{% elif t.verdict == 'lost' %}<p class="say">{{ t.failed }} legs failed: tap <b>Lost</b>.</p>{% endif %}</div>{% endif %}{% endmacro %}
+{% if t.verdict == 'won' %}<p class="say">All legs won: put in the dollars paid into your account (not the odds) and tap <b>Won</b>.</p>{% elif t.verdict == 'lost1' %}<p class="say">One leg failed{% if bonus_ok %}: if you used money back, tap <b>Lost by one leg</b>{% endif %}.</p>{% elif t.verdict == 'lost' %}<p class="say">{{ t.failed }} legs failed: tap <b>Lost</b>.</p>{% endif %}</div>{% endif %}{% endmacro %}
 {% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
 {% block title %}NBA · AsynymBet{% endblock %}
 {% block refresh %}0{% endblock %}
@@ -30,7 +30,7 @@
   <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
   {{ tracked((track or {}).get(b.id)) }}
   {% if b.state == 'placed' %}<form method="get" action="/nba" class="ch-act"><input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="nbid" value="{{ b.id }}">
-    <label>It paid $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
+    <label>Paid into your account $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
     <button type="submit" name="ch" value="betwon" class="won">Won</button><button type="submit" name="ch" value="betlost" class="lost">Lost</button></form>{% endif %}</div>
   {% endfor %}
 </section>
@@ -106,7 +106,7 @@
   {{ tracked((track or {}).get(placed.id), not placed.bonus) }}
   <form method="get" action="/nba" class="ch-act">
     <input type="hidden" name="tab" value="challenge"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
-    <label>It paid $<input name="chr" inputmode="decimal" value="{{ ('%.2f' % (placed.stake * (placed.price - 1) if placed.bonus else placed.stake * placed.price)) if placed.price else '' }}"></label>
+    <label>Paid into your account $<input name="chr" inputmode="decimal" value="{{ ('%.2f' % (placed.stake * (placed.price - 1) if placed.bonus else placed.stake * placed.price)) if placed.price else '' }}"></label>
     <button type="submit" name="ch" value="won" class="won">Won</button>
     <button type="submit" name="ch" value="lost" class="lost">Lost</button>
     {% if not placed.bonus %}<button type="submit" name="ch" value="lost1" class="lost">Lost by one leg (bonus bet back)</button>{% endif %}
