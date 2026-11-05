@@ -119,6 +119,42 @@ class NbaFeed:
         self._board = (time.monotonic(), board, source)
         return board, source
 
+    def us_view(self, key: str, max_age_s: int = 1800) -> dict | None:
+        """The page data with the US books' prices in the market (owner, 2026-11-06: on request).
+        A pull costs Odds API credits, so it is shared and kept max_age_s; None when it fails."""
+        from melbcup import nba_challenge, us_books
+
+        stamp, cached = getattr(self, "_us", (0.0, None))
+        if cached is not None and time.monotonic() - stamp < max_age_s:
+            return cached
+        base = self.view()
+        board = base.get("board")
+        if board is None:
+            return None
+        try:
+            us = us_books.us_books(key)
+        except (OSError, ValueError, KeyError):
+            return None
+        events = {}
+        for code, fetch in self.events.items():
+            try:
+                events[code] = fetch()
+            except (OSError, ValueError, KeyError):
+                continue
+        xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
+        v = nba_legs.view(board, events, xs, market_only=us)
+        first = v["agencies"].get("pb") or next(iter(v["agencies"].values()), {})
+        out = base | {
+            "agencies": v["agencies"],
+            "preview": v["preview"],
+            "report": first.get("report", base.get("report")),
+            "priced_at": self.clock(),
+            "staged": False,
+            "us": {"books": sorted(us), "credits": us_books.LAST.get("remaining")},
+        }
+        self._us = (time.monotonic(), out)
+        return out
+
     def view(self) -> dict:
         """The page's data. A copy older than PRICES_TTL_S is still served at once while a
         background refresh fetches new prices, so only the very first visit waits."""

@@ -228,3 +228,19 @@ def test_a_stage_that_is_likelier_at_the_other_agency_is_pointed_out():
     me._agency_left = {"pb": 25.0}
     assert Views._best_elsewhere(me, state, 2.4, {"chance": 0.60}, nba_challenge, fake_legs)["funded"] is True  # $25 there covers the $10 stake
     assert Views._best_elsewhere(me, state, 2.4, {"chance": 0.695}, nba_challenge, fake_legs) is None  # within 1 point: stay
+
+
+def test_us_view_adds_the_us_books_to_the_market_and_is_kept(bundled, monkeypatch):
+    from melbcup import us_books
+
+    calls = []
+
+    def fake_us(key, hours=36):
+        calls.append(key)
+        return {"dk": events(1.10)()}
+
+    monkeypatch.setattr(us_books, "us_books", fake_us)
+    feed = NbaFeed(read_blob=None, events={"pb": events(1.30)}, bundled=bundled, clock=lambda: NOW)
+    v = feed.us_view("K")
+    assert v["us"]["books"] == ["dk"] and list(v["agencies"]) == ["pb"]
+    assert feed.us_view("K") is v and calls == ["K"]  # kept: no second pull
