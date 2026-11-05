@@ -328,6 +328,11 @@ def create_app(
             done = await run_in_threadpool(push.telegram, update)
             return JSONResponse({"ok": True, "done": done})
 
+    @app.get("/api/nba/stamp", dependencies=[Depends(require_login)])
+    def nba_stamp():
+        """When the NBA prices on the server were worked out: the page swaps in fresher ones."""
+        return JSONResponse({"priced": views.nba_stamp()}, headers={"Cache-Control": "no-store"})
+
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):
         started = time.perf_counter()

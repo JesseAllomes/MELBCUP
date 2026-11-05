@@ -28,7 +28,10 @@ from melbcup import nba_legs
 
 NY = ZoneInfo("America/New_York")
 BUNDLED = Path(__file__).resolve().parents[1] / "data" / "nba" / "board-latest.json"
-PRICES_TTL_S = 90
+PRICES_TTL_S = 30  # every page load older than this fetches fresh prices behind (owner)
+US_EVERY_S = 6 * 3600
+US_PER_DAY = 4  # Odds API pulls a day besides switching it on (owner, 2026-11-06)
+MELBOURNE = ZoneInfo("Australia/Melbourne")
 STAGED_MAX_AGE = timedelta(minutes=30)  # older than this, the page works prices out itself
 AGENCY_NAMES = {"sb": "Sportsbet", "pb": "PointsBet"}
 BOARD_TTL_S = 600
@@ -119,41 +122,70 @@ class NbaFeed:
         self._board = (time.monotonic(), board, source)
         return board, source
 
-    def us_view(self, key: str, max_age_s: int = 1800) -> dict | None:
-        """The page data with the US books' prices in the market (owner, 2026-11-06: on request).
-        A pull costs Odds API credits, so it is shared and kept max_age_s; None when it fails."""
-        from melbcup import nba_challenge, us_books
+    # -- US books (owner, 2026-11-06): on request, at most US_PER_DAY automatic pulls a day
+    def set_us(self, on: bool, force: bool = False) -> None:
+        """US books in the market or not; `force` (switched on just now) pulls on the next refresh
+        and starts that refresh at once."""
+        self.us_on = on
+        if on and force:
+            self._us_force = True
+            if self._lock.acquire(blocking=False):
+                threading.Thread(target=self._refresh_locked, daemon=True).start()
 
-        stamp, cached = getattr(self, "_us", (0.0, None))
-        if cached is not None and time.monotonic() - stamp < max_age_s:
-            return cached
-        base = self.view()
-        board = base.get("board")
-        if board is None:
+    def _us_books(self) -> dict | None:
+        """The US books' events to add to the market: the last pull (memory, else the saved one in
+        Blob, so a restart pulls nothing), pulled again when switched on or US_EVERY_S old and
+        fewer than US_PER_DAY pulls today. A failed pull (no credits, no answer) keeps the last."""
+        key = os.environ.get("ODDS_API_KEY")
+        if not getattr(self, "us_on", False) or not key:
             return None
-        try:
-            us = us_books.us_books(key)
-        except (OSError, ValueError, KeyError):
-            return None
-        events = {}
-        for code, fetch in self.events.items():
+        us = getattr(self, "_us", None)
+        if us is None and self.read_blob is not None:
             try:
-                events[code] = fetch()
-            except (OSError, ValueError, KeyError):
-                continue
-        xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
-        v = nba_legs.view(board, events, xs, market_only=us)
-        first = v["agencies"].get("pb") or next(iter(v["agencies"].values()), {})
-        out = base | {
-            "agencies": v["agencies"],
-            "preview": v["preview"],
-            "report": first.get("report", base.get("report")),
-            "priced_at": self.clock(),
-            "staged": False,
-            "us": {"books": sorted(us), "credits": us_books.LAST.get("remaining")},
-        }
-        self._us = (time.monotonic(), out)
-        return out
+                raw = self.read_blob("us-latest.json")
+                us = json.loads(raw) if raw else None
+            except (httpx.HTTPError, ValueError):
+                us = None
+        now = self.clock()
+        day = now.astimezone(MELBOURNE).date().isoformat()
+        pulls = (us or {}).get("pulls", 0) if (us or {}).get("day") == day else 0
+        at = (us or {}).get("at")
+        age = (now - datetime.fromisoformat(at)).total_seconds() if at else None
+        force = getattr(self, "_us_force", False)
+        self._us_force = False
+        if force or age is None or (age >= US_EVERY_S and pulls < US_PER_DAY):
+            from melbcup import us_books
+
+            try:
+                books = us_books.us_books(key)
+                us = {
+                    "at": now.isoformat(),
+                    "day": day,
+                    "pulls": pulls + 1,
+                    "books": books,
+                    "credits": us_books.LAST.get("remaining"),
+                    "error": None,
+                }
+                self._us_save(us)
+            except (
+                Exception
+            ) as exc:  # out of credits or no answer: the rest of the page still loads
+                us = (us or {"books": {}}) | {
+                    "error": f"US books did not answer ({type(exc).__name__})."
+                }
+        self._us = us
+        return us
+
+    def _us_save(self, us: dict) -> None:
+        if not os.environ.get("NBA_ACCOUNT"):
+            return
+        try:
+            from melbcup.push_store import blob_writer
+
+            write = blob_writer(os.environ["NBA_ACCOUNT"], os.environ.get("AZURE_CLIENT_ID"))
+            write("us-latest.json", json.dumps(us).encode())
+        except Exception:  # kept in memory only
+            pass
 
     def view(self) -> dict:
         """The page's data. A copy older than PRICES_TTL_S is still served at once while a
@@ -168,7 +200,7 @@ class NbaFeed:
             saved is not None
         ):  # the timer's page data, however old: shown at once (owner, 2026-11-04)
             self._view = (time.monotonic(), saved)
-            if saved["age"] > STAGED_MAX_AGE and self._lock.acquire(blocking=False):
+            if self._lock.acquire(blocking=False):  # fresh prices behind it (owner: every load)
                 threading.Thread(target=self._refresh_locked, daemon=True).start()
             return saved
         with self._lock:
@@ -220,10 +252,8 @@ class NbaFeed:
             self._lock.release()
 
     def _compute(self) -> None:
-        saved = self._saved()
-        if saved is not None:  # the timer has fresh page data: read it, do not redo the search
-            self._view = (time.monotonic(), saved)
-            return
+        """Fresh prices from every agency, worked out here (in the background after the first
+        load), with the US books' when they are on."""
         now = self.clock()
         today = now.astimezone(NY).strftime("%Y%m%d")
         board, source = self.board()
@@ -246,7 +276,14 @@ class NbaFeed:
                 got = list(pool.map(one, self.events))
             xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
             # one view over every agency: each leg's market price uses all the bookmakers
-            v = nba_legs.view(board, {code: ev for code, ev, _ in got}, xs)
+            us = self._us_books()
+            v = nba_legs.view(
+                board, {code: ev for code, ev, _ in got}, xs, market_only=(us or {}).get("books")
+            )
+            if us is not None:
+                out["us"] = {k: us.get(k) for k in ("at", "credits", "error", "pulls")} | {
+                    "books": sorted(us.get("books") or {})
+                }
             out["agencies"], out["preview"] = v["agencies"], v.get("preview") or {}
             for code, _, error in got:
                 out["agencies"][code]["error"] = error

@@ -583,6 +583,12 @@ class Views:
             cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
         return cache[key]
 
+    def nba_stamp(self) -> str:
+        """When the NBA page's prices were worked out (the page checks this to swap in fresher)."""
+        v = (self._nba._view[1] or {}) if self._nba else {}
+        p = v.get("priced_at")
+        return p.isoformat() if hasattr(p, "isoformat") else str(p or "")
+
     def warm_nba(self) -> None:
         """Load the NBA page data in the background when the app starts (owner: fast pages)."""
         try:
@@ -609,15 +615,9 @@ class Views:
             return {"nba": v, "nba_tab": "legs", "nba_rep": {}, "nba_games": {}}
         if self._nba is None:
             self._nba = NbaFeed()
+        self._nba.set_us(getattr(self, "_us_on", False), force=query.get("us") == "1")
         v = self._nba.view()
-        us_key = os.environ.get("ODDS_API_KEY")
-        us_note = None
-        if getattr(self, "_us_on", False) and us_key:  # US books, on request (owner, 2026-11-06)
-            uv = self._nba.us_view(us_key)
-            if uv is not None:
-                v = uv
-            else:
-                us_note = "The US books could not be read just now (or the credits ran out)."
+        us_note = (v.get("us") or {}).get("error")
         tab = query.get("tab")
         tab = tab if tab in ("stacks", "challenge", "games", "same", "all") else "stacks"
         # Prices from the agency picked here (?bk=), else the first agency switched ON in Agencies

@@ -174,3 +174,39 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       .catch(function () { if (n < 20) window.setTimeout(function () { poll(n + 1); }, 3000); });
   })(0);
 })();
+
+// Fresh NBA prices on every load (owner, 2026-11-06): the server shows its latest copy at once and
+// works out new prices behind it; when they land, reload once (or offer a tap if the page is in use).
+// The reload keeps only the tab and agency, so a switch or an action in the address never repeats.
+(function () {
+  "use strict";
+  var el = document.getElementById("nba-priced");
+  if (!el) return;
+  var mine = Date.parse(el.getAttribute("data-priced") || "") || 0;
+  var touched = false;
+  ["click", "touchstart", "keydown", "wheel"].forEach(function (ev) {
+    window.addEventListener(ev, function () { touched = true; }, { once: true, passive: true });
+  });
+  function clean() {
+    var u = new URL(location.href), keep = new URLSearchParams();
+    ["tab", "bk"].forEach(function (k) { if (u.searchParams.get(k)) keep.set(k, u.searchParams.get(k)); });
+    return u.pathname + (keep.toString() ? "?" + keep.toString() : "");
+  }
+  (function poll(n) {
+    if (n > 15) return;
+    window.setTimeout(function () {
+      fetch("/api/nba/stamp", { cache: "no-store", credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var t = Date.parse(d.priced || "") || 0;
+          if (t <= mine) { poll(n + 1); return; }
+          if (!touched) { location.replace(clean()); return; }
+          var pill = document.createElement("button");
+          pill.type = "button"; pill.className = "saved-pill ready"; pill.textContent = "Fresh prices ready · tap";
+          pill.addEventListener("click", function () { location.replace(clean()); });
+          document.body.appendChild(pill);
+        })
+        .catch(function () { poll(n + 1); });
+    }, 3000);
+  })(0);
+})();
