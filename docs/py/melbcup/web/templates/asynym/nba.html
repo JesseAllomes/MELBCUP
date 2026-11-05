@@ -147,7 +147,7 @@
   {% if ch and ch.past %}<p class="note">Earlier runs: {% for r in ch.past[-8:] %}{{ '✓ $%.0f' % r.best if r.made_it else '✗ at stage %d' % (r.steps + 1) }}{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
   <script type="application/json" id="push-reminders">{{ push_reminders | tojson }}</script>
   <p class="note">Alerts for these stages: Settings (top of the page), Phone alerts.</p>
-  <p class="note">Each stage uses the multi most likely to pay that stage's share of the goal, from the model's chances; legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
+  <p class="note">Each stage uses the multi most likely to pay that stage's share of the goal, from the market's chances (bookmakers' prices, margin removed); legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
 </section>
 {% elif nba_tab == 'games' %}
 {% for gm in rep.by_game or [] %}
@@ -168,5 +168,5 @@
 </section>
 {% endif %}
 {% endif %}
-<p class="note">The chance is the model's (v3, tested on past seasons). Whether it beats the bookmakers' prices is being measured from today: every line is settled against the real box score.</p>
+<p class="note">Each chance is the market's: the bookmakers' prices with their margin taken out (on real past prices the market beat our model, research/nba/dunk_real_prices.txt). The model only fills in lines no bookmaker prices. Every suggested line is settled against the real box score.</p>
 {% endblock %}
