@@ -145,3 +145,8 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Blocked: nrl + tennis (Cloudflare 403 on aussportsbetting / tennis-data.co.uk; owner can download files manually). football: fetch unfinished, worktree sport-football uncommitted.
 - func-sports capped to 1 instance (owner approved).
 - Not done: NBA nightly learn.py (needs settled forward log); 2-a-night warning; HAIRCUT auto-tune.
+
+## 2026-11-07 independent review P0: event-matched settlement
+- Review confirmed: forward.jsonl settled whole-board day logs by player name against one day's box (1,492 later-game legs won/lost, 511 before tip, 6,397 false voids).
+- Fix: settle.Slate/settle_one match ESPN game by US date + teams, final only; pending/unresolved/void(DNP). forward.jsonl frozen; forward-v2.jsonl + forward-v2-reconcile.json rebuilt nightly by the job; `latest` flags repeats. Live: 0 future settled, 0 unresolved.
+- Rest of the review pack (unified /sports, multi-challenge wallet, bonus splits, promo optimiser) NOT started: needs the full pack (only the handoff + summary were uploaded) and owner go-ahead.
