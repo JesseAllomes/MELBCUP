@@ -459,3 +459,34 @@ a.pick-other { text-decoration: none; color: inherit; }
 .chs-table table{border-collapse:collapse;width:100%;font-size:.85em}
 .chs-table th,.chs-table td{padding:4px 6px;text-align:left;vertical-align:top}
 @media(max-width:420px){.chs .ch-start label,.chs-wager .ch-start label,.chs-wallet label,.chs-promo label{display:block;width:100%}.chs input,.chs select{max-width:100%;box-sizing:border-box}}
+/* Sports catalogue: players and all markets (360-412px first; only the chip rows scroll sideways) */
+.sp-sub { margin-top: -2px; }
+.sp-sub a { padding: 5px 12px; font-size: 12px; }
+.cat-cov { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.cat-f { display: grid; gap: 8px; }
+.cat-f input[type=search], .cat-f select { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--rule); background: var(--chip); color: inherit; font: inherit; font-size: 14px; }
+.cat-sel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cat-alt { font-size: 13px; }
+.cat-go { display: flex; gap: 14px; align-items: center; }
+.cat-go button { padding: 8px 18px; border-radius: 999px; border: 0; background: var(--brand); color: var(--brand-ink); font-weight: 700; }
+.cat-go a, .cat-pg a { color: var(--brand); }
+.cat-ev h2 { font-size: 15px; margin: 0; overflow-wrap: anywhere; }
+.cat-ev h2 small, .cat-pl summary small { color: var(--muted); font-weight: 600; }
+.cat-ev h3 { margin: 10px 0 2px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.cat-pl { border-top: 1px solid var(--rule); padding: 6px 0; }
+.cat-pl summary { cursor: pointer; }
+.cat-ls { list-style: none; margin: 0; padding: 0; }
+.cat-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 6px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+.cat-row small { display: block; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.cat-sel b, .cat-sel small { display: inline; }
+.cat-sel small.cat-raw { display: block; }
+.cat-px { text-align: right; }
+.cat-px small { display: block; }
+.cat-fls { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+.cat-fls:empty { display: none; }
+.cat-fl { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--muted); border: 1px solid var(--rule); }
+.cat-fl.warn { background: var(--warn-wash); color: var(--warn); border-color: transparent; }
+.cat-fl.bad { background: var(--bad-wash); color: var(--bad); border-color: transparent; }
+.cat-ev-l { padding-top: 10px; }
+.cat-pg { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; margin: 10px 0 16px; font-size: 13px; }
+.cat-pg .more { padding: 8px 18px; border-radius: 999px; background: var(--brand); color: var(--brand-ink); font-weight: 700; text-decoration: none; }

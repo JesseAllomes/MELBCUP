@@ -133,6 +133,102 @@ SPORTS: tuple[Sport, ...] = (
         "",
         "Not tested: the free results-and-odds source blocks automated download (we do not get round it), so there is no dataset.",
     ),
+    Sport(
+        "nbl",
+        "NBL",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "ncaab",
+        "NCAAB",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "ncaaf",
+        "NCAAF",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "aflw",
+        "AFLW",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "rugby-league",
+        "Rugby league",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "cricket",
+        "Cricket",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "mlb",
+        "MLB",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
+    Sport(
+        "rugby-union",
+        "Rugby union",
+        False,
+        "",
+        (),
+        (),
+        "",
+        "",
+        "",
+        "Not tested: no dataset yet.",
+    ),
 )
 BY_CODE = {s.code: s for s in SPORTS}
 TABS = (
@@ -141,6 +237,19 @@ TABS = (
     + (("all", "All"),)
 )
 DEFAULT = "nba"
+
+
+VIEWS = ("players", "markets")
+
+
+def pick_view(sport: str, code: str | None) -> str:
+    """The sub-tab: "" is the page's own default (NBA's multis tabs, the All matrix); the rest are
+    the catalogue views. Every other sport lands on Players."""
+    if sport == "racing":
+        return ""
+    if code in VIEWS:
+        return code
+    return "" if sport in ("nba", "all") else "players"
 
 
 def pick(code: str | None) -> str:

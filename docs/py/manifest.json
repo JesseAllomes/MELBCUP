@@ -1,5 +1,5 @@
 {
- "build": "27c9c078a23c",
+ "build": "35e9b4044a59",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -15,6 +15,7 @@
   "melbcup/bets/singles.py",
   "melbcup/bets/staking.py",
   "melbcup/browser.py",
+  "melbcup/catalogue_view.py",
   "melbcup/config.py",
   "melbcup/data_public.py",
   "melbcup/domain.py",

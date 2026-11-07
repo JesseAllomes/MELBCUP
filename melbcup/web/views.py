@@ -18,7 +18,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from melbcup import history
+from melbcup import catalogue_view, history
 from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
 from melbcup.bets.grade import grade_day
 from melbcup.bets.promos import PROMOS
@@ -324,6 +324,7 @@ def make_env(new_ui: bool = False) -> Environment:
         open_races=open_races,
     )
     env.globals["shown"] = history.shown
+    env.globals["cat_flags"] = catalogue_view.flags
     env.globals["asset_v"] = asset_version(new_ui)
     env.filters.update(
         one_in=racecard.one_in,
@@ -936,7 +937,11 @@ class Views:
             ctx["sport"] = sport = sports_hub.pick(query.get("sport"))
             ctx.update(hub_tabs=sports_hub.TABS, hub_sports=sports_hub.SPORTS)
             ctx["hub"] = sports_hub.BY_CODE.get(sport)
-            if sport != "nba":
+            ctx["view"] = view = sports_hub.pick_view(sport, query.get("view"))
+            if view:
+                ctx["cat"] = catalogue_view.query(sport, view, query)
+            ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
+            if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub
             ctx["path"] = "/sports"
