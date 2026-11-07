@@ -1,6 +1,7 @@
 # ruff: noqa: E501
 """NBA legs, multis and settling (tools/nba/legs.py, tools/nba/settle.py)."""
 
+import math
 import os
 import sys
 
@@ -154,7 +155,7 @@ def test_best_stack_is_the_most_likely_combination_that_pays_the_target():
         target = rnd.choice([2.0, 3.0, 5.0])
         got = L.best_stack(groups, target)
         best = 0.0
-        for k in range(3, 6):
+        for k in range(2, 6):  # no forced third leg: two legs compete too
             for gs in itertools.combinations(groups, k):
                 for pick in itertools.product(*gs):
                     if math.prod(g["price"] for g in pick) >= target:
@@ -162,7 +163,7 @@ def test_best_stack_is_the_most_likely_combination_that_pays_the_target():
         if got is None:
             assert best == 0.0
             continue
-        assert len({g["game"] for g in got}) == len(got) >= 3  # one leg per game
+        assert len({g["game"] for g in got}) == len(got) >= 2  # one leg per game
         assert math.prod(g["price"] for g in got) >= target - 1e-9
         assert (
             math.prod(g["chance"] for g in got) >= best - 1e-9
@@ -192,11 +193,12 @@ def test_stacks_reach_each_payout_with_three_games():
     ]
     cross, same = L.stacks(legs)
     assert [m["target"] for m in cross] == [2.0, 3.0, 5.0]  # 1.9 x 1.9 x 1.9 = 6.86: no $100
+    assert [m["legs"] for m in cross] == [2, 3, 3]  # every count from 2 competes at the target
     for m in cross:
-        assert m["legs"] == 3 and m["price"] >= m["target"]
-    # $20 on $10: 0.9 x 0.9 x 0.7 at $1.15 x $1.15 x $1.5 = $1.98 falls just short; the likeliest
-    # stack that pays is 0.9 x 0.9 x 0.62 ($2.51), ahead of 0.9 x 0.7 x 0.7 ($2.59)
-    assert cross[0]["chance"] == round(0.9 * 0.9 * 0.62, 4)
+        assert m["price"] >= m["target"]
+    # $20 on $10: two legs, 0.9 x 0.62 at $1.15 x $1.9 = $2.185, beat the old three-leg floor
+    # (0.9 x 0.9 x 0.62, $2.51); behaviour changed on purpose (min_legs 3 -> 2)
+    assert cross[0]["chance"] == round(0.9 * 0.62, 4)
     assert [m["target"] for m in same] == [
         2.0,
         3.0,
@@ -285,21 +287,25 @@ def _leg(player_, line, under, price, model=0.5):
 
 def test_devig_of_a_pair():
     m = L.feed_market([_leg("A", 20, False, 1.8), _leg("A", 20, True, 2.0)])
-    assert m[("A", "points", 20, False)] == pytest.approx((1 / 1.8) / (1 / 1.8 + 0.5))
+    assert m[L.bet_key(_leg("A", 20, False, 1.8))] == pytest.approx((1 / 1.8) / (1 / 1.8 + 0.5))
     assert sum(m.values()) == pytest.approx(1.0)
 
 
-def test_ladder_uses_the_feeds_overround():
+def test_ladder_rung_uses_the_price_band_margin_not_the_pairs_overround():
+    # behaviour changed on purpose (audit B2): a single-sided rung is 1/price x exp(-m(band))
     legs = [_leg("A", 20, False, 1.9), _leg("A", 20, True, 1.9), _leg("A", 25, False, 4.0)]
+    legs[2]["src"] = "alt"
     m = L.feed_market(legs)
-    assert m[("A", "points", 25, False)] == pytest.approx(0.25 / (2 / 1.9))
-    only = L.feed_market([_leg("B", 25, False, 4.0)])  # no pairs: the 1.07 default
-    assert only[("B", "points", 25, False)] == pytest.approx(0.25 / 1.07)
+    assert m[L.bet_key(legs[2])] == pytest.approx(0.25 * math.exp(-0.10))
+    only = L.feed_market([_leg("B", 25, False, 4.0)])  # lone side: same band table
+    assert only[L.bet_key(_leg("B", 25, False, 4.0))] == pytest.approx(0.25 * math.exp(-0.10))
 
 
 def test_market_is_averaged_over_agencies():
     m = L.market_probs({"pb": [_leg("A", 25, False, 4.0)], "sb": [_leg("A", 25, False, 5.0)]})
-    assert m[("A", "points", 25, False)] == pytest.approx((0.25 + 0.2) / 2 / 1.07)
+    assert m[L.bet_key(_leg("A", 25, False, 4.0))] == pytest.approx(
+        (0.25 + 0.2) / 2 * math.exp(-0.10)
+    )
 
 
 def test_blend_math_and_no_market_fallback():
@@ -308,7 +314,7 @@ def test_blend_math_and_no_market_fallback():
     assert L.blend(0.7, 0.4, w=0.0) == pytest.approx(0.4)
     assert 0.5 < L.blend(0.8, 0.5, w=0.5) < 0.8
     legs = [_leg("A", 25, False, 4.0, model=0.3), _leg("B", 10, False, 1.5, model=0.8)]
-    L.apply_market(legs, {("A", "points", 25, False): 0.2})
+    L.apply_market(legs, {L.bet_key(legs[0]): 0.2})
     assert legs[0]["market"] == 0.2 and legs[0]["model"] == 0.3 and legs[0]["chance"] < 0.3
     assert (
         legs[1]["market"] is None and legs[1]["raw"] == 0.8 and legs[1]["chance"] < 0.8
@@ -438,5 +444,5 @@ def test_overs_are_shaded_down_and_unders_up_most_at_even_money():
     assert L.shade(0.5, True) == pytest.approx(0.5 + L.OVER_SHADE, abs=0.001)
     assert 0 < 0.9 - L.shade(0.9, False) < 0.006  # a short leg barely moves
     legs = [_leg("A", 20, False, 1.9, model=0.5), _leg("A", 20, True, 1.9, model=0.5)]
-    L.apply_market(legs, {("A", "points", 20, False): 0.5, ("A", "points", 20, True): 0.5})
+    L.apply_market(legs, {L.bet_key(legs[0]): 0.5, L.bet_key(legs[1]): 0.5})
     assert legs[0]["chance"] < 0.5 < legs[1]["chance"] and legs[0]["raw"] == 0.5

@@ -64,8 +64,8 @@ def quote_status(g, as_of=None, max_age_s=MAX_AGE_S):
 def _eligible(legs, include_h2h, min_leg_chance, min_leg_price, as_of=None, max_age_s=MAX_AGE_S):
     out = []
     for g in legs:
-        if quote_status(g, as_of, max_age_s) != "verified":
-            continue
+        if quote_status(g, as_of, max_age_s) != "verified" or g.get("conflict"):
+            continue  # a conflicting ladder (nba_legs.monotone) is never an automatic pick
         if g["price"] < min_leg_price or g["chance"] < min_leg_chance:
             continue
         if not include_h2h and not is_player_leg(g):
@@ -74,13 +74,21 @@ def _eligible(legs, include_h2h, min_leg_chance, min_leg_price, as_of=None, max_
     return out
 
 
-def _compatible(stack, g):
-    return all(
-        not (h.get("player") == g.get("player") and h.get("stat") == g.get("stat")) for h in stack
-    )
+def _compatible(stack, g, allow_same_player=False):
+    """One leg per player: a second leg on a player is dependent (nested lines, points with
+    threes), and no bookmaker price for that pair is known, so automatic multis leave it out unless
+    a real same-game quote exists (allow_same_player)."""
+    if allow_same_player:
+        return all(
+            not (h.get("player") == g.get("player") and h.get("stat") == g.get("stat"))
+            for h in stack
+        )
+    return all(h.get("player") != g.get("player") for h in stack)
 
 
-def candidates(legs, target, band=BAND, min_legs=2, max_legs=6, beam=BEAM) -> list[list[dict]]:
+def candidates(
+    legs, target, band=BAND, min_legs=2, max_legs=6, beam=BEAM, allow_same_player=False
+) -> list[list[dict]]:
     """Beam search by chance per log-price; stack prices land in [target, target*band]."""
     lo, hi = math.log(target), math.log(target * band)
     pool = sorted(legs, key=lambda g: math.log(g["chance"]) / math.log(g["price"]), reverse=True)
@@ -94,7 +102,7 @@ def candidates(legs, target, band=BAND, min_legs=2, max_legs=6, beam=BEAM) -> li
             for j in range(last + 1, len(pool)):
                 if p + lp[j] > hi + 1e-9:
                     continue
-                if not _compatible([pool[i] for i in idxs], pool[j]):
+                if not _compatible([pool[i] for i in idxs], pool[j], allow_same_player):
                     continue
                 nxt.append((idxs + (j,), p + lp[j], c + lc[j], j))
         nxt.sort(key=lambda s: s[2] / s[1], reverse=True)
@@ -165,9 +173,14 @@ def rank(
     top=5,
     as_of=None,
     max_age_s=MAX_AGE_S,
+    allow_same_player=False,
+    promo_min_legs=None,
+    promo_min_leg_price=None,
 ) -> dict:
-    """Best multi at the quoted target price. {"objective", "target", "band", "pick", "top",
-    "n_candidates", "reason"}; pick is None (with a reason) when nothing qualifies."""
+    """Best multi at the quoted target price. Every leg count from min_legs (2) up competes. A
+    promotion's own minimums (promo_min_legs / promo_min_leg_price) bind only when objective is
+    "promo", i.e. when that product is the one chosen. Returns {"objective", "target", "band",
+    "pick", "top", "n_candidates", "reason"}; pick is None when nothing qualifies."""
     res = {
         "objective": LABELS[objective],
         "target": target,
@@ -177,12 +190,15 @@ def rank(
         "n_candidates": 0,
         "reason": None,
     }
+    if objective == "promo":
+        min_legs = max(min_legs, promo_min_legs or 0)
+        min_leg_price = max(min_leg_price, promo_min_leg_price or 0.0)
     res["n_unverified_legs"] = sum(quote_status(g, as_of, max_age_s) != "verified" for g in legs)
     pool = _eligible(legs, include_h2h, min_leg_chance, min_leg_price, as_of, max_age_s)
     if len(pool) < min_legs:
         res["reason"] = f"only {len(pool)} eligible legs"
         return res
-    cands = candidates(pool, target, band, min_legs, max_legs, beam)
+    cands = candidates(pool, target, band, min_legs, max_legs, beam, allow_same_player)
     res["n_candidates"] = len(cands)
     if not cands:
         res["reason"] = "no combination of priced legs lands in the target band"
