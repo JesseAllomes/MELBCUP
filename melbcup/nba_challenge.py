@@ -633,6 +633,29 @@ def store_money(store: dict, today: str) -> tuple[dict[str, float], float]:
     return used, round(profit, 2)
 
 
+def _edit(state: dict, q: Mapping[str, str]) -> dict:
+    """Correct an open run's settings (owner, 2026-11-07): start, bank, goal, stages, legs, keep.
+    The stage history stays; the next stage's target follows from the new bank, goal and stages."""
+    if state.get("active") is False:
+        raise ValueError("start a run first")
+    if state.get("placed"):
+        raise ValueError("settle the placed stage first")
+    start = _money(q.get("chstart")) or state["start"]
+    bank = _money(q.get("chbank")) or state["bank"]
+    goal = _money(q.get("chgoal")) or state["goal"]
+    done = len(state["steps"])
+    try:
+        n = int(q.get("chn") or state.get("stages", DEFAULT_STAGES))
+    except ValueError:
+        n = state.get("stages", DEFAULT_STAGES)
+    n = max(min(n, max(STAGES)), done + 1, min(STAGES))
+    keep = q.get("chkeep") == "1" if "chkeep" in q else state.get("keep", True)
+    return state | {
+        "start": start, "bank": bank, "goal": max(goal, bank * 1.01, start * 2 if not done else 0),
+        "stages": n, "legs": _legs(q.get("chlegs")), "keep": keep,
+    }
+
+
 def _csv_floats(text: str | None) -> list[float]:
     return [v for v in (_money(x) for x in re.split(r"[,\s+]+", text or "") if x) if v]
 
@@ -680,6 +703,9 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         _record_wager(store, rec, q, today, op)
     elif act in ("wgrwon", "wgrlost"):
         _settle_wager(store, rec, act, q)
+    elif act == "chedit":
+        rec["name"] = (q.get("chname") or "").strip()[:40] or rec["name"]
+        rec["state"] = _edit(rec["state"], q)
     elif act == "renamech":
         rec["name"] = (q.get("chname") or "").strip()[:40] or rec["name"]
     elif act == "rmch":

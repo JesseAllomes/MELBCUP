@@ -27,6 +27,21 @@
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
     <button type="submit">Create and start</button>
   </form></details>
+  {% if chs.open and ch %}
+  <details class="chs-edit"><summary>Edit challenge</summary>
+  <form method="get" action="/sports" class="ch-act">
+    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
+    <label>Name <input name="chname" maxlength="40" value="{{ chs.open.name }}"></label>
+    <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%.2f' % ch.start }}"></label>
+    <label>Current bank $<input name="chbank" inputmode="decimal" value="{{ '%.2f' % ch.bank }}"></label>
+    <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%.2f' % ch.goal }}"></label>
+    <label class="ch-mode">Stages <select name="chn">{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == ch.get('stages', 3) }}>{{ n }}</option>{% endfor %}</select></label>
+    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch.get('legs') == n }}>{{ n }}</option>{% endfor %}</select></label>
+    <input type="hidden" name="chkeep" value="0">
+    <label class="ch-mode"><input type="checkbox" name="chkeep" value="1"{{ ' checked' if ch.get('keep', True) }}> Take my start back after the first win</label>
+    <button type="submit" name="ch" value="chedit">Save changes</button>
+  </form></details>
+  {% endif %}
   {% if chs.open %}
   <form method="get" action="/sports" class="ch-act chs-rename"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
     <label>Rename <input name="chname" maxlength="40" value="{{ chs.open.name }}"></label>

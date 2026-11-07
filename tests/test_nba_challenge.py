@@ -493,3 +493,21 @@ def test_nba_suggestion_honours_legs():
     for n in (2, 3):
         step = nba_legs.stack_for(legs, 2.0, min_legs=n, max_legs=n)
         assert step and step["legs"] == n
+
+
+def test_edit_challenge_recomputes_target_and_leaves_others():
+    store = C.load(None)
+    for i in (1, 2):
+        store, _, _ = C.apply_store(store, {"ch": "newch", "chname": f"c{i}", "chstart": "10", "chgoal": "1000", "op": f"n{i}"}, DAY)
+    a, b = store["challenges"]
+    before_b = str(b)
+    x0 = C.next_x(a["state"])
+    store, changed, err = C.apply_store(
+        store, {"ch": "chedit", "chid": a["id"], "chstart": "10.27", "chbank": "12.50", "chgoal": "1000", "chn": "4", "chlegs": "2", "chname": "renamed", "op": "e1"}, DAY
+    )
+    a2, b2 = store["challenges"]
+    assert changed and not err
+    assert a2["name"] == "renamed" and a2["state"]["start"] == 10.27 and a2["state"]["bank"] == 12.5
+    assert a2["state"]["legs"] == 2 and a2["state"]["stages"] == 4
+    assert C.next_x(a2["state"]) != x0
+    assert str(b2) == before_b
