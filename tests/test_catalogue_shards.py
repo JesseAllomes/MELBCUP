@@ -1,3 +1,4 @@
+# ruff: noqa: E731
 # ruff: noqa: E501
 """Sharded catalogue: index + per-competition shards, bounded memory, picker, Other bucket."""
 
@@ -166,3 +167,58 @@ def test_writer_shards_by_competition_and_stubs_big_latest(tmp_path, monkeypatch
     cv.clear_cache()
     q = cv.query("football", "markets", {"comp": "all"})
     assert q["total"] == 45 and q["feed"]
+
+
+def test_partial_run_keeps_previous_rows_of_games_it_did_not_reach(tmp_path):
+    """A run cut short by its time limit must never empty a sport (owner: stable, populated)."""
+    import gzip as _gz
+    import json as _json
+
+    from melbcup import catalogue as C
+
+    def doc(built, events, rows):
+        return {
+            "built": built,
+            "provider": "pb",
+            "sport": "football",
+            "events": events,
+            "selections": rows,
+        }
+
+    ev = lambda i, f: {
+        "event_id": str(i),
+        "competition_id": "9",
+        "competition": "EPL",  # noqa: E731
+        "starts_at": "2026-11-08T15:00:00Z",
+        "fetched": f,
+    }
+    row = lambda i, t: {
+        "event_id": str(i),
+        "league_id": "9",
+        "market_family": "h2h",
+        "key": f"{i}-{t}",  # noqa: E731
+        "quote_observed_at_utc": t,
+        "is_player_prop": False,
+    }
+    write, read = C.dir_writer(tmp_path), C.dir_reader(tmp_path)
+    first = {
+        "docs": {"football": doc("t1", [ev(1, True), ev(2, True)], [row(1, "t1"), row(2, "t1")])},
+        "coverage": [{"sport": "football"}],
+        "unmapped": {},
+        "raw": {"football": {}},
+    }
+    C.write_build(first, write, read, include_raw=False)
+    second = {
+        "docs": {"football": doc("t2", [ev(1, True), ev(2, False)], [row(1, "t2")])},
+        "coverage": [{"sport": "football"}],
+        "unmapped": {},
+        "raw": {"football": {}},
+    }
+    C.write_build(second, write, read, include_raw=False)
+    shard = _json.loads(
+        _gz.decompress((tmp_path / "catalogue/football/comp-9.json.gz").read_bytes())
+    )
+    got = {(r["event_id"], r["quote_observed_at_utc"]) for r in shard["selections"]}
+    assert got == {("1", "t2"), ("2", "t1")}  # game 2 kept with its old (honest) quote time
+    idx = _json.loads((tmp_path / "catalogue/football/index.json").read_bytes())
+    assert idx["rows"] == 2 and [e.get("carried") for e in idx["events"]] == [None, True]

@@ -806,6 +806,72 @@ def shard_doc(doc: dict, cov: dict | None = None) -> tuple[dict, dict]:
     return index, shards
 
 
+def _carry_over(k: str, index: dict, shards: dict, doc: dict, read) -> None:
+    """Keep the previous build's rows for games this run did not reach (a run stops at its time
+    limit: basketball and soccer need more than one run), so a partial run never empties a sport.
+    One competition's old shard is read at a time, so memory stays bounded. Carried games keep
+    their old quote times (honest staleness) and are marked "carried"."""
+    if read is None:
+        return
+    missing: dict[str, set] = {}
+    for e in doc["events"]:
+        if not e.get("fetched"):
+            missing.setdefault(str(e.get("competition_id") or ""), set()).add(str(e["event_id"]))
+    if not missing:
+        return
+    try:
+        old = json.loads(read(f"catalogue/{k}/index.json") or b"null") or {}
+    except (ValueError, OSError):
+        return
+    old_shard = {str(c.get("competition_id")): c.get("shard") for c in old.get("competitions", [])}
+    carried_events: set = set()
+    by_cid = {c["competition_id"]: c for c in index["competitions"]}
+    for cid, evs in missing.items():
+        name = old_shard.get(cid)
+        if not name:
+            continue
+        try:
+            raw = read(f"catalogue/{k}/{name}")
+            rows = [
+                r
+                for r in (json.loads(gzip.decompress(raw)).get("selections", []) if raw else [])
+                if str(r.get("event_id")) in evs
+            ]
+        except (ValueError, OSError):
+            continue
+        if not rows:
+            continue
+        c = by_cid.get(cid)
+        if c is None:
+            continue
+        shard = shards.get(cid) or {
+            "built": doc["built"], "provider": doc["provider"], "sport": doc["sport"],
+            "competition_id": cid, "competition": c.get("competition"),
+            "events": [e for e in doc["events"] if str(e.get("competition_id") or "") == cid],
+            "selections": [],
+        }  # fmt: skip
+        shard["selections"] = shard["selections"] + rows
+        shards[cid] = shard
+        n_props = sum(1 for r in rows if r.get("is_player_prop"))
+        c.update(
+            outcomes=c.get("outcomes", 0) + len(rows),
+            player_outcomes=c.get("player_outcomes", 0) + n_props,
+            families=sorted(
+                set(c.get("families") or []) | {r.get("market_family") or "other" for r in rows}
+            ),
+            periods=sorted(
+                (set(c.get("periods") or []) | {r.get("period") or "" for r in rows}) - {""}
+            ),
+            shard=f"comp-{cid}.json.gz",
+        )
+        index["rows"] = index.get("rows", 0) + len(rows)
+        index["player_rows"] = index.get("player_rows", 0) + n_props
+        carried_events |= {str(r.get("event_id")) for r in rows}
+    for e in index["events"]:
+        if str(e.get("event_id")) in carried_events:
+            e["carried"] = True
+
+
 def write_build(result: dict, write, read=None, include_raw: bool = True) -> list[str]:
     """Write a build through `write(name, bytes)`. `read(name) -> bytes | None` lets coverage.json
     keep the rows of sports this run did not build (rotation). Returns the names written."""
@@ -820,6 +886,7 @@ def write_build(result: dict, write, read=None, include_raw: bool = True) -> lis
     cov_by = {r["sport"]: r for r in result["coverage"]}
     for k, doc in result["docs"].items():
         index, shards = shard_doc(doc, cov_by.get(k))
+        _carry_over(k, index, shards, doc, read)
         for cid, shard in shards.items():
             put(f"catalogue/{k}/comp-{cid}.json.gz", _gz(shard))
         put(f"catalogue/{k}/index.json", json.dumps(index, separators=(",", ":")).encode())
