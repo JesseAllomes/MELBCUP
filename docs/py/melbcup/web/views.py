@@ -479,8 +479,8 @@ class Views:
 
     def _sport_challenge(self, query: Mapping[str, str], ctx: dict, sport: str, disc) -> dict:
         """A non-NBA sport's Challenge tab: the All Sports challenges (NBA ones stay on the NBA
-        tab), the stage timeline, and the discover pick whose odds range holds the stage's target."""
-        tab), the stage timeline, and the discover pick holding the stage's target odds."""
+        tab), the stage timeline, and the pick whose odds range holds the stage's target."""
+        chs = ctx.get("chs")
         if not chs:
             return {"ch": None, "ch_step": None, "ch_tl": [], "ch_sug": None}
         mine = [it for it in chs["list"] if it["rec"]["scope"] == "all"]
