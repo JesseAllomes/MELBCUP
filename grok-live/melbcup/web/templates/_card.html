@@ -1,0 +1,122 @@
+{# Pieces of the race card (.grok/product-ui/). A line is a racecard.Line. #}
+
+{% macro pillset(list, start=false) %}{% if list %}<span class="pills{{ ' start' if start }}">{% for p in list %}<span class="pill {{ p.account }}{{ ' best' if p.best }}"><small>{{ p.account | upper }}</small>{{ p.text }}</span>{% endfor %}</span>{% endif %}{% endmacro %}
+
+{# "Placed: SB BF PB" (exotics: Sportsbet only). One compact row of chips; only a line with a stake
+   can be ticked, and the ticked chip reads "✓ SB $3" filled in that bookie's colour. The full
+   bookmaker name stays in the aria-label. #}
+{% macro placed(line) %}{% if line.stake %}
+<div class="placed" role="group" aria-label="Mark this bet as placed">
+  <span class="pl-label">Placed:</span>
+  {% for code, name in [('sb', 'Sportsbet'), ('bf', 'Betfair')] + ([('pb', 'PointsBet')] if line.pointsbet else []) if code == 'sb' or not line.sportsbet_only %}
+  {% set on = line.placed and line.acct == code %}
+  <button type="button" class="chip" data-acct="{{ code }}" data-rec="{{ line.record }}" aria-pressed="{{ 'true' if on else 'false' }}" aria-label="{% if on %}Placed ${{ line.stake }} on {{ name }}{% else %}Placed on {{ name }}{% endif %}">{% if on %}✓ {{ code | upper }} ${{ line.stake }}{% else %}{{ code | upper }}{% endif %}</button>
+  {% endfor %}
+  {% if line.placed and line.remove %}<button type="button" class="remove" data-remove="{{ line.remove }}" title="Remove this recorded bet">remove</button>{% endif %}
+</div>
+{% endif %}{% endmacro %}
+
+{# How a placed bet settled, as a compact badge (top-right, by the stake): WON +$12.40 / LOST -$3.00 /
+   BACK $6.48 · -$1.52 / PENDING. Needs: line.settled #}
+{% macro badge(line) %}{% set s = line.settled %}{% if s %}{% if s.status == 'settled' %}
+  {% if s.profit > 0 %}<span class="outcome pos">WON {{ s.profit | signed }}</span>
+  {% elif s.returns > 0 %}<span class="outcome {{ 'pos' if s.profit > 0 else 'neg' if s.profit < 0 else 'part' }}">BACK {{ s.returns | dollars }}{% if s.profit != 0 %} · {{ s.profit | signed | replace('-', '−') }}{% endif %}</span>
+  {% else %}<span class="outcome neg">LOST {{ s.profit | signed | replace('-', '−') }}</span>{% endif %}
+{% elif s.status == 'pending' %}<span class="outcome part">PENDING</span>{% endif %}{% endif %}{% endmacro %}
+
+{# The small line under a card: bonus bet earned, cash-back note, or "Not settled by the app" (exotics). #}
+{% macro outcome(line) %}{% set s = line.settled %}{% if s %}{% set note = s.note if s.status != 'settled' else '' %}{% if s.bonus or note %}
+  <div class="outcome-note">{% if s.bonus %}bonus bet {{ s.bonus | dollars }}{% endif %}{% if s.bonus and note %} · {% endif %}{{ note }}</div>
+{% endif %}{% endif %}{% endmacro %}
+
+{# One pick on one line where it fits: kind | runner | price pills | stake + badge. A second line
+   puts the explanation (left) beside the Placed chips (right). ``open`` marks a suggested line of a
+   race still to run: the phone saves it (data-pick) as the app's pick. #}
+{% macro pick_row(line, open=false) %}
+<div class="pick{{ ' is-placed' if line.placed }}"{% if open and line.code %} data-race="{{ line.race }}" data-k="{{ line.code }}"{% if not line.placed and line.pick_record %} data-pick="{{ line.pick_record }}"{% endif %}{% endif %}>
+  <span class="type">{{ line.label }}</span>
+  <span class="who"><span class="cloth sm">{{ line.number }}</span><b>{{ line.name }}</b></span>
+  <span class="px">{{ pillset(line.pills | selectattr('account', 'equalto', line.acct) | list if line.kind == 'each_way' and line.acct and (line.pills | selectattr('account', 'equalto', line.acct) | list) else line.pills) }}</span>
+  {% if line.stake and line.kind == "each_way" %}<span class="stake {{ line.acct }}">${{ (line.stake // 2) }} EW{{ badge(line) }}<small>${{ line.stake }} total · {{ line.acct | upper }}</small></span>{% elif line.stake %}<span class="stake {{ line.acct }}">${{ line.stake }}{{ badge(line) }}<small>{{ line.account_name }}</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}
+  <div class="sub">
+    <div class="says"><div class="say">{% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}<span>{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</span></div>{% if line.promo %}<div class="say"><span class="verdict good">{{ line.promo }}</span><span>{{ line.promo_note }}</span></div>{% endif %}{% if line.booster %}<div class="say"><span class="verdict good">{{ line.booster }}</span><span>{{ line.booster_note }}</span></div>{% endif %}</div>
+    {{ placed(line) }}
+  </div>
+  {{ outcome(line) }}
+</div>
+{% endmacro %}
+
+{# The app's final pick for a race that has run (from the phone's picks cookie): the same compact
+   row as a recorded bet, one line, with its WON / LOST / BACK badge. #}
+{% macro final_row(p) %}
+<div class="pick final">
+  <span class="type">{{ p.label }}</span>
+  <span class="who"><span class="cloth sm">{{ p.number }}</span><b>{{ p.name }}</b></span>
+  <span class="px">{% if p.price %}<span class="pills"><span class="pill {{ p.acct }} best"><small>{{ p.acct | upper }}</small>{{ p.price | price }}</span></span>{% endif %}</span>
+  {% if p.kind == "each_way" %}<span class="stake {{ p.acct }}">${{ (p.stake // 2) }} EW{{ badge(p) }}<small>${{ p.stake }} total</small></span>{% else %}<span class="stake {{ p.acct }}">${{ p.stake }}{{ badge(p) }}</span>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro exotic_card(line) %}
+<article class="bet">
+  <div class="bet-top"><h3>{{ line.title }}</h3><span class="bet-right">{{ badge(line) }}{% if line.stake %}<span class="amt">${{ line.stake }}</span>{% endif %}</span></div>
+  {% if line.legs %}
+  <dl class="legs">
+    {% for label, numbers, suffix in line.legs %}
+    <dt>{{ label }}</dt><dd>{% for n in numbers %}<span class="cloth sm">{{ n }}</span>{% endfor %}{% if suffix %}<span class="suffix">{{ suffix }}</span>{% endif %}</dd>
+    {% endfor %}
+  </dl>
+  {% endif %}
+  {% if line.say or line.bold %}<p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}{% if line.caveat %} {{ line.caveat }}{% endif %}</p>{% endif %}
+  {{ outcome(line) }}
+  {{ placed(line) }}
+</article>
+{% endmacro %}
+
+{# A day multi: legs as rows (race, cloth, horse), stake on the right, Sportsbet price, verdict. #}
+{% macro multi_card(line, prefill=false) %}
+<article class="bet multi{{ ' is-placed' if line.placed }}">
+  <div class="bet-top"><h3>{{ line.title }}</h3>{% if line.stake %}<span class="stake sb">{{ badge(line) }}${{ line.stake }}<small>Sportsbet</small></span>{% else %}<span class="stake none" title="No money left for this one">–</span>{% endif %}</div>
+  <ol class="mlegs">
+    {% for race, number, name, kind in line.multi_legs %}
+    <li><span class="rno">R{{ race }}</span><span class="cloth sm">{{ number }}</span><b>{{ name }}</b><span class="lk">{{ kind }}</span></li>
+    {% endfor %}
+  </ol>
+  <div class="mfoot">
+    {{ pillset(line.pills, true) }}
+    {% if line.good %}<span class="verdict good">Good price</span>{% else %}<span class="verdict short">Short price</span>{% endif %}
+  </div>
+  <p class="split">{{ line.say }}{% if line.bold %} <b>{{ line.bold }}</b>{% endif %}</p>
+  {{ outcome(line) }}
+  {{ placed(line) }}
+  {% if prefill %}<button type="button" class="prefill" data-prefill="{% for race, number, name, kind in line.multi_legs %}{{ race }}:{{ number }}{{ 'p' if kind == 'Place' else 'w' }}{{ ',' if not loop.last }}{% endfor %}"{% if line.price %} data-odds="{{ '%.2f' % line.price }}"{% endif %}>record with changes</button>{% endif %}
+</article>
+{% endmacro %}
+
+{# The PointsBet Pay Back multi (PROMOS=1 + a PointsBet amount): a day multi card without a stake. #}
+{% macro payback_card(line) %}
+<article class="bet multi">
+  <div class="bet-top"><h3>{{ line.title }}</h3></div>
+  <ol class="mlegs">
+    {% for race, number, name, kind in line.multi_legs %}
+    <li><span class="rno">R{{ race }}</span><span class="cloth sm">{{ number }}</span><b>{{ name }}</b><span class="lk">{{ kind }}</span></li>
+    {% endfor %}
+  </ol>
+  <div class="mfoot">{{ pillset(line.pills, true) }}</div>
+  <p class="split">{{ line.say }} <b>{{ line.value_note }}</b></p>
+</article>
+{% endmacro %}
+
+{# The day amounts (a third, PointsBet, with POINTSBET=1). A plain form: the server remembers them in cookies. #}
+{% macro amounts(wallet, here, rules="") %}
+<details class="money-fold">
+<summary><span class="mf-k">Amounts</span> SB {{ wallet.sportsbet | dollars }} · BF {{ wallet.betfair | dollars }}{% if wallet.pointsbet is not none %} · PB {{ wallet.pointsbet | dollars }}{% endif %}<span class="mf-edit">change</span></summary>
+<form class="money" method="get" action="{{ here }}">
+  <label for="m-sb"><span><span class="pill sb best"><small>Sportsbet</small></span> today</span><input id="m-sb" name="sb" inputmode="decimal" autocomplete="off" value="{{ wallet.sportsbet | dollars }}"></label>
+  <label for="m-bf"><span><span class="pill bf best"><small>Betfair</small></span> today</span><input id="m-bf" name="bf" inputmode="decimal" autocomplete="off" value="{{ wallet.betfair | dollars }}"></label>{% if wallet.pointsbet is not none %}
+  <label for="m-pb"><span><span class="pill pb best"><small>PointsBet</small></span> today</span><input id="m-pb" name="pb" inputmode="decimal" autocomplete="off" value="{{ wallet.pointsbet | dollars }}"></label>{% endif %}
+  <button type="submit">Share it out</button>
+</form>{% if rules %}
+<p class="split mf-rules">{{ rules }}</p>{% endif %}
+</details>
+{% endmacro %}

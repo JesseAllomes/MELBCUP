@@ -1,0 +1,171 @@
+{% extends "asynym/base.html" %}
+{% block title %}{{ title }} · AsynymBet{% endblock %}
+{% block refresh %}90{% endblock %}
+{% block content %}
+<section class="sp">
+  <p class="sp-kicker">{{ kicker }}</p>
+  <h2 class="sp-title">{{ heading }}</h2>
+  <nav class="sp-tabs" aria-label="{{ heading }}">
+    {% for key, label in tabs %}
+    <a href="{{ here }}?tab={{ key }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if tab in ('top', 'multis') %}
+    {% if live.ticket %}
+    <p class="sp-kicker">Tonight · Sportsbet</p>
+    <p class="sp-chance {{ live.ticket.tone }}">{{ live.ticket.pct }}<small>%</small></p>
+    <p class="sp-lead">{{ live.ticket.count }} leg{% if live.ticket.count != 1 %}s{% endif %} · ${{ '%.2f' % live.ticket.multi }}</p>
+    {% for leg in live.ticket.legs %}
+    <div class="sp-also">
+      <i class="{{ leg.tone }}">{{ leg.pct }}</i>
+      <span><b>{{ leg.name }}</b> {{ leg.game }} · ${{ '%.2f' % leg.price }}</span>
+    </div>
+    {% endfor %}
+    <p class="sp-meta">{{ live.ticket.edge }}</p>
+    {% elif live.games %}
+    <p class="sp-empty">These matches are up, and no one-leg-per-game multi reaches $2.</p>
+    {% endif %}
+    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
+    {% if hero %}
+    {% if live.ticket or live.games %}<p class="sp-kicker sp-next">Past seasons</p>{% endif %}
+    <p class="sp-chance {{ hero.tone }}">{{ hero.pct }}<small>%</small></p>
+    <p class="sp-lead">{% if hub %}{{ hero.sport_name }} · {% endif %}{{ hero.line }}</p>
+    <p class="sp-meta">${{ '%.2f' % hero.multi }} at the floor · {{ (hero.hit * 100) | round(1) }}% of {{ hero.bets }} bets · lower bound {{ (hero.low * 100) | round(1) }}%</p>
+    <p class="sp-meta">{{ hero.edge }}</p>
+    {% for row in rest %}
+    <a class="sp-also" href="{{ row.href }}">
+      <i class="{{ row.tone }}">{{ row.pct }}</i>
+      <span><b>{% if hub %}{{ row.sport_name }}{% else %}{{ row.label }}{% endif %}</b>{% if hub %} {{ row.label }}{% endif %} {{ row.band }} · {{ row.legs }} leg{% if row.legs != 1 %}s{% endif %} · ${{ '%.2f' % row.multi }}</span>
+    </a>
+    {% endfor %}
+    {% elif not live.ticket and not live.games %}
+    <p class="sp-empty">{{ live.empty or empty }}</p>
+    {% endif %}
+
+  {% elif tab == 'ladder' %}
+    {% for row in ladder %}
+    <a class="sp-also" href="/sports/{{ row.code }}?tab=multis">
+      <i class="{{ row.best.tone if row.best else '' }}">{{ row.best.pct if row.best else '—' }}</i>
+      <span><b>{{ row.name }}</b> {% if row.best %}{{ row.best.line }}{% else %}History not in yet{% endif %}</span>
+    </a>
+    {% endfor %}
+
+  {% elif tab == 'singles' %}
+    {% if live.singles %}
+    {% for row in live.singles %}
+    <div class="sp-also">
+      <i class="{{ row.tone }}">{{ row.pct }}</i>
+      <span><b>{{ row.name }}</b> {{ row.market }} · {{ row.game }} · ${{ '%.2f' % row.price }}</span>
+    </div>
+    {% endfor %}
+    <p class="sp-meta">{{ live.note }}</p>
+    {% endif %}
+    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
+    {% if singles_main %}
+    {% if live.singles %}<details class="sp-more"><summary>Past seasons</summary>{% endif %}
+    {% for row in singles_main %}
+    <div class="sp-also">
+      <i class="{{ row.tone }}">{{ row.pct }}</i>
+      <span><b>{{ row.label }}</b> {% if row.floor %}${{ '%.2f' % row.floor }}–${{ '%.2f' % row.ceiling }}{% else %}no +EV price in {{ row.band }}{% endif %} · {{ row.bets }} bets</span>
+    </div>
+    {% endfor %}
+    {% if singles_rest %}
+    <details class="sp-more"><summary>Lower chances</summary>
+    {% for row in singles_rest %}
+    <div class="sp-also">
+      <i class="{{ row.tone }}">{{ row.pct }}</i>
+      <span><b>{{ row.label }}</b> {% if row.floor %}${{ '%.2f' % row.floor }}–${{ '%.2f' % row.ceiling }}{% else %}no +EV price in {{ row.band }}{% endif %} · {{ row.bets }} bets</span>
+    </div>
+    {% endfor %}
+    </details>
+    {% endif %}
+    <p class="sp-meta">A single is one bet. The figure is the middle of that band. 60% and above is green, the same cut as the chance ring.</p>
+    {% if live.singles %}</details>{% endif %}
+    {% elif not live.singles %}
+    <p class="sp-empty">{{ live.empty or empty }}</p>
+    {% endif %}
+
+  {% elif tab == 'games' %}
+    {% if live.games %}
+    {% for game in live.games %}
+    <h3 class="sp-game">{{ game.name }}</h3>
+    <p class="sp-meta">{{ game.comp }}{% if game.when %} · {{ game.when }}{% endif %}</p>
+    {% for market in game.markets %}
+    <p class="sp-mkt">{{ market.name }}</p>
+    {% for row in market.selections %}
+    <div class="sp-also">
+      <i class="{{ row.tone }}">{{ row.pct }}</i>
+      <span><b>{{ row.name }}</b> ${{ '%.2f' % row.price }}</span>
+    </div>
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+    <p class="sp-meta">{{ live.note }} Same-game legs are linked, so they are listed under the match and not stacked into the multi.</p>
+    {% else %}
+    <p class="sp-empty">{{ live.empty or games_note }}</p>
+    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
+    {% endif %}
+
+  {% elif tab == 'build' %}
+    {% if built %}
+    <p class="sp-chance {{ built.tone }}">{{ built.pct }}<small>%</small></p>
+    <p class="sp-lead">{{ built.legs }} leg{% if built.legs != 1 %}s{% endif %} · ${{ '%.2f' % built.multi }}</p>
+    {% if not built.ready %}<p class="sp-meta">Still under $2. Add a leg.</p>{% endif %}
+    {% for line in built.lines %}<p class="sp-meta">{{ line }}</p>{% endfor %}
+    {% elif hero %}
+    <p class="sp-meta">The model would take {{ hero.line }}, {{ hero.pct }}%. Set a number of legs to build your own.</p>
+    {% else %}
+    <p class="sp-empty">{{ empty }}</p>
+    {% endif %}
+    {% if singles %}
+    <form class="sp-form" method="get" action="{{ here }}">
+      <input type="hidden" name="tab" value="build">
+      {% for row in singles_main %}
+      <label class="sp-also">
+        <input type="number" name="n_{{ row.id }}" min="0" max="12" inputmode="numeric" value="{{ row.count }}" aria-label="Legs of {{ row.label }} {{ row.band }}">
+        <span><b>{{ row.label }}</b> {{ row.band }} · ${{ '%.2f' % row.price }}</span>
+      </label>
+      {% endfor %}
+      {% if singles_rest %}
+      <details class="sp-more"><summary>Lower chances</summary>
+      {% for row in singles_rest %}
+      <label class="sp-also">
+        <input type="number" name="n_{{ row.id }}" min="0" max="12" inputmode="numeric" value="{{ row.count }}" aria-label="Legs of {{ row.label }} {{ row.band }}">
+        <span><b>{{ row.label }}</b> {{ row.band }} · ${{ '%.2f' % row.price }}</span>
+      </label>
+      {% endfor %}
+      </details>
+      {% endif %}
+      <button type="submit">Update the multi</button>
+    </form>
+    {% endif %}
+
+  {% elif tab == 'challenge' %}
+    {% set ch = challenge %}
+    <p class="sp-kicker">Stage 1 of {{ ch.stages }} · ${{ '%g' % ch.start }} toward ${{ '%g' % ch.goal }}</p>
+    {% if ch.ticket %}
+    <p class="sp-chance {{ ch.ticket.tone }}">{{ ch.ticket.pct }}<small>%</small></p>
+    <p class="sp-lead">{{ ch.ticket.sport_name }} · {{ ch.ticket.line }}</p>
+    <p class="sp-meta">This stage needs about {{ '%.2f' % ch.x }}x. This ticket pays ${{ '%.2f' % ch.ticket.multi }}. {% if ch.plain %}The best $2 stack is {{ ch.plain.pct }}%, and it does not have to pay this stage.{% endif %}</p>
+    {% else %}
+    <p class="sp-empty">{{ empty }}</p>
+    {% endif %}
+    <form class="sp-form sp-goal" method="get" action="{{ here }}">
+      <input type="hidden" name="tab" value="challenge">
+      <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%g' % ch.start }}"></label>
+      <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%g' % ch.goal }}"></label>
+      <label>Stages <select name="chn">{% for n in ch.stage_choices %}<option value="{{ n }}"{{ ' selected' if n == ch.stages }}>{{ n }}</option>{% endfor %}</select></label>
+      <button type="submit">Recalculate</button>
+    </form>
+    <p class="sp-meta">One bank for every sport. A loss ends the run. This screen picks the stage. It does not move a balance.</p>
+  {% endif %}
+
+  <nav class="sp-index" aria-label="Sports">
+    <a href="/sports?tab=top" class="{{ 'on' if not sport }}"{% if not sport %} aria-current="page"{% endif %}>All</a>
+    {% for row in sports %}
+    <a href="/sports/{{ row.code }}?tab=multis" class="{{ 'on' if sport == row.code }}"{% if sport == row.code %} aria-current="page"{% endif %}>{{ row.name }}</a>
+    {% endfor %}
+  </nav>
+</section>
+{% endblock %}

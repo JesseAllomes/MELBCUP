@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}R{{ race.number }} · MELBCUP{% endblock %}
+{% from "_card.html" import pick_row, final_row, exotic_card, amounts, pillset, badge %}
+{% block top %}{% include "_racestrip.html" %}{% endblock %}
+{% block content %}
+{% set runners = race.starters | length %}
+<header class="head">
+  <span class="cloth big" aria-hidden="true">{{ race.number }}</span>
+  <div>
+    <h1>{{ race.name | racename or 'Race ' ~ race.number }}</h1>
+    <p>{{ race.start_time | jump }}{% if race.distance_m %} · {{ race.distance_m }}m{% endif %} · {{ runners }} runners{% if race.condition or card.condition %} · {{ race.condition or card.condition }}{% endif %}</p>
+  </div>
+</header>
+{% if (not race.result or race.result.status != 'final') and not betting_open(race) %}
+<form class="check-results" method="post" action="/actions/results?next={{ here | urlencode }}"><button type="submit">Check results</button><span>{{ 'Interim result: placings may change' if race.result else 'Waiting for the result' }}</span></form>
+{% endif %}
+
+{% set rg = grade.races | selectattr('race', 'equalto', race.number) | first if grade else none %}
+{% if rg %}
+<section aria-labelledby="result-h">
+  <h2 id="result-h">Result</h2>
+  {% include "_placings.html" %}
+</section>
+{% endif %}
+
+{% set rp_pnl = pnl_own.race(race.number) if pnl_own else none %}
+{% if rp_pnl and rp_pnl.settled %}
+<p class="race-pnl">Your bets this race: <b class="{{ 'pos' if rp_pnl.profit > 0 else 'neg' if rp_pnl.profit < 0 }}">{{ rp_pnl.profit | signed }}</b>{% if rp_pnl.bonus %} · bonus bet {{ rp_pnl.bonus | dollars }}{% endif %}</p>
+{% endif %}
+
+{% if rc.open or rc.board %}
+<section aria-labelledby="picks-h">
+  <h2 id="picks-h">{{ 'Win, place, each way' if rc.open else 'Your bets before the race' }}</h2>
+  {% if rc.open %}
+  {% set rules %}Your {{ wallet.total | dollars }} is shared across the races still to run by how likely each bet is to pay. A bet goes to Betfair only when Betfair pays more and the stake is $5 or more; First Four and Quaddie always go to Sportsbet.{% if settings.pointsbet %} PointsBet takes a bet when it pays most and has money left, with no minimum stake; multis and exotics stay with Sportsbet.{% endif %}{% endset %}
+  <p class="split one">This race gets <b>${{ rc.total }}</b> · <b>{{ wallet.left | dollars }}</b> left over {{ day.open_count }} race{{ 's' if day.open_count != 1 }}</p>
+  {{ amounts(wallet, here, rules) }}
+  {% endif %}
+  {% if rc.board %}
+  <div class="board">
+    {% for line in rc.board %}{{ pick_row(line, rc.open) }}{% endfor %}
+    <p class="board-foot">Short price: pays a bit less than its chance deserves. Good price: pays more, and gets the model's own stake first.</p>
+  </div>
+  {% else %}
+  <p class="note">No prices yet for this race.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% set fp = finals.get(race.number) if rg and finals else none %}
+{% if fp %}
+<section aria-labelledby="final-h">
+  <h2 id="final-h">App's final picks</h2>
+  <div class="board">
+    {% for p in fp[0] %}{{ final_row(p) }}{% endfor %}
+  </div>
+  <p class="race-pnl">App's picks this race: <b class="{{ 'pos' if fp[1] > 0 else 'neg' if fp[1] < 0 }}">{{ fp[1] | signed }}</b></p>
+</section>
+{% endif %}
+<section class="record" aria-label="Record a bet I placed">
+  <details class="record-wrap">
+    <summary id="record-h">+ Record a bet</summary>
+    <form class="record-bet" data-race="{{ race.number }}" data-date="{{ race_date_iso }}">
+      <label class="wide">Runner <select name="runner" required>{% for r in race.starters %}<option value="{{ r.number }}">{{ r.number }} {{ r.name }}</option>{% endfor %}</select></label>
+      <label>Bet type <select name="kind"><option value="w">Win</option><option value="p">Place</option><option value="e">Each way</option></select></label>
+      <label>Bookmaker <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if settings.pointsbet %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+      <label>Stake $ <input name="stake" type="number" inputmode="numeric" min="1" step="1" required></label>
+      <label>Price <input name="price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="optional"></label>
+      <label>Place price <input name="place_price" type="number" inputmode="decimal" min="1.01" step="any" placeholder="each way"></label>
+      <button type="submit">Record bet</button>
+      <p class="hint wide">Whole dollars; each way: the total of both halves, with the win price.</p>
+    </form>
+  </details>
+</section>{% if rc.open or rc.board %}{% if cup_note %}
+<section aria-labelledby="runsecond-h">
+  <h2 id="runsecond-h">PointsBet: Run 2nd, You Win</h2>
+  <p class="split">A win bet on the Cup that also pays as a winner if the horse runs 2nd. Best value on the model's chances: <span class="cloth sm">{{ cup_note.number }}</span> <b>{{ cup_note.name }}</b>, top two {{ cup_note.top2 | one_in }} at PointsBet's win price {{ cup_note.price | price }}, worth <b>{{ '%+.2f' | format(cup_note.value) }} per $1</b>{{ '' if cup_note.value > 0 else ' (below break-even: no runner is worth it at these prices)' }}. A note only: no stake is set for it.</p>
+</section>{% endif %}
+{% endif %}
+
+{% if rc.exotics or rc.quaddie_legs %}
+<section aria-labelledby="bets-h">
+  <h2 id="bets-h">Exotics in this race</h2>
+  <div class="bets">
+    {% for line in rc.exotics %}{{ exotic_card(line) }}{% endfor %}
+  </div>
+  {% for q in rc.quaddie_legs %}
+  <p class="split leg">{{ q.title }} leg {{ q.leg }} (races {{ q.first }} to {{ q.last }}): your numbers {% for n in q.numbers %}<span class="cloth sm">{{ n }}</span>{% endfor %}</p>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% set ranked = rp.model.ranked() %}
+<section aria-labelledby="field-h">
+  <h2 id="field-h">The field</h2>
+  <ul class="field" id="field">
+    {% for a in ranked %}
+    {% set r = race.runner(a.number) %}
+    {% set fin = race.result.finish.get(a.number) if race.result else none %}
+    <li class="{{ 'mine' if a.number in rc.mine }}{{ ' extra' if loop.index > 6 }}"{% if loop.index > 6 %} hidden{% endif %}>
+      <span class="cloth sm">{{ a.number }}</span>
+      <span class="nm">{{ r.name }}{% if fin %} <span class="fin{{ ' placed' if fin <= race.places_paid }}">{{ fin }}{{ {1:'st',2:'nd',3:'rd'}.get(fin, 'th') }}</span>{% endif %}</span>
+      {{ pillset(race.prices.get(a.number) | pills(pointsbet=settings.pointsbet)) }}
+      <span class="ch">Wins {{ a.win | one_in }} · places {{ a.place | one_in }}</span>
+      <details class="form">
+        <summary>Form</summary>
+        <dl class="facts">
+          <dt>Rider, trainer</dt><dd>{{ r.jockey or '–' }} · {{ r.trainer or '–' }}{% if r.weight_kg %} · {{ r.weight_kg }}kg{% endif %} · barrier {{ r.barrier or '?' }}</dd>
+          {% if a.reasons_for %}<dt>For</dt><dd>{{ a.reasons_for | join(', ') }}</dd>{% endif %}
+          {% if a.reasons_against %}<dt>Against</dt><dd>{{ a.reasons_against | join(', ') }}</dd>{% endif %}
+          <dt>Last 10</dt><dd>{{ r.last10 or '–' }}{% if r.hcp_rating %} · rating {{ r.hcp_rating }}{% endif %}</dd>
+          <dt>Career, track, distance, going</dt><dd>{{ r.career | statline }} · {{ r.track | statline }} · {{ r.distance | statline }} · {{ r.going | statline }}</dd>
+          {% if r.owner %}<dt>Owner</dt><dd>{{ r.owner }}</dd>{% endif %}
+          {% if r.gear_changes %}<dt>Gear</dt><dd>{{ r.gear_changes }}</dd>{% endif %}
+          {% if r.last_start_note %}<dt>Last start</dt><dd>{{ r.last_start_note | truncate(140) }}</dd>{% endif %}
+        </dl>
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if ranked | length > 6 %}
+  {% set label = 'Show all ' ~ (ranked | length) ~ ' runners' %}
+  <button class="more" type="button" data-more="field" data-label="{{ label }}" aria-expanded="false">{{ label }}</button>
+  {% endif %}
+  {% set gone = race.runners | selectattr('scratched') | list %}
+  {% if gone %}<p class="note">Scratched: {% for r in gone %}{{ r.number }} {{ r.name }}{{ ', ' if not loop.last }}{% endfor %}.</p>{% endif %}
+</section>
+
+{% set c = check %}
+<section class="auto" aria-labelledby="auto-h">
+  <div class="auto-top">
+    <h2 id="auto-h">Last-minute check</h2>
+    <span class="mode">Records only</span>
+  </div>
+  {% macro desc(x, account=false) %}{% if x.exotic is not none %}{{ x.key }}{% else %}{{ x.key }} {{ x.name }}{% if x.price and x.kind != 'each_way' %} {{ x.price | price }}{% endif %}{% endif %}{% if account and x.account == 'betfair' %} Betfair{% endif %}{% endmacro %}
+  {% if race.result and c and (c.early_back is not none or c.late_back is not none) %}
+    <p class="state"><b>Result: {{ c.winner or 'in' }}{{ ' won' if c.winner }}.</b></p>
+    <dl class="cmp">
+      {% if c.early_back is not none %}<dt>{{ c.early_at | local_time }} picks</dt><dd><b>{{ c.early_back | dollars }}</b> back from ${{ c.staked(c.early) }}</dd>{% endif %}
+      {% if c.late_back is not none %}<dt>Last minute</dt><dd><b>{{ c.late_back | dollars }}</b> back from ${{ c.staked(c.late) }}</dd>{% endif %}
+    </dl>
+    {% if c.unknown %}<p class="fine">Some dividends were not known yet; those bets are left out.</p>{% endif %}
+    <p class="fine">Running total on the <a href="/history">History page</a>: which one comes out ahead over many races.</p>
+  {% elif c and c.late is not none %}
+    {% set n = c.changed %}
+    <p class="state"><b>{{ 'No changes' if n == 0 else (n ~ ' change' ~ ('' if n == 1 else 's')) }} at {{ c.late_at | local_time }}.</b></p>
+    <dl class="cmp">
+      {% for kind, now, was in c.changes() %}
+      <dt>{{ {'win': 'Win', 'place': 'Place', 'each_way': 'Each way', 'quinella': 'Quinella', 'trifecta': 'Trifecta', 'first_four': 'First Four'}[kind] }}</dt>
+      <dd>{% if now and now.same(was) %}same: {{ desc(now) }}{% elif now %}now <b>{{ desc(now, true) }}</b>, was {{ desc(was) if was else 'no bet' }}{% else %}now no bet, was {{ desc(was) }}{% endif %}</dd>
+      {% endfor %}
+    </dl>
+  {% elif c and c.early is not none %}
+    <p class="state"><b>Picks saved at {{ c.early_at | local_time }}.</b> At about {{ race.start_time | before(1) }} it checks again at the latest prices and shows what changed here.</p>
+  {% elif race.result %}
+    <p class="state">No saved picks for this race: the app was not running before the jump, or it has restarted since.</p>
+  {% elif race.start_time %}
+    <p class="state"><b>Waiting.</b> At {{ race.start_time | before(30) }} the app saves its picks. At about {{ race.start_time | before(1) }} it checks again at the latest prices and shows what changed here.</p>
+  {% endif %}
+  <p class="fine">Saved at $150 Sportsbet and $50 Betfair, while the app is running. A restart loses them.</p>
+</section>
+
+{% set kr = kids.get(race.number) if kids else none %}
+{% if kr %}
+{% set ks = kr | selectattr('settled.status', 'equalto', 'settled') | list %}
+{% set kp = (ks | sum(attribute='settled.profit')) %}
+<section class="kids" aria-labelledby="kids-h">
+  <div class="kids-top"><h2 id="kids-h">Kids' bets</h2>{% if ks %}<span class="kids-total">Kids: <b class="{{ 'pos' if kp > 0 else 'neg' if kp < 0 }}">{{ kp | signed | replace('-', '−') }}</b>{% if ks | length < kr | length %} · {{ kr | length - ks | length }} pending{% endif %}</span>{% endif %}</div>
+  <div class="board">
+    {% for k in kr %}
+    {% set r = race.runner(k.bet.key) %}
+    <div class="pick kid" data-kid="{{ k.record }}">
+      <span class="who"><span class="cloth sm">{{ k.bet.key }}</span><b>{{ r.name if r else '' }}</b></span>
+      {{ badge(k) }}
+      <span class="kid-bet">{{ k.detail }}</span>
+      <input class="kid-name" type="text" maxlength="40" placeholder="Name" aria-label="Kid's name" value="{{ k.name }}">
+      <button type="button" class="remove" data-kid-remove title="Remove this kid's bet">remove</button>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<p class="help">Prices: Sportsbet{{ ', Betfair and PointsBet' if settings.pointsbet else ' and Betfair' }} (BF before 8% commission). Gambling Help Online 1800 858 858.</p>
+{% endblock %}

@@ -1,0 +1,63 @@
+{# The fixed header on every page: logo, Agencies, today's P&L with its centred bar, one chip per
+   agency that is ON, the countdown, then the nav. Needs: az, day_pnl (today's bets only), snap, nav, path, keep #}
+{% set profit = day_pnl.profit %}
+{% set fill = day_pnl.fill(az.total) %}
+<header class="hd">
+  <input type="checkbox" id="agt" class="agt" aria-controls="agp">
+  <input type="text" id="hold" hidden tabindex="-1" aria-hidden="true" value="">
+  <div class="r1">
+    <a class="logo" href="/">Asynym<span>Bet</span></a>
+    <label class="set" for="agt">Settings</label>
+    <span class="day {{ 'up' if profit > 0 else 'down' if profit < 0 }}"><small>Today</small><b>{{ profit | signed | replace('-', '−') }}</b></span>
+  </div>
+  <div class="tr" role="meter" aria-label="Today's profit or loss" aria-valuemin="{{ 0 - az.total | round | int }}" aria-valuemax="{{ az.total | round | int }}" aria-valuenow="{{ profit }}"><i class="{{ 'neg' if profit < 0 else 'pos' }}" style="width:{{ (fill / 2) | round(1) }}%;{{ 'right' if profit < 0 else 'left' }}:50%"></i></div>
+  <div class="ags" aria-label="Money left today">
+    {% for a in az.on %}
+    <span class="ag" data-agency="{{ a.code }}"><i class="dot {{ a.code }}"></i>{{ a.name }} <b>{{ a.left | dollars }}</b><em>/ {{ a.amount | dollars }}</em></span>
+    {% else %}
+    <span class="ag none">No agency is on</span>
+    {% endfor %}
+  </div>
+  <form class="agp" id="agp" method="get" action="{{ path }}">
+    {% if push_key %}
+    <div class="push-card" id="push-card" data-key="{{ push_key }}">
+      <div class="sec"><span>Phone alerts</span></div>
+      <p class="push-state" id="push-state"></p>
+      <p class="note">Stage tip-offs and results, even with the app closed.</p>
+      <button type="button" id="push-on" hidden>Chrome alerts</button>
+      <button type="button" id="tg-on">Telegram alerts</button>
+      <button type="button" id="push-test" hidden>Send a test</button>
+      <p class="note" id="tg-note" hidden>Press Start in Telegram: it links straight away.</p>
+    </div>
+    {% endif %}
+    <div class="sec"><span>Agencies</span></div>
+    <p class="note">On = you have money there (tracked). Prices always come from every agency.</p>
+    <input type="hidden" name="ag" value="1">
+    {% for k, v in keep.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <div class="agrows">
+    {% for a in az.agencies %}
+    <div class="agrow{{ '' if a.on else ' off' }}">
+      <input type="checkbox" class="sw" role="switch" id="on_{{ a.code }}" name="on_{{ a.code }}" value="1" {{ 'checked' if a.on }} aria-label="Track money in {{ a.name }}">
+      <label class="nm" for="on_{{ a.code }}"><b>{{ a.name }}</b></label>
+      <label class="bal" for="m_{{ a.code }}" aria-label="Today's money at {{ a.name }}">$<input id="m_{{ a.code }}" name="{{ {'sb':'sb','bf':'bf','pb':'pb','tab':'tb','lb':'lb','neds':'ne'}[a.code] }}" inputmode="decimal" autocomplete="off" value="{{ '%g' % a.amount }}"></label>
+    </div>
+    {% endfor %}
+    </div>
+    <button type="submit" class="save">Save</button>
+  </form>
+  {% if countdown %}
+  {% set first = countdown[0] %}
+  <div class="alertbar" id="alertbar" role="status">
+    <a class="ab-msg" href="{{ first.href or '/race/' ~ first.n }}">{{ first.label or 'R' ~ first.n ~ ' jumps' }}{% if first.left > 21600 %} · {{ first.t | when }}{% else %} in {{ '%d:%02d' % (first.left // 60, first.left % 60) if first.left < 3600 else '%d:%02d:%02d' % (first.left // 3600, first.left % 3600 // 60, first.left % 60) }}{% endif %}</a>
+    <button type="button" class="ab-alerts" hidden>Alerts</button>
+  </div>
+  <script type="application/json" id="alert-data">{{ countdown | tojson }}</script>
+  {% endif %}
+</header>
+<nav class="topnav" aria-label="Site">
+  <a href="/"{% if nav == 'home' %} class="on" aria-current="page"{% endif %}>Home</a>
+  <a href="/meetings"{% if nav == 'days' %} class="on" aria-current="page"{% endif %}>Race days</a>
+  <a href="/nba"{% if nav == 'nba' %} class="on" aria-current="page"{% endif %}>NBA</a>
+  <a href="/sports"{% if nav == 'sports' %} class="on" aria-current="page"{% endif %}>Sports</a>
+  <a href="/mine"{% if nav == 'mine' %} class="on" aria-current="page"{% endif %}>Mine</a>
+</nav>

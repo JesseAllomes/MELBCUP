@@ -1,0 +1,26 @@
+{% extends "asynym/base.html" %}
+{% block title %}{{ snap.venue }} · AsynymBet{% endblock %}
+{% block content %}
+<section class="card head">
+  <div class="mh"><h2>{{ snap.venue }}</h2><small>{{ snap.race_date | day }}{% if picks %} · {{ picks.races | length }} races{% endif %}{% if card and card.condition %} · {{ card.condition }}{% endif %}</small></div>
+  <a class="go-all" href="/meetings">Change ›</a>
+</section>
+{% if not picks %}
+<p class="empty">{{ 'Loading the card…' if snap.loading else 'No card loaded yet.' }}</p>
+{% else %}
+<section class="rows card" aria-label="Races">
+  {% for row in rows %}
+  {% set race = row.rc.race %}
+  <a class="brow {{ row.state }}" href="/race/{{ race.number }}" id="r{{ race.number }}">
+    <span class="tm">{{ race.start_time | local_time }}<small>R{{ race.number }}</small></span>
+    <span class="v">
+      {% if row.state == 'take' %}<b>Take: {{ row.takes[0].number }} {{ row.takes[0].name }}</b><small>{{ row.takes[0].label }}{{ ' + ' ~ (row.takes | length - 1) ~ ' more' if row.takes | length > 1 }}</small>
+      {% elif row.state == 'none' %}<b>Nothing worth trying</b><small>keep the money</small>
+      {% else %}<b>{{ race.name | racename or 'Race ' ~ race.number }}</b><small>{{ 'result in' if race.result else 'run' }}</small>{% endif %}
+    </span>
+    <span class="a">{% if row.state == 'take' %}${{ row.stake }}{% endif %}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,1229 @@
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/nba_challenge.py L-web/app/melbcup/nba_challenge.py
+--- ref/web/app/melbcup/nba_challenge.py	2026-11-07 05:47:05.873155254 +0000
++++ L-web/app/melbcup/nba_challenge.py	2026-11-07 05:47:06.234079012 +0000
+@@ -147,7 +147,7 @@
+         return run
+     if (
+         state is None
+-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best")
++        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage")
+         or state.get("active") is False
+     ):
+         return state
+@@ -158,10 +158,6 @@
+         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
+             return state
+         return state | {"skip": max(night_, state.get("skip") or "")}
+-    if act == "pick":  # stick to this game for the stage (owner, 2026-11-06)
+-        return state | {"pick": str(query.get("chpick") or "")[:80]} if not state.get("placed") else state
+-    if act == "best":  # back to the best multi on the current prices
+-        return {k: v for k, v in state.items() if k != "pick"}
+     if act in ("addstage", "dropstage"):  # change the plan mid-run (owner, 2026-11-05)
+         n = state.get("stages", DEFAULT_STAGES) + (1 if act == "addstage" else -1)
+         done = len(state["steps"]) + (1 if state.get("placed") else 0)
+@@ -204,7 +200,7 @@
+         }
+         if state.get("bonus") or query.get("chbonus") == "1":  # staked with a bonus bet
+             bet["bonus"] = 1
+-        rest = {k: v for k, v in state.items() if k not in ("bonus", "pick")}
++        rest = {k: v for k, v in state.items() if k != "bonus"}
+         return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
+     if not state.get("placed"):
+         return state  # mark the stage as placed first
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/nba_feed.py L-web/app/melbcup/nba_feed.py
+--- ref/web/app/melbcup/nba_feed.py	2026-11-07 05:47:05.871961291 +0000
++++ L-web/app/melbcup/nba_feed.py	2026-11-07 05:47:06.234095126 +0000
+@@ -80,25 +80,6 @@
+     return read
+ 
+ 
+-def blob_names(account: str, client_id: str | None, prefix: str = "") -> list[str]:
+-    """Every blob name in container `nba` (under `prefix`), with the app's managed identity."""
+-    import re
+-
+-    names, marker = [], ""
+-    while True:
+-        resp = httpx.get(
+-            f"https://{account}.blob.core.windows.net/nba",
+-            params={"restype": "container", "comp": "list", "prefix": prefix, "marker": marker},
+-            headers={"Authorization": f"Bearer {_token(client_id)}", "x-ms-version": "2021-08-06"},
+-            timeout=TIMEOUT_S,
+-        )
+-        resp.raise_for_status()
+-        names += re.findall(r"<Name>([^<]+)</Name>", resp.text)
+-        marker = (re.findall(r"<NextMarker>([^<]*)</NextMarker>", resp.text) or [""])[0]
+-        if not marker:
+-            return names
+-
+-
+ def nearest(legs: list[dict], min_chance: float = 0.75, n: int = 5) -> list[dict]:
+     """When nothing is value: the likely legs whose price comes closest to fair."""
+     likely = [g for g in legs if g["chance"] >= min_chance]
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/sport_board.py L-web/app/melbcup/sport_board.py
+--- ref/web/app/melbcup/sport_board.py	1970-01-01 00:00:00.000000000 +0000
++++ L-web/app/melbcup/sport_board.py	2026-11-07 05:47:06.234846373 +0000
+@@ -0,0 +1,413 @@
++"""Best-chance multis for each sport, from bands already measured.
++
++Football v1 grouped a match by its average closing price and settled the best
++price. The price on a ticket is that settled best price (the worse half), not
++the middle of the average-price bucket. A settled price in the top 30% of the
++bucket is the long tail: the bucket hit rate does not belong to it.
++
++A ticket is then the fewest of those prices that multiply to at least $2, and
++the board keeps the stack with the highest chance every leg wins. Football
++figures are football_scan_v1 (286 league-seasons). Tonight's games and book
++prices come from Sportsbet (sport_lines) and are a different bet from this
++scan. No fixture is invented.
++"""
++
++from __future__ import annotations
++
++import importlib.util
++import os
++from functools import cache
++from pathlib import Path
++
++SPORTS = (
++    ("football", "Football"),
++    ("afl", "AFL"),
++    ("nrl", "NRL"),
++    ("nhl", "NHL"),
++    ("nfl", "NFL"),
++    ("tennis", "Tennis"),
++)
++LABEL = {
++    "1X2 H": "Home win",
++    "1X2 A": "Away win",
++    "1X2 D": "Draw",
++    "Over 2.5": "Over 2.5 goals",
++    "Under 2.5": "Under 2.5 goals",
++}
++# Best-price return, early then late, for bands that paid in both halves
++# (football_scan_v1). The settled price is (1 + worse half) / hit.
++# A band whose prices above that floor span less than 3c is dropped.
++_ROI = {
++    ("1X2 H", "1.01-1.20"): (0.018, 0.012),
++    ("1X2 H", "1.20-1.35"): (0.059, 0.018),
++    ("1X2 H", "1.35-1.50"): (0.019, 0.034),
++    ("1X2 H", "4.00-6.00"): (0.073, 0.019),
++    ("1X2 A", "1.20-1.35"): (0.028, 0.043),
++    ("1X2 A", "2.00-2.50"): (0.019, 0.018),
++    ("1X2 D", "2.50-3.00"): (0.073, 0.041),
++    ("Under 2.5", "1.35-1.50"): (0.017, 0.004),
++}
++_MIN_WINDOW = 0.03
++# Top 30% of an average-price bucket. The bucket hit rate was measured on the
++# whole bucket, so a settled price up in this tail cannot wear it.
++_TAIL = 0.30
++
++# market, band, hit rate, bets. Open-ended bands (10+) have no finite top.
++_FOOTBALL = (
++    ("1X2 A", "1.20-1.35", 0.783, 1098),
++    ("1X2 A", "1.35-1.50", 0.685, 1556),
++    ("1X2 A", "1.50-1.70", 0.609, 2598),
++    ("1X2 A", "1.70-2.00", 0.524, 5267),
++    ("1X2 A", "2.00-2.50", 0.430, 13600),
++    ("1X2 A", "2.50-3.00", 0.342, 17049),
++    ("1X2 A", "3.00-4.00", 0.261, 27429),
++    ("1X2 A", "4.00-6.00", 0.186, 19497),
++    ("1X2 A", "6.00-10.00", 0.116, 7881),
++    ("1X2 D", "2.50-3.00", 0.343, 5526),
++    ("1X2 D", "3.00-4.00", 0.278, 77060),
++    ("1X2 D", "4.00-6.00", 0.187, 13907),
++    ("1X2 D", "6.00-10.00", 0.114, 3230),
++    ("1X2 H", "1.01-1.20", 0.867, 1990),
++    ("1X2 H", "1.20-1.35", 0.787, 3416),
++    ("1X2 H", "1.35-1.50", 0.696, 4734),
++    ("1X2 H", "1.50-1.70", 0.601, 8892),
++    ("1X2 H", "1.70-2.00", 0.517, 17023),
++    ("1X2 H", "2.00-2.50", 0.424, 28806),
++    ("1X2 H", "2.50-3.00", 0.341, 15196),
++    ("1X2 H", "3.00-4.00", 0.270, 11423),
++    ("1X2 H", "4.00-6.00", 0.200, 5401),
++    ("1X2 H", "6.00-10.00", 0.116, 2430),
++    ("Over 2.5", "1.20-1.35", 0.746, 1416),
++    ("Over 2.5", "1.35-1.50", 0.675, 4565),
++    ("Over 2.5", "1.50-1.70", 0.592, 15622),
++    ("Over 2.5", "1.70-2.00", 0.516, 36163),
++    ("Over 2.5", "2.00-2.50", 0.427, 37210),
++    ("Over 2.5", "2.50-3.00", 0.339, 4628),
++    ("Over 2.5", "3.00-4.00", 0.311, 354),
++    ("Under 2.5", "1.35-1.50", 0.672, 4053),
++    ("Under 2.5", "1.50-1.70", 0.592, 23374),
++    ("Under 2.5", "1.70-2.00", 0.514, 40265),
++    ("Under 2.5", "2.00-2.50", 0.427, 25331),
++    ("Under 2.5", "2.50-3.00", 0.339, 4800),
++    ("Under 2.5", "3.00-4.00", 0.271, 1814),
++    ("Under 2.5", "4.00-6.00", 0.179, 313),
++)
++HUB_TABS = (("top", "Top 5"), ("ladder", "Ladder"), ("build", "Build"), ("challenge", "Challenge"))
++SPORT_TABS = (
++    ("multis", "Multis"),
++    ("singles", "Singles"),
++    ("games", "Games"),
++    ("build", "Build"),
++    ("challenge", "Challenge"),
++)
++
++
++@cache
++def _legs_for():
++    path = Path(__file__).resolve().parents[1] / "tools" / "markets" / "scan_multis.py"
++    spec = importlib.util.spec_from_file_location("melbcup_scan_multis", path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module.legs_for
++
++
++def _slug(sport: str, market: str, band: str) -> str:
++    raw = f"{sport}-{market}-{band}".lower()
++    return "".join(ch if ch.isalnum() else "-" for ch in raw)
++
++
++def _middle(band: str) -> float:
++    lo, hi = (float(part) for part in band.split("-"))
++    return (lo + hi) / 2
++
++
++def _tone(chance: float) -> str:
++    pct = round(100 * chance)
++    return "good" if pct >= 60 else "mid" if pct >= 30 else "low"
++
++
++def quotes() -> list[dict]:
++    """Measured bands. Only football has been scanned."""
++    names = dict(SPORTS)
++    rows = []
++    for market, band, hit, bets in _FOOTBALL:
++        rows.append(
++            {
++                "id": _slug("football", market, band),
++                "sport": "football",
++                "sport_name": names["football"],
++                "market": market,
++                "band": band,
++                "hit": hit,
++                "bets": bets,
++                "price": _middle(band),
++                "label": LABEL[market],
++            }
++        )
++    return rows
++
++
++def _ends(band: str) -> tuple[float, float] | None:
++    if "-" not in band:
++        return None
++    lo, hi = (float(part) for part in band.split("-"))
++    return lo, hi
++
++
++def _wilson(hit: float, bets: int, z: float = 1.96) -> float:
++    """Lower 95% bound on a hit rate. Small samples stop outranking big ones."""
++    if bets <= 0:
++        return 0.0
++    denom = 1 + z * z / bets
++    centre = hit + z * z / (2 * bets)
++    margin = z * ((hit * (1 - hit) + z * z / (4 * bets)) / bets) ** 0.5
++    return max(0.0, (centre - margin) / denom)
++
++
++def _settled(quote: dict) -> float | None:
++    """Worse-half average best price. None unless both halves paid."""
++    rois = _ROI.get((quote["market"], quote["band"]))
++    hit = float(quote["hit"])
++    if not rois or not 0 < hit < 1:
++        return None
++    worse = min(rois)
++    if worse <= 0:
++        return None
++    return (1 + worse) / hit
++
++
++def _in_body(price: float, lo: float, hi: float) -> bool:
++    """True when `price` is below the top 30% of the bucket."""
++    return price <= lo + (1 - _TAIL) * (hi - lo)
++
++
++def offer(quote: dict, minimum: float = 2.0) -> tuple[int, float, float] | None:
++    """Fewest legs at the settled best price that still reach `minimum`.
++
++    The scan's profit was the best price, not the average. A price below 1/hit
++    loses at this bucket's hit rate. The settled price has to sit in the body
++    of the bucket, and the prices above it have to span at least 3c.
++    """
++    ends = _ends(quote["band"])
++    hit = float(quote["hit"])
++    settled = _settled(quote)
++    if ends is None or not 0 < hit < 1 or settled is None:
++        return None
++    lo, hi = ends
++    if not _in_body(settled, lo, hi):
++        return None
++    for count in range(1, 13):
++        floor = max(lo, 1 / hit, settled, minimum ** (1 / count))
++        if floor < hi and hi - floor >= _MIN_WINDOW and _in_body(floor, lo, hi):
++            return count, floor, hi
++    return None
++
++
++def ticket(quote: dict, minimum: float = 2.0) -> dict | None:
++    """The shortest +EV stack of this band that still reaches `minimum`."""
++    found = offer(quote, minimum)
++    if found is None:
++        return None
++    count, floor, hi = found
++    hit = float(quote["hit"])
++    chance = hit ** count
++    low = _wilson(hit, int(quote["bets"])) ** count
++    early, late = _ROI[(quote["market"], quote["band"])]
++    edge = (
++        f"Take the best price, and only at ${floor:.2f}–${hi:.2f}. "
++        f"Matches were grouped by the average price. The worse half settled "
++        f"the best price at ${floor:.2f}. Under ${1 / hit:.2f} this hit rate "
++        f"is a losing price. Best price returned {early:+.1%} early and "
++        f"{late:+.1%} late. The chance is the whole bucket, not a separate "
++        f"count of this slice."
++    )
++    return {
++        "id": quote["id"],
++        "sport": quote["sport"],
++        "sport_name": quote["sport_name"],
++        "label": quote["label"],
++        "band": quote["band"],
++        "legs": count,
++        "price": floor,
++        "ceiling": hi,
++        "multi": floor ** count,
++        "chance": chance,
++        "low": low,
++        "hit": hit,
++        "bets": quote["bets"],
++        "line": f"{count} × {quote['label']} ${floor:.2f}–${hi:.2f}",
++        "edge": edge,
++        "href": f"/sports/{quote['sport']}?tab=multis",
++        "pct": round(100 * chance),
++        "tone": _tone(chance),
++    }
++
++
++def ranked(sport: str | None = None, minimum: float = 2.0) -> list[dict]:
++    """Tickets at or above `minimum`, highest chance first."""
++    rows = []
++    for quote in quotes():
++        if sport and quote["sport"] != sport:
++            continue
++        row = ticket(quote, minimum)
++        if row is not None:
++            rows.append(row)
++    rows.sort(key=lambda row: (-row["chance"], row["legs"], row["sport"]))
++    return rows
++
++
++def _money(text: str | None, default: float) -> float:
++    try:
++        value = float(str(text).replace("$", "").replace(",", ""))
++    except (TypeError, ValueError):
++        return default
++    return value if 0 < value < 1_000_000 else default
++
++
++def _count(query, quote_id: str) -> int:
++    raw = query.get(f"n_{quote_id}")
++    try:
++        count = int(raw) if raw else 0
++    except (TypeError, ValueError):
++        return 0
++    return max(0, min(count, 12))
++
++
++def built(query, sport: str | None = None) -> dict | None:
++    """The legs the owner typed. None when every count is still zero."""
++    lines = []
++    price = 1.0
++    chance = 1.0
++    legs = 0
++    for quote in quotes():
++        if sport and quote["sport"] != sport:
++            continue
++        count = _count(query, quote["id"])
++        if not count:
++            continue
++        price *= quote["price"] ** count
++        chance *= quote["hit"] ** count
++        legs += count
++        lines.append(f"{count} × {quote['label']} {quote['band']}")
++    if not lines:
++        return None
++    return {
++        "lines": lines,
++        "legs": legs,
++        "multi": price,
++        "chance": chance,
++        "pct": round(100 * chance),
++        "tone": _tone(chance),
++        "ready": price >= 2,
++    }
++
++
++def challenge(query, sport: str | None = None) -> dict:
++    """One stage of the shared roll-up: the likeliest ticket at that stage's price."""
++    from melbcup.nba_challenge import DEFAULT_STAGES, STAGES, stage_x
++
++    try:
++        stages = int(query.get("chn") or DEFAULT_STAGES)
++    except (TypeError, ValueError):
++        stages = DEFAULT_STAGES
++    if stages not in STAGES:
++        stages = DEFAULT_STAGES
++    start = _money(query.get("chstart"), 10.0)
++    goal = _money(query.get("chgoal"), 1000.0)
++    if goal < start * 2:
++        goal = start * 2
++    multiple = stage_x(start, goal, stages, True)
++    found = ranked(sport, multiple)
++    plain = ranked(sport, 2.0)
++    return {
++        "stages": stages,
++        "stage_choices": STAGES,
++        "start": start,
++        "goal": goal,
++        "x": multiple,
++        "ticket": found[0] if found else None,
++        "plain": plain[0] if plain else None,
++    }
++
++
++def _sport(path: str) -> str | None | bool:
++    """Sport code, None for the hub, False when the path is not this board."""
++    parts = [part for part in path.split("/") if part]
++    if not parts or parts[0] != "sports" or len(parts) > 2:
++        return False
++    if len(parts) == 1:
++        return None
++    code = parts[1]
++    return code if code in dict(SPORTS) else False
++
++
++def _live(sport: str | None) -> dict:
++    """Tonight's Sportsbet card. Off in tests (MELBCUP_SPORT_LIVE=0) and on the hub."""
++    blank = {"games": [], "singles": [], "ticket": None, "empty": None, "note": None, "error": None}
++    if sport is None or os.environ.get("MELBCUP_SPORT_LIVE", "1") == "0":
++        return blank
++    try:
++        from melbcup.sport_lines import card
++
++        return card(sport)
++    except Exception:
++        return {**blank, "error": "Sportsbet did not answer. The measured board is unchanged."}
++
++
++def page(path: str, query) -> dict | None:
++    """Template context for /sports and /sports/<code>. None when the path is unknown."""
++    sport = _sport(path)
++    if sport is False:
++        return None
++    hub = sport is None
++    allowed = dict(HUB_TABS if hub else SPORT_TABS)
++    tab = query.get("tab") or ("top" if hub else "multis")
++    if tab not in allowed:
++        tab = "top" if hub else "multis"
++    best = ranked(sport)[:5]
++    singles = [quote for quote in quotes() if hub or quote["sport"] == sport]
++    singles.sort(key=lambda quote: -quote["hit"])
++    for quote in singles:
++        quote["count"] = _count(query, quote["id"])
++        quote["pct"] = round(100 * quote["hit"])
++        quote["tone"] = _tone(quote["hit"])
++        found = offer(quote)
++        if found:
++            quote["floor"], quote["ceiling"] = found[1], found[2]
++    names = dict(SPORTS)
++    best_by = {}
++    for row in ranked(None):
++        best_by.setdefault(row["sport"], row)
++    return {
++        "title": "All sports" if hub else names[sport],
++        "kicker": "Best chance at $2 or more",
++        "heading": "All sports" if hub else names[sport],
++        "sport": sport,
++        "hub": hub,
++        "tab": tab,
++        "tabs": HUB_TABS if hub else SPORT_TABS,
++        "here": "/sports" if hub else f"/sports/{sport}",
++        "hero": best[0] if best else None,
++        "rest": best[1:],
++        "ladder": [
++            {"code": code, "name": name, "best": best_by.get(code)} for code, name in SPORTS
++        ],
++        "singles": singles,
++        "singles_main": [quote for quote in singles if quote["hit"] >= 0.6],
++        "singles_rest": [quote for quote in singles if quote["hit"] < 0.6],
++        "built": built(query, sport),
++        "challenge": challenge(query, sport),
++        "live": _live(sport),
++        "sports": [{"code": code, "name": name} for code, name in SPORTS],
++        "empty": (
++            "Nothing measured reaches $2 yet."
++            if hub
++            else f"{names[sport]} has no measured hit rate yet, so this page shows no percent."
++        ),
++        "games_note": (
++            "No fixture list is loaded. Singles are the prices that won most often, "
++            "not tonight's matches."
++            if best
++            else f"{names.get(sport, 'This sport')} has no scan yet, so there is no game list."
++        ),
++    }
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/sport_lines.py L-web/app/melbcup/sport_lines.py
+--- ref/web/app/melbcup/sport_lines.py	1970-01-01 00:00:00.000000000 +0000
++++ L-web/app/melbcup/sport_lines.py	2026-11-07 05:47:06.234859310 +0000
+@@ -0,0 +1,366 @@
++"""Tonight's Sportsbet board for the sport pages.
++
++Same Sportsbook host the NBA page already calls. One book, the main markets
++only, and a multi of one leg per game. The chance is the book's price with
++the margin taken out. It is not a counted hit rate, and it does not replace
++the football scan.
++
++No fixture and no percent is invented. A competition with nothing up comes
++back empty.
++"""
++
++from __future__ import annotations
++
++import threading
++import time
++import urllib.error
++from concurrent.futures import ThreadPoolExecutor
++from datetime import datetime
++from itertools import combinations, product
++from zoneinfo import ZoneInfo
++
++SB = "https://www.sportsbet.com.au/apigw/sportsbook-sports/Sportsbook/Sports"
++_MEL = ZoneInfo("Australia/Melbourne")
++_TTL = 75.0
++_MAX_GAMES = 12
++_MAX_LEGS = 8
++_LOCK = threading.Lock()
++_CACHE: dict[str, tuple[float, dict]] = {}
++
++# Internal competition ids (NavHierarchy). Tennis is discovered: those ids
++# change with the tournament.
++COMPS = {
++    "football": ("718", "2915", "1015", "1029", "876", "739"),
++    "afl": ("4165",),
++    "nrl": ("3436", "28801"),
++    "nhl": ("29408",),
++    "nfl": ("3073",),
++}
++# Exact market names, compared case-insensitively. Anything else (player
++# ladders, quarters, alternate handicaps) stays off the phone.
++SHOW = {
++    "football": (
++        "win-draw-win",
++        "draw no bet",
++        "both teams to score",
++        "double chance",
++        "half-time result",
++        "over/under 0.5 goals",
++        "over/under 1.5 goals",
++        "over/under 2.5 goals",
++        "over/under 3.5 goals",
++        "handicap betting",
++    ),
++    "afl": ("head to head", "match betting", "win-draw-win", "line", "handicap", "total points"),
++    "nrl": ("head to head", "match betting", "win-draw-win", "line", "handicap", "total points"),
++    "nhl": ("moneyline", "puckline", "total goals", "60 min moneyline 3 way"),
++    "nfl": ("match betting", "handicap", "total match points"),
++    "tennis": ("match betting", "total sets", "match total games", "set betting"),
++}
++WINNER = {
++    "football": "win-draw-win",
++    "afl": "head to head",
++    "nrl": "head to head",
++    "nhl": "moneyline",
++    "nfl": "match betting",
++    "tennis": "match betting",
++}
++_FALLBACK = ("head to head", "match betting", "moneyline", "win-draw-win")
++_NOTE = "Prices are Sportsbet. Each chance is that price with the margin taken out."
++_EDGE = (
++    "One leg per game, the highest chance whose prices still multiply to $2 or more. "
++    "A tie goes to fewer legs. Each chance is Sportsbet's price with the margin taken out. "
++    "It is not a counted hit rate."
++)
++
++
++def _tone(chance: float) -> str:
++    pct = round(100 * chance)
++    return "good" if pct >= 60 else "mid" if pct >= 30 else "low"
++
++
++def _blank(empty: str | None = None, error: str | None = None) -> dict:
++    return {
++        "games": [],
++        "singles": [],
++        "ticket": None,
++        "empty": empty,
++        "note": _NOTE,
++        "error": error,
++    }
++
++
++def devig(selections: list[dict]) -> None:
++    """Share of the market after the overround is removed. Writes `chance`."""
++    implied = [1 / row["price"] for row in selections if row["price"] > 1]
++    total = sum(implied)
++    for row in selections:
++        row["chance"] = (1 / row["price"]) / total if total and row["price"] > 1 else 0.0
++        row["pct"] = round(100 * row["chance"])
++        row["tone"] = _tone(row["chance"])
++
++
++def selection_label(selection: dict) -> str:
++    """Selection name, with the line attached when the book left it off the name."""
++    name = (selection.get("name") or "").strip()
++    line = selection.get("unformattedHandicap")
++    if isinstance(line, (int, float)) and not any(ch.isdigit() for ch in name):
++        return f"{name} {line:g}"
++    return name
++
++
++def keep_markets(raw: list | None, sport: str) -> list[dict]:
++    """Main markets for one event. Duplicate names keep the line closest to even."""
++    allowed = set(SHOW.get(sport, ()))
++    grouped: dict[str, list[dict]] = {}
++    for market in raw or []:
++        if market.get("statusCode", "A") != "A":
++            continue
++        name = (market.get("name") or "").strip()
++        if "do not use" in name.casefold() or name.casefold() not in allowed:
++            continue
++        rows = []
++        for selection in market.get("selections") or []:
++            if selection.get("statusCode", "A") != "A":
++                continue
++            price = (selection.get("price") or {}).get("winPrice")
++            if not price or price <= 1:
++                continue
++            rows.append({"name": selection_label(selection), "price": float(price)})
++        if not 2 <= len(rows) <= 4:
++            continue
++        devig(rows)
++        grouped.setdefault(name.casefold(), []).append({"name": name, "selections": rows})
++    order = {name: index for index, name in enumerate(SHOW.get(sport, ()))}
++    kept = []
++    for key, markets in grouped.items():
++        markets.sort(key=lambda row: sum(abs(s["price"] - 1.91) for s in row["selections"]))
++        kept.append(markets[0] | {"key": key})
++    kept.sort(key=lambda row: order.get(row["key"], 99))
++    return kept
++
++
++def winner_of(markets: list[dict], sport: str) -> tuple[str, list[dict]]:
++    """The match-result market. One selection from it can enter the multi."""
++    by = {market["key"]: market for market in markets}
++    preferred = WINNER.get(sport, "")
++    if preferred in by:
++        market = by[preferred]
++        return market["name"], market["selections"]
++    for key in _FALLBACK:
++        if key in by:
++            market = by[key]
++            return market["name"], market["selections"]
++    return "", []
++
++
++def best_ticket(games: list[dict], minimum: float = 2.0) -> dict | None:
++    """Highest chance at `minimum` or better. One winner-market leg per game.
++
++    Fewer legs wins when two tickets have the same chance. A game with no
++    result price is left out. None when nothing reaches `minimum`.
++    """
++    usable = [game for game in games if game.get("winner")]
++    found = None
++    rank = None
++    limit = min(_MAX_LEGS, len(usable))
++    for count in range(1, limit + 1):
++        for group in combinations(usable, count):
++            pools = [game["winner"] for game in group]
++            for pick in product(*pools):
++                price = 1.0
++                chance = 1.0
++                for leg in pick:
++                    price *= leg["price"]
++                    chance *= leg["chance"]
++                if price + 1e-9 < minimum:
++                    continue
++                key = (chance, -count, price)
++                if rank is not None and key <= rank:
++                    continue
++                rank = key
++                found = (group, pick, price, chance, count)
++    if found is None:
++        return None
++    group, pick, price, chance, count = found
++    legs = []
++    for game, leg in zip(group, pick, strict=True):
++        legs.append(
++            {
++                "game": game["name"],
++                "market": game.get("winner_market") or "",
++                "name": leg["name"],
++                "price": leg["price"],
++                "chance": leg["chance"],
++                "pct": leg["pct"],
++                "tone": leg["tone"],
++            }
++        )
++    return {
++        "legs": legs,
++        "count": count,
++        "multi": price,
++        "chance": chance,
++        "pct": round(100 * chance),
++        "tone": _tone(chance),
++        "line": " · ".join(f"{leg['name']} ${leg['price']:.2f}" for leg in legs),
++        "edge": _EDGE,
++    }
++
++
++def _get(url: str):
++    from melbcup.nba_legs import get
++
++    try:
++        return get(url)
++    except urllib.error.HTTPError as exc:
++        if exc.code == 404:
++            return None
++        raise
++
++
++def _when(start) -> str:
++    if not isinstance(start, (int, float)):
++        return ""
++    moment = datetime.fromtimestamp(start, _MEL)
++    clock = moment.strftime("%I:%M%p").lstrip("0").lower()
++    return f"{moment.strftime('%a')} {moment.day} {moment.strftime('%b')}, {clock}"
++
++
++def _comp_events(comp_id: str) -> list[dict]:
++    data = _get(
++        f"{SB}/Competitions/{comp_id}?displayType=default&includeTopMarkets=false&eventFilter=matches"
++    )
++    if not data:
++        return []
++    now = time.time()
++    comp = data.get("name") or ""
++    rows = []
++    for event in data.get("events") or []:
++        if event.get("bettingStatus") not in (None, "PRICED"):
++            continue
++        start = event.get("startTime")
++        if isinstance(start, (int, float)) and start < now - 120:
++            continue
++        name = (event.get("name") or "").replace(" At ", " v ")
++        rows.append(
++            {
++                "id": str(event["id"]),
++                "name": name,
++                "comp": comp,
++                "start": start if isinstance(start, (int, float)) else 0,
++                "when": _when(start),
++            }
++        )
++    return rows
++
++
++def _tennis_ids() -> tuple[str, ...]:
++    """Current tour events. Grand-slam and doubles nodes are futures pages."""
++    nav = _get(f"{SB}/NavHierarchy") or {}
++    ids = []
++    for item in nav.get("navItems") or []:
++        if item.get("id") != 13:
++            continue
++        for child in item.get("navItems") or []:
++            if child.get("idType") != "competition":
++                continue
++            name = (child.get("name") or "").casefold()
++            if any(word in name for word in ("double", "future", "open", "davis", "united cup")):
++                continue
++            ids.append(str(child["id"]))
++            if len(ids) >= 4:
++                return tuple(ids)
++    return tuple(ids)
++
++
++def _event_markets(event_id: str):
++    try:
++        data = _get(f"{SB}/Events/{event_id}/Markets")
++    except (urllib.error.URLError, TimeoutError, OSError):
++        return []
++    return data if isinstance(data, list) else []
++
++
++def _build(sport: str) -> dict:
++    names = {
++        "football": "Football",
++        "afl": "AFL",
++        "nrl": "NRL",
++        "nhl": "NHL",
++        "nfl": "NFL",
++        "tennis": "Tennis",
++    }
++    title = names.get(sport, "This sport")
++    ids = _tennis_ids() if sport == "tennis" else COMPS.get(sport, ())
++    if not ids:
++        return _blank(f"{title} has no matches up at Sportsbet.")
++    with ThreadPoolExecutor(max_workers=6) as pool:
++        batches = list(pool.map(_comp_events, ids))
++    events = [event for batch in batches for event in batch]
++    events.sort(key=lambda event: event["start"] or 0)
++    events = events[:_MAX_GAMES]
++    if not events:
++        return _blank(f"{title} has no matches up at Sportsbet.")
++    with ThreadPoolExecutor(max_workers=8) as pool:
++        boards = list(pool.map(_event_markets, [event["id"] for event in events]))
++    games = []
++    for event, raw in zip(events, boards, strict=True):
++        markets = keep_markets(raw, sport)
++        if not markets:
++            continue
++        winner_market, winner = winner_of(markets, sport)
++        games.append(
++            {
++                "id": event["id"],
++                "name": event["name"],
++                "comp": event["comp"],
++                "when": event["when"],
++                "markets": markets,
++                "winner": winner,
++                "winner_market": winner_market,
++            }
++        )
++    if not games:
++        return _blank(f"{title} matches are up, and the main markets are not priced yet.")
++    singles = []
++    for game in games:
++        for market in game["markets"]:
++            for selection in market["selections"]:
++                singles.append(
++                    {
++                        "game": game["name"],
++                        "when": game["when"],
++                        "market": market["name"],
++                        "name": selection["name"],
++                        "price": selection["price"],
++                        "chance": selection["chance"],
++                        "pct": selection["pct"],
++                        "tone": selection["tone"],
++                    }
++                )
++    singles.sort(key=lambda row: -row["chance"])
++    return {
++        "games": games,
++        "singles": singles[:48],
++        "ticket": best_ticket(games),
++        "empty": None,
++        "note": _NOTE,
++        "error": None,
++    }
++
++
++def card(sport: str) -> dict:
++    """One sport's board, reused for about a minute so the page does not refetch."""
++    now = time.monotonic()
++    with _LOCK:
++        hit = _CACHE.get(sport)
++        if hit and now - hit[0] < _TTL:
++            return hit[1]
++    try:
++        built = _build(sport)
++    except (urllib.error.URLError, TimeoutError, OSError):
++        built = _blank(error="Sportsbet did not answer.")
++    with _LOCK:
++        _CACHE[sport] = (time.monotonic(), built)
++    return built
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/app.py L-web/app/melbcup/web/app.py
+--- ref/web/app/melbcup/web/app.py	2026-11-07 05:47:05.871735988 +0000
++++ L-web/app/melbcup/web/app.py	2026-11-07 05:47:06.234236727 +0000
+@@ -8,7 +8,6 @@
+ 
+ import hmac
+ import os
+-import re
+ import secrets
+ import threading
+ import time
+@@ -329,53 +328,11 @@
+             done = await run_in_threadpool(push.telegram, update)
+             return JSONResponse({"ok": True, "done": done})
+ 
+-    # The owner's datasets as plain links (owner, 2026-11-07): read straight from Blob, no login.
+-    # Phone alert records (push/) and the US switch are left out.
+-    data_ok = re.compile(
+-        r"^(board-latest\.json|view-latest\.json\.gz|forward\.jsonl|schedule\.json|"
+-        r"us-latest\.json|legs-latest\.json|(history|bookstest|racing)/[\w./-]+|\d{8}/[\w.-]+)$"
+-    )
+-
+-    @app.get("/data", response_class=HTMLResponse)
+-    def data_index():
+-        from melbcup.nba_feed import blob_names
+-
+-        account = os.environ.get("NBA_ACCOUNT")
+-        if not account:
+-            raise HTTPException(404, "no data store here")
+-        names = [
+-            n for n in blob_names(account, os.environ.get("AZURE_CLIENT_ID")) if data_ok.match(n)
+-        ]
+-        rows = "".join(f'<li><a href="/data/{n}">{n}</a></li>' for n in sorted(names))
+-        return HTMLResponse(
+-            f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
+-            f"<title>AsynymBet data</title><h1>AsynymBet data</h1><ul>{rows}</ul>"
+-        )
+-
+-    @app.get("/data/{name:path}")
+-    def data_file(name: str):
+-        from melbcup.nba_feed import blob_reader
+-
+-        account = os.environ.get("NBA_ACCOUNT")
+-        if not account or not data_ok.match(name) or ".." in name:
+-            raise HTTPException(404, "not a dataset")
+-        raw = blob_reader(account, os.environ.get("AZURE_CLIENT_ID"))(name)
+-        if raw is None:
+-            raise HTTPException(404, "not found")
+-        kind = (
+-            "application/gzip"
+-            if name.endswith(".gz")
+-            else ("application/json" if name.endswith(".json") else "text/plain; charset=utf-8")
+-        )
+-        return Response(raw, media_type=kind, headers={"Cache-Control": "no-store"})
+-
+     @app.get("/api/nba/us-pretip")
+     def nba_us_pretip():
+         """The Function calls this about 30 min before a slate's first tip: the US books are pulled
+         then if they are on and due (a pull not due costs nothing, so anyone may call it)."""
+-        return JSONResponse(
+-            {"pulled": views.nba_us_pretip()}, headers={"Cache-Control": "no-store"}
+-        )
++        return JSONResponse({"pulled": views.nba_us_pretip()}, headers={"Cache-Control": "no-store"})
+ 
+     @app.get("/api/nba/stamp", dependencies=[Depends(require_login)])
+     def nba_stamp():
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/static/asynym.css L-web/app/melbcup/web/static/asynym.css
+--- ref/web/app/melbcup/web/static/asynym.css	2026-11-07 05:47:05.871386402 +0000
++++ L-web/app/melbcup/web/static/asynym.css	2026-11-07 05:47:06.234417812 +0000
+@@ -133,9 +133,10 @@
+   border-radius: 999px; padding: 2px 10px; font-size: 11.5px; }
+ .ab-alerts[hidden] { display: none; }
+ 
+-.topnav { display: flex; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+-.topnav a { flex: 1; text-align: center; text-decoration: none; color: var(--muted); font-weight: 600;
+-  font-size: 13px; padding: 6px 8px; border-radius: 999px; }
++.topnav { display: flex; width: 100%; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
++.topnav a { flex: 1; min-width: 0; text-align: center; text-decoration: none; color: var(--muted);
++  font-weight: 600; font-size: 12.5px; line-height: 1.15; padding: 6px 0; border-radius: 999px;
++  white-space: normal; }
+ .topnav a.on { background: var(--brand-wash); color: var(--brand); }
+ 
+ /* heads, rows */
+@@ -423,3 +424,57 @@
+ .nb-track li.ok { color: var(--good); } .nb-track li.bad { color: var(--bad); }
+ .nb-track small { color: var(--muted); }
+ a.pick-other { text-decoration: none; color: inherit; }
++
++/* Sports board: one column, wrapping names, no sideways scroller. */
++.sp { padding: 6px 2px 28px; }
++.sp-kicker { margin: 0; color: var(--muted); font-size: 11px; font-weight: 700;
++  letter-spacing: .14em; text-transform: uppercase; }
++.sp-title { margin: 2px 0 14px; font-size: 34px; line-height: .95; letter-spacing: -.03em; font-weight: 800; }
++.sp-tabs { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 18px; }
++.sp-tabs a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600;
++  padding-bottom: 3px; border-bottom: 1px solid transparent; }
++.sp-tabs a.on { color: var(--ink); border-color: var(--brand); }
++.sp-chance { margin: 0; font-size: 84px; line-height: .85; letter-spacing: -.05em; font-weight: 800;
++  font-variant-numeric: tabular-nums; }
++.sp-chance small { font-size: .42em; margin-left: 2px; }
++.sp-chance.good { color: var(--good); }
++.sp-chance.mid { color: var(--brand); }
++.sp-chance.low { color: var(--warn); }
++.sp-lead { margin: 10px 0 0; font-size: 16px; font-weight: 600; }
++.sp-next { margin-top: 28px; }
++.sp-game { margin: 22px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
++.sp-mkt { margin: 12px 0 0; color: var(--muted); font-size: 11px; font-weight: 700;
++  letter-spacing: .12em; text-transform: uppercase; }
++.sp-meta { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
++.sp-empty { margin: 12px 0; color: var(--muted); max-width: 36em; }
++a.sp-also, .sp-also { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 10px; align-items: baseline;
++  padding: 11px 0; border-top: 1px solid var(--rule); color: var(--ink); text-decoration: none; }
++a.sp-also i.good, .sp-also i.good { color: var(--good); }
++a.sp-also i.mid, .sp-also i.mid { color: var(--brand); }
++a.sp-also i.low, .sp-also i.low { color: var(--warn); }
++.sp-also span { min-width: 0; }
++.sp-also i, .sp-also em { font-style: normal; font-variant-numeric: tabular-nums; }
++.sp-also i { color: var(--muted); font-size: 12px; }
++.sp-also i.good, .sp-also em.good { color: var(--good); }
++.sp-also i.mid, .sp-also em.mid { color: var(--brand); }
++.sp-also em { font-weight: 700; }
++.sp-also b { font-weight: 600; }
++.sp-index { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 36px; padding-top: 14px;
++  border-top: 1px solid var(--rule); }
++.sp-index a { color: var(--muted); text-decoration: none; font-size: 14px; }
++.sp-index a.on { color: var(--ink); }
++.sp-form { margin-top: 16px; }
++.sp-form button, .sp-goal input, .sp-goal select { font: inherit; color: var(--ink); }
++.sp-form button { margin-top: 12px; border: 0; background: transparent; color: var(--brand);
++  font-weight: 700; padding: 0; }
++.sp-also input[type="number"] { width: 1.8rem; margin: 0; padding: 0; background: transparent; color: var(--ink);
++  border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; text-align: center;
++  font: 800 15px/1.2 inherit; font-variant-numeric: tabular-nums; appearance: textfield; }
++.sp-also input[type="number"]::-webkit-outer-spin-button,
++.sp-also input[type="number"]::-webkit-inner-spin-button { appearance: none; margin: 0; }
++.sp-more { margin-top: 8px; }
++.sp-more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
++.sp-goal { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
++.sp-goal label { color: var(--muted); font-size: 12px; }
++.sp-goal input, .sp-goal select { display: block; margin-top: 4px; width: 6.5rem; background: transparent;
++  border: 0; border-bottom: 1px solid var(--rule); padding: 4px 0; }
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/templates/asynym/_header.html L-web/app/melbcup/web/templates/asynym/_header.html
+--- ref/web/app/melbcup/web/templates/asynym/_header.html	2026-11-07 05:47:05.871581845 +0000
++++ L-web/app/melbcup/web/templates/asynym/_header.html	2026-11-07 05:47:06.234544831 +0000
+@@ -58,5 +58,6 @@
+   <a href="/"{% if nav == 'home' %} class="on" aria-current="page"{% endif %}>Home</a>
+   <a href="/meetings"{% if nav == 'days' %} class="on" aria-current="page"{% endif %}>Race days</a>
+   <a href="/nba"{% if nav == 'nba' %} class="on" aria-current="page"{% endif %}>NBA</a>
++  <a href="/sports"{% if nav == 'sports' %} class="on" aria-current="page"{% endif %}>Sports</a>
+   <a href="/mine"{% if nav == 'mine' %} class="on" aria-current="page"{% endif %}>Mine</a>
+ </nav>
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/templates/asynym/nba.html L-web/app/melbcup/web/templates/asynym/nba.html
+--- ref/web/app/melbcup/web/templates/asynym/nba.html	2026-11-07 05:47:05.871696345 +0000
++++ L-web/app/melbcup/web/templates/asynym/nba.html	2026-11-07 05:47:06.234626745 +0000
+@@ -98,7 +98,6 @@
+   {% set one_game = ch.get('mode', 'game') == 'game' %}
+   {% set placed = ch.get('placed') %}
+   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
+-  {% if not ch.get('placed') %}<p class="note ch-links"><a class="act" href="/nba?tab=challenge&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% if ch.get('pick') %} · stuck to {{ ch.pick }}{% endif %}</p>{% endif %}
+   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>
+   {% if ch_finish is not none %}<p class="say">Chance to finish from here: <b>{{ '%.1f' % (ch_finish * 100) }}%</b> · {{ ch_left }} stage{{ 's' if ch_left != 1 }} to go{{ ', ' ~ ch.get('per_night', 1) ~ ' a night' }} · aims for ${{ '%.0f' % (ch.goal * 0.98) }} (safer legs than chasing the last 2%)</p>{% endif %}
+   {% if ch.last_win %}<p class="say"><b>Made it: ${{ '%.2f' % ch.last_win }}.</b> A new run starts from ${{ '%.0f' % ch.start }}.</p>{% endif %}
+@@ -134,7 +133,7 @@
+   {% if one_game and ch_games | length > 1 %}
+   <div class="sec"><span>Other games for this stage, by tip-off · tap one to use it</span></div>
+   {% for g in ch_games %}{% if g is not sameas m %}
+-  <a class="brow nba-leg pick-other" href="/nba?tab=challenge&ch=pick&chs={{ ch.steps | length }}&chpick={{ g.game | urlencode }}{{ '&bk=' ~ nba_agency if nba_agency }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }} · <u>use this game</u></small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></a>
++  <a class="brow nba-leg pick-other" href="/nba?tab=challenge&chpick={{ g.game | urlencode }}{{ '&bk=' ~ nba_agency if nba_agency }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.game }}</b><small>{{ g.startsAt | iso_time }} · {{ g.legs }} legs · {{ g.picks | join(', ') }} · <u>use this game</u></small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></a>
+   {% endif %}{% endfor %}
+   {% endif %}
+   {% elif ch_wait %}
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/templates/asynym/sports.html L-web/app/melbcup/web/templates/asynym/sports.html
+--- ref/web/app/melbcup/web/templates/asynym/sports.html	1970-01-01 00:00:00.000000000 +0000
++++ L-web/app/melbcup/web/templates/asynym/sports.html	2026-11-07 05:47:06.234699386 +0000
+@@ -0,0 +1,171 @@
++{% extends "asynym/base.html" %}
++{% block title %}{{ title }} · AsynymBet{% endblock %}
++{% block refresh %}90{% endblock %}
++{% block content %}
++<section class="sp">
++  <p class="sp-kicker">{{ kicker }}</p>
++  <h2 class="sp-title">{{ heading }}</h2>
++  <nav class="sp-tabs" aria-label="{{ heading }}">
++    {% for key, label in tabs %}
++    <a href="{{ here }}?tab={{ key }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}</a>
++    {% endfor %}
++  </nav>
++
++  {% if tab in ('top', 'multis') %}
++    {% if live.ticket %}
++    <p class="sp-kicker">Tonight · Sportsbet</p>
++    <p class="sp-chance {{ live.ticket.tone }}">{{ live.ticket.pct }}<small>%</small></p>
++    <p class="sp-lead">{{ live.ticket.count }} leg{% if live.ticket.count != 1 %}s{% endif %} · ${{ '%.2f' % live.ticket.multi }}</p>
++    {% for leg in live.ticket.legs %}
++    <div class="sp-also">
++      <i class="{{ leg.tone }}">{{ leg.pct }}</i>
++      <span><b>{{ leg.name }}</b> {{ leg.game }} · ${{ '%.2f' % leg.price }}</span>
++    </div>
++    {% endfor %}
++    <p class="sp-meta">{{ live.ticket.edge }}</p>
++    {% elif live.games %}
++    <p class="sp-empty">These matches are up, and no one-leg-per-game multi reaches $2.</p>
++    {% endif %}
++    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
++    {% if hero %}
++    {% if live.ticket or live.games %}<p class="sp-kicker sp-next">Past seasons</p>{% endif %}
++    <p class="sp-chance {{ hero.tone }}">{{ hero.pct }}<small>%</small></p>
++    <p class="sp-lead">{% if hub %}{{ hero.sport_name }} · {% endif %}{{ hero.line }}</p>
++    <p class="sp-meta">${{ '%.2f' % hero.multi }} at the floor · {{ (hero.hit * 100) | round(1) }}% of {{ hero.bets }} bets · lower bound {{ (hero.low * 100) | round(1) }}%</p>
++    <p class="sp-meta">{{ hero.edge }}</p>
++    {% for row in rest %}
++    <a class="sp-also" href="{{ row.href }}">
++      <i class="{{ row.tone }}">{{ row.pct }}</i>
++      <span><b>{% if hub %}{{ row.sport_name }}{% else %}{{ row.label }}{% endif %}</b>{% if hub %} {{ row.label }}{% endif %} {{ row.band }} · {{ row.legs }} leg{% if row.legs != 1 %}s{% endif %} · ${{ '%.2f' % row.multi }}</span>
++    </a>
++    {% endfor %}
++    {% elif not live.ticket and not live.games %}
++    <p class="sp-empty">{{ live.empty or empty }}</p>
++    {% endif %}
++
++  {% elif tab == 'ladder' %}
++    {% for row in ladder %}
++    <a class="sp-also" href="/sports/{{ row.code }}?tab=multis">
++      <i class="{{ row.best.tone if row.best else '' }}">{{ row.best.pct if row.best else '—' }}</i>
++      <span><b>{{ row.name }}</b> {% if row.best %}{{ row.best.line }}{% else %}History not in yet{% endif %}</span>
++    </a>
++    {% endfor %}
++
++  {% elif tab == 'singles' %}
++    {% if live.singles %}
++    {% for row in live.singles %}
++    <div class="sp-also">
++      <i class="{{ row.tone }}">{{ row.pct }}</i>
++      <span><b>{{ row.name }}</b> {{ row.market }} · {{ row.game }} · ${{ '%.2f' % row.price }}</span>
++    </div>
++    {% endfor %}
++    <p class="sp-meta">{{ live.note }}</p>
++    {% endif %}
++    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
++    {% if singles_main %}
++    {% if live.singles %}<details class="sp-more"><summary>Past seasons</summary>{% endif %}
++    {% for row in singles_main %}
++    <div class="sp-also">
++      <i class="{{ row.tone }}">{{ row.pct }}</i>
++      <span><b>{{ row.label }}</b> {% if row.floor %}${{ '%.2f' % row.floor }}–${{ '%.2f' % row.ceiling }}{% else %}no +EV price in {{ row.band }}{% endif %} · {{ row.bets }} bets</span>
++    </div>
++    {% endfor %}
++    {% if singles_rest %}
++    <details class="sp-more"><summary>Lower chances</summary>
++    {% for row in singles_rest %}
++    <div class="sp-also">
++      <i class="{{ row.tone }}">{{ row.pct }}</i>
++      <span><b>{{ row.label }}</b> {% if row.floor %}${{ '%.2f' % row.floor }}–${{ '%.2f' % row.ceiling }}{% else %}no +EV price in {{ row.band }}{% endif %} · {{ row.bets }} bets</span>
++    </div>
++    {% endfor %}
++    </details>
++    {% endif %}
++    <p class="sp-meta">A single is one bet. The figure is the middle of that band. 60% and above is green, the same cut as the chance ring.</p>
++    {% if live.singles %}</details>{% endif %}
++    {% elif not live.singles %}
++    <p class="sp-empty">{{ live.empty or empty }}</p>
++    {% endif %}
++
++  {% elif tab == 'games' %}
++    {% if live.games %}
++    {% for game in live.games %}
++    <h3 class="sp-game">{{ game.name }}</h3>
++    <p class="sp-meta">{{ game.comp }}{% if game.when %} · {{ game.when }}{% endif %}</p>
++    {% for market in game.markets %}
++    <p class="sp-mkt">{{ market.name }}</p>
++    {% for row in market.selections %}
++    <div class="sp-also">
++      <i class="{{ row.tone }}">{{ row.pct }}</i>
++      <span><b>{{ row.name }}</b> ${{ '%.2f' % row.price }}</span>
++    </div>
++    {% endfor %}
++    {% endfor %}
++    {% endfor %}
++    <p class="sp-meta">{{ live.note }} Same-game legs are linked, so they are listed under the match and not stacked into the multi.</p>
++    {% else %}
++    <p class="sp-empty">{{ live.empty or games_note }}</p>
++    {% if live.error %}<p class="sp-meta">{{ live.error }}</p>{% endif %}
++    {% endif %}
++
++  {% elif tab == 'build' %}
++    {% if built %}
++    <p class="sp-chance {{ built.tone }}">{{ built.pct }}<small>%</small></p>
++    <p class="sp-lead">{{ built.legs }} leg{% if built.legs != 1 %}s{% endif %} · ${{ '%.2f' % built.multi }}</p>
++    {% if not built.ready %}<p class="sp-meta">Still under $2. Add a leg.</p>{% endif %}
++    {% for line in built.lines %}<p class="sp-meta">{{ line }}</p>{% endfor %}
++    {% elif hero %}
++    <p class="sp-meta">The model would take {{ hero.line }}, {{ hero.pct }}%. Set a number of legs to build your own.</p>
++    {% else %}
++    <p class="sp-empty">{{ empty }}</p>
++    {% endif %}
++    {% if singles %}
++    <form class="sp-form" method="get" action="{{ here }}">
++      <input type="hidden" name="tab" value="build">
++      {% for row in singles_main %}
++      <label class="sp-also">
++        <input type="number" name="n_{{ row.id }}" min="0" max="12" inputmode="numeric" value="{{ row.count }}" aria-label="Legs of {{ row.label }} {{ row.band }}">
++        <span><b>{{ row.label }}</b> {{ row.band }} · ${{ '%.2f' % row.price }}</span>
++      </label>
++      {% endfor %}
++      {% if singles_rest %}
++      <details class="sp-more"><summary>Lower chances</summary>
++      {% for row in singles_rest %}
++      <label class="sp-also">
++        <input type="number" name="n_{{ row.id }}" min="0" max="12" inputmode="numeric" value="{{ row.count }}" aria-label="Legs of {{ row.label }} {{ row.band }}">
++        <span><b>{{ row.label }}</b> {{ row.band }} · ${{ '%.2f' % row.price }}</span>
++      </label>
++      {% endfor %}
++      </details>
++      {% endif %}
++      <button type="submit">Update the multi</button>
++    </form>
++    {% endif %}
++
++  {% elif tab == 'challenge' %}
++    {% set ch = challenge %}
++    <p class="sp-kicker">Stage 1 of {{ ch.stages }} · ${{ '%g' % ch.start }} toward ${{ '%g' % ch.goal }}</p>
++    {% if ch.ticket %}
++    <p class="sp-chance {{ ch.ticket.tone }}">{{ ch.ticket.pct }}<small>%</small></p>
++    <p class="sp-lead">{{ ch.ticket.sport_name }} · {{ ch.ticket.line }}</p>
++    <p class="sp-meta">This stage needs about {{ '%.2f' % ch.x }}x. This ticket pays ${{ '%.2f' % ch.ticket.multi }}. {% if ch.plain %}The best $2 stack is {{ ch.plain.pct }}%, and it does not have to pay this stage.{% endif %}</p>
++    {% else %}
++    <p class="sp-empty">{{ empty }}</p>
++    {% endif %}
++    <form class="sp-form sp-goal" method="get" action="{{ here }}">
++      <input type="hidden" name="tab" value="challenge">
++      <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%g' % ch.start }}"></label>
++      <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%g' % ch.goal }}"></label>
++      <label>Stages <select name="chn">{% for n in ch.stage_choices %}<option value="{{ n }}"{{ ' selected' if n == ch.stages }}>{{ n }}</option>{% endfor %}</select></label>
++      <button type="submit">Recalculate</button>
++    </form>
++    <p class="sp-meta">One bank for every sport. A loss ends the run. This screen picks the stage. It does not move a balance.</p>
++  {% endif %}
++
++  <nav class="sp-index" aria-label="Sports">
++    <a href="/sports?tab=top" class="{{ 'on' if not sport }}"{% if not sport %} aria-current="page"{% endif %}>All</a>
++    {% for row in sports %}
++    <a href="/sports/{{ row.code }}?tab=multis" class="{{ 'on' if sport == row.code }}"{% if sport == row.code %} aria-current="page"{% endif %}>{{ row.name }}</a>
++    {% endfor %}
++  </nav>
++</section>
++{% endblock %}
+diff -ruwBN --strip-trailing-cr -x build -x pyproject.toml ref/web/app/melbcup/web/views.py L-web/app/melbcup/web/views.py
+--- ref/web/app/melbcup/web/views.py	2026-11-07 05:47:05.871715039 +0000
++++ L-web/app/melbcup/web/views.py	2026-11-07 05:47:06.234784102 +0000
+@@ -17,7 +17,7 @@
+ 
+ from jinja2 import Environment, FileSystemLoader, select_autoescape
+ 
+-from melbcup import history
++from melbcup import history, sport_board
+ from melbcup.bets import LABELS, PRICE_VERDICTS, VALUE_KINDS, confidence, price_verdict
+ from melbcup.bets.grade import grade_day
+ from melbcup.bets.promos import PROMOS
+@@ -432,7 +432,7 @@
+             if state.get("mode", "game") == "game":
+                 games = nba_legs.same_game_for(legs, x, stake=state["bank"])
+                 step = max(games, key=lambda m: m["chance"]) if games else None
+-                chosen = state.get("pick")  # a game the owner stuck to for this stage
++                chosen = query.get("chpick")  # another game picked for this stage (owner)
+                 if chosen:
+                     step = next((m for m in games if m.get("game") == chosen), step)
+                 alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
+@@ -849,6 +849,13 @@
+         ctx["path"] = path
+         ctx["keep"] = {k: query[k] for k in ("tab", "date") if k in query}
+         ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
++        if path == "/sports" or path.startswith("/sports/"):
++            ctx["nav"] = "sports"
++            board = sport_board.page(path, query)
++            if board is None:
++                raise NotFound(path)
++            ctx.update(board)
++            return self.env.get_template("asynym/sports.html").render(ctx)
+         if path == "/nba":
+             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
+             self._agency_left = {a.code: a.left for a in ctx["az"].on} if ctx.get("az") else {}

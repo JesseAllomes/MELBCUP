@@ -1,0 +1,27 @@
+{# Choosing a meeting: the existing POST /actions/meeting, then on to the meeting's races.
+   Needs: snap, pick (date), found (venues or none), carnival #}
+{% macro meeting_btn(d, venue, label=none, sub=none) %}
+<form method="post" action="/actions/meeting?date={{ d.isoformat() }}&venue={{ venue | urlencode }}">
+  <button type="submit" class="mrow{{ ' on' if d == snap.race_date and snap.venue | lower == venue | lower }}"><span class="v"><b>{{ label or venue }}</b>{% if sub %}<small>{{ sub }}</small>{% endif %}</span>{% if d == snap.race_date and snap.venue | lower == venue | lower %}<span class="tk">loaded</span>{% endif %}<span class="go">›</span></button>
+</form>
+{% endmacro %}
+
+{% macro carnival_block(carnival) %}
+<div class="sec"><span>Flemington, Cup Carnival</span></div>
+<div class="daychips">
+  {% for label, d in carnival %}
+  <form method="post" action="/actions/meeting?date={{ d.isoformat() }}&venue=Flemington"><button type="submit" class="{{ 'on' if d == snap.race_date and snap.venue | lower == 'flemington' }}">{{ label }}<small>{{ d | day }}</small></button></form>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro others(pick, found) %}
+<div class="sec"><span>{{ pick | day }}</span><span>{{ (found | length) ~ ' meeting' ~ ('' if found | length == 1 else 's') if found else '' }}</span></div>
+{% if found is none %}
+<form method="post" action="/actions/find?date={{ pick.isoformat() }}"><button type="submit" class="wide">Find meetings on {{ pick | day }}</button></form>
+{% elif found %}
+<div class="mlist">{% for v in found %}{{ meeting_btn(pick, v) }}{% endfor %}</div>
+{% else %}
+<p class="empty">No meetings found for {{ pick | day }}.</p>
+{% endif %}
+{% endmacro %}

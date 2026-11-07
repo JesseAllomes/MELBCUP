@@ -1,0 +1,56 @@
+{% extends "asynym/base.html" %}
+{% from "asynym/_parts.html" import bet_row, extra_rows %}
+{% block title %}Mine · AsynymBet{% endblock %}
+{% block refresh %}0{% endblock %}
+{% block content %}
+<form class="pool-form" method="get" action="/mine">
+<section class="card pool{{ ' editing' if editing }}" id="pool" aria-labelledby="pool-h">
+  <div class="poolhd"><b id="pool-h">Betting pool</b>
+    <a class="edit" href="/mine?edit=1" id="pool-edit">Edit</a>
+    <button type="submit" class="done">Done</button></div>
+  <input type="hidden" name="ag" value="1">
+  <div class="pl">
+    {% for a in az.agencies %}
+    {% if a.on %}
+    <span>{{ a.name }}</span>
+    <span class="amt"><span class="v">{{ a.amount | dollars }}</span><label class="mi-l">$<input class="mi" name="{{ {'sb':'sb','bf':'bf','pb':'pb','tab':'tb','lb':'lb','neds':'ne'}[a.code] }}" inputmode="decimal" autocomplete="off" value="{{ '%g' % a.amount }}" aria-label="{{ a.name }} money"></label></span>
+    <small>{{ a.left | dollars }} left</small>
+    <input type="hidden" name="on_{{ a.code }}" value="1">
+    {% else %}
+    <input type="hidden" name="{{ {'sb':'sb','bf':'bf','pb':'pb','tab':'tb','lb':'lb','neds':'ne'}[a.code] }}" value="{{ '%g' % a.amount }}">
+    {% endif %}
+    {% endfor %}
+    {% if not az.on %}<span class="empty wide">No agency is on. Switch one on under Agencies.</span>{% endif %}
+    <span class="tot">Total</span><span class="tot">{{ az.total | dollars }}</span><small class="tot">{{ az.left | dollars }} left</small>
+    <span>Day budget</span><span>{{ az.total | dollars }}</span><small>shared over the races to run</small>
+  </div>
+  <p class="hint">Edit changes every dollar amount above until you press Done. Money is saved on this phone.</p>
+</section>
+</form>
+
+<section class="card" aria-labelledby="mine-h">
+  <div class="sec"><span id="mine-h">Your bets</span><span>{{ pnl_own.profit | signed | replace('-', '−') if pnl_own.bets else '' }}</span></div>
+  {% if mine_lines %}<div class="rows">{% for line in mine_lines %}{{ bet_row(line) }}{% endfor %}</div>
+  {% else %}<p class="empty">No bet recorded today. Open a race to record one.</p>{% endif %}
+</section>
+
+<section class="card" aria-labelledby="x-h" id="extra-sec">
+  <div class="sec"><span id="x-h">Other bets</span><span>{{ extras | length if extras else '' }}</span></div>
+  <details class="rec" id="extra-wrap">
+    <summary>+ Record another bet</summary>
+    <form class="record-extra" data-date="{{ race_date_iso }}">
+      <label>Type <select name="xkind"><option value="multi">Multi</option><option value="other">Other</option></select></label>
+      <label>Agency <select name="acct"><option value="sb">Sportsbet</option><option value="bf">Betfair</option>{% if pb_on %}<option value="pb">PointsBet</option>{% endif %}</select></label>
+      <label>Stake $ <input name="stake" type="number" inputmode="decimal" min="0.01" step="any" required></label>
+      <label>Total odds <input name="odds" type="number" inputmode="decimal" min="1.01" step="any" required placeholder="e.g. 12.40"></label>
+      <label class="wide" data-for="other" hidden>What <input name="label" type="text" maxlength="60" placeholder="e.g. Quinella R5 3-7"></label>
+      <div class="wide" data-for="multi" id="xlegs"></div>
+      <button type="button" class="xleg-add" data-for="multi" id="xleg-add">+ leg</button>
+      <button type="submit">Record bet</button>
+      <p class="hint wide">Total odds as you took them. A multi is settled by the app; an other bet when you type what it returned.</p>
+    </form>
+  </details>
+  <script type="application/json" id="extra-races">{{ extra_races | tojson }}</script>
+  {% if extras %}<div class="rows">{{ extra_rows(extras) }}</div>{% endif %}
+</section>
+{% endblock %}
