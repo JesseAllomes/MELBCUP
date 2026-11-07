@@ -333,7 +333,7 @@ def create_app(
     # Phone alert records (push/) and the US switch are left out.
     data_ok = re.compile(
         r"^(board-latest\.json|view-latest\.json\.gz|forward\.jsonl|schedule\.json|"
-        r"us-latest\.json|legs-latest\.json|(history|bookstest|racing)/[\w./-]+|\d{8}/[\w.-]+)$"
+        r"us-latest\.json|legs-latest\.json|(history|bookstest|racing|sports)/[\w./-]+|\d{8}/[\w.-]+)$"
     )
 
     @app.get("/data", response_class=HTMLResponse)
