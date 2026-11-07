@@ -13,7 +13,7 @@
     "aca_free_requests": 2000000
   },
   "budget_usd_month": {
-    "total": 25,
+    "total": 26,
     "hard_cap_function": 70
   },
   "function": {
@@ -29,7 +29,7 @@
       "collect": {"timer_max_per_day": 1440},
       "publish": {"timer_max_per_day": 24},
       "racelens_snapshot": {"timer_max_per_day": 180},
-      "nba_props_run": {"timer_max_per_day": 72},
+      "nba_props_run": {"timer_max_per_day": 144},
       "alerts_due": {"queue": "alerts", "queue_max_per_day": 40, "_comment": "on-demand alerts; melbcup/push_store.py QUEUE_MAX_PER_DAY caps what the web app queues"},
       "reenter": {"route": "github/reenter", "anonymous": true}
     },

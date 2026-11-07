@@ -172,10 +172,10 @@ def racelens_snapshot(timer: func.TimerRequest) -> None:
 
 
 @app.timer_trigger(
-    schedule="0 */10 20-23,0-7 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+    schedule="0 */10 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True
 )
 def nba_props_run(timer: func.TimerRequest) -> None:
-    """Every 10 minutes, 7am to 6:50pm AEDT: push the phone alerts that are due (owner,
+    """Every 10 minutes, around the clock (owner, 2026-11-07; was 7am-6:50pm AEDT): push the phone alerts that are due (owner,
     2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
     moment = now_utc()
     key, tg = os.environ.get("VAPID_PRIVATE_KEY"), os.environ.get("TELEGRAM_BOT_TOKEN")
