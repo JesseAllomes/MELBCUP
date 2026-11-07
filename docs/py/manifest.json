@@ -1,5 +1,5 @@
 {
- "build": "627b9a6d2527",
+ "build": "087f783f240d",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -25,6 +25,7 @@
   "melbcup/model/features.py",
   "melbcup/model/probability.py",
   "melbcup/nba_live.py",
+  "melbcup/promos.py",
   "melbcup/racing_store.py",
   "melbcup/ranker.py",
   "melbcup/sources/__init__.py",
@@ -34,6 +35,7 @@
   "melbcup/sources/racingcom.py",
   "melbcup/sports_hub.py",
   "melbcup/us_books.py",
+  "melbcup/wallet.py",
   "melbcup/web/__init__.py",
   "melbcup/web/asynym.py",
   "melbcup/web/offer_api.py",
@@ -43,6 +45,7 @@
   "melbcup/web/templates/_placings.html",
   "melbcup/web/templates/_racestrip.html",
   "melbcup/web/templates/_wallet.html",
+  "melbcup/web/templates/asynym/_challenges.html",
   "melbcup/web/templates/asynym/_header.html",
   "melbcup/web/templates/asynym/_meetpick.html",
   "melbcup/web/templates/asynym/_parts.html",

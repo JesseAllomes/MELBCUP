@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import secrets
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -376,16 +377,81 @@ class TodayMoney:
 
 
 def _nba_money(path, query, cookies, today):
-    """The NBA challenge state (with this request's action applied on /nba) and today's money."""
+    """The open challenge's state (with this request's action applied on /nba), today's money over
+    every challenge, and the page's challenge data (see nba_challenge.apply_store)."""
     try:
         from melbcup import nba_challenge
     except ImportError:  # the phone's offline copy leaves the NBA code out
-        return None, {}, 0.0
-    state = nba_challenge.parse((cookies or {}).get(nba_challenge.COOKIE))
+        return None, {}, 0.0, None
+    day = today.isoformat()
+    store = nba_challenge.load((cookies or {}).get(nba_challenge.COOKIE))
+    err = ""
     if path in ("/nba", "/sports") and "ch" in query:
-        state = nba_challenge.apply(state, query, today.isoformat())
-    used, profit = nba_challenge.today_money(state, today.isoformat())
-    return state, used, profit
+        store, _, err = nba_challenge.apply_store(store, query, day)
+    used, profit = nba_challenge.store_money(store, day)
+    open_id = query.get("chid")
+    if not open_id and query.get("ch") == "newch" and store["challenges"]:
+        open_id = store["challenges"][-1]["id"]
+    rec = nba_challenge.find(store, open_id)
+    ctx = _chs_ctx(store, rec, err, day)
+    if query.get("pr"):
+        ctx["promo"] = _promo(query)
+    return (rec["state"] if rec else None), used, profit, ctx
+
+
+def _promo(q) -> dict:
+    """The promotion table for the form's figures (all typed in by the owner)."""
+    from melbcup import promos
+
+    def num(k):
+        try:
+            return float(str(q.get(k) or "").replace("$", "").replace("%", "")) or None
+        except ValueError:
+            return None
+
+    try:
+        chances = [float(x) / 100 for x in str(q.get("pc") or "").replace(" ", "").split(",") if x]
+        pf = num("pf")
+        return promos.payoff(
+            chances, num("pp") or 0, num("ps") or 0, boost_price=num("pb"),
+            boost_fraction=pf / 100 if pf else None, refund_cap=num("pk"),
+            redeem_rate=num("pr_rate") or 0.0, provenance=str(q.get("pn") or ""),
+        )
+    except (promos.PromoError, ValueError) as e:
+        return {"error": str(e)}
+
+
+def _chs_ctx(store, rec, err, day) -> dict:
+    from melbcup import nba_challenge, wallet
+
+    cs = wallet.credits(store["ledger"], day)
+    return {
+        "list": [
+            {
+                "rec": c,
+                "status": nba_challenge.status(c),
+                "held": [
+                    k
+                    for k in cs.values()
+                    if k["challenge"] == c["id"] and k["status"] == "reserved"
+                ],
+            }
+            for c in store["challenges"]
+        ],
+        "open": rec,
+        "open_status": nba_challenge.status(rec) if rec else None,
+        "credits": [c for c in cs.values() if c["status"] in ("available", "reserved")],
+        "balances": wallet.balances(store["ledger"], day),
+        "wagers": [
+            w
+            for w in store["wagers"]
+            if rec and (rec["id"] == w["challenge"] or rec["id"] in w["refs"])
+        ][-10:],
+        "open_wagers": [w for w in store["wagers"] if w["state"] == "placed"][-10:],
+        "err": err,
+        "op": secrets.token_hex(4),  # fresh each render: the same form twice does nothing
+        "own": store["own"],
+    }
 
 
 def _own_bets(state, today) -> list[dict]:
@@ -412,6 +478,20 @@ class Views:
         except ImportError:  # the phone's offline copy leaves the NBA code out
             return {"ch": None, "ch_step": None}
         state = ctx.get("ch_state")
+        opened = (ctx.get("chs") or {}).get("open")
+        if opened is None:
+            return {"ch": None, "ch_step": None}
+        if opened["scope"] != "nba":  # All Sports: no NBA suggestions, the legs are typed in
+            run = state if state and state.get("active") is not False else None
+            return {
+                "ch": run,
+                "ch_step": None,
+                "ch_plan": {"start": 10.0, "goal": 1000.0, "keep": True},
+                "ch_games": [], "ch_preview": [], "ch_best": None, "ch_why": "", "ch_wait": None,
+                "ch_alt_agency": None, "ch_finish": None, "ch_due": None, "ch_night": None,
+                "ch_x": nba_challenge.next_x(run) if run else None,
+                "ch_left": nba_challenge.remaining(run) if run else None, "push_reminders": [],
+            }
         if state is not None and state.get("active") is False:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
         legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
@@ -747,7 +827,7 @@ class Views:
         today = melbourne_today()
         racing_today = snap.race_date == today
         day_bets = DayResult(mine.bets + [k.settled for k in kids] + [x.settled for x in extras])
-        ch_state, nba_used, nba_profit = _nba_money(path, query, cookies, today)
+        ch_state, nba_used, nba_profit, chs = _nba_money(path, query, cookies, today)
         if az is not None:
             for a in az.agencies:
                 a.used = (a.used if racing_today else 0.0) + nba_used.get(a.code, 0.0)
@@ -756,7 +836,8 @@ class Views:
             "push_key": os.environ.get("VAPID_PUBLIC_KEY", ""),  # phone alerts, in Settings
             "day_pnl": day_pnl,
             "ch_state": ch_state,
-            "nba_own": _own_bets(ch_state, today),
+            "nba_own": _own_bets((chs or {}).get("own"), today),
+            "chs": chs,
             "nba_us_cookie": (cookies or {}).get("nba_us"),
             "az": az,
             "settings": self.settings,

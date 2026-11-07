@@ -17,11 +17,17 @@ stage number it was made on, so reloading a page never counts anything twice.
 
 from __future__ import annotations
 
+import copy
 import json
+import os
 import re
+import time
 from collections.abc import Mapping
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from melbcup import wallet
 
 COOKIE = "nba_challenge"
 MIN_X = 1.2
@@ -474,3 +480,247 @@ def next_x(state: dict) -> float:
     if state.get("bonus"):  # a bonus bet pays winnings only: one more unit of price for the same return
         x += 1
     return max(MIN_X, x)
+
+
+# --- many challenges at once (owner, 2026-11-07) ------------------------------------------------
+# One durable store holds every challenge. Each challenge keeps its own engine state (everything
+# above: bank, steps, bets, past...), so an action on one never touches another's money.
+#   {"v":1, "next":n, "challenges":[{"id","name","scope","state"}], "own": <state of the owner's own
+#    multis>, "ledger":[wallet entries], "wagers":[...], "ops":[recent op ids], "migrated":bool}
+# scope "nba" suggests NBA stages; "all" (All Sports) takes any leg the owner records by hand.
+# Everything is recorded by the owner: the app never places a bet or moves money.
+
+WALLET_ACTS = ("wgrant", "wsplit", "walloc", "wrel", "wred", "wexp")
+STORE_BLOB = "challenges/state.json"
+SCOPES = ("nba", "all")
+MAX_OPS = 200
+MAX_WAGERS = 200
+_CACHE: list = [0.0, None]  # [loaded at, store]: one page makes several reads
+CACHE_S = 5.0
+
+
+def _local_path() -> Path:
+    return Path(os.environ.get("NBA_CHALLENGES_FILE") or Path.home() / ".asynymbet" / "challenges_state.json")
+
+
+def empty_store() -> dict:
+    return {
+        "v": 1, "next": 1, "challenges": [], "own": fresh() | {"active": False},
+        "ledger": [], "wagers": [], "ops": [], "migrated": False,
+    }
+
+
+def migrate(cookie_raw: str | None) -> dict:
+    """A store from the old one-challenge cookie: its run becomes challenge #1."""
+    store, old = empty_store(), parse(cookie_raw)
+    if old:
+        own = [b for b in old.get("bets", []) if b.get("own")]
+        store["own"] = store["own"] | {"bets": own}
+        store["challenges"].append(
+            {"id": "ch1", "name": "Challenge 1", "scope": "nba", "state": old | {"bets": [b for b in old.get("bets", []) if not b.get("own")]}}
+        )
+        store["next"], store["migrated"] = 2, True
+    return store
+
+
+def _read() -> dict | None:
+    account = os.environ.get("NBA_ACCOUNT")
+    try:
+        if account:
+            from melbcup.nba_feed import blob_reader
+
+            raw = blob_reader(account, os.environ.get("AZURE_CLIENT_ID"))(STORE_BLOB)
+        else:
+            p = _local_path()
+            raw = p.read_bytes() if p.exists() else None
+        return json.loads(raw) if raw else None
+    except (OSError, ValueError):
+        return None
+
+
+def load(cookie_raw: str | None = None, fresh_read: bool = False) -> dict:
+    """The durable store; the old cookie is read only when nothing is stored yet (migration)."""
+    now = time.monotonic()
+    if not fresh_read and _CACHE[1] is not None and now - _CACHE[0] < CACHE_S:
+        return copy.deepcopy(_CACHE[1])
+    store = _read()
+    if not isinstance(store, dict) or "challenges" not in store:
+        store = migrate(cookie_raw)
+    _CACHE[:] = [now, copy.deepcopy(store)]
+    return store
+
+
+def save(store: dict) -> None:
+    data = json.dumps(store, separators=(",", ":")).encode()
+    account = os.environ.get("NBA_ACCOUNT")
+    if account:
+        from melbcup.push_store import blob_writer
+
+        blob_writer(account, os.environ.get("AZURE_CLIENT_ID"))(STORE_BLOB, data)
+    else:
+        p = _local_path()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_bytes(data)
+        tmp.replace(p)
+    _CACHE[:] = [time.monotonic(), copy.deepcopy(store)]
+
+
+def find(store: dict, cid: str | None) -> dict | None:
+    return next((c for c in store["challenges"] if c["id"] == cid), None)
+
+
+def status(rec: dict) -> str:
+    """draft (no run), waiting_result (a stage placed), active (the contract's names)."""
+    s = rec["state"]
+    return "draft" if s.get("active") is False else "waiting_result" if s.get("placed") else "active"
+
+
+def contract(rec: dict) -> dict:
+    """The challenge in the pack's field names (contracts/challenge.schema.json), cents."""
+    s = rec["state"]
+    return {
+        "challenge_id": rec["id"], "name": rec["name"],
+        "scope": {"mode": "all_sports" if rec["scope"] == "all" else "single_sport", "sports": [] if rec["scope"] == "all" else ["nba"]},
+        "status": status(rec),
+        "start_cash_cents": round(s["start"] * 100), "current_cash_cents": round(s["bank"] * 100),
+        "goal_cash_cents": round(s["goal"] * 100), "stages_planned": s.get("stages", DEFAULT_STAGES),
+        "stages_completed": len(s["steps"]),
+    }
+
+
+def store_money(store: dict, today: str) -> tuple[dict[str, float], float]:
+    """Today's money across every challenge and the owner's own multis, by agency."""
+    used: dict[str, float] = {}
+    profit = 0.0
+    for st in [c["state"] for c in store["challenges"]] + [store["own"]]:
+        u, p = today_money(st, today)
+        for k, v in u.items():
+            used[k] = round(used.get(k, 0.0) + v, 2)
+        profit += p
+    return used, round(profit, 2)
+
+
+def _csv_floats(text: str | None) -> list[float]:
+    return [v for v in (_money(x) for x in re.split(r"[,\s+]+", text or "") if x) if v]
+
+
+def apply_store(store: dict, query: Mapping[str, str], today: str = "") -> tuple[dict, bool, str]:
+    """(store after the action in `query`, changed, error message). Pure: `store` is not touched.
+    An action carrying an `op` id already done does nothing (a reload or double tap)."""
+    act = query.get("ch")
+    if not act:
+        return store, False, ""
+    store = copy.deepcopy(store)
+    op = str(query.get("op") or "")[:40]
+    if op and op in store["ops"]:
+        return store, False, ""
+    err = ""
+    before = json.dumps(store, sort_keys=True)
+    try:
+        _dispatch(store, act, query, today, op)
+    except (wallet.WalletError, ValueError) as e:
+        err = str(e)
+    changed = json.dumps(store, sort_keys=True) != before
+    if changed and op:
+        store["ops"] = (store["ops"] + [op])[-MAX_OPS:]
+    return store, changed, err
+
+
+def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) -> None:
+    if act in ("bet", "betwon", "betlost"):
+        store["own"] = apply(store["own"], q, today)
+        return
+    if act == "newch":
+        name = (q.get("chname") or "").strip()[:40] or f"Challenge {store['next']}"
+        scope = q.get("chscope") if q.get("chscope") in SCOPES else "nba"
+        run = apply(fresh() | {"active": False}, {**q, "ch": "start"}, today)
+        store["challenges"].append({"id": f"ch{store['next']}", "name": name, "scope": scope, "state": run})
+        store["next"] += 1
+        return
+    if act in WALLET_ACTS:
+        _wallet_action(store, act, q, today, op)
+        return
+    rec = find(store, q.get("chid")) or (store["challenges"][0] if len(store["challenges"]) == 1 and not q.get("chid") else None)
+    if rec is None:
+        raise ValueError("no such challenge")
+    if act == "wgr":
+        _record_wager(store, rec, q, today, op)
+    elif act in ("wgrwon", "wgrlost"):
+        _settle_wager(store, rec, act, q)
+    elif act == "renamech":
+        rec["name"] = (q.get("chname") or "").strip()[:40] or rec["name"]
+    elif act == "rmch":
+        if rec["state"].get("placed") or any(w["challenge"] == rec["id"] and w["state"] == "placed" for w in store["wagers"]):
+            raise ValueError("settle its placed stage or wager first")
+        for c in wallet.credits(store["ledger"], today).values():
+            if c["challenge"] == rec["id"] and c["status"] == "reserved":
+                store["ledger"] = wallet.append(store["ledger"], {"t": "release", "credit": c["id"]}, today)
+        store["challenges"].remove(rec)
+    else:
+        rec["state"] = apply(rec["state"], q, today) or rec["state"]
+
+
+def _wallet_action(store, act, q, today, op) -> None:
+    e: dict = {"op": op, "at": today}
+    cid = q.get("wid")
+    if act == "wgrant":
+        e |= {"t": "grant", "amount": q.get("wamt"), "provider": q.get("wprov"), "expiry": q.get("wexp"), "note": q.get("wnote")}
+        if q.get("wplans"):  # e.g. "5+5;2+3+5": the splits the provider showed for this credit
+            e["plans"] = [_csv_floats(p) for p in q["wplans"].split(";") if p.strip()]
+    elif act == "wsplit":
+        e |= {"t": "split", "credit": cid, "parts": _csv_floats(q.get("wparts"))}
+    elif act == "walloc":
+        if not find(store, q.get("chid")):
+            raise ValueError("no such challenge")
+        e |= {"t": "allocate", "credit": cid, "challenge": q.get("chid")}
+    elif act == "wrel":
+        e |= {"t": "release", "credit": cid}
+    elif act == "wred":
+        e |= {"t": "redeem", "credit": cid}
+    elif act == "wexp":
+        e |= {"t": "expire", "credit": cid}
+    else:
+        raise ValueError("unknown wallet action")
+    store["ledger"] = wallet.append(store["ledger"], {k: v for k, v in e.items() if v not in (None, "")}, today)
+
+
+def _record_wager(store, rec, q, today, op) -> None:
+    """The owner's record of a bet placed outside the app. `refs` are other challenges that share
+    the exposure: only the primary challenge claims the bankroll, so there is one money record."""
+    legs, provider = (q.get("wlegs") or "").strip()[:300], (q.get("wprov") or "").strip()[:40]
+    odds, stake = _money(q.get("wodds")), _money(q.get("wstake"))
+    funding = q.get("wfund") if q.get("wfund") in ("cash", "bonus", "boost") else "cash"
+    if not (legs and provider and odds and odds > 1 and stake):
+        raise ValueError("provider, legs, odds (above 1) and stake needed")
+    w = {
+        "id": max([x["id"] for x in store["wagers"]], default=0) + 1, "challenge": rec["id"],
+        "refs": [r for r in dict.fromkeys((q.get("wrefs") or "").replace(" ", "").split(",")) if r and r != rec["id"] and find(store, r)],
+        "provider": provider, "legs": legs, "odds": odds, "stake": stake, "funding": funding,
+        "day": today, "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "state": "placed", "ret": 0.0, "op": op,
+    }
+    if funding == "boost":
+        w["boost_price"] = _money(q.get("wboost"))
+        if not w["boost_price"]:
+            raise ValueError("enter the boosted price")
+    if funding == "bonus":
+        c = wallet.credits(store["ledger"], today).get(q.get("wcredit"))
+        if c is None or c["provider"].lower() != provider.lower():
+            raise ValueError("pick a credit from that provider")
+        if c["amount"] != stake:
+            raise ValueError("the stake is the credit's face value")
+        store["ledger"] = wallet.append(
+            store["ledger"], {"t": "redeem", "credit": c["id"], "challenge": rec["id"], "op": f"w{op or w['id']}", "at": today}, today
+        )
+        w["credit"] = c["id"]
+    store["wagers"] = (store["wagers"] + [w])[-MAX_WAGERS:]
+
+
+def _settle_wager(store, rec, act, q) -> None:
+    for w in store["wagers"]:
+        if str(w["id"]) == str(q.get("wid")) and w["challenge"] == rec["id"] and w["state"] == "placed":
+            w["state"] = "won" if act == "wgrwon" else "lost"
+            if act == "wgrwon":
+                win = w["odds"] - 1 if w["funding"] == "bonus" else w["odds"]
+                w["ret"] = _money(q.get("wret")) or round(w["stake"] * win, 2)

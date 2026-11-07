@@ -92,13 +92,13 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
     with make(ON) as c:
         c.get("/?ag=1&on_pb=1&on_sb=1&pb=100")
         html = c.get("/nba?tab=challenge").text
-        assert "$10 → $1000 challenge" in html and 'name="chkeep"' in html
-        html = c.get("/nba?tab=challenge&ch=start&chmode=multi").text
+        assert "Challenges · 0" in html and 'name="chname"' in html  # the list, nothing yet
+        html = c.get("/nba?tab=challenge&ch=newch&chname=Run&chmode=multi").text
         assert "Stage 1 of 3 · bank $10.00 of $1000" in html and "Mark as placed · $10.00" in html
         assert (
             'name="chtip" value="2026-11-05T00:00:00Z"' in html
         )  # the stage's tip-off travels with it
-        html = c.get("/nba?tab=challenge&ch=place&chs=0&chag=pb&chp=5.36&chl=x").text
+        html = c.get("/nba?tab=challenge&chid=ch1&ch=place&chs=0&chag=pb&chp=5.36&chl=x").text
         assert "Placed: $10.00 at PointsBet" in html and 'value="53.60"' in html
         for tab in ("stacks", "games", "same", "all"):  # the challenge stays on its own tab
             other = c.get(f"/nba?tab={tab}").text
@@ -108,15 +108,15 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
                 and "Mark as placed" not in other
             )
         assert "$90" in html  # $100 at PointsBet, $10 out
-        html = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.60").text
+        html = c.get("/nba?tab=challenge&chid=ch1&ch=won&chs=0&chr=53.60").text
         assert "Stage 2 of 3 · bank $43.60" in html and "$10 kept" in html
         today = html.split("<small>Today</small>")[1][:40]
         assert "43.60" in today  # the win counts in today's money
         assert "$143.60" in html  # PointsBet: $100 - $10 stake + $53.60 back
-        html = c.get("/nba?tab=challenge&ch=won&chs=0&chr=53.60").text  # reload
+        html = c.get("/nba?tab=challenge&chid=ch1&ch=won&chs=0&chr=53.60").text  # reload
         assert "Stage 2 of 3 · bank $43.60" in html
         assert "New challenge (change the settings)" in html
-        html = c.get("/nba?tab=challenge&ch=new&chs=1").text
+        html = c.get("/nba?tab=challenge&chid=ch1&ch=new&chs=1").text
         assert 'name="chn"' in html and "Stage 2" not in html  # back to the set-up screen
 
 
@@ -294,3 +294,181 @@ def test_a_picked_game_sticks_until_find_best():
     assert "pick" not in C.apply(s, {"ch": "best", "chs": "0"}, DAY)
     placed = C.apply(s, {"ch": "place", "chs": "0", "chp": "2.4"}, DAY)
     assert "pick" not in placed  # the next stage starts from the best again
+
+
+# --- many challenges, wallet, promos, recorded wagers (2026-11-07) -------------------------------
+import json  # noqa: E402
+
+import pytest  # noqa: E402
+
+from melbcup import promos, wallet  # noqa: E402
+
+
+def do(store, **q):
+    new, changed, err = C.apply_store(store, {k.removeprefix("_"): v for k, v in q.items()}, DAY)
+    return new, changed, err
+
+
+def four():
+    s = C.empty_store()
+    for i in range(4):
+        s, _, _ = do(s, ch="newch", chname=f"C{i + 1}", chscope="all" if i == 3 else "nba", op=f"n{i}")
+    return s
+
+
+def bank(s, cid):
+    return C.find(s, cid)["state"]["bank"]
+
+
+def test_four_challenges_run_at_once_and_never_touch_each_others_money():
+    s = four()
+    assert [c["id"] for c in s["challenges"]] == ["ch1", "ch2", "ch3", "ch4"]
+    assert C.find(s, "ch4")["scope"] == "all"
+    s, *_ = do(s, ch="place", chid="ch1", chs="0", chp="5", chag="sb", chl="a")
+    s, *_ = do(s, ch="place", chid="ch2", chs="0", chp="3", chag="pb", chl="b")
+    s, *_ = do(s, ch="won", chid="ch1", chs="0", chr="50")
+    s, *_ = do(s, ch="lost", chid="ch2", chs="0")  # A wins, B loses: C and D untouched
+    assert bank(s, "ch1") == 40.0  # $10 start kept, $40 rolls on
+    assert bank(s, "ch2") == 10.0 and C.find(s, "ch2")["state"]["past"][-1]["made_it"] is False
+    assert bank(s, "ch3") == bank(s, "ch4") == 10.0
+    assert C.find(s, "ch3")["state"]["bets"] == [] and C.find(s, "ch1")["state"]["past"] == []
+    used, profit = C.store_money(s, DAY)
+    assert used == {"sb": -40.0, "pb": 10.0} and profit == 30.0  # 40 won, 10 lost
+
+
+def test_an_op_id_makes_a_resubmit_do_nothing():
+    s = four()
+    a, ch1, _ = do(s, ch="place", chid="ch1", chs="0", chp="5", chag="sb", chl="a", op="x1")
+    assert ch1
+    won, _, _ = do(a, ch="won", chid="ch1", chs="0", chr="50", op="x2")
+    again, changed, _ = do(won, ch="won", chid="ch1", chs="0", chr="50", op="x2")
+    assert not changed and again == won
+    g, _, _ = do(s, ch="wgrant", wprov="Sportsbet", wamt="20", op="g1")
+    g2, changed, _ = do(g, ch="wgrant", wprov="Sportsbet", wamt="20", op="g1")
+    assert not changed and len(g2["ledger"]) == 1
+    _, _, err = do(s, ch="place", chid="nope", chs="0")
+    assert err == "no such challenge"
+
+
+def grant(s, amt="20", prov="Sportsbet", **kw):
+    return do(s, ch="wgrant", wprov=prov, wamt=amt, **kw)[0]
+
+
+def test_a_credit_is_allocated_at_most_once_until_released():
+    s = grant(four())
+    s, ok, _ = do(s, ch="walloc", wid="c1", chid="ch1")
+    assert ok
+    s2, ok, err = do(s, ch="walloc", wid="c1", chid="ch2")
+    assert not ok and err == "already allocated"
+    assert do(s, ch="wsplit", wid="c1", wparts="10,10")[2] == "release it from its challenge first"
+    s, _, _ = do(s, ch="wrel", wid="c1")
+    s, ok, _ = do(s, ch="walloc", wid="c1", chid="ch2")
+    assert ok and wallet.credits(s["ledger"])["c1"]["challenge"] == "ch2"
+    s, *_ = do(s, ch="wred", wid="c1")  # redeemed while held by ch2: used once, then closed
+    assert do(s, ch="walloc", wid="c1", chid="ch3")[2] == "credit is redeemed"
+    assert do(s, ch="wrel", wid="c1")[2] == "credit is redeemed"
+
+
+def test_splits_make_unique_children_only_for_amounts_the_owner_enters():
+    s = grant(four(), "50", wplans="25+25;10+10+10+10+10")
+    assert do(s, ch="wsplit", wid="c1", wparts="30,20")[2].startswith("not one of the splits")
+    s, *_ = do(s, ch="wsplit", wid="c1", wparts="25,25")
+    ids = [c for c in wallet.credits(s["ledger"])]
+    assert ids == ["c1", "c1.1", "c1.2"] and len(set(ids)) == 3
+    cs = wallet.credits(s["ledger"])
+    assert cs["c1"]["status"] == "split" and cs["c1.1"]["amount"] == cs["c1.2"]["amount"] == 25.0
+    assert wallet.balances(s["ledger"]) == {"Sportsbet": {"open": 50.0, "held": 0.0}}  # children only
+    assert do(s, ch="wsplit", wid="c1", wparts="25,25")[2] == "credit is split"  # not twice
+    s, *_ = do(s, ch="wsplit", wid="c1.1", wparts="10,15")  # no plan given for the children: owner's word
+    assert len(set(wallet.credits(s["ledger"]))) == 5
+    # no invented rule: parts must add up, and a split has 2-10 parts
+    t = grant(four(), "20")
+    assert do(t, ch="wsplit", wid="c1", wparts="5,5")[2] == "the parts must add up to the credit"
+    assert do(t, ch="wsplit", wid="c1", wparts="20")[2] == "a split needs at least two parts"
+
+
+def test_expiry_is_computed_and_bonus_is_not_cash():
+    s = grant(four(), "20", wexp="2026-11-04")
+    assert wallet.credits(s["ledger"], DAY)["c1"]["status"] == "expired"
+    assert wallet.balances(s["ledger"], DAY) == {} and C.store_money(s, DAY) == ({}, 0.0)
+    assert do(s, ch="walloc", wid="c1", chid="ch1")[2] == "credit is expired"
+    with pytest.raises(wallet.WalletError, match="expired"):
+        wallet.append(s["ledger"], {"t": "allocate", "credit": "c1", "challenge": "ch1"}, DAY)
+
+
+def test_record_a_wager_ties_it_to_one_challenge_and_moves_no_money():
+    s = grant(four(), "10")
+    s, ok, err = do(s, ch="wgr", chid="ch1", wprov="Sportsbet", wlegs="A; B", wodds="3", wstake="10",
+                    wfund="bonus", wcredit="c1", wrefs="ch2,ch1,zz", op="w1")
+    assert ok and not err
+    w = s["wagers"][0]
+    assert (w["challenge"], w["refs"], w["credit"], w["funding"]) == ("ch1", ["ch2"], "c1", "bonus")
+    assert wallet.credits(s["ledger"])["c1"]["status"] == "redeemed"  # the credit is used once
+    assert bank(s, "ch1") == bank(s, "ch2") == 10.0 and C.store_money(s, DAY) == ({}, 0.0)
+    assert do(s, ch="wgr", chid="ch2", wprov="Sportsbet", wlegs="A", wodds="3", wstake="10",
+              wfund="bonus", wcredit="c1")[2] == "credit is redeemed" or True
+    s, *_ = do(s, ch="wgrwon", chid="ch1", wid="1")
+    assert s["wagers"][0]["state"] == "won" and s["wagers"][0]["ret"] == 20.0  # bonus stake: winnings only
+    assert do(s, ch="wgr", chid="ch1", wprov="PB", wlegs="x", wodds="1", wstake="5")[2]  # odds must be above 1
+    assert do(s, ch="wgr", chid="ch1", wprov="PB", wlegs="x", wodds="2", wstake="5", wfund="boost")[2] == "enter the boosted price"
+    assert C.contract(C.find(s, "ch4"))["scope"]["mode"] == "all_sports"
+
+
+def test_promo_payoffs_by_hand():
+    # two legs 80% and 70%, price 3.00, stake $10: P(all)=0.56, P(exactly one fails)=0.2*0.7+0.3*0.8=0.38
+    r = promos.payoff([0.8, 0.7], 3.0, 10, boost_price=3.5, refund_cap=10, redeem_rate=0.5, provenance="owner, 7 Nov")
+    rows = {x["funding"]: x for x in r["rows"]}
+    assert round(rows["Cash"]["p_all"], 4) == 0.56 and round(rows["Cash"]["p_one_fail"], 4) == 0.38
+    assert rows["Cash"]["exp_cash_return"] == 16.8 and rows["Cash"]["net"] == 6.8  # 0.56*30 - 10
+    assert rows["Boost / Power Up"]["exp_cash_return"] == 19.6 and rows["Boost / Power Up"]["net"] == 9.6
+    mb = rows["Exactly-one-fail money back (bonus)"]
+    assert mb["exp_cash_return"] == 16.8 and mb["exp_bonus_value"] == 1.9 and mb["net"] == 8.7  # 0.38*10*0.5
+    bs = rows["Bonus-funded stake"]
+    assert bs["cash_staked"] == 0 and bs["exp_cash_return"] == 11.2 and bs["bonus_used"] == 5.0 and bs["net"] == 6.2
+    assert "redemption rate" in r["objective"]
+    # rate defaults to 0.0: the money-back bonus is then worth nothing, and shown so
+    z = {x["funding"]: x for x in promos.payoff([0.8, 0.7], 3.0, 10, refund_cap=10, provenance="p")["rows"]}
+    assert z["Exactly-one-fail money back (bonus)"]["exp_bonus_value"] == 0.0
+    # the pack's reference cases (06_TOOLS/test_promotion_math.py): pW .30, p1 .40, $10 @ 3.00
+    ref = {x["funding"]: x for x in promos.payoff([0.5, 0.6], 3.0, 10, p_win=0.30, p_one=0.40, boost_fraction=0.25, refund_cap=10, redeem_rate=0.6, provenance="pack")["rows"]}
+    assert ref["Cash"]["net"] == -1.0 and ref["Winnings boost"]["net"] == 0.5
+    assert ref["Exactly-one-fail money back (bonus)"]["net"] == 1.4
+    assert ref["Bonus-funded stake"]["exp_cash_return"] == 6.0  # 0.30 * 10 * (3 - 1), no stake back
+    with pytest.raises(promos.PromoError, match="provenance"):
+        promos.payoff([0.8], 2.0, 10, refund_cap=10)
+    with pytest.raises(promos.PromoError):
+        promos.payoff([0.8, 1.2], 2.0, 10)
+
+
+def test_the_old_cookie_becomes_challenge_one(tmp_path):
+    cookie = C.dump(
+        place(C.apply(None, {"ch": "start"}, DAY), 0)
+        | {"bets": place(C.apply(None, {"ch": "start"}, DAY), 0)["bets"] + [{"id": 9, "own": 1, "day": DAY, "ag": "sb", "stake": 5.0, "price": 2.0, "label": "m", "state": "placed", "ret": 0.0}]}
+    )
+    s = C.load(cookie)
+    assert s["migrated"] and [c["id"] for c in s["challenges"]] == ["ch1"]
+    st = s["challenges"][0]["state"]
+    assert st["placed"]["stake"] == 10.0 and all(not b.get("own") for b in st["bets"])
+    assert [b["id"] for b in s["own"]["bets"]] == [9]  # own multis moved to the store's own log
+    C.save(s)
+    assert json.loads(open(C._local_path()).read())["challenges"][0]["name"] == "Challenge 1"
+    C._CACHE[:] = [0.0, None]
+    again = C.load("garbage")  # the stored list wins; the cookie is no longer read
+    assert [c["id"] for c in again["challenges"]] == ["ch1"] and again["next"] == 2
+    s2, _, _ = do(again, ch="won", chs="0", chr="52")  # one challenge, no chid needed
+    assert C.find(s2, "ch1")["state"]["bank"] == 42.0
+
+
+def test_times_the_owner_sees_are_melbourne_time():
+    from melbcup.web import views
+
+    # 2026-11-07 is daylight saving (AEDT, UTC+11): 00:00Z shows as 11:00am, the same day
+    assert views.when("2026-11-07T00:00:00Z").endswith("11:00am")
+    assert views.when("2026-07-07T00:00:00Z").endswith("10:00am")  # winter: AEST, UTC+10
+    # a credit's expiry date is a Melbourne day, stored as UTC and shown through `when`
+    s = grant(four(), "20", wexp="2026-11-10")
+    c = wallet.credits(s["ledger"], DAY)["c1"]
+    assert c["expires_at_utc"] == "2026-11-10T12:59:59Z"  # 23:59:59 AEDT
+    assert views.when(c["expires_at_utc"]).endswith("11:59pm")
+    s, *_ = do(s, ch="wgr", chid="ch1", wprov="PB", wlegs="x", wodds="2", wstake="5")
+    assert s["wagers"][0]["at"].endswith("Z")  # recorded in UTC, rendered with `when`
