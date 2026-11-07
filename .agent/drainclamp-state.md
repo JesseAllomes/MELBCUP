@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=187 -->
+<!-- drainclamp-build: state; schema=1; generation=188 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
 - 2026-11-03T21:19:44+00:00 a224cbc3 2026-11-04 NBA times dated (views.when: Today/Tomorrow/Thu 6 Nov + time; header alert shows date when >6h). Deployed web. Open question: Sportsbet props vs push notifications.
 - 2026-11-03T21:28:16+00:00 2149370d 2026-11-04 challenge isolated to its tab (top card removed; _challenge only on tab=challenge; alerts only there). Deployed web.
 - 2026-11-03T23:21:28+00:00 80c51b13 2026-11-04 kids' bets card removed (asynym Mine + race). Deployed. Owner asked about sharing with a friend: per-person state is cookies (separate per phone); shared: picks + server-side Betfair auto-bet API (/api/betting public read; PIN-guarded actions; BET_MODE not live) + Load card/Auto on buttons (server-wide).
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
 - 2026-11-07T14:09:38+00:00 d95792cc 2026-11-07 ui7 built (Haiku step 1, then Sonnet low per owner): v7-3 home + sport pages + next games (full-game main line) + status/refresh + progress bar/toast + challenge tab cleaned; merged to branch 4d4c00c1, tests pass; awaiting owner deploy approval. pk1 (rb2-picker) still awaiting review/merge.
 - 2026-11-07T14:23:40+00:00 4aa76261 2026-11-07 ui7 deployed (owner approved): live /sports Bet now; first compute after deploy ~3 min, pages ~1 s; status endpoint live. Next: pk1 review, then sh1 shadow scoreboard.
+- 2026-11-07T21:28:26+00:00 94b106f8 2026-11-07 pk1 reviewed+merged to branch (tests pass, not deployed). ui8 BUILD (owner): every sport NBA-style tabs, v8-2 bottom bar + 1's layout, NBA Multis on new design with fixed picker; Sonnet low building in rb5-tabs.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
