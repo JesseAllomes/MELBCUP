@@ -482,6 +482,21 @@ def create_app(
         """When the NBA prices on the server were worked out: the page swaps in fresher ones."""
         return JSONResponse({"priced": views.nba_stamp()}, headers={"Cache-Control": "no-store"})
 
+    @app.get("/api/sports/status", dependencies=[Depends(require_login)])
+    def sports_status():
+        """Bet-now multis: is a search running, how far, and when the last one was built."""
+        from melbcup import discover
+
+        return JSONResponse(discover.status(), headers={"Cache-Control": "no-store"})
+
+    @app.post("/api/sports/refresh", dependencies=[Depends(require_login)])
+    def sports_refresh():
+        """Check now: start a multis search unless one is already running."""
+        from melbcup import discover
+
+        discover.refresh_now()
+        return Response(status_code=204)
+
     @app.get("/nba", dependencies=[Depends(require_login)])
     def nba_redirect(request: Request):
         """The NBA page moved into the Sports hub: same query, 307 so forms and old links work."""

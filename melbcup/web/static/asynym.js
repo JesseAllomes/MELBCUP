@@ -210,3 +210,63 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     }, 3000);
   })(0);
 })();
+
+// Bet now (owner BUILD, 2026-11-07): the multis are searched on the server behind the page. Poll the
+// status; show a slim bar while it works and a tap toast when a newer result than this page's lands.
+(function () {
+  "use strict";
+  if (location.pathname !== "/sports") return;
+  var root = document.getElementById("bn");
+  var mine = root ? root.getAttribute("data-built") || "" : null;
+  var bar = null, toast = null, timer = null;
+  function barOf() {
+    if (bar) return bar;
+    bar = document.createElement("div");
+    bar.className = "bn-bar"; bar.setAttribute("role", "status");
+    bar.innerHTML = '<div class="ut"><b></b><span>shows the last result meanwhile</span></div><div class="bar"><i></i></div>';
+    var h = document.querySelector("header") || document.body.firstElementChild;
+    if (h && h.parentNode) h.parentNode.insertBefore(bar, h.nextSibling); else document.body.prepend(bar);
+    return bar;
+  }
+  function showToast() {
+    if (toast) return;
+    toast = document.createElement("button");
+    toast.type = "button"; toast.className = "bn-toast";
+    toast.innerHTML = '<span class="dot"></span><span>Fresh multis ready</span><span>Tap</span>';
+    toast.addEventListener("click", function () { location.reload(); });
+    document.body.appendChild(toast);
+  }
+  function age(s) {
+    if (s == null) return "";
+    return s < 60 ? "Updated just now" : s < 3600 ? "Updated " + Math.floor(s / 60) + " min ago" : "Updated " + Math.floor(s / 3600) + "h ago";
+  }
+  function tick() {
+    if (timer) window.clearTimeout(timer);
+    if (document.hidden) return;
+    fetch("/api/sports/status", { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (mine === null) mine = d.built || "";
+        var b = document.getElementById("bn-check"), a = document.getElementById("bn-age");
+        if (d.busy) {
+          var el = barOf(), pc = Math.round((d.progress || 0) * 100);
+          el.hidden = false;
+          el.querySelector("b").textContent = "Updating multis · " + pc + "%";
+          el.querySelector("i").style.width = pc + "%";
+        } else if (bar) { bar.hidden = true; }
+        if (b) b.disabled = !!d.busy;
+        if (a && !d.busy && d.age_s != null) a.textContent = age(d.age_s);
+        if (!d.busy && d.built && d.built !== mine) showToast();
+        timer = window.setTimeout(tick, d.busy ? 2000 : 15000);
+      })
+      .catch(function () { timer = window.setTimeout(tick, 15000); });
+  }
+  var chk = document.getElementById("bn-check");
+  if (chk) chk.addEventListener("click", function () {
+    chk.disabled = true;
+    fetch("/api/sports/refresh", { method: "POST", credentials: "same-origin" })
+      .catch(function () {}).then(function () { tick(); });
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
+  tick();
+})();

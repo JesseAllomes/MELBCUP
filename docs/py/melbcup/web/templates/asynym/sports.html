@@ -82,10 +82,70 @@
 {% macro subtabs() %}
 {% if sport not in ('racing', 'home') %}
 <nav class="sp-tabs sp-sub" aria-label="Views">
-  {% if sport in ('nba', 'all') %}<a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else 'Coverage' }}</a>{% endif %}
+  <a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else ('Coverage' if sport == 'all' else 'Bet now') }}</a>
   <a href="/sports?sport={{ sport }}&view=players" class="{{ 'on' if view == 'players' }}"{% if view == 'players' %} aria-current="page"{% endif %}>{{ 'Players · all props' if sport == 'nba' else 'Players' }}</a>
   <a href="/sports?sport={{ sport }}&view=markets" class="{{ 'on' if view == 'markets' }}"{% if view == 'markets' %} aria-current="page"{% endif %}>All markets</a>
 </nav>
+{% endif %}
+{% endmacro %}
+{% macro ring(p, size=54) %}{% set r = (size - 4) / 2 %}{% set c = 6.2832 * r %}
+<span class="ring {{ 'l' if size > 44 else 's' }} {{ 'g' if p >= 0.6 else ('p' if p >= 0.3 else 'a') }}" style="width:{{ size }}px;height:{{ size }}px" role="img" aria-label="{{ '%.0f' | format(p * 100) }}% chance every leg wins"><svg width="{{ size }}" height="{{ size }}" aria-hidden="true"><circle cx="{{ size / 2 }}" cy="{{ size / 2 }}" r="{{ r }}" fill="none" stroke="var(--chip)" stroke-width="4"/><circle cx="{{ size / 2 }}" cy="{{ size / 2 }}" r="{{ r }}" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="{{ '%.1f %.1f' | format(p * c, c) }}"/></svg><b>{{ '%.0f' | format(p * 100) }}%<small>chance</small></b></span>
+{% endmacro %}
+{% macro slip(b, tag, one, shared) %}{% set p = b.pick %}
+<article class="pc{{ ' one' if one }}">
+  <div class="ph">{{ ring(p.p_all) }}<div><span class="tag{{ ' g' if one }}">{{ tag }}</span><b class="pp">${{ '%.2f' | format(p.price) }}</b><small>per $1 · {{ '%g' | format(b.lo) }}–{{ '%g' | format(b.hi) }}×</small></div></div>
+  <ul>{% for g in p.legs %}<li><span class="pt">{{ g.start | iso_time }}{% if g.event in shared %} <span class="sh">shared</span>{% endif %}</span><b>{{ g.label }}</b><span class="lp">{{ '%.2f' | format(g.price) }}</span></li>{% endfor %}</ul>
+  <div class="why4">
+    {% for g in p.legs %}<div class="lb"><span>{{ g.label }}</span><span class="bar"><i style="width:{{ '%.0f' | format(g.p * 100) }}%"></i></span><b>{{ '%.0f' | format(g.p * 100) }}%</b></div>{% endfor %}
+    <div class="lb"><span>Bookie keeps {{ '%.1f' | format(p.cut * 100) }}%</span><span class="cut" style="width:44px"><i style="width:{{ '%.0f' | format(p.cut * 1000) }}%"></i></span><b></b></div>
+  </div>
+  <div class="pw">
+    <span>Pays <b>${{ '%.2f' | format(p.price) }}</b> · fair <b>${{ '%.2f' | format(p.fair_price) }}</b></span>
+    <span>{{ p.legs | length }} games, independent · prices read {{ (p.legs | map(attribute='seen') | min) | iso_time }}</span>
+    {% if p.expected_return < 0 %}<span class="neg">Negative expected return: about {{ '%.1f' | format(-p.expected_return * 100) }}c lost per $1.</span>{% else %}<span class="neg">Expected return is positive only on paper; check the slip price.</span>{% endif %}
+  </div>
+  <small class="ko">Kick-off {{ p.first_start | iso_time }}{% if b.eta %} · {{ b.eta }}{% endif %} · price to confirm on the slip</small>
+</article>
+{% endmacro %}
+{% macro bet_now(bn, disc, name, bonus=[]) %}
+{% set shared = bn.shared | map(attribute='event') | list %}
+{% set age = bn.age_s %}
+<div class="bn" id="bn" data-built="{{ disc.built if disc else '' }}">
+  <div class="fr"><span class="dot"></span><span id="bn-age">{% if age is none %}Working out multis…{% elif age < 60 %}Updated just now{% elif age < 3600 %}Updated {{ age // 60 }} min ago{% else %}Updated {{ age // 3600 }}h ago{% endif %}</span><button class="chk" id="bn-check" type="button">Check now</button></div>
+  {% for k in bonus if k.provider | lower != 'pointsbet' %}<p class="note"><b>${{ '%.2f' | format(k.amount) }} {{ k.provider }} bonus</b> is {{ k.provider }}-only. These multis use <b>PointsBet</b> prices.</p>{% endfor %}
+  {% if bn.none %}
+  <div class="empty"><b>{% if disc %}No multi fits right now{% else %}Working out the multis{% endif %}</b>{% if disc %}Games need a fresh, fairly priced leg starting between 5 minutes and 48 hours from now{% if name %} in {{ name }}{% endif %}. This page will say when fresh ones are ready.{% else %}The first search takes about 20 seconds. The page stays usable and says when they are ready.{% endif %}</div>
+  {% else %}
+  <div class="pair">{% for b in bn.top %}{{ slip(b, 'Bet this' if loop.first else 'Or this', loop.first, shared) }}{% endfor %}</div>
+  {% if bn.top | length > 1 %}<p class="fine">Top two by chance that every leg wins ({{ '%.0f' | format(bn.top[0].pick.p_all * 100) }}% and {{ '%.0f' | format(bn.top[1].pick.p_all * 100) }}%).</p>{% endif %}
+  {% for r in bn.shared[:2] %}<p class="risk"><b>{{ r.n }} of {{ r.of }} multis ride on {{ r.event }}.</b> One bad result there sinks all of them, so more than one bet stacks the same risk.</p>{% endfor %}
+  {% if bn.groups %}<div class="sub">Other odds ranges, by kick-off</div>
+  {% for gp in bn.groups %}
+  <section class="sp"><div class="spt"><b>{{ gp.start | iso_time }}</b>{% if gp.eta %}<span>{{ gp.eta }}</span>{% endif %}</div>
+    <div class="spb">{% for b in gp['items'] %}{% set p = b.pick %}
+      <article class="cr"><span>{{ ring(p.p_all, 40) }}</span>
+        <div class="cb"><span class="tag">{{ '%g' | format(b.lo) }}–{{ '%g' | format(b.hi) }}× · {{ p.legs | length }} legs</span>
+          <ul>{% for g in p.legs %}<li class="lc"><b>{{ g.label }}{% if g.event in shared %} <span class="sh">shared</span>{% endif %}</b><span class="lp">{{ '%.2f' | format(g.price) }}</span><small>{{ g.event }} · {{ g.start | iso_time }} · {{ '%.0f' | format(g.p * 100) }}%</small></li>{% endfor %}</ul>
+          <div class="mini"><span class="gl"><span class="cut" style="width:40px"><i style="width:{{ '%.0f' | format(p.cut * 1000) }}%"></i></span><em>cut {{ '%.1f' | format(p.cut * 100) }}%</em></span><span class="gl"><em>pays {{ '%.2f' | format(p.price) }} <s>fair {{ '%.2f' | format(p.fair_price) }}</s></em></span></div>
+        </div>
+        <div class="cp"><b>${{ '%.2f' | format(p.price) }}</b>{% if b.eta %}<small>{{ b.eta }}</small>{% endif %}</div>
+      </article>{% endfor %}
+    </div></section>
+  {% endfor %}{% endif %}
+  <p class="fine">Every multi here returns less than it costs on average: a high chance is not value. Prices are as last read and can move; the price to confirm is the one on the slip.</p>
+  {% endif %}
+</div>
+{% endmacro %}
+{% macro next_games(games, sport) %}
+{% if games %}
+<section class="bn"><div class="sub">Next games</div>
+  {% for e in games %}
+  <div class="ng"><div class="ngt"><b>{{ e.name }}</b><span class="fine">{{ e.start | iso_time }}</span></div>
+    {% if e.main %}<div class="ngl"><span class="ml">Main line<b>{{ '%.0f' | format(e.main.p * 100) }}%</b></span><span>{{ e.main.label }} · <b>{{ '%.2f' | format(e.main.price) }}</b></span></div>{% endif %}
+    {% if e.props %}<a class="lnk" href="/sports?sport={{ sport }}&view=players&event={{ e.id }}">{{ e.props }} player props</a>{% endif %}
+  </div>
+  {% endfor %}
+</section>
 {% endif %}
 {% endmacro %}
 {% block content %}
@@ -99,30 +159,7 @@
 {% elif sport == 'nba' %}
 {{ super() }}
 {% elif sport == 'home' %}
-<section class="card sp-card dz-head">
-  <h2>Best multis across every sport</h2>
-  <p class="note">For each odds range, the multi with the highest chance that every leg wins, from every PointsBet market with a fair price (the bookmaker's own odds with its margin taken out). One leg per game, so legs don't depend on each other. NBA head-to-head is left out, as you set.</p>
-  {% if disc %}<p class="note">Worked out {{ disc.built | iso_time }} from {{ disc.legs_usable }} usable legs in {{ disc.games }} games ({{ disc.sports | join(', ') }}).</p>{% endif %}
-</section>
-{% if not disc %}
-<section class="card sp-card"><p>Working out the best multis… this page refreshes itself.</p></section>
-{% else %}
-{% for b in disc.bands %}
-<section class="card sp-card dz-band">
-  <h2>${{ '%g' | format(b.lo) }} – ${{ '%g' | format(b.hi) }}</h2>
-  {% if not b.pick %}
-  <p class="note">{{ b.reason }}</p>
-  {% else %}{% set p = b.pick %}
-  <p class="dz-big"><b>{{ '%.1f' | format(p.p_all * 100) }}%</b> chance all legs win · price <b>${{ '%.2f' | format(p.price) }}</b></p>
-  <p class="note">Exactly one leg fails: {{ '%.1f' | format(p.p_one_fail * 100) }}% (matters for money-back offers) · fair price ${{ '%.2f' | format(p.fair_price) }} · expected return {{ '%+.1f' | format(p.expected_return * 100) }}% per bet at this price</p>
-  <ol class="dz-legs">
-    {% for g in p.legs %}<li><b>{{ g.label }}</b> <span class="dz-px">{{ '%.2f' | format(g.price) }} · {{ '%.0f' | format(g.p * 100) }}%</span><small>{{ g.event }} · {{ g.sport }} · {{ g.start | iso_time }} · price seen {{ g.seen | iso_time }}</small></li>{% endfor %}
-  </ol>
-  {% endif %}
-</section>
-{% endfor %}
-<p class="note">Prices are PointsBet's as last read and can move; the price is the legs multiplied, and PointsBet's own multi price can differ, so check the slip. A high chance is not value: every multi here returns less than it costs on average.</p>
-{% endif %}
+{{ bet_now(bn, disc, '', bonus) }}
 {% elif sport == 'all' %}
 <section class="card sp-card">
   <h2>What the app has, by sport</h2>
@@ -147,6 +184,9 @@
   <p class="sp-links"><a href="/">Today's races</a><a href="/meetings">Race days</a><a href="/mine">Mine</a></p>
 </section>
 {% else %}
+{{ bet_now(bn, disc, hub.name) }}
+{{ next_games(games, sport) }}
+{% if no_feed %}<section class="card sp-card sp-cov"><p class="cat-cov">{{ no_feed }}</p></section>{% endif %}
 {{ cover(hub) }}
 {% endif %}
 {% endblock %}

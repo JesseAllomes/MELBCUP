@@ -414,9 +414,14 @@ def _promo(q) -> dict:
         chances = [float(x) / 100 for x in str(q.get("pc") or "").replace(" ", "").split(",") if x]
         pf = num("pf")
         return promos.payoff(
-            chances, num("pp") or 0, num("ps") or 0, boost_price=num("pb"),
-            boost_fraction=pf / 100 if pf else None, refund_cap=num("pk"),
-            redeem_rate=num("pr_rate") or 0.0, provenance=str(q.get("pn") or ""),
+            chances,
+            num("pp") or 0,
+            num("ps") or 0,
+            boost_price=num("pb"),
+            boost_fraction=pf / 100 if pf else None,
+            refund_cap=num("pk"),
+            redeem_rate=num("pr_rate") or 0.0,
+            provenance=str(q.get("pn") or ""),
         )
     except (promos.PromoError, ValueError) as e:
         return {"error": str(e)}
@@ -488,10 +493,18 @@ class Views:
                 "ch": run,
                 "ch_step": None,
                 "ch_plan": {"start": 10.0, "goal": 1000.0, "keep": True},
-                "ch_games": [], "ch_preview": [], "ch_best": None, "ch_why": "", "ch_wait": None,
-                "ch_alt_agency": None, "ch_finish": None, "ch_due": None, "ch_night": None,
+                "ch_games": [],
+                "ch_preview": [],
+                "ch_best": None,
+                "ch_why": "",
+                "ch_wait": None,
+                "ch_alt_agency": None,
+                "ch_finish": None,
+                "ch_due": None,
+                "ch_night": None,
                 "ch_x": nba_challenge.next_x(run) if run else None,
-                "ch_left": nba_challenge.remaining(run) if run else None, "push_reminders": [],
+                "ch_left": nba_challenge.remaining(run) if run else None,
+                "push_reminders": [],
             }
         if state is not None and state.get("active") is False:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
@@ -619,6 +632,17 @@ class Views:
                 if t:
                     out[b["id"]] = t
         return out
+
+    def _bonus_credits(self) -> list[dict]:
+        """Open bonus credits (read-only), for the Bet now note; [] when none or unreadable."""
+        try:
+            from melbcup import nba_challenge, wallet
+
+            day = datetime.now(MELBOURNE).date().isoformat()
+            cs = wallet.credits(nba_challenge.load()["ledger"], day)
+            return [c for c in cs.values() if c["status"] == "available" and c["amount"]]
+        except Exception:  # noqa: BLE001 - the note is optional
+            return []
 
     def _best_elsewhere(self, state, x, step, nba_challenge, nba_legs) -> dict | None:
         """The same stage at the other agencies: their likeliest same-game multi for this payout.
@@ -941,10 +965,24 @@ class Views:
             if view:
                 ctx["cat"] = catalogue_view.query(sport, view, query)
             ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
-            if sport == "home":
+            if sport == "home" or (sport not in ("nba", "racing", "all") and not view):
                 from melbcup import discover
 
-                ctx["disc"] = discover.latest()
+                disc = discover.latest()
+                ctx["disc"] = disc
+                bands = (
+                    (disc or {}).get("bands")
+                    if sport == "home"
+                    else ((disc or {}).get("by_sport") or {}).get(sport)
+                )
+                ctx["bn"] = discover.layout(bands)
+                ctx["bonus"] = self._bonus_credits() if sport == "home" else []
+                ctx["games"] = discover.next_games(sport) if sport != "home" else []
+                ctx["no_feed"] = (
+                    catalogue_view.NO_FEED
+                    if sport != "home" and not catalogue_view.coverage_line(sport)
+                    else ""
+                )
             if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub

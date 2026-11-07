@@ -55,7 +55,7 @@ def test_each_tab_renders(c, code):
 
 
 def test_default_is_best_multis_and_nba_still_there(c):
-    assert "Best multis across every sport" in c.get("/sports").text  # the Sports home (owner)
+    assert "Check now" in c.get("/sports").text  # the Sports home (owner)
     assert "NBA player props" in c.get("/sports?sport=nba").text
 
 
