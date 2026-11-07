@@ -271,7 +271,7 @@ def _match(r: dict, f: dict[str, str]) -> bool:
 
 
 def _qs(sport: str, view: str, f: dict[str, str], page: int | None = None, comp: str = "") -> str:
-    p = {"sport": sport, "view": view, **{k: v for k, v in f.items() if v}}
+    p = {"sport": sport, "tab": "all", "view": view, **{k: v for k, v in f.items() if v}}
     if comp:
         p["comp"] = comp
     if page and page > 1:

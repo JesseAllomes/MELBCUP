@@ -477,6 +477,58 @@ class Views:
         self._nba = None  # NbaFeed, made on the first visit to /nba
         self._agencies_on: set[str] = set()
 
+    def _sport_challenge(self, query: Mapping[str, str], ctx: dict, sport: str, disc) -> dict:
+        """A non-NBA sport's Challenge tab: the All Sports challenges (NBA ones stay on the NBA
+        tab), the stage timeline, and the pick whose odds range holds the stage's target."""
+        chs = ctx.get("chs")
+        if not chs:
+            return {"ch": None, "ch_step": None, "ch_tl": [], "ch_sug": None}
+        mine = [it for it in chs["list"] if it["rec"]["scope"] == "all"]
+        opened = chs["open"] if chs["open"] and chs["open"]["scope"] == "all" else None
+        opened = opened or (mine[-1]["rec"] if mine else None)
+        sub = {
+            **ctx,
+            "chs": {**chs, "list": mine, "open": opened},
+            "ch_state": opened["state"] if opened else None,
+        }
+        out = self._challenge(query, sub)
+        out["chs"] = sub["chs"]
+        out["ch_state"] = sub["ch_state"]
+        out["ch_tl"] = self._stage_timeline(out.get("ch"), out.get("ch_x"))
+        out["ch_sug"] = self._stage_pick(disc, sport, out.get("ch_x")) if out["ch_tl"] else None
+        return out
+
+    @staticmethod
+    def _stage_timeline(run: dict | None, x: float | None) -> list[dict]:
+        """The run's stages for the v8-2 timeline: done (from -> to), the current, those to come."""
+        if not run or x is None:
+            return []
+        steps = run.get("steps") or []
+        out = []
+        for i in range(max(run.get("stages", 3), len(steps) + 1)):
+            if i < len(steps):
+                out.append(
+                    {"n": i + 1, "st": "done", "frm": steps[i]["from"], "to": steps[i]["to"]}
+                )
+            else:
+                out.append({"n": i + 1, "st": "cur" if i == len(steps) else "todo", "x": x})
+        return out
+
+    @staticmethod
+    def _stage_pick(disc, sport: str, x: float | None) -> dict | None:
+        """The pick for a stage aiming at x times the stake: this sport's pick from the odds range
+        containing x, else the all-sports one; None when no range holds it."""
+        if x is None or not disc:
+            return None
+        for name, bands in (
+            (sport, (disc.get("by_sport") or {}).get(sport)),
+            ("all sports", disc.get("bands")),
+        ):
+            for b in bands or []:
+                if b.get("pick") and b["lo"] <= x < b["hi"]:
+                    return {"band": b, "src": name}
+        return None
+
     def _challenge(self, query: Mapping[str, str], ctx: dict) -> dict:
         """The $10 -> $1000 challenge (cookie on the phone; app.py saves the change)."""
         try:
@@ -961,10 +1013,19 @@ class Views:
             ctx["sport"] = sport = sports_hub.pick(query.get("sport"))
             ctx.update(hub_tabs=sports_hub.TABS, hub_sports=sports_hub.SPORTS)
             ctx["hub"] = sports_hub.BY_CODE.get(sport)
-            ctx["view"] = view = sports_hub.pick_view(sport, query.get("view"))
+            tab = sports_hub.pick_tab(sport, query.get("tab"), query.get("view"))
+            ctx["sp_tab"] = tab
+            ctx["sp_tabs"] = sports_hub.SPORT_TABS
+            ctx["hub_bar"] = bool(tab)
+            view = sports_hub.pick_view(sport, query.get("view"))
+            if tab == "all":
+                view = view or "markets"  # every market; Players is a link at its top
+            ctx["view"] = view
             if view:
                 ctx["cat"] = catalogue_view.query(sport, view, query)
             ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
+            if sport == "nba" and not view:  # the NBA page's own tab names
+                query = {**query, "tab": {"multis": "stacks", "sgm": "same"}.get(tab, tab)}
             if sport == "home" or (sport not in ("nba", "racing", "all") and not view):
                 from melbcup import discover
 
@@ -977,12 +1038,14 @@ class Views:
                 )
                 ctx["bn"] = discover.layout(bands)
                 ctx["bonus"] = self._bonus_credits() if sport == "home" else []
-                ctx["games"] = discover.next_games(sport) if sport != "home" else []
+                ctx["games"] = discover.next_games(sport) if tab == "games" else []
                 ctx["no_feed"] = (
                     catalogue_view.NO_FEED
                     if sport != "home" and not catalogue_view.coverage_line(sport)
                     else ""
                 )
+                if tab == "challenge":
+                    ctx.update(self._sport_challenge(query, ctx, sport, disc))
             if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub
@@ -999,6 +1062,7 @@ class Views:
             if ctx["nba_tab"] == "challenge":  # the challenge lives on its own tab only (owner)
                 t0 = time.perf_counter()
                 ctx.update(self._challenge(query, ctx))
+                ctx["ch_tl"] = self._stage_timeline(ctx.get("ch"), ctx.get("ch_x"))
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
             return self.env.get_template("asynym/sports.html").render(ctx)
