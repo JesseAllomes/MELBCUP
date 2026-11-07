@@ -1,5 +1,5 @@
 {
- "build": "4ad1f2e3b9a1",
+ "build": "21f659ad70ff",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -26,6 +26,7 @@
   "melbcup/model/probability.py",
   "melbcup/nba_live.py",
   "melbcup/racing_store.py",
+  "melbcup/ranker.py",
   "melbcup/sources/__init__.py",
   "melbcup/sources/betfair.py",
   "melbcup/sources/formfav.py",
