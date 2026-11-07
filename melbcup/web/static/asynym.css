@@ -616,3 +616,9 @@ a.pick-other { text-decoration: none; color: inherit; }
 .bn-toast{position:fixed;left:12px;right:12px;bottom:14px;max-width:436px;margin:0 auto;z-index:40;display:flex;align-items:center;gap:8px;background:#2A1E4A;border:1px solid var(--brand);color:var(--ink);border-radius:12px;padding:10px 12px;font:700 12.5px/1.2 var(--font);box-shadow:0 6px 18px #000a;cursor:pointer;width:calc(100% - 24px)}
 .bn-toast .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}.bn-toast span:last-child{margin-left:auto;color:var(--brand);font-weight:800;font-size:11px}
 @media (prefers-reduced-motion:reduce){.bn-bar .bar i{transition:none}}
+.bn ul{list-style:none;margin:0;padding:0}.bn p{margin:0}.bn li{margin:0}
+.bn .sp{grid-template-columns:76px 1fr}.bn .sp::before{display:none}
+.bn .spt b{font-size:12px;line-height:1.2}
+.bn .pc li{padding:0}.bn .pc .pt{display:block}
+.bn .why4 .lb{grid-template-columns:minmax(0,1fr) 40px 28px}
+.bn .risk{margin:0}
