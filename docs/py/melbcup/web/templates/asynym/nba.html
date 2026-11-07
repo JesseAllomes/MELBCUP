@@ -60,13 +60,13 @@
   <div class="pair">{% for m in rep.stacks[:2] %}{{ nslip(m, 'Bet this' if loop.first else 'Or this', loop.first) }}{% endfor %}</div>
   {% if rep.stacks | length > 1 %}<p class="fine">Top two by chance that every leg wins ({{ (rep.stacks[0].chance * 100) | round | int }}% and {{ (rep.stacks[1].chance * 100) | round | int }}%).</p>{% endif %}
   {% if rep.stacks | length > 2 %}<div class="sub">Other payouts</div>
-  <section class="sp"><div class="spb">{% for m in rep.stacks[2:] %}
+  <div class="spb">{% for m in rep.stacks[2:] %}
     <article class="cr"><span>{{ ring(m.chance, 40, '') }}</span>
       <div class="cb"><span class="tag">{{ m.legs }} legs · ${{ '%.2f' % m.price }}</span>
         <ul>{% for d in m.detail %}<li class="lc"><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span><small>{{ (d.chance * 100) | round | int }}%</small></li>{% endfor %}</ul>
         {{ placed(m) }}</div>
       <div class="cp"><b>${{ '%.2f' % m.price }}</b>{{ alt(m) }}</div>
-    </article>{% endfor %}</div></section>{% endif %}
+    </article>{% endfor %}</div>{% endif %}
   {% else %}
   <div class="empty"><b>No multi fits right now</b>A multi needs lines in at least 3 games; {{ nba_agency_name or 'PointsBet' }} has {{ nba_agency_games or 0 }} so far.</div>
   {% endif %}
