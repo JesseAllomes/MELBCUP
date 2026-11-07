@@ -1,0 +1,4 @@
+{# The stage timeline (v8-2) over the NBA challenge: done, now, to come. #}
+{% if ch_tl %}<section class="bn"><div class="tl">
+{% for t in ch_tl %}<div class="tn {{ t.st }}"><i></i><div class="tb">{% if t.st == 'done' %}<div><b>Stage {{ t.n }} · Won</b><small>${{ '%.2f' % t.frm }} → ${{ '%.2f' % t.to }}</small></div>{% elif t.st == 'cur' %}<div><b>Stage {{ t.n }} · now · bank ${{ '%.2f' % ch.bank }}</b><small>aims for about {{ '%.1f' % t.x }}× this stage</small></div>{% else %}<div><b>Stage {{ t.n }}</b><small>picked after stage {{ t.n - 1 }}</small></div>{% endif %}</div></div>{% endfor %}
+</div></section>{% endif %}

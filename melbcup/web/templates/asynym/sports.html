@@ -34,10 +34,11 @@
 </section>
 {% endmacro %}
 {% macro catalogue(cat) %}
+<p class="note cat-n"><a class="act" href="/sports?sport={{ cat.sport }}&tab=all&view={{ 'markets' if cat.view == 'players' else 'players' }}">{{ 'All markets' if cat.view == 'players' else 'Players · all props' }}</a> · showing {{ 'player props by player' if cat.view == 'players' else 'every market' }}</p>
 {{ covline(cat) }}
 {% if cat.feed %}
 <form class="card cat-f" method="get" action="/sports">
-  <input type="hidden" name="sport" value="{{ cat.sport }}"><input type="hidden" name="view" value="{{ cat.view }}">
+  <input type="hidden" name="sport" value="{{ cat.sport }}"><input type="hidden" name="tab" value="all"><input type="hidden" name="view" value="{{ cat.view }}">
   <input type="search" name="q" value="{{ cat.f.q }}" placeholder="Search player, team or market" aria-label="Search player, team or market">
   <div class="cat-sel-row">
     <select name="family" aria-label="Market family"><option value="">Any family</option>{% for x in cat.families %}<option value="{{ x }}"{{ ' selected' if x == cat.f.family }}>{{ x }}</option>{% endfor %}</select>
@@ -77,15 +78,6 @@
   {% if cat.link_next %}<a class="more" href="{{ cat.link_next }}">View more</a>{% if cat.link_last %}<a href="{{ cat.link_last }}">Last</a>{% endif %}{% endif %}
 </nav>
 {% endif %}
-{% endif %}
-{% endmacro %}
-{% macro subtabs() %}
-{% if sport not in ('racing', 'home') %}
-<nav class="sp-tabs sp-sub" aria-label="Views">
-  <a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else ('Coverage' if sport == 'all' else 'Bet now') }}</a>
-  <a href="/sports?sport={{ sport }}&view=players" class="{{ 'on' if view == 'players' }}"{% if view == 'players' %} aria-current="page"{% endif %}>{{ 'Players · all props' if sport == 'nba' else 'Players' }}</a>
-  <a href="/sports?sport={{ sport }}&view=markets" class="{{ 'on' if view == 'markets' }}"{% if view == 'markets' %} aria-current="page"{% endif %}>All markets</a>
-</nav>
 {% endif %}
 {% endmacro %}
 {% macro ring(p, size=54) %}{% set r = (size - 4) / 2 %}{% set c = 6.2832 * r %}
@@ -140,19 +132,104 @@
 {% if games %}
 <section class="bn"><div class="sub">Next games</div>
   {% for e in games %}
-  <div class="ng"><div class="ngt"><b>{{ e.name }}</b><span class="fine">{{ e.start | iso_time }}</span></div>
+  <a class="ng" href="/sports?sport={{ sport }}&tab=all&event={{ e.id }}"><div class="ngt"><b>{{ e.name }}</b><span class="fine">{{ e.start | iso_time }}</span></div>
     {% if e.main %}<div class="ngl"><span class="ml">Main line<b>{{ '%.0f' | format(e.main.p * 100) }}%</b></span><span>{{ e.main.label }} · <b>{{ '%.2f' | format(e.main.price) }}</b></span></div>{% endif %}
-    {% if e.props %}<a class="lnk" href="/sports?sport={{ sport }}&view=players&event={{ e.id }}">{{ e.props }} player props</a>{% endif %}
-  </div>
+    <span class="lnk">{{ e.props }} player props · all markets</span>
+  </a>
   {% endfor %}
 </section>
+{% else %}<section class="bn"><div class="empty"><b>No games listed</b>The catalogue has no upcoming {{ hub.name if hub else '' }} games yet.</div></section>
 {% endif %}
+{% endmacro %}
+{% macro bottom_bar() %}
+<div class="btm-pad" aria-hidden="true"></div>
+<nav class="btm" aria-label="{{ hub.name if hub else sport }} tabs">
+  {% for key, label in sp_tabs %}<a href="/sports?sport={{ sport }}&tab={{ key }}" class="{{ 'on' if sp_tab == key }}"{% if sp_tab == key %} aria-current="page"{% endif %}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">{% if key == 'multis' %}<path d="M4 7h16M4 12h16M4 17h10"/>{% elif key == 'challenge' %}<path d="M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>{% elif key == 'games' %}<circle cx="12" cy="12" r="8"/><path d="M4 12h16"/>{% elif key == 'sgm' %}<rect x="4" y="4" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/>{% else %}<circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/>{% endif %}</svg>{{ label }}</a>{% endfor %}
+</nav>
+{% endmacro %}
+{% macro sport_challenge() %}
+{% set cid = chs.open.id if chs and chs.open else '' %}
+<div class="bn">
+  {% if not chs %}<div class="empty"><b>Challenges need the live site</b>Open bet.asynym.dev.</div>
+  {% else %}
+  {% if chs.err %}<p class="risk" role="alert"><b>{{ chs.err }}</b></p>{% endif %}
+  {% if chs.list %}<div class="chr">{% for it in chs.list %}<a href="/sports?sport={{ sport }}&tab=challenge&chid={{ it.rec.id }}" class="{{ 'on' if cid == it.rec.id }}">{{ it.rec.name }}</a>{% endfor %}</div>{% endif %}
+  {% if chs.open %}{% set c = chs.open %}
+  <div class="chh"><div><span class="tag">All Sports challenge</span><b class="ht">{{ c.name }}</b></div>{% if ch %}<span class="fine">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank <b>${{ '%.2f' % ch.bank }}</b> of ${{ '%.0f' % ch.goal }}</span>{% endif %}</div>
+  {% if not ch %}
+  <p class="note">Roll the bank into one multi a stage. One loss ends the run.</p>
+  <form method="get" action="/sports" class="ch-start">
+    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="start"><input type="hidden" name="chmode" value="multi"><input type="hidden" name="chkeep" value="1">
+    <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
+    <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
+    <label class="ch-mode">Stages <select name="chn">{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}</select></label>
+    <button type="submit">Start</button></form>
+  {% else %}
+  {% set placed = ch.get('placed') %}
+  <div class="tl">
+  {% for t in ch_tl %}
+    <div class="tn {{ t.st }}"><i></i><div class="tb">
+    {% if t.st == 'done' %}<div><b>Stage {{ t.n }} · Won</b><small>${{ '%.2f' % t.frm }} → ${{ '%.2f' % t.to }}</small></div>
+    {% elif t.st == 'cur' %}<b>Stage {{ t.n }} · now · bank ${{ '%.2f' % ch.bank }}</b>
+      <small>aims for about {{ '%.1f' % t.x }}× this stage</small>
+      {% if placed %}{% set ag = az.get(placed.ag) %}
+      <article class="pc one"><span class="rl">Placed</span><p><b>${{ '%.2f' % placed.stake }}{% if ag %} at {{ ag.name }}{% endif %}</b>{% if placed.price %} · ${{ '%.2f' % placed.price }}{% endif %}<br><small>{{ placed.label }}</small></p>
+        <form method="get" action="/sports" class="acts">
+          <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+          <label class="fine">Paid into your account $<input name="chr" inputmode="decimal" value="{{ ('%.2f' % (placed.stake * placed.price)) if placed.price else '' }}"></label>
+          <div class="res"><button type="submit" name="ch" value="won" class="w">Won</button><button type="submit" name="ch" value="lost" class="l">Lost</button>{% if not placed.bonus %}<button type="submit" name="ch" value="lost1" class="o">One leg failed → bonus</button>{% endif %}</div>
+        </form></article>
+      {% elif ch_sug %}{% set p = ch_sug.band.pick %}
+      <div class="top">{{ ring(p.p_all, 64) }}<div><b class="pp">${{ '%.2f' % p.price }}</b><small class="fine"></small></div></div>
+      <article class="pc one"><span class="rl">Suggested bet · picked for you</span>
+        <ul>{% for g in p.legs %}<li class="lc"><b>{{ g.label }}</b><span class="lp">{{ '%.2f' % g.price }}</span><small>{{ g.start | iso_time }} · {{ g.event }} · {{ '%.0f' % (g.p * 100) }}%</small></li>{% endfor %}</ul>
+        <div class="why4"><span class="rl">Why this bet</span><div class="w4g">
+          <div><small>Chance</small><b>{{ '%.0f' % (p.p_all * 100) }}% gets up</b></div>
+          <div><small>Pays</small><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % (ch.bank * p.price) }}</b></div>
+          <div><small>Picked from</small><b>{{ ch_sug.src | capitalize }} multis, {{ '%g' % ch_sug.band.lo }}–{{ '%g' % ch_sug.band.hi }}× range</b></div>
+          <div><small>Games</small><b>{{ p.legs | length }}, independent</b></div></div>
+          <p class="ev">Fair price {{ '%.2f' % p.fair_price }} vs {{ '%.2f' % p.price }} offered. <b>{% if p.expected_return < 0 %}Negative expected return: about {{ '%.0f' % (-p.expected_return * 100) }}c lost per $1.{% else %}Positive only on paper; check the slip price.{% endif %}</b></p></div>
+        <form method="get" action="/sports" class="acts">
+          <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+          <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
+          <label class="fine">At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }}</option>{% endfor %}</select></label>
+          <button type="submit" class="go big">I placed this · ${{ '%.2f' % ch.bank }}</button></form>
+      </article>
+      {% else %}
+      <div class="empty"><b>No bet in the {{ '%.1f' % t.x }}× range right now</b>Neither {{ hub.name if hub else 'this sport' }} nor all sports has a fresh, fairly priced multi that pays about that. Check back closer to kick-off.</div>
+      {% endif %}
+    {% else %}<div><b>Stage {{ t.n }}</b><small>picked after stage {{ t.n - 1 }}</small></div>{% endif %}
+    </div></div>
+  {% endfor %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="empty"><b>No {{ hub.name if hub else '' }} challenge running</b>Start an All Sports challenge below; it shows on every sport's Challenge tab.</div>
+  {% endif %}
+  <details class="fold"><summary>+ New challenge</summary>
+    <form method="get" action="/sports" class="ch-start">
+      <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch"><input type="hidden" name="chscope" value="all"><input type="hidden" name="chmode" value="multi">
+      <label>Name <input name="chname" maxlength="40" placeholder="e.g. $10 to $1000"></label>
+      <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
+      <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
+      <label class="ch-mode">Stages <select name="chn">{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}</select></label>
+      <button type="submit">Create and start</button></form></details>
+  <div class="sub">Bonus credits</div>
+  <ul class="wl">{% for k in chs.credits %}<li><b>{{ k.provider }}</b><span>${{ '%.2f' % k.amount }}</span><small>{% if k.expiry %}expires {{ k.expiry }}{% endif %}{% if k.challenge %} · held for {{ k.challenge }}{% endif %}</small></li>{% else %}<li><small>No credits recorded.</small></li>{% endfor %}</ul>
+  <details class="fold"><summary>+ Add a bonus credit</summary>
+    <form method="get" action="/sports" class="ch-start"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="wgrant">
+      <label>Bookmaker <input name="wprov" placeholder="Sportsbet" required></label>
+      <label>Amount $<input name="wamt" inputmode="decimal" required></label>
+      <label>Expires <input name="wexp" type="date"></label>
+      <button type="submit">Add credit</button></form></details>
+  <p class="fine">Prices are as last read and can move; every multi here returns less than it costs on average. Only stake what you are happy to lose.</p>
+  {% endif %}
+</div>
 {% endmacro %}
 {% block content %}
 <nav class="sp-tabs" aria-label="Sports">
   {% for code, label in hub_tabs %}<a href="/sports?sport={{ code }}" class="{{ 'on' if code == sport }}"{% if code == sport %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
 </nav>
-{{ subtabs() }}
 {% if view %}
 {{ catalogue(cat) }}
 {% if sport not in ('nba', 'all') %}{{ cover(hub) }}{% endif %}
@@ -183,10 +260,17 @@
   <h2>Racing screens</h2>
   <p class="sp-links"><a href="/">Today's races</a><a href="/meetings">Race days</a><a href="/mine">Mine</a></p>
 </section>
+{% elif sp_tab == 'challenge' %}
+{{ sport_challenge() }}
+{% elif sp_tab == 'games' %}
+{{ next_games(games, sport) }}
+{% if no_feed %}<section class="card sp-card sp-cov"><p class="cat-cov">{{ no_feed }}</p></section>{% endif %}
+{% elif sp_tab == 'sgm' %}
+<section class="bn"><div class="empty"><b>Same-game multis need a measured correlation model</b>NBA only for now. In one game the legs are linked, so multiplying their chances would mislead; {{ hub.name if hub else 'this sport' }} has no measured model yet.</div></section>
 {% else %}
 {{ bet_now(bn, disc, hub.name) }}
-{{ next_games(games, sport) }}
 {% if no_feed %}<section class="card sp-card sp-cov"><p class="cat-cov">{{ no_feed }}</p></section>{% endif %}
 {{ cover(hub) }}
 {% endif %}
+{% if hub_bar %}{{ bottom_bar() }}{% endif %}
 {% endblock %}

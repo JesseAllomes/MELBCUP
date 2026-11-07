@@ -10,6 +10,15 @@
 {% macro tracked(t, bonus_ok=false) %}{% if t %}<div class="nb-track"><small>{{ t.clock }}</small><ul>{% for l in t.legs %}<li class="{{ 'ok' if l.ok == true else ('bad' if l.ok == false else '') }}">{{ '✓' if l.ok == true else ('✗' if l.ok == false else '·') }} {{ l.label }} <b>{{ l.now if l.now is not none else '–' }}{% if not l.under %}/{{ l.k }}{% else %} (under {{ l.k }}){% endif %}</b></li>{% endfor %}</ul>
 {% if t.verdict == 'won' %}<p class="say">All legs won: put in the dollars paid into your account (not the odds) and tap <b>Won</b>.</p>{% elif t.verdict == 'lost1' %}<p class="say">One leg failed{% if bonus_ok %}: if you used money back, tap <b>Lost by one leg</b>{% endif %}.</p>{% elif t.verdict == 'lost' %}<p class="say">{{ t.failed }} legs failed: tap <b>Lost</b>.</p>{% endif %}</div>{% endif %}{% endmacro %}
 {% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
+{% macro nslip(m, tag, one) %}
+<article class="pc{{ ' one' if one }}">
+  <div class="ph">{{ ring(m.chance, 54, 'chance') }}<div><span class="tag{{ ' g' if one }}">{{ tag }}</span><b class="pp">${{ '%.2f' % m.price }}</b><small>per $1 · {{ m.legs }} legs</small></div></div>
+  <ul>{% for d in m.detail %}<li><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span></li>{% endfor %}</ul>
+  <div class="why4">{% for d in m.detail %}<div class="lb"><span>{{ d.label }}</span><span class="bar"><i style="width:{{ (d.chance * 100) | round | int }}%"></i></span><b>{{ (d.chance * 100) | round | int }}%</b></div>{% endfor %}</div>
+  <div class="pw"><span>Pays <b>${{ '%.2f' % m.price }}</b> · price says {{ (100 / m.price) | round | int }}%</span>{{ alt(m) }}</div>
+  {{ placed(m) }}
+</article>
+{% endmacro %}
 {% block title %}NBA · AsynymBet{% endblock %}
 {% block refresh %}0{% endblock %}
 {% block content %}
@@ -39,25 +48,30 @@
 {% endif %}
 
 {% if rep %}
-<nav class="rtabs" aria-label="NBA tabs">
+{% if not hub_bar %}<nav class="rtabs" aria-label="NBA tabs">
   {% for key, label, n in [('stacks', 'Multis', rep.stacks | length), ('challenge', 'Challenge', None), ('games', 'Games', (rep.by_game or []) | length), ('same', 'SGM', rep.stacks_same | length), ('all', 'All', rep.all_legs | length)] %}
   <a href="/nba?tab={{ key }}{{ '&bk=' ~ nba_agency if nba_agency }}" class="{{ 'on' if nba_tab == key }}"{% if nba_tab == key %} aria-current="page"{% endif %}>{{ label }}{% if n is not none %}<small>{{ n }}</small>{% endif %}</a>
   {% endfor %}
-</nav>
+</nav>{% endif %}
 
 {% if nba_tab == 'stacks' %}
-<section class="card">
-  {% for m in rep.stacks %}
-  <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>$10 → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{{ m.legs }} legs · ${{ '%.2f' % m.price }} · price says {{ (100 / m.price) | round | int }}%</span></div></div>
-    <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
-    {{ placed(m) }}
-  </div>
+<div class="bn">
+  {% if rep.stacks %}
+  <div class="pair">{% for m in rep.stacks[:2] %}{{ nslip(m, 'Bet this' if loop.first else 'Or this', loop.first) }}{% endfor %}</div>
+  {% if rep.stacks | length > 1 %}<p class="fine">Top two by chance that every leg wins ({{ (rep.stacks[0].chance * 100) | round | int }}% and {{ (rep.stacks[1].chance * 100) | round | int }}%).</p>{% endif %}
+  {% if rep.stacks | length > 2 %}<div class="sub">Other payouts</div>
+  <section class="sp"><div class="spb">{% for m in rep.stacks[2:] %}
+    <article class="cr"><span>{{ ring(m.chance, 40, '') }}</span>
+      <div class="cb"><span class="tag">{{ m.legs }} legs · ${{ '%.2f' % m.price }}</span>
+        <ul>{% for d in m.detail %}<li class="lc"><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span><small>{{ (d.chance * 100) | round | int }}%</small></li>{% endfor %}</ul>
+        {{ placed(m) }}</div>
+      <div class="cp"><b>${{ '%.2f' % m.price }}</b>{{ alt(m) }}</div>
+    </article>{% endfor %}</div></section>{% endif %}
   {% else %}
-  <p class="say">A multi needs lines in at least 3 games; {{ nba_agency_name or 'PointsBet' }} has {{ nba_agency_games or 0 }} so far.</p>
-  {% endfor %}
-  <p class="note">For each payout, the combination with the highest chance of getting up: one leg per game (a normal multi), 3 to 10 legs. Games don't affect each other, so the chance is the legs' chances multiplied.</p>
-</section>
+  <div class="empty"><b>No multi fits right now</b>A multi needs lines in at least 3 games; {{ nba_agency_name or 'PointsBet' }} has {{ nba_agency_games or 0 }} so far.</div>
+  {% endif %}
+  <p class="fine">For each payout, the combination with the highest chance of getting up: one leg per game, 3 to 10 legs. Games do not affect each other, so the chance is the legs' chances multiplied. Prices are as last read; the price to confirm is the one on the slip.</p>
+</div>
 {% elif nba_tab == 'same' %}
 <section class="card">
   {% for m in rep.stacks_same %}
@@ -70,6 +84,7 @@
   <p class="note">Same-game multi: {{ nba_agency_name or 'PointsBet' }} prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
 </section>
 {% elif nba_tab == 'challenge' %}
+{% include 'asynym/_timeline.html' %}
 {% include 'asynym/_challenges.html' %}
 {% elif nba_tab == 'games' %}
 {% for gm in rep.by_game or [] %}

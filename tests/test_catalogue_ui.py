@@ -149,9 +149,10 @@ def test_chips_and_subtabs(c):
     html = c.get("/sports?sport=afl").text
     for label in ("NBL", "Cricket", "MLB", "Rugby union", "Racing"):
         assert f">{label}</a>" in html
-    assert 'href="/sports?sport=afl&view=markets"' in html and ">Players</a>" in html
+    assert 'href="/sports?sport=afl&tab=all"' in html and 'aria-label="AFL tabs"' in html
+    assert "Players · all props" in c.get("/sports?sport=afl&tab=all").text
     nba = c.get("/sports?sport=nba").text
-    assert "Players · all props" in nba and 'aria-label="NBA tabs"' in nba
+    assert 'aria-label="NBA tabs"' in nba
     assert 'href="/sports?sport=racing"' in html
 
 

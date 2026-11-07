@@ -269,3 +269,25 @@ def pick_view(sport: str, code: str | None) -> str:
 def pick(code: str | None) -> str:
     """The ?sport= value to show: a known tab, else NBA."""
     return code if code in BY_CODE or code in ("all", "home") else DEFAULT
+
+
+SPORT_TABS = (
+    ("multis", "Multis"),
+    ("challenge", "Challenge"),
+    ("games", "Games"),
+    ("sgm", "SGM"),
+    ("all", "All"),
+)
+_LEGACY_TAB = {"stacks": "multis", "same": "sgm", "legs": "all"}
+
+
+def pick_tab(sport: str, tab: str | None, view: str | None = None) -> str:
+    """The per-sport tab (the bottom bar): multis|challenge|games|sgm|all. "" on Best multis, Racing
+    and the All coverage page, which have no bar. Old links keep working: NBA's stacks and same
+    tabs, and ?view=players|markets (the All tab)."""
+    if sport in ("racing", "home", "all"):
+        return ""
+    if view in VIEWS:
+        return "all"
+    tab = _LEGACY_TAB.get(tab or "", tab)
+    return tab if tab in dict(SPORT_TABS) else "multis"

@@ -177,10 +177,10 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
         assert "Most likely to get up" not in html and "3 legs" in html  # Multis first, picks only
         assert "Stage 1" not in html and "result due" not in html  # nothing of the challenge here
         for tab, text in (
-            ("stacks", "$10 → $"),
+            ("stacks", "Bet this"),
             ("games", "Joel Embiid To Score 10+ Points"),
             ("same", "No game has enough lines"),
-            ("all", "LaMelo Ball To Score 10+ Points"),
+            ("all", "Players · all props"),
         ):
             r = c.get(f"/nba?tab={tab}")
             assert r.status_code == 200 and text in r.text, tab
@@ -254,16 +254,16 @@ def test_prices_come_from_the_agency_switched_on(bundled, monkeypatch):
     )
     with make(ON) as c:
         c.get("/?ag=1&on_sb=1&on_bf=1")  # Sportsbet and Betfair on, PointsBet off
-        html = c.get("/nba?tab=all").text
+        html = c.get("/nba?tab=games").text
         assert (
             "with Sportsbet lines" in html
             and "$1.40" in html
             and 'aria-label="Prices from"' in html
         )
-        html = c.get("/nba?tab=all&bk=pb").text  # switch to PointsBet's prices
+        html = c.get("/nba?tab=games&bk=pb").text  # switch to PointsBet's prices
         assert "with PointsBet lines" in html and "$1.30" in html
         c.get("/?ag=1&on_pb=1")  # only PointsBet on
-        assert "with PointsBet lines" in c.get("/nba?tab=all").text
+        assert "with PointsBet lines" in c.get("/nba?tab=games").text
 
 
 def test_a_bubble_shows_when_the_other_agency_pays_more(bundled, monkeypatch):
@@ -299,14 +299,14 @@ def test_a_bubble_shows_when_the_other_agency_pays_more(bundled, monkeypatch):
     )
     with make(ON) as c:
         c.get("/?ag=1&on_sb=1&on_pb=1")
-        on_pb = c.get("/nba?tab=all&bk=pb").text
+        on_pb = c.get("/nba?tab=games&bk=pb").text
         assert 'class="alt-pay"' in on_pb and "SB +0.10" in on_pb  # $1.40 at Sportsbet vs $1.30
         assert "SB +0.55" in c.get("/nba?tab=stacks&bk=pb").text  # 1.4^3 - 1.3^3 on the 3-leg multi
         assert (
-            'class="alt-pay"' not in c.get("/nba?tab=all&bk=sb").text
+            'class="alt-pay"' not in c.get("/nba?tab=games&bk=sb").text
         )  # PointsBet pays less: no bubble
         c.get("/?ag=1&on_pb=1")  # Sportsbet off: no comparison
-        assert 'class="alt-pay"' not in c.get("/nba?tab=all&bk=pb").text
+        assert 'class="alt-pay"' not in c.get("/nba?tab=games&bk=pb").text
 
 
 def test_a_stage_that_is_likelier_at_the_other_agency_is_pointed_out():
