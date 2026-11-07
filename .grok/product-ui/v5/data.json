@@ -1,0 +1,1748 @@
+{
+ "note": "Real PointsBet catalogue snapshot 2026-11-07 ~09:46 UTC (Melbourne 8:46pm); times are UTC, show as Melbourne",
+ "now_utc": "2026-11-07T10:00:00+00:00",
+ "best_multis": [
+  {
+   "lo": 1.5,
+   "hi": 2.0,
+   "reason": null,
+   "pick": {
+    "legs": [
+     {
+      "key": "pb|2944258|117865603|562081857:3|1h|1.5",
+      "sport": "football",
+      "event_id": "2944258",
+      "event": "Crewe Alexandra FC v Afc Wimbledon",
+      "start": "2026-11-07T15:00:00Z",
+      "label": "Afc Wimbledon Total 1st Half 1.5 under",
+      "price": 1.08,
+      "p": 0.892857,
+      "seen": "2026-11-07T09:48:05Z",
+      "player": false
+     },
+     {
+      "key": "pb|2945002|117896098|562241927:1|1h|0.5",
+      "sport": "football",
+      "event_id": "2945002",
+      "event": "Valencia v Real Madrid",
+      "start": "2026-11-07T20:00:00Z",
+      "label": "Valencia Total 1st Half 0.5 under",
+      "price": 1.4,
+      "p": 0.695652,
+      "seen": "2026-11-07T09:48:33Z",
+      "player": false
+     }
+    ],
+    "price": 1.51,
+    "p_all": 0.621117757764,
+    "p_one_fail": 0.3462734844719999,
+    "fair_price": 1.61,
+    "expected_return": -0.06086995026083197,
+    "sports": [
+     "football"
+    ],
+    "first_start": "2026-11-07T15:00:00Z",
+    "last_start": "2026-11-07T20:00:00Z"
+   }
+  },
+  {
+   "lo": 2.0,
+   "hi": 3.0,
+   "reason": null,
+   "pick": {
+    "legs": [
+     {
+      "key": "pb|2945002|117896098|562241929:3|1h|1.5",
+      "sport": "football",
+      "event_id": "2945002",
+      "event": "Valencia v Real Madrid",
+      "start": "2026-11-07T20:00:00Z",
+      "label": "Valencia Total 1st Half 1.5 under",
+      "price": 1.03,
+      "p": 0.945875,
+      "seen": "2026-11-07T09:48:33Z",
+      "player": false
+     },
+     {
+      "key": "pb|2959859|118408719|564871506:3|2h|1.5",
+      "sport": "football",
+      "event_id": "2959859",
+      "event": "Tigres v Cruz Azul",
+      "start": "2026-11-08T01:00:00Z",
+      "label": "2nd Half Goals 1.5 under",
+      "price": 1.95,
+      "p": 0.489529,
+      "seen": "2026-11-07T09:48:43Z",
+      "player": false
+     }
+    ],
+    "price": 2.01,
+    "p_all": 0.46303324287500003,
+    "p_one_fail": 0.5093375142500001,
+    "fair_price": 2.16,
+    "expected_return": -0.06999773168556234,
+    "sports": [
+     "football"
+    ],
+    "first_start": "2026-11-07T20:00:00Z",
+    "last_start": "2026-11-08T01:00:00Z"
+   }
+  },
+  {
+   "lo": 3.0,
+   "hi": 5.0,
+   "reason": null,
+   "pick": {
+    "legs": [
+     {
+      "key": "pb|2944276|117867238|562096317:2|1h|0.5",
+      "sport": "football",
+      "event_id": "2944276",
+      "event": "Harrogate Town v AFC Fylde",
+      "start": "2026-11-07T15:00:00Z",
+      "label": "AFC Fylde Total 1st Half 0.5 over",
+      "price": 2.15,
+      "p": 0.447301,
+      "seen": "2026-11-07T09:48:09Z",
+      "player": false
+     },
+     {
+      "key": "pb|2945002|117896098|562241927:1|1h|0.5",
+      "sport": "football",
+      "event_id": "2945002",
+      "event": "Valencia v Real Madrid",
+      "start": "2026-11-07T20:00:00Z",
+      "label": "Valencia Total 1st Half 0.5 under",
+      "price": 1.4,
+      "p": 0.695652,
+      "seen": "2026-11-07T09:48:33Z",
+      "player": false
+     }
+    ],
+    "price": 3.01,
+    "p_all": 0.31116583525200003,
+    "p_one_fail": 0.520621329496,
+    "fair_price": 3.21,
+    "expected_return": -0.06339083589147998,
+    "sports": [
+     "football"
+    ],
+    "first_start": "2026-11-07T15:00:00Z",
+    "last_start": "2026-11-07T20:00:00Z"
+   }
+  },
+  {
+   "lo": 5.0,
+   "hi": 10.0,
+   "reason": null,
+   "pick": {
+    "legs": [
+     {
+      "key": "pb|2944276|117867219|562095971:4|2h|1.5",
+      "sport": "football",
+      "event_id": "2944276",
+      "event": "Harrogate Town v AFC Fylde",
+      "start": "2026-11-07T15:00:00Z",
+      "label": "2nd Half Goals 1.5 over",
+      "price": 1.67,
+      "p": 0.579345,
+      "seen": "2026-11-07T09:48:09Z",
+      "player": false
+     },
+     {
+      "key": "pb|2945002|117896099|562241940:4|1h|1.5",
+      "sport": "football",
+      "event_id": "2945002",
+      "event": "Valencia v Real Madrid",
+      "start": "2026-11-07T20:00:00Z",
+      "label": "Real Madrid Total 1st Half 1.5 over",
+      "price": 3.0,
+      "p": 0.321267,
+      "seen": "2026-11-07T09:48:33Z",
+      "player": false
+     }
+    ],
+    "price": 5.01,
+    "p_all": 0.18612443011500002,
+    "p_one_fail": 0.52836313977,
+    "fair_price": 5.37,
+    "expected_return": -0.06751660512384994,
+    "sports": [
+     "football"
+    ],
+    "first_start": "2026-11-07T15:00:00Z",
+    "last_start": "2026-11-07T20:00:00Z"
+   }
+  },
+  {
+   "lo": 10.0,
+   "hi": 20.0,
+   "reason": null,
+   "pick": {
+    "legs": [
+     {
+      "key": "pb|2945002|117896098|562241928:2|1h|0.5",
+      "sport": "football",
+      "event_id": "2945002",
+      "event": "Valencia v Real Madrid",
+      "start": "2026-11-07T20:00:00Z",
+      "label": "Valencia Total 1st Half 0.5 over",
+      "price": 3.2,
+      "p": 0.304348,
+      "seen": "2026-11-07T09:48:33Z",
+      "player": false
+     },
+     {
+      "key": "pb|2946651|117972254|562582757:2|1h|0.5",
+      "sport": "football",
+      "event_id": "2946651",
+      "event": "Villarreal v Getafe",
+      "start": "2026-11-08T17:30:00Z",
+      "label": "Getafe Total 1st Half 0.5 over",
+      "price": 3.2,
+      "p": 0.304348,
+      "seen": "2026-11-07T09:49:28Z",
+      "player": false
+     }
+    ],
+    "price": 10.24,
+    "p_all": 0.09262770510400001,
+    "p_one_fail": 0.42344058979199994,
+    "fair_price": 10.8,
+    "expected_return": -0.05149229973503977,
+    "sports": [
+     "football"
+    ],
+    "first_start": "2026-11-07T20:00:00Z",
+    "last_start": "2026-11-08T17:30:00Z"
+   }
+  }
+ ],
+ "sports_with_legs": [
+  "aflw",
+  "basketball-other",
+  "cricket",
+  "football",
+  "nba",
+  "nbl",
+  "ncaab",
+  "nfl",
+  "nhl",
+  "rugby-league",
+  "tennis"
+ ],
+ "next_games": {
+  "nfl": [
+   {
+    "event": "Cincinnati Bengals @ Atlanta Falcons",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T14:30:00Z",
+    "player_props": 393,
+    "outcomes": 801,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "over",
+      "price_decimal": 1.08,
+      "market_prob": 0.874126
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "under",
+      "price_decimal": 7.5,
+      "market_prob": 0.125874
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "36.5",
+      "side": "over",
+      "price_decimal": 1.1,
+      "market_prob": 0.855263
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "36.5",
+      "side": "under",
+      "price_decimal": 6.5,
+      "market_prob": 0.144737
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "37.5",
+      "side": "over",
+      "price_decimal": 1.13,
+      "market_prob": 0.835756
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "37.5",
+      "side": "under",
+      "price_decimal": 5.75,
+      "market_prob": 0.164244
+     }
+    ]
+   },
+   {
+    "event": "Denver Broncos @ Carolina Panthers",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T18:00:00Z",
+    "player_props": 377,
+    "outcomes": 763,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "29.5",
+      "side": "over",
+      "price_decimal": 1.09,
+      "market_prob": 0.865266
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "29.5",
+      "side": "under",
+      "price_decimal": 7.0,
+      "market_prob": 0.134734
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "30.5",
+      "side": "over",
+      "price_decimal": 1.11,
+      "market_prob": 0.843882
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "30.5",
+      "side": "under",
+      "price_decimal": 6.0,
+      "market_prob": 0.156118
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "31.5",
+      "side": "over",
+      "price_decimal": 1.13,
+      "market_prob": 0.835756
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "31.5",
+      "side": "under",
+      "price_decimal": 5.75,
+      "market_prob": 0.164244
+     }
+    ]
+   },
+   {
+    "event": "Dallas Cowboys @ Indianapolis Colts",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T18:00:00Z",
+    "player_props": 369,
+    "outcomes": 763,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "over",
+      "price_decimal": 1.08,
+      "market_prob": 0.874126
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "under",
+      "price_decimal": 7.5,
+      "market_prob": 0.125874
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "36.5",
+      "side": "over",
+      "price_decimal": 1.1,
+      "market_prob": 0.855263
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "36.5",
+      "side": "under",
+      "price_decimal": 6.5,
+      "market_prob": 0.144737
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "37.5",
+      "side": "over",
+      "price_decimal": 1.13,
+      "market_prob": 0.835756
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "37.5",
+      "side": "under",
+      "price_decimal": 5.75,
+      "market_prob": 0.164244
+     }
+    ]
+   },
+   {
+    "event": "New York Jets @ Kansas City Chiefs",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T18:00:00Z",
+    "player_props": 397,
+    "outcomes": 787,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "32.5",
+      "side": "over",
+      "price_decimal": 1.08,
+      "market_prob": 0.874126
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "32.5",
+      "side": "under",
+      "price_decimal": 7.5,
+      "market_prob": 0.125874
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "33.5",
+      "side": "over",
+      "price_decimal": 1.11,
+      "market_prob": 0.843882
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "33.5",
+      "side": "under",
+      "price_decimal": 6.0,
+      "market_prob": 0.156118
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "34.5",
+      "side": "over",
+      "price_decimal": 1.13,
+      "market_prob": 0.835756
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "34.5",
+      "side": "under",
+      "price_decimal": 5.75,
+      "market_prob": 0.164244
+     }
+    ]
+   },
+   {
+    "event": "Detroit Lions @ Miami Dolphins",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T18:00:00Z",
+    "player_props": 376,
+    "outcomes": 774,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "33.5",
+      "side": "over",
+      "price_decimal": 1.08,
+      "market_prob": 0.874126
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "33.5",
+      "side": "under",
+      "price_decimal": 7.5,
+      "market_prob": 0.125874
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "34.5",
+      "side": "over",
+      "price_decimal": 1.09,
+      "market_prob": 0.865266
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "34.5",
+      "side": "under",
+      "price_decimal": 7.0,
+      "market_prob": 0.134734
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "over",
+      "price_decimal": 1.1,
+      "market_prob": 0.855263
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "35.5",
+      "side": "under",
+      "price_decimal": 6.5,
+      "market_prob": 0.144737
+     }
+    ]
+   },
+   {
+    "event": "Cleveland Browns @ New Orleans Saints",
+    "competition": "NFL",
+    "starts_at": "2026-11-08T18:00:00Z",
+    "player_props": 363,
+    "outcomes": 757,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "26.5",
+      "side": "over",
+      "price_decimal": 1.08,
+      "market_prob": 0.874126
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "26.5",
+      "side": "under",
+      "price_decimal": 7.5,
+      "market_prob": 0.125874
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "27.5",
+      "side": "over",
+      "price_decimal": 1.09,
+      "market_prob": 0.865266
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "27.5",
+      "side": "under",
+      "price_decimal": 7.0,
+      "market_prob": 0.134734
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "28.5",
+      "side": "over",
+      "price_decimal": 1.11,
+      "market_prob": 0.843882
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "28.5",
+      "side": "under",
+      "price_decimal": 6.0,
+      "market_prob": 0.156118
+     }
+    ]
+   }
+  ],
+  "nhl": [
+   {
+    "event": "Florida Panthers @ Washington Capitals",
+    "competition": "NHL",
+    "starts_at": "2026-11-07T17:30:00Z",
+    "player_props": 447,
+    "outcomes": 747,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 4.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Florida Panthers",
+      "line_raw": null,
+      "side": "florida panthers",
+      "price_decimal": 2.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Florida Panthers",
+      "line_raw": null,
+      "side": "florida panthers",
+      "price_decimal": 2.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Florida Panthers",
+      "line_raw": null,
+      "side": "florida panthers",
+      "price_decimal": 2.6,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Florida Panthers",
+      "line_raw": "-3.5",
+      "side": "away",
+      "price_decimal": 10.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Florida Panthers",
+      "line_raw": "-2.5",
+      "side": "away",
+      "price_decimal": 4.5,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "St. Louis Blues @ Nashville Predators",
+    "competition": "NHL",
+    "starts_at": "2026-11-07T18:00:00Z",
+    "player_props": 414,
+    "outcomes": 714,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.6,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Nashville Predators",
+      "line_raw": null,
+      "side": "nashville predators",
+      "price_decimal": 1.9,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Nashville Predators",
+      "line_raw": null,
+      "side": "nashville predators",
+      "price_decimal": 1.95,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Nashville Predators",
+      "line_raw": null,
+      "side": "nashville predators",
+      "price_decimal": 2.6,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Nashville Predators",
+      "line_raw": "-2.5",
+      "side": "home",
+      "price_decimal": 4.3,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Nashville Predators",
+      "line_raw": "-1.5",
+      "side": "home",
+      "price_decimal": 3.2,
+      "market_prob": 0.293598
+     }
+    ]
+   },
+   {
+    "event": "New York Rangers @ Seattle Kraken",
+    "competition": "NHL",
+    "starts_at": "2026-11-07T22:00:00Z",
+    "player_props": 151,
+    "outcomes": 450,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.6,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "New York Rangers",
+      "line_raw": null,
+      "side": "new york rangers",
+      "price_decimal": 1.74,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New York Rangers",
+      "line_raw": null,
+      "side": "new york rangers",
+      "price_decimal": 1.77,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New York Rangers",
+      "line_raw": null,
+      "side": "new york rangers",
+      "price_decimal": 2.35,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New York Rangers",
+      "line_raw": "-5.5",
+      "side": "away",
+      "price_decimal": 41.0,
+      "market_prob": 0.023926
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New York Rangers",
+      "line_raw": "-4.5",
+      "side": "away",
+      "price_decimal": 16.0,
+      "market_prob": 0.059929
+     }
+    ]
+   },
+   {
+    "event": "Utah Mammoth @ Ottawa Senators",
+    "competition": "NHL",
+    "starts_at": "2026-11-08T00:00:00Z",
+    "player_props": 154,
+    "outcomes": 451,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 4.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Ottawa Senators",
+      "line_raw": null,
+      "side": "ottawa senators",
+      "price_decimal": 1.95,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Ottawa Senators",
+      "line_raw": null,
+      "side": "ottawa senators",
+      "price_decimal": 2.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Ottawa Senators",
+      "line_raw": null,
+      "side": "ottawa senators",
+      "price_decimal": 2.6,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Ottawa Senators",
+      "line_raw": "-2.5",
+      "side": "home",
+      "price_decimal": 4.3,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Ottawa Senators",
+      "line_raw": "-1.5",
+      "side": "home",
+      "price_decimal": 3.2,
+      "market_prob": 0.293598
+     }
+    ]
+   },
+   {
+    "event": "Montreal Canadiens @ Toronto Maple Leafs",
+    "competition": "NHL",
+    "starts_at": "2026-11-08T00:00:00Z",
+    "player_props": 147,
+    "outcomes": 446,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 4.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Montreal Canadiens",
+      "line_raw": null,
+      "side": "montreal canadiens",
+      "price_decimal": 1.83,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Montreal Canadiens",
+      "line_raw": null,
+      "side": "montreal canadiens",
+      "price_decimal": 1.87,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Montreal Canadiens",
+      "line_raw": null,
+      "side": "montreal canadiens",
+      "price_decimal": 2.4,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Montreal Canadiens",
+      "line_raw": "-5.5",
+      "side": "away",
+      "price_decimal": 36.0,
+      "market_prob": 0.02729
+     },
+     {
+      "market_family": "line",
+      "participant_name": "Montreal Canadiens",
+      "line_raw": "-4.5",
+      "side": "away",
+      "price_decimal": 16.0,
+      "market_prob": 0.059929
+     }
+    ]
+   },
+   {
+    "event": "New Jersey Devils @ New York Islanders",
+    "competition": "NHL",
+    "starts_at": "2026-11-08T00:00:00Z",
+    "player_props": 146,
+    "outcomes": 447,
+    "main": [
+     {
+      "market_family": "line",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 4.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "New Jersey Devils",
+      "line_raw": null,
+      "side": "new jersey devils",
+      "price_decimal": 1.63,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New Jersey Devils",
+      "line_raw": null,
+      "side": "new jersey devils",
+      "price_decimal": 1.69,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New Jersey Devils",
+      "line_raw": null,
+      "side": "new jersey devils",
+      "price_decimal": 2.1,
+      "market_prob": null
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New Jersey Devils",
+      "line_raw": "-5.5",
+      "side": "away",
+      "price_decimal": 23.0,
+      "market_prob": 0.042066
+     },
+     {
+      "market_family": "line",
+      "participant_name": "New Jersey Devils",
+      "line_raw": "-4.5",
+      "side": "away",
+      "price_decimal": 14.0,
+      "market_prob": 0.06853
+     }
+    ]
+   }
+  ],
+  "football": [
+   {
+    "event": "Lee Man FC v Southern District RSA",
+    "competition": "Hong Kong Premier League",
+    "starts_at": "2026-11-07T10:00:00Z",
+    "player_props": 0,
+    "outcomes": 107,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 4.75,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw and No",
+      "line_raw": null,
+      "side": "draw and no",
+      "price_decimal": 21.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 11.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+4.5",
+      "side": "neither",
+      "price_decimal": 34.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 8.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+4.5",
+      "side": "neither",
+      "price_decimal": 5.25,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Hoang Anh Gia Lai v Ha Noi FC",
+    "competition": "Vietnamese V.League 1",
+    "starts_at": "2026-11-07T10:00:00Z",
+    "player_props": 0,
+    "outcomes": 3,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.75,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Ha Noi FC",
+      "line_raw": null,
+      "side": "away",
+      "price_decimal": 1.58823529,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Hoang Anh Gia Lai",
+      "line_raw": null,
+      "side": "home",
+      "price_decimal": 4.75,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Paide Linnameeskond v Tallinna FC Flora",
+    "competition": "Estonian Meistriliiga",
+    "starts_at": "2026-11-07T10:30:00Z",
+    "player_props": 0,
+    "outcomes": 121,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.7,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw and No",
+      "line_raw": null,
+      "side": "draw and no",
+      "price_decimal": 15.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 5.5,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 5.5,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "FC Kuressaare v FC N\u00f5mme United",
+    "competition": "Estonian Meistriliiga",
+    "starts_at": "2026-11-07T10:30:00Z",
+    "player_props": 0,
+    "outcomes": 121,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.7,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw and No",
+      "line_raw": null,
+      "side": "draw and no",
+      "price_decimal": 16.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 5.5,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 5.5,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Tallinna FC Levadia v N\u00f5mme Kalju FC",
+    "competition": "Estonian Meistriliiga",
+    "starts_at": "2026-11-07T10:30:00Z",
+    "player_props": 0,
+    "outcomes": 122,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.9,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw and No",
+      "line_raw": null,
+      "side": "draw and no",
+      "price_decimal": 16.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 9.5,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 10.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 5.75,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 6.0,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Narva Trans v Harju JK Laagri",
+    "competition": "Estonian Meistriliiga",
+    "starts_at": "2026-11-07T10:30:00Z",
+    "player_props": 0,
+    "outcomes": 122,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw",
+      "line_raw": null,
+      "side": "draw",
+      "price_decimal": 3.9,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Draw and No",
+      "line_raw": null,
+      "side": "draw and no",
+      "price_decimal": 19.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Over",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 9.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+2.5",
+      "side": "neither",
+      "price_decimal": 6.5,
+      "market_prob": null
+     },
+     {
+      "market_family": "total",
+      "participant_name": "Draw and Under",
+      "line_raw": "+3.5",
+      "side": "neither",
+      "price_decimal": 6.5,
+      "market_prob": null
+     }
+    ]
+   }
+  ],
+  "nba": [
+   {
+    "event": "Denver Nuggets @ Indiana Pacers",
+    "competition": "NBA",
+    "starts_at": "2026-11-07T22:00:00Z",
+    "player_props": 661,
+    "outcomes": 835,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "213.5",
+      "side": "over",
+      "price_decimal": 1.22,
+      "market_prob": 0.761719
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "213.5",
+      "side": "under",
+      "price_decimal": 3.9,
+      "market_prob": 0.238281
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "214.5",
+      "side": "over",
+      "price_decimal": 1.24,
+      "market_prob": 0.748988
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "214.5",
+      "side": "under",
+      "price_decimal": 3.7,
+      "market_prob": 0.251012
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "215.5",
+      "side": "over",
+      "price_decimal": 1.27,
+      "market_prob": 0.728051
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "215.5",
+      "side": "under",
+      "price_decimal": 3.4,
+      "market_prob": 0.271949
+     }
+    ]
+   },
+   {
+    "event": "Brooklyn Nets @ Atlanta Hawks",
+    "competition": "NBA",
+    "starts_at": "2026-11-08T00:30:00Z",
+    "player_props": 316,
+    "outcomes": 486,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "212.5",
+      "side": "over",
+      "price_decimal": 1.21,
+      "market_prob": 0.767754
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "212.5",
+      "side": "under",
+      "price_decimal": 4.0,
+      "market_prob": 0.232246
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "213.5",
+      "side": "over",
+      "price_decimal": 1.24,
+      "market_prob": 0.748988
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "213.5",
+      "side": "under",
+      "price_decimal": 3.7,
+      "market_prob": 0.251012
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "214.5",
+      "side": "over",
+      "price_decimal": 1.27,
+      "market_prob": 0.728051
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "214.5",
+      "side": "under",
+      "price_decimal": 3.4,
+      "market_prob": 0.271949
+     }
+    ]
+   },
+   {
+    "event": "New York Knicks @ Cleveland Cavaliers",
+    "competition": "NBA",
+    "starts_at": "2026-11-08T01:00:00Z",
+    "player_props": 331,
+    "outcomes": 503,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "209.5",
+      "side": "over",
+      "price_decimal": 1.21,
+      "market_prob": 0.767754
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "209.5",
+      "side": "under",
+      "price_decimal": 4.0,
+      "market_prob": 0.232246
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "210.5",
+      "side": "over",
+      "price_decimal": 1.24,
+      "market_prob": 0.748988
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "210.5",
+      "side": "under",
+      "price_decimal": 3.7,
+      "market_prob": 0.251012
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "211.5",
+      "side": "over",
+      "price_decimal": 1.27,
+      "market_prob": 0.728051
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "211.5",
+      "side": "under",
+      "price_decimal": 3.4,
+      "market_prob": 0.271949
+     }
+    ]
+   },
+   {
+    "event": "Washington Wizards @ Oklahoma City Thunder",
+    "competition": "NBA",
+    "starts_at": "2026-11-08T01:00:00Z",
+    "player_props": 336,
+    "outcomes": 510,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "204.5",
+      "side": "over",
+      "price_decimal": 1.18,
+      "market_prob": 0.78853
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "204.5",
+      "side": "under",
+      "price_decimal": 4.4,
+      "market_prob": 0.21147
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "205.5",
+      "side": "over",
+      "price_decimal": 1.21,
+      "market_prob": 0.767754
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "205.5",
+      "side": "under",
+      "price_decimal": 4.0,
+      "market_prob": 0.232246
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "over",
+      "price_decimal": 1.22,
+      "market_prob": 0.761719
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "under",
+      "price_decimal": 3.9,
+      "market_prob": 0.238281
+     }
+    ]
+   },
+   {
+    "event": "Orlando Magic @ Golden State Warriors",
+    "competition": "NBA",
+    "starts_at": "2026-11-08T01:30:00Z",
+    "player_props": 614,
+    "outcomes": 788,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "over",
+      "price_decimal": 1.19,
+      "market_prob": 0.779221
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "under",
+      "price_decimal": 4.2,
+      "market_prob": 0.220779
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "207.5",
+      "side": "over",
+      "price_decimal": 1.22,
+      "market_prob": 0.761719
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "207.5",
+      "side": "under",
+      "price_decimal": 3.9,
+      "market_prob": 0.238281
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "208.5",
+      "side": "over",
+      "price_decimal": 1.25,
+      "market_prob": 0.742268
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "208.5",
+      "side": "under",
+      "price_decimal": 3.6,
+      "market_prob": 0.257732
+     }
+    ]
+   },
+   {
+    "event": "Houston Rockets @ Phoenix Suns",
+    "competition": "NBA",
+    "starts_at": "2026-11-08T02:00:00Z",
+    "player_props": 777,
+    "outcomes": 951,
+    "main": [
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "over",
+      "price_decimal": 1.19,
+      "market_prob": 0.779221
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "206.5",
+      "side": "under",
+      "price_decimal": 4.2,
+      "market_prob": 0.220779
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "207.5",
+      "side": "over",
+      "price_decimal": 1.22,
+      "market_prob": 0.761719
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "207.5",
+      "side": "under",
+      "price_decimal": 3.9,
+      "market_prob": 0.238281
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "208.5",
+      "side": "over",
+      "price_decimal": 1.24,
+      "market_prob": 0.748988
+     },
+     {
+      "market_family": "total",
+      "participant_name": null,
+      "line_raw": "208.5",
+      "side": "under",
+      "price_decimal": 3.7,
+      "market_prob": 0.251012
+     }
+    ]
+   }
+  ],
+  "cricket": [
+   {
+    "event": "Uganda T20 Women v Rwanda T20 Women",
+    "competition": "Women's Twenty20 Internationals",
+    "starts_at": "2026-11-07T11:00:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Rwanda T20 Women",
+      "line_raw": null,
+      "side": "rwanda t20 women",
+      "price_decimal": 2.35,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Uganda T20 Women",
+      "line_raw": null,
+      "side": "uganda t20 women",
+      "price_decimal": 1.6,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Kathmandu Gurkhas v Lumbini Lions",
+    "competition": "Nepal Premier League",
+    "starts_at": "2026-11-07T11:15:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Kathmandu Gurkhas",
+      "line_raw": null,
+      "side": "kathmandu gurkhas",
+      "price_decimal": 2.03,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Lumbini Lions",
+      "line_raw": null,
+      "side": "lumbini lions",
+      "price_decimal": 1.75,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "UAE Bulls v Yas Lions",
+    "competition": "Abu Dhabi T10 League",
+    "starts_at": "2026-11-07T11:30:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "UAE Bulls",
+      "line_raw": null,
+      "side": "uae bulls",
+      "price_decimal": 1.68,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Yas Lions",
+      "line_raw": null,
+      "side": "yas lions",
+      "price_decimal": 2.15,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Royal Desert Champs v Emirates Eagles",
+    "competition": "Abu Dhabi T10 League",
+    "starts_at": "2026-11-07T13:45:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Emirates Eagles",
+      "line_raw": null,
+      "side": "emirates eagles",
+      "price_decimal": 2.0,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Royal Desert Champs",
+      "line_raw": null,
+      "side": "royal desert champs",
+      "price_decimal": 1.78,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "United Tigers v Arabian Aces",
+    "competition": "Abu Dhabi T10 League",
+    "starts_at": "2026-11-07T16:00:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Arabian Aces",
+      "line_raw": null,
+      "side": "arabian aces",
+      "price_decimal": 1.78,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "United Tigers",
+      "line_raw": null,
+      "side": "united tigers",
+      "price_decimal": 2.0,
+      "market_prob": null
+     }
+    ]
+   },
+   {
+    "event": "Central Stags v Canterbury Kings",
+    "competition": "Ford Trophy",
+    "starts_at": "2026-11-07T21:30:00Z",
+    "player_props": 0,
+    "outcomes": 2,
+    "main": [
+     {
+      "market_family": "h2h",
+      "participant_name": "Canterbury Kings",
+      "line_raw": null,
+      "side": "canterbury kings",
+      "price_decimal": 1.85,
+      "market_prob": null
+     },
+     {
+      "market_family": "h2h",
+      "participant_name": "Central Stags",
+      "line_raw": null,
+      "side": "central stags",
+      "price_decimal": 1.9,
+      "market_prob": null
+     }
+    ]
+   }
+  ]
+ },
+ "bonus_credits": [
+  {
+   "bookmaker": "Sportsbet",
+   "amount": 42.5,
+   "expires": "2026-11-14"
+  }
+ ],
+ "today_pnl": -42.5
+}
