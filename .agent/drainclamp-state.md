@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=184 -->
+<!-- drainclamp-build: state; schema=1; generation=185 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T21:01:17+00:00 9a57fd1b 2026-11-04 challenge stages picker live (2-8 stages, stage_x even split with keep: 3 = 5x; re-balances; start screen shows per-option stage % and run % on tonight's lines). deploy_azure replaces previous code layer. Pending question to owner: add Sportsbet player props feed? 2023-24 backtest running.
 - 2026-11-03T21:10:36+00:00 2a120c3e 2026-11-04 challenge scheduling live (ee27747a): stages a night 1|2, GAP 3h tip-to-tip, later nights after quota, chance to finish from here (stage chance^remaining), result due (tip+2.5h), header alert strip labels (Stage N tips off / result due; in-app only, not push). Backtest 2023-24: cross 26.6/27.5, same-game 29.0/30.7 -> calibrated; 2024-25 $50 gap = noise. Open offers: Sportsbet props feed; real push notifications (web push) for alerts when app closed.
 - 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
 - 2026-11-03T21:19:44+00:00 a224cbc3 2026-11-04 NBA times dated (views.when: Today/Tomorrow/Thu 6 Nov + time; header alert shows date when >6h). Deployed web. Open question: Sportsbet props vs push notifications.
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-07T12:28:21+00:00 8ee66bf8 2026-11-07 resumed under DC after drift: rp0/rp1/cat1/dz1 done+deployed (owner approved); pk1 in review; ui7 restarted under product-ui (production UI agent stopped); CLAUDE.md rules saved locally (push pending owner approval)
 - 2026-11-07T13:37:18+00:00 f09fccf1 2026-11-07 ui7 round 2 (v6 A-D, mix of 1+2+4, bet+why visual) sent, waiting owner pick; dz1 follow-up: research upper-limit counterexample fixed (two-sided fronts per bin, 300 narrow ranges = brute force, 18 s); further-research pack read: alt-line count curves (P1), quote ages, accepted prices -> sh1/eq1
 - 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
+- 2026-11-07T14:09:38+00:00 d95792cc 2026-11-07 ui7 built (Haiku step 1, then Sonnet low per owner): v7-3 home + sport pages + next games (full-game main line) + status/refresh + progress bar/toast + challenge tab cleaned; merged to branch 4d4c00c1, tests pass; awaiting owner deploy approval. pk1 (rb2-picker) still awaiting review/merge.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
