@@ -59,7 +59,7 @@ self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim(
 function plain(u) {  // only plain views are kept; an action link (any other query key) always asks the server
   if (u.pathname.indexOf("/api/") === 0 || u.pathname.indexOf("/actions") === 0) return false;
   var ok = true;
-  u.searchParams.forEach(function (v, k) { if (k !== "tab" && k !== "date") ok = false; });
+  u.searchParams.forEach(function (v, k) { if (k !== "tab" && k !== "date" && k !== "sport") ok = false; });
   return ok;
 }
 function save(url, r) {
@@ -482,6 +482,12 @@ def create_app(
         """When the NBA prices on the server were worked out: the page swaps in fresher ones."""
         return JSONResponse({"priced": views.nba_stamp()}, headers={"Cache-Control": "no-store"})
 
+    @app.get("/nba", dependencies=[Depends(require_login)])
+    def nba_redirect(request: Request):
+        """The NBA page moved into the Sports hub: same query, 307 so forms and old links work."""
+        q = request.url.query
+        return RedirectResponse("/sports?sport=nba" + ("&" + q if q else ""), status_code=307)
+
     @app.get("/{path:path}", response_class=HTMLResponse, dependencies=[Depends(require_login)])
     def page(request: Request, path: str):
         started = time.perf_counter()
@@ -519,9 +525,9 @@ def create_app(
                 response.set_cookie(PB_COOKIE, f"{pb:g}", **keep)
             else:
                 response.delete_cookie(PB_COOKIE)
-        if settings.asynym and path == "nba" and query.get("us") in ("0", "1"):  # US books toggle
+        if settings.asynym and path in ("nba", "sports") and query.get("us") in ("0", "1"):  # US books toggle
             response.set_cookie("nba_us", query["us"], **keep)
-        if settings.asynym and path == "nba" and "ch" in query:  # the $10 -> $1000 challenge
+        if settings.asynym and path in ("nba", "sports") and "ch" in query:  # the $10 -> $1000 challenge
             state = nba_challenge.apply(
                 nba_challenge.parse(request.cookies.get(nba_challenge.COOKIE)),
                 query,

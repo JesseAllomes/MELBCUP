@@ -423,3 +423,25 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .nb-track li.ok { color: var(--good); } .nb-track li.bad { color: var(--bad); }
 .nb-track small { color: var(--muted); }
 a.pick-other { text-decoration: none; color: inherit; }
+
+/* Sports hub: the sport chips (only this row scrolls sideways) and the coverage cards */
+.sp-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 8px; margin: 0 0 4px; scrollbar-width: none; max-width: 100%; }
+.sp-tabs::-webkit-scrollbar { display: none; }
+.sp-tabs a { flex: 0 0 auto; text-decoration: none; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--rule); background: var(--chip); color: inherit; font-weight: 700; font-size: 13px; }
+.sp-tabs a.on { border-color: var(--brand); color: var(--brand); background: var(--brand-wash); }
+.sp-dl { margin: 8px 0 0; display: grid; grid-template-columns: 1fr; gap: 2px; }
+.sp-dl dt { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 8px; }
+.sp-dl dd { margin: 0; overflow-wrap: anywhere; }
+.sp-dl a, .sp-mx a, .sp-links a { color: var(--brand); }
+.sp-wrap { overflow-x: auto; }
+.sp-mx { border-collapse: collapse; font-size: 12px; width: 100%; }
+.sp-mx th, .sp-mx td { text-align: left; vertical-align: top; padding: 6px 8px 6px 0; border-top: 1px solid var(--rule); min-width: 64px; }
+.sp-mx thead th { border-top: 0; color: var(--muted); font-size: 11px; }
+.sp-links { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 0; }
+@media (max-width: 700px) {
+  .sp-mx thead { display: none; }
+  .sp-mx, .sp-mx tbody, .sp-mx tr, .sp-mx th, .sp-mx td { display: block; }
+  .sp-mx tr { border-top: 1px solid var(--rule); padding: 6px 0; }
+  .sp-mx th, .sp-mx td { border: 0; padding: 2px 0; }
+  .sp-mx td::before { content: attr(data-l) ": "; color: var(--muted); }
+}

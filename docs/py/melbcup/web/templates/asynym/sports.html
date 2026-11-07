@@ -1,0 +1,48 @@
+{# The Sports hub: a chip row of sports over the NBA page (sport=nba, nba.html unchanged) or a coverage card. #}
+{% extends "asynym/nba.html" %}
+{% block title %}Sports · AsynymBet{% endblock %}
+{% macro cover(s) %}
+<section class="card sp-card">
+  <h2>{{ s.name }}</h2>
+  <dl class="sp-dl">
+    <dt>Live prices</dt><dd>{% if s.live %}Yes: {{ s.provider }}{% else %}<b>No live prices yet</b>{% endif %}</dd>
+    {% if s.markets %}<dt>Markets listed</dt><dd>{{ s.markets | join(', ') }}</dd>{% endif %}
+    {% if s.modelled %}<dt>Modelled</dt><dd>{{ s.modelled | join(', ') }}</dd>{% endif %}
+    <dt>History</dt><dd>{% if s.history %}<a href="{{ s.history }}">{{ s.history_note }}</a>{% else %}None published{% endif %}</dd>
+    {% if s.result %}<dt>Hold-out result</dt><dd>{{ s.result }}</dd>{% endif %}
+    {% if s.missing %}<dt>Missing</dt><dd>{{ s.missing }}</dd>{% endif %}
+  </dl>
+</section>
+{% endmacro %}
+{% block content %}
+<nav class="sp-tabs" aria-label="Sports">
+  {% for code, label in hub_tabs %}<a href="/sports?sport={{ code }}" class="{{ 'on' if code == sport }}"{% if code == sport %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>
+{% if sport == 'nba' %}
+{{ super() }}
+{% elif sport == 'all' %}
+<section class="card sp-card">
+  <h2>What the app has, by sport</h2>
+  <div class="sp-wrap"><table class="sp-mx">
+    <thead><tr><th>Sport</th><th>Live prices</th><th>Markets</th><th>Modelled</th><th>History</th><th>Missing</th></tr></thead>
+    <tbody>{% for s in hub_sports %}<tr>
+      <th scope="row"><a href="/sports?sport={{ s.code }}">{{ s.name }}</a></th>
+      <td data-l="Live prices">{% if s.live %}Yes: {{ s.provider }}{% else %}No{% endif %}</td>
+      <td data-l="Markets">{{ s.markets | join(', ') or '–' }}</td>
+      <td data-l="Modelled">{{ s.modelled | join(', ') or '–' }}</td>
+      <td data-l="History">{% if s.history %}<a href="{{ s.history }}">Data</a>{% else %}–{% endif %}</td>
+      <td data-l="Missing">{{ s.missing or '–' }}</td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="note">Nothing here is a price or a chance. Where a sport has no live prices, none are shown.</p>
+</section>
+{% elif sport == 'racing' %}
+{{ cover(hub) }}
+<section class="card sp-card">
+  <h2>Racing screens</h2>
+  <p class="sp-links"><a href="/">Today's races</a><a href="/meetings">Race days</a><a href="/mine">Mine</a></p>
+</section>
+{% else %}
+{{ cover(hub) }}
+{% endif %}
+{% endblock %}

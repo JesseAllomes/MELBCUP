@@ -173,7 +173,7 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
     )
     with make(ON) as c:
         html = c.get("/nba").text
-        assert 'class="hd"' in html and ">NBA<" in html and 'aria-current="page">NBA' in html
+        assert 'class="hd"' in html and ">Sports<" in html and 'aria-current="page">Sports' in html
         assert "Most likely to get up" not in html and "3 legs" in html  # Multis first, picks only
         assert "Stage 1" not in html and "result due" not in html  # nothing of the challenge here
         for tab, text in (
@@ -184,7 +184,7 @@ def test_nba_page_renders_with_tabs_and_money_header(bundled, monkeypatch):
         ):
             r = c.get(f"/nba?tab={tab}")
             assert r.status_code == 200 and text in r.text, tab
-        assert ">NBA<" in c.get("/").text
+        assert ">Sports<" in c.get("/").text
 
 
 def test_nba_page_is_off_without_asynym():
