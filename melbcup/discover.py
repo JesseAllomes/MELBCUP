@@ -43,7 +43,7 @@ BIN = 0.01  # log-price resolution of the search
 REFRESH_S = 600
 
 _lock = threading.Lock()
-_state: dict = {"at": 0.0, "result": None, "busy": False}
+_state: dict = {"at": 0.0, "result": None, "busy": False, "progress": 0.0, "started": 0.0}
 
 
 def _when(text: str | None) -> datetime | None:
@@ -197,6 +197,7 @@ def _summary(lo: float, hi: float, best) -> dict:
     p_all = math.prod(g["p"] for g in legs)
     price = math.prod(g["price"] for g in legs)
     p_one = sum(p_all * (1 - g["p"]) / g["p"] for g in legs)  # independent legs
+    legs = [dict(g, cut=1 - g["p"] * g["price"]) for g in legs]  # margin each leg carries
     return {
         "lo": lo,
         "hi": hi,
@@ -208,11 +209,28 @@ def _summary(lo: float, hi: float, best) -> dict:
             "p_one_fail": p_one,
             "fair_price": round(1 / p_all, 2),
             "expected_return": price * p_all - 1,  # per $1 staked, at the product price
+            "cut": 1 - p_all * price,  # share of each dollar the book keeps on this multi
             "sports": sorted({g["sport"] for g in legs}),
             "first_start": legs[0]["start"],
             "last_start": legs[-1]["start"],
         },
     }
+
+
+def _progress(v: float) -> None:
+    with _lock:
+        _state["progress"] = round(min(max(v, 0.0), 1.0), 3)
+
+
+def _shared(bands: list[dict]) -> list[dict]:
+    """Games that feed two or more of the picks: {event, n, of}, most-used first."""
+    picks = [b["pick"] for b in bands if b.get("pick")]
+    seen: dict[str, dict] = {}
+    for pk in picks:
+        for ev in {g["event_id"]: g for g in pk["legs"]}.values():
+            row = seen.setdefault(ev["event_id"], {"event": ev["event"], "n": 0, "of": len(picks)})
+            row["n"] += 1
+    return sorted((r for r in seen.values() if r["n"] >= 2), key=lambda r: -r["n"])
 
 
 def compute(now: datetime | None = None) -> dict:
@@ -221,8 +239,10 @@ def compute(now: datetime | None = None) -> dict:
 
     now = now or datetime.now(UTC)
     t0 = time.monotonic()
+    _progress(0.0)
     legs, sports, rows = [], [], 0
-    for sport in sorted(cv.coverage()):
+    units = sorted(cv.coverage())
+    for i, sport in enumerate(units):
         n0 = len(legs)
         for key, comp in cv._units(sport):
             if not comp.get("shard"):
@@ -234,19 +254,33 @@ def compute(now: datetime | None = None) -> dict:
                     legs.append(g)
         if len(legs) > n0:
             sports.append(sport)
+        _progress(0.5 * (i + 1) / max(len(units), 1))
     groups = pool(legs)
+    by_legs: dict[str, list] = {}
+    for g in legs:
+        by_legs.setdefault(g["sport"], []).append(g)
+    by_sport: dict[str, list] = {}
+    for j, sport in enumerate(sorted(by_legs)):
+        by_sport[sport] = best_multis(pool(by_legs[sport]))
+        _progress(0.5 + 0.4 * (j + 1) / max(len(by_legs), 1))
+    bands = best_multis(groups)
+    _progress(0.95)
     return {
         "built": now.isoformat(),
         "rows_scanned": rows,
         "legs_usable": len(legs),
         "games": len(groups),
         "sports": sports,
-        "bands": best_multis(groups),
+        "bands": bands,
+        "by_sport": by_sport,
+        "shared": _shared(bands),
         "seconds": round(time.monotonic() - t0, 1),
     }
 
 
 def _refresh() -> None:
+    with _lock:
+        _state.update(started=time.time(), progress=0.0)
     try:
         res = compute()
         with _lock:
@@ -255,7 +289,36 @@ def _refresh() -> None:
         log.warning("discover: compute failed", exc_info=True)
     finally:
         with _lock:
-            _state["busy"] = False
+            _state.update(busy=False, progress=1.0)
+
+
+def status() -> dict:
+    """Progress of the running search and the age of the last result; never raises."""
+    try:
+        with _lock:
+            res, busy, prog, at = _state["result"], _state["busy"], _state["progress"], _state["at"]
+        return {
+            "busy": bool(busy),
+            "progress": float(prog),
+            "built": res.get("built") if res else None,
+            "age_s": round(time.monotonic() - at) if res else None,
+        }
+    except Exception:  # noqa: BLE001 - the status strip must never break the page
+        return {"busy": False, "progress": 0.0, "built": None, "age_s": None}
+
+
+def refresh_now() -> bool:
+    """Start a refresh now unless one is running. True when one was started."""
+    try:
+        with _lock:
+            if _state["busy"]:
+                return False
+            _state["busy"] = True
+        threading.Thread(target=_refresh, daemon=True, name="discover").start()
+        return True
+    except Exception:  # noqa: BLE001
+        log.warning("discover: refresh_now failed", exc_info=True)
+        return False
 
 
 def latest(wait: bool = False) -> dict | None:
