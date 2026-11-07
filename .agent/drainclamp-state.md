@@ -150,3 +150,9 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - Review confirmed: forward.jsonl settled whole-board day logs by player name against one day's box (1,492 later-game legs won/lost, 511 before tip, 6,397 false voids).
 - Fix: settle.Slate/settle_one match ESPN game by US date + teams, final only; pending/unresolved/void(DNP). forward.jsonl frozen; forward-v2.jsonl + forward-v2-reconcile.json rebuilt nightly by the job; `latest` flags repeats. Live: 0 future settled, 0 unresolved.
 - Rest of the review pack (unified /sports, multi-challenge wallet, bonus splits, promo optimiser) NOT started: needs the full pack (only the handoff + summary were uploaded) and owner go-ahead.
+
+## 2026-11-07 review-pack rebuild (5 Sonnet agents) merged, NOT deployed
+- Merged rb-settle (ESPN event/athlete id maps, NY-tz dates, quotes immutable, corrections.jsonl, multi_key/latest), rb-markets (melbcup/markets.py Selection + all NBA markets, no-vig only complete pairs), rb-ranker (melbcup/ranker.py, not wired to UI yet), rb-sportsui (/sports hub, /nba 307 redirect), rb-challenges (many challenges, wallet.py ledger, promos.py, recorded wagers; store challenges/state.json + daily backup; fail-safe on read errors).
+- forward-v2 rebuilt with athlete ids and uploaded (0 future settled, 0 unresolved).
+- Deploy of web/job/function blocked by classifier: needs owner approval ("approved: deploy web, job and function").
+- Next: wire ranker into Multis tab; Discover/Games/Players/Promos sections; etag concurrency on challenge store; US books in markets.py.
