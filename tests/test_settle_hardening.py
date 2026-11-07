@@ -237,3 +237,19 @@ def test_same_multi_logged_on_two_days_counts_once(tmp_path):
     assert [r["latest"] for r in rows] == [False, True]
     import forward_report
     assert len(forward_report.load(str(tmp_path / "forward-v2.jsonl"))) == 1
+
+
+def test_live_pre_game_clock_is_melbourne_time():
+    nba_live._CACHE.clear()
+    f = live_fetch("pre")
+
+    def fetch(url):
+        out = f(url)
+        if "summary" in url:
+            out["header"]["competitions"][0]["date"] = "2026-11-05T00:00:00Z"
+            out["header"]["competitions"][0]["status"]["type"]["shortDetail"] = "11/4 - 7:00 PM EST"
+        return out
+
+    r = nba_live.track("2026-11-05 Atlanta Hawks @ Washington Wizards: Trae Young 8+ Points",
+                       dt.datetime(2026, 11, 4, 20, tzinfo=dt.UTC), fetch)
+    assert r["clock"] == "Tip-off Thu 5 Nov 11:00 AM AEDT" and r["starts_at"] == "2026-11-05T00:00:00Z"
