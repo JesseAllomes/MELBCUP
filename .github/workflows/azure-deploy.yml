@@ -116,6 +116,8 @@ jobs:
           cp azure/function/function_app.py azure/function/collector_runtime.py azure/function/racelens.py azure/function/nba_props.py azure/function/push_send.py azure/function/host.json azure/function/requirements.txt build/pkg/
           cp tools/live_collector.py build/pkg/tools/live_collector.py
           cp melbcup/nba_legs.py build/pkg/nba_legs.py
+          cp melbcup/markets.py build/pkg/markets.py
+          cp melbcup/catalogue.py build/pkg/catalogue.py
           cp melbcup/webpush.py build/pkg/webpush.py
           cp melbcup/tgbot.py build/pkg/tgbot.py
           cp melbcup/nba_challenge.py build/pkg/nba_challenge.py

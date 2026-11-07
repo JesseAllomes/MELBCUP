@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import threading
+import time
 import urllib.request
 import uuid
 from pathlib import Path
@@ -31,6 +32,11 @@ from collector_runtime import (  # noqa: E402
     valid_signature,
     within_window,
 )
+
+try:
+    import catalogue  # the deployed package: copied from melbcup/catalogue.py
+except ImportError:  # the repository (tests)
+    from melbcup import catalogue
 
 app = func.FunctionApp()
 lock = threading.Lock()
@@ -177,7 +183,14 @@ def racelens_snapshot(timer: func.TimerRequest) -> None:
 def nba_props_run(timer: func.TimerRequest) -> None:
     """Every 10 minutes, 7am to 6:50pm AEDT: push the phone alerts that are due (owner,
     2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
-    moment = now_utc()
+    moment, started = now_utc(), time.monotonic()
+    try:
+        _nba_work(moment)
+    finally:  # after the NBA work, whatever happened to it; a catalogue error never escapes
+        _catalogue_tick(moment, started)
+
+
+def _nba_work(moment: dt.datetime) -> None:
     key, tg = os.environ.get("VAPID_PRIVATE_KEY"), os.environ.get("TELEGRAM_BOT_TOKEN")
     if key or tg:
         try:
@@ -207,6 +220,59 @@ def nba_props_run(timer: func.TimerRequest) -> None:
         logging.exception("nba view: failed")
     logging.info("nba props: %d games, %d snapshots; legs %s", games, written, legs)
     logging.info("us books %s", nba_props.pretip_ping(nba, moment))
+
+
+CATALOGUE_EVERY_S = 1740  # a build at most every 30 minutes (29 min: the 10-minute timer jitters)
+CATALOGUE_END_S = 42.0  # seconds after the run starts: the Function times out at 55 s (host.json)
+CATALOGUE_STATE = "catalogue/state.json"
+
+
+def _catalogue_tick(moment: dt.datetime, started: float) -> None:
+    """Build the all-sport catalogue (PointsBet) into the `nba` container, at most every 30 minutes
+    and within a time budget: sports are built in rotation (the cursor is kept in blob state) so
+    a run builds as many as fit. Any error is logged and swallowed."""
+    if os.environ.get("CATALOGUE") == "0":
+        return
+    try:
+        c = blobs().get_container_client("nba")
+        try:
+            state = json.loads(c.download_blob(CATALOGUE_STATE).readall())
+        except ResourceNotFoundError:
+            state = {}
+        last = state.get("last_build")
+        if last and (moment - dt.datetime.fromisoformat(last)).total_seconds() < CATALOGUE_EVERY_S:
+            return
+        deadline = started + CATALOGUE_END_S
+        if time.monotonic() > deadline - 8:
+            logging.info("catalogue: skipped, the NBA work used the time")
+            return
+        out = catalogue.run_rotation(
+            state.get("cursor", 0),
+            deadline,
+            moment,
+            lambda n, b: c.get_blob_client(n).upload_blob(b, overwrite=True),
+            lambda n: _read_blob(c, n),
+            lambda: [b.name for b in c.list_blobs(name_starts_with="catalogue/raw/")],
+        )
+        for n in out["expired"]:
+            try:
+                c.get_blob_client(n).delete_blob()
+            except ResourceNotFoundError:
+                pass
+        c.get_blob_client(CATALOGUE_STATE).upload_blob(
+            json.dumps({"last_build": moment.isoformat(), "cursor": out["cursor"]}),
+            overwrite=True,
+        )
+        logging.info("catalogue: built %s, cursor %s", out["built"], out["cursor"])
+    except Exception:
+        logging.exception("catalogue: failed")
+
+
+def _read_blob(container, name: str):
+    try:
+        return container.download_blob(name).readall()
+    except ResourceNotFoundError:
+        return None
 
 
 @app.queue_trigger(arg_name="msg", queue_name="alerts", connection="AzureWebJobsStorage")
