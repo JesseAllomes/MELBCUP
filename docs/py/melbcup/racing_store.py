@@ -68,6 +68,7 @@ def check_from_json(d: dict, check_cls, line_cls):
 class RacingStore:
     def __init__(self, read: Callable[[str], bytes | None], write: Callable[[str, bytes], None]):
         self.read, self.write = read, write
+        self._last: dict[str, bytes] = {}  # what was last written per name: skip unchanged saves
 
     @staticmethod
     def checks_name(race_date: date, venue: str) -> str:
@@ -79,8 +80,12 @@ class RacingStore:
 
     def save_checks(self, race_date: date, venue: str, checks: dict, check_cls=None) -> None:
         doc = {str(n): check_to_json(c) for n, c in sorted(checks.items())}
+        name, body = self.checks_name(race_date, venue), json.dumps(doc).encode()
+        if self._last.get(name) == body:
+            return
         try:
-            self.write(self.checks_name(race_date, venue), json.dumps(doc).encode())
+            self.write(name, body)
+            self._last[name] = body
         except Exception:  # a storage hiccup must not stop the board
             log.warning("could not save checks", exc_info=True)
 
