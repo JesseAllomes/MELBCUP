@@ -86,10 +86,9 @@
 {% macro slip(b, tag, one, shared) %}{% set p = b.pick %}
 <article class="pc{{ ' one' if one }}">
   <div class="ph">{{ ring(p.p_all) }}<div><span class="tag{{ ' g' if one }}">{{ tag }}</span><b class="pp">${{ '%.2f' | format(p.price) }}</b><small>per $1 · {{ '%g' | format(b.lo) }}–{{ '%g' | format(b.hi) }}×</small></div></div>
-  <ul>{% for g in p.legs %}<li><span class="pt">{{ g.start | iso_time }}{% if g.event in shared %} <span class="sh">shared</span>{% endif %}</span><b>{{ g.label }}</b><span class="lp">{{ '%.2f' | format(g.price) }}</span></li>{% endfor %}</ul>
+  <ul>{% for g in p.legs %}<li><span class="pt"><span class="ev">{{ g.event }}</span>{{ g.start | iso_time }}{% if g.sport %} · {{ g.sport | upper }}{% endif %}{% if g.event in shared %} <span class="sh">shared</span>{% endif %}</span><b>{{ g.label }}</b><span class="lp">{{ '%.2f' | format(g.price) }}</span></li>{% endfor %}</ul>
   <div class="why4">
     {% for g in p.legs %}<div class="lb"><span>{{ g.label }}</span><span class="bar"><i style="width:{{ '%.0f' | format(g.p * 100) }}%"></i></span><b>{{ '%.0f' | format(g.p * 100) }}%</b></div>{% endfor %}
-    <div class="lb"><span>Bookie keeps {{ '%.1f' | format(p.cut * 100) }}%</span><span class="cut" style="width:44px"><i style="width:{{ '%.0f' | format(p.cut * 1000) }}%"></i></span><b></b></div>
   </div>
   <div class="pw">
     <span>Pays <b>${{ '%.2f' | format(p.price) }}</b> · fair <b>${{ '%.2f' | format(p.fair_price) }}</b></span>

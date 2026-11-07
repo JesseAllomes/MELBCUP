@@ -663,3 +663,6 @@ a.pick-other { text-decoration: none; color: inherit; }
 .bn .fold { border-top: 1px solid var(--rule); padding: 8px 0; font-size: 12.5px; }
 .bn .fold summary { color: var(--brand); font-weight: 700; cursor: pointer; }
 a.ng { display: flex; text-decoration: none; color: inherit; }
+
+/* hero legs: the game first (owner 2026-11-08) */
+.bn .pc .pt .ev{display:block;color:var(--ink);font-size:12px;font-weight:800;letter-spacing:0;margin-bottom:1px}
