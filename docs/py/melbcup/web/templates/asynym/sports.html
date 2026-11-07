@@ -14,23 +14,102 @@
   </dl>
 </section>
 {% endmacro %}
+{% macro flagchips(r) %}{% for tone, label in cat_flags(r) %}<span class="cat-fl {{ tone }}">{{ label }}</span>{% endfor %}{% endmacro %}
+{% macro row(r, show_player=False) %}
+<li class="cat-row">
+  <span class="cat-sel"><b>{% if r.line_raw not in (none, '') %}{{ r.line_raw }} {% endif %}{{ r.side or '' }}</b>{% if r.period %} <small>{{ r.period }}</small>{% endif %}{% if show_player %} <small>{{ r.participant_name or '' }}</small>{% endif %}<small class="cat-raw">{{ r.market_name_raw }}{% if r.bookmaker %} · {{ r.bookmaker }}{% endif %}</small></span>
+  <span class="cat-px"><b>{% if r.price_decimal %}{{ '%.2f' | format(r.price_decimal) }}{% else %}–{% endif %}</b>{% if r.market_prob is not none %}<small>no-vig {{ '%.1f' | format(r.market_prob * 100) }}%</small>{% endif %}<small>{{ r.quote_observed_at_utc | iso_time }}</small></span>
+  <span class="cat-fls">{{ flagchips(r) }}</span>
+</li>
+{% endmacro %}
+{% macro covline(cat) %}
+<section class="card sp-card sp-cov">
+  {% if cat.feed and cat.cov %}
+  <p class="cat-cov"><b>{{ cat.cov.events }}</b> events · <b>{{ cat.n_props }}</b> player-prop outcomes of <b>{{ cat.n_rows }}</b> · <b>{{ cat.cov.unmapped_groups }}</b> unmapped groups · built {{ cat.built | iso_time }} · feed {{ cat.cov.feed }}</p>
+  {% elif cat.feed %}
+  <p class="cat-cov"><b>{{ cat.n_rows }}</b> outcomes, <b>{{ cat.n_props }}</b> player props · built {{ cat.built | iso_time }} · feed connected</p>
+  {% else %}
+  <p class="cat-cov">{{ cat.no_feed }}</p>
+  {% endif %}
+</section>
+{% endmacro %}
+{% macro catalogue(cat) %}
+{{ covline(cat) }}
+{% if cat.feed %}
+<form class="card cat-f" method="get" action="/sports">
+  <input type="hidden" name="sport" value="{{ cat.sport }}"><input type="hidden" name="view" value="{{ cat.view }}">
+  <input type="search" name="q" value="{{ cat.f.q }}" placeholder="Search player, team or market" aria-label="Search player, team or market">
+  <div class="cat-sel-row">
+    <select name="family" aria-label="Market family"><option value="">Any family</option>{% for x in cat.families %}<option value="{{ x }}"{{ ' selected' if x == cat.f.family }}>{{ x }}</option>{% endfor %}</select>
+    <select name="event" aria-label="Event"><option value="">Any event</option>{% for k, n in cat.events %}<option value="{{ k }}"{{ ' selected' if k == cat.f.event }}>{{ n }}</option>{% endfor %}</select>
+    <select name="side" aria-label="Side"><option value="">Any side</option>{% for x in ('over', 'under', 'yes', 'no') %}<option value="{{ x }}"{{ ' selected' if x == cat.f.side }}>{{ x | capitalize }}</option>{% endfor %}</select>
+    <select name="period" aria-label="Period"><option value="">Any period</option>{% for x in cat.periods %}<option value="{{ x }}"{{ ' selected' if x == cat.f.period }}>{{ x }}</option>{% endfor %}</select>
+    <select name="fresh" aria-label="Freshness"><option value="">Any freshness</option>{% for k, n in cat.fresh_opts.items() %}<option value="{{ k }}"{{ ' selected' if k == cat.f.fresh }}>{{ n }}</option>{% endfor %}</select>
+    <select name="model" aria-label="Model status"><option value="">Any model status</option>{% for x in cat.model_opts %}<option value="{{ x }}"{{ ' selected' if x == cat.f.model }}>{{ x }}</option>{% endfor %}</select>
+    <select name="mapped" aria-label="Mapping"><option value="">Mapped and unmapped</option><option value="mapped"{{ ' selected' if cat.f.mapped == 'mapped' }}>Mapped only</option><option value="unmapped"{{ ' selected' if cat.f.mapped == 'unmapped' }}>Unmapped only</option></select>
+  </div>
+  <label class="cat-alt"><input type="checkbox" name="alt" value="1"{{ ' checked' if cat.f.alt }}> Alternate lines only</label>
+  {% if cat.comp_opts %}<label class="cat-comp">Competition <select name="comp" aria-label="Competition">{% for k, n in cat.comp_opts %}<option value="{{ k }}"{{ ' selected' if k == cat.comp }}>{{ n }}</option>{% endfor %}</select></label>{% endif %}
+  <div class="cat-go"><button type="submit">Search</button><a href="{{ cat.link_clear }}">Clear</a></div>
+</form>
+<p class="note cat-n">{% if cat.partial %}Showing {{ cat.first }}–{{ cat.last }}, more matches follow (pick a competition to narrow){% elif cat.total %}Showing {{ cat.first }}–{{ cat.last }} of {{ cat.total }}{% if cat.total != cat.all_total %} (filtered from {{ cat.all_total }}){% endif %}{% else %}Nothing matches ({{ cat.all_total }} offered){% endif %}. Every offered line is listed whatever its chance, price or multi eligibility.</p>
+{% if cat.view == 'players' %}
+{% for ev in cat.groups %}
+<section class="card cat-ev">
+  <h2>{{ ev.name }}{% if cat.sport == 'all' %} <small>{{ ev.sport }}</small>{% endif %}</h2>
+  <p class="note">{{ ev.start | iso_time }}</p>
+  {% for p in ev.players %}
+  <details class="cat-pl" open><summary><b>{{ p.name }}</b> <small>{{ p.n }}</small></summary>
+    {% for fam, rs in p.fams %}<h3>{{ fam }}</h3><ul class="cat-ls">{% for r in rs %}{{ row(r) }}{% endfor %}</ul>{% endfor %}
+  </details>
+  {% endfor %}
+</section>
+{% endfor %}
+{% else %}
+<section class="card cat-ev"><ul class="cat-ls">
+  {% for r in cat.rows %}<li class="cat-ev-l"><small>{{ r._ev }}{% if cat.sport == 'all' %} · {{ r.sport }}{% endif %}</small></li>{{ row(r, True) }}{% endfor %}
+</ul></section>
+{% endif %}
+{% if cat.pages > 1 %}
+<nav class="cat-pg" aria-label="Pages">
+  {% if cat.link_prev %}<a href="{{ cat.link_first }}">First</a><a href="{{ cat.link_prev }}">Previous</a>{% endif %}
+  <span>Page {{ cat.page }}{% if not cat.partial %} of {{ cat.pages }}{% endif %}</span>
+  {% if cat.link_next %}<a class="more" href="{{ cat.link_next }}">View more</a>{% if cat.link_last %}<a href="{{ cat.link_last }}">Last</a>{% endif %}{% endif %}
+</nav>
+{% endif %}
+{% endif %}
+{% endmacro %}
+{% macro subtabs() %}
+{% if sport != 'racing' %}
+<nav class="sp-tabs sp-sub" aria-label="Views">
+  {% if sport in ('nba', 'all') %}<a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else 'Coverage' }}</a>{% endif %}
+  <a href="/sports?sport={{ sport }}&view=players" class="{{ 'on' if view == 'players' }}"{% if view == 'players' %} aria-current="page"{% endif %}>{{ 'Players · all props' if sport == 'nba' else 'Players' }}</a>
+  <a href="/sports?sport={{ sport }}&view=markets" class="{{ 'on' if view == 'markets' }}"{% if view == 'markets' %} aria-current="page"{% endif %}>All markets</a>
+</nav>
+{% endif %}
+{% endmacro %}
 {% block content %}
 <nav class="sp-tabs" aria-label="Sports">
   {% for code, label in hub_tabs %}<a href="/sports?sport={{ code }}" class="{{ 'on' if code == sport }}"{% if code == sport %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
 </nav>
-{% if sport == 'nba' %}
+{{ subtabs() }}
+{% if view %}
+{{ catalogue(cat) }}
+{% if sport not in ('nba', 'all') %}{{ cover(hub) }}{% endif %}
+{% elif sport == 'nba' %}
 {{ super() }}
 {% elif sport == 'all' %}
 <section class="card sp-card">
   <h2>What the app has, by sport</h2>
   <div class="sp-wrap"><table class="sp-mx">
-    <thead><tr><th>Sport</th><th>Live prices</th><th>Markets</th><th>Modelled</th><th>History</th><th>Missing</th></tr></thead>
+    <thead><tr><th>Sport</th><th>Live prices</th><th>Markets</th><th>Modelled</th><th>History</th><th>Catalogue now</th><th>Missing</th></tr></thead>
     <tbody>{% for s in hub_sports %}<tr>
       <th scope="row"><a href="/sports?sport={{ s.code }}">{{ s.name }}</a></th>
       <td data-l="Live prices">{% if s.live %}Yes: {{ s.provider }}{% else %}No{% endif %}</td>
       <td data-l="Markets">{{ s.markets | join(', ') or '–' }}</td>
       <td data-l="Modelled">{{ s.modelled | join(', ') or '–' }}</td>
       <td data-l="History">{% if s.history %}<a href="{{ s.history }}">Data</a>{% else %}–{% endif %}</td>
+      <td data-l="Catalogue now">{% set cv = cov_by_sport.get(s.code) %}{% if cv and cv.feed == 'connected' %}{{ cv.events }} events, {{ cv.displayed_outcomes }} outcomes, {{ cv.unmapped_groups }} unmapped groups · {{ cv.built | iso_time }}{% elif s.code == 'racing' %}–{% else %}No player-prop feed connected for this sport{% endif %}</td>
       <td data-l="Missing">{{ s.missing or '–' }}</td>
     </tr>{% endfor %}</tbody>
   </table></div>

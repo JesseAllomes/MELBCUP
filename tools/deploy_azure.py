@@ -282,6 +282,8 @@ def deploy_function(label):
         shutil.copy(ROOT / f, pkg)
     shutil.copy(ROOT / "tools/live_collector.py", pkg / "tools/live_collector.py")
     shutil.copy(ROOT / "melbcup/nba_legs.py", pkg / "nba_legs.py")
+    shutil.copy(ROOT / "melbcup/markets.py", pkg / "markets.py")
+    shutil.copy(ROOT / "melbcup/catalogue.py", pkg / "catalogue.py")
     shutil.copy(ROOT / "melbcup/webpush.py", pkg / "webpush.py")
     shutil.copy(ROOT / "melbcup/tgbot.py", pkg / "tgbot.py")
     shutil.copy(ROOT / "melbcup/nba_challenge.py", pkg / "nba_challenge.py")

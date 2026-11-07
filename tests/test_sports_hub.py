@@ -7,8 +7,27 @@ from test_asynym import ON, make
 
 from melbcup import sports_hub
 
-CODES = ["nba", "racing", "afl", "nrl", "nfl", "nhl", "football", "tennis", "all"]
-UNPRICED = ["afl", "nrl", "nfl", "nhl", "football", "tennis"]
+CODES = [
+    "nba",
+    "racing",
+    "afl",
+    "nrl",
+    "nfl",
+    "nhl",
+    "football",
+    "tennis",
+    "nbl",
+    "ncaab",
+    "ncaaf",
+    "aflw",
+    "rugby-league",
+    "cricket",
+    "mlb",
+    "rugby-union",
+    "other",
+    "all",
+]
+UNPRICED = [c for c in CODES if c not in ("nba", "racing", "other", "all")]
 
 
 @pytest.fixture
