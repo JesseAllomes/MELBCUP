@@ -234,7 +234,7 @@
 {% if sport not in ('nba', 'all') %}{{ cover(hub) }}{% endif %}
 {% elif sport == 'nba' %}
 {{ super() }}
-{% elif sport == 'home' %}
+{% elif sport == 'home' and sp_tab in ('', 'multis') %}
 {{ bet_now(bn, disc, '', bonus) }}
 {% elif sport == 'all' %}
 <section class="card sp-card">

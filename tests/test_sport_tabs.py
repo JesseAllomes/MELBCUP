@@ -33,10 +33,13 @@ def test_every_sport_and_tab_renders_with_the_bar(c):
                 assert f'tab={tab}" class="on"' in r.text, (sport, tab)
 
 
-def test_default_tab_is_multis_and_home_has_no_bar(c):
+def test_default_tab_is_multis_and_home_has_the_bar_too(c):
+    """Owner 2026-11-08: Best multis lost its tabs; it has the same bottom bar now."""
     assert 'tab=multis" class="on"' in c.get("/sports?sport=nfl").text
-    assert 'class="btm"' not in c.get("/sports").text
-    assert 'class="btm"' not in c.get("/sports?sport=home").text
+    assert 'class="btm"' in c.get("/sports").text
+    for tab in ("multis", "challenge", "games", "sgm", "all"):
+        r = c.get(f"/sports?sport=home&tab={tab}")
+        assert r.status_code == 200 and 'class="btm"' in r.text, tab
 
 
 def test_old_nba_links_still_work(c):

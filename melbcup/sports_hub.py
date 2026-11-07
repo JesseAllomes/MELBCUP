@@ -285,8 +285,8 @@ def pick_tab(sport: str, tab: str | None, view: str | None = None) -> str:
     """The per-sport tab (the bottom bar): multis|challenge|games|sgm|all. "" on Best multis, Racing
     and the All coverage page, which have no bar. Old links keep working: NBA's stacks and same
     tabs, and ?view=players|markets (the All tab)."""
-    if sport in ("racing", "home", "all"):
-        return ""
+    if sport in ("racing", "all"):
+        return ""  # Best multis (home) has the bar too (owner 2026-11-08: its tabs were missing)
     if view in VIEWS:
         return "all"
     tab = _LEGACY_TAB.get(tab or "", tab)

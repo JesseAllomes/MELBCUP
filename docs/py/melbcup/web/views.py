@@ -1021,8 +1021,8 @@ class Views:
             if tab == "all":
                 view = view or "markets"  # every market; Players is a link at its top
             ctx["view"] = view
-            if view:
-                ctx["cat"] = catalogue_view.query(sport, view, query)
+            if view:  # Best multis' All tab is every sport's markets
+                ctx["cat"] = catalogue_view.query("all" if sport == "home" else sport, view, query)
             ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
             if sport == "nba" and not view:  # the NBA page's own tab names
                 query = {**query, "tab": {"multis": "stacks", "sgm": "same"}.get(tab, tab)}
@@ -1038,7 +1038,14 @@ class Views:
                 )
                 ctx["bn"] = discover.layout(bands)
                 ctx["bonus"] = self._bonus_credits() if sport == "home" else []
-                ctx["games"] = discover.next_games(sport) if tab == "games" else []
+                ctx["games"] = []
+                if tab == "games" and sport == "home":  # the next games across every sport
+                    every = []
+                    for s_ in catalogue_view.coverage():
+                        every += [g | {"sport": s_} for g in discover.next_games(s_, 3)]
+                    ctx["games"] = sorted(every, key=lambda g: g.get("start") or "~")[:12]
+                elif tab == "games":
+                    ctx["games"] = discover.next_games(sport)
                 ctx["no_feed"] = (
                     catalogue_view.NO_FEED
                     if sport != "home" and not catalogue_view.coverage_line(sport)
