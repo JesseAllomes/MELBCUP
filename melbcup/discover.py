@@ -321,6 +321,114 @@ def refresh_now() -> bool:
         return False
 
 
+def eta(start: str | None, now: datetime | None = None) -> str:
+    """ "in 5h 00m" until an ISO start, "" when unknown or past."""
+    t = _when(start)
+    if t is None:
+        return ""
+    secs = int((t - (now or datetime.now(UTC))).total_seconds())
+    if secs <= 0:
+        return ""
+    h, m = divmod(secs // 60, 60)
+    return f"in {h}h {m:02d}m" if h else f"in {m}m"
+
+
+def layout(bands: list[dict] | None, now: datetime | None = None) -> dict:
+    """The Bet now page from a list of band summaries: the two likeliest picks, the others
+    grouped by first kick-off, and the games that feed two or more picks."""
+    now = now or datetime.now(UTC)
+    have = [dict(b, eta=eta(b["pick"]["first_start"], now)) for b in bands or [] if b.get("pick")]
+    have.sort(key=lambda b: -b["pick"]["p_all"])
+    top, rest = have[:2], have[2:]
+    rest.sort(key=lambda b: b["pick"]["first_start"] or "")
+    groups: list[dict] = []
+    for b in rest:
+        key = b["pick"]["first_start"]
+        if groups and groups[-1]["start"] == key:
+            groups[-1]["items"].append(b)
+        else:
+            groups.append({"start": key, "eta": b["eta"], "items": [b]})
+    return {
+        "top": top,
+        "groups": groups,
+        "shared": _shared(have),
+        "none": not have,
+        "age_s": status()["age_s"],
+    }
+
+
+MAIN_FAMILIES = ("total", "totals", "line", "spread", "handicap", "h2h")
+
+
+def next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict]:
+    """The next n games of a sport by start: each with its main line (the total, line or
+    head-to-head leg closest to 50/50) and how many player props it has. Reads only the
+    competition shards those games sit in. Never raises."""
+    from melbcup import catalogue_view as cv
+
+    now = now or datetime.now(UTC)
+    try:
+        evs = [
+            e
+            for k in cv.GROUPS.get(sport) or (sport,)
+            for e in ((cv._index(k) or {}).get("events") or [])
+            if (_when(e.get("starts_at")) or now) > now
+        ]
+        evs.sort(key=lambda e: e.get("starts_at") or "~")
+        evs = evs[:n]
+        units = {(c["competition_id"]): (k, c) for k, c in cv._units(sport)}
+        shards: dict[str, list[dict]] = {}
+        out = []
+        for e in evs:
+            cid = e.get("competition_id") or ""
+            unit = units.get(cid) or units.get("")
+            rows: list[dict] = []
+            if unit and unit[1].get("shard"):
+                key = f"{unit[0]}:{unit[1]['shard']}"
+                if key not in shards:
+                    shards[key] = cv._shard(*unit)
+                rows = [r for r in shards[key] if str(r.get("event_id")) == str(e["event_id"])]
+            props = sum(1 for r in rows if r.get("is_player_prop"))
+            main = [
+                r
+                for r in rows
+                if not r.get("is_player_prop")
+                and r.get("market_prob") is not None
+                and r.get("price_decimal")
+                and (r.get("market_family") or r.get("market_type")) in MAIN_FAMILIES
+            ]
+            m = min(main, key=lambda r: abs(r["market_prob"] - 0.5), default=None)
+            out.append(
+                {
+                    "id": e["event_id"],
+                    "name": e.get("event_name") or str(e["event_id"]),
+                    "start": e.get("starts_at"),
+                    "comp": e.get("competition"),
+                    "props": props,
+                    "main": None
+                    if m is None
+                    else {
+                        "label": " ".join(
+                            str(x)
+                            for x in (
+                                m.get("participant_name"),
+                                m.get("market_name_raw"),
+                                m.get("line_raw"),
+                                m.get("side"),
+                            )
+                            if x not in (None, "")
+                        ),
+                        "p": float(m["market_prob"]),
+                        "price": float(m["price_decimal"]),
+                    },
+                }
+            )
+        return out
+    except Exception:  # noqa: BLE001 - the page shows no games rather than failing
+        log.warning("discover: next_games failed", exc_info=True)
+        return []
+
+
 def latest(wait: bool = False) -> dict | None:
     """The last result; starts a background refresh when it is older than REFRESH_S."""
     with _lock:

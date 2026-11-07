@@ -43,7 +43,7 @@ BIN = 0.01  # log-price resolution of the search
 REFRESH_S = 600
 
 _lock = threading.Lock()
-_state: dict = {"at": 0.0, "result": None, "busy": False}
+_state: dict = {"at": 0.0, "result": None, "busy": False, "progress": 0.0, "started": 0.0}
 
 
 def _when(text: str | None) -> datetime | None:
@@ -197,6 +197,7 @@ def _summary(lo: float, hi: float, best) -> dict:
     p_all = math.prod(g["p"] for g in legs)
     price = math.prod(g["price"] for g in legs)
     p_one = sum(p_all * (1 - g["p"]) / g["p"] for g in legs)  # independent legs
+    legs = [dict(g, cut=1 - g["p"] * g["price"]) for g in legs]  # margin each leg carries
     return {
         "lo": lo,
         "hi": hi,
@@ -208,11 +209,28 @@ def _summary(lo: float, hi: float, best) -> dict:
             "p_one_fail": p_one,
             "fair_price": round(1 / p_all, 2),
             "expected_return": price * p_all - 1,  # per $1 staked, at the product price
+            "cut": 1 - p_all * price,  # share of each dollar the book keeps on this multi
             "sports": sorted({g["sport"] for g in legs}),
             "first_start": legs[0]["start"],
             "last_start": legs[-1]["start"],
         },
     }
+
+
+def _progress(v: float) -> None:
+    with _lock:
+        _state["progress"] = round(min(max(v, 0.0), 1.0), 3)
+
+
+def _shared(bands: list[dict]) -> list[dict]:
+    """Games that feed two or more of the picks: {event, n, of}, most-used first."""
+    picks = [b["pick"] for b in bands if b.get("pick")]
+    seen: dict[str, dict] = {}
+    for pk in picks:
+        for ev in {g["event_id"]: g for g in pk["legs"]}.values():
+            row = seen.setdefault(ev["event_id"], {"event": ev["event"], "n": 0, "of": len(picks)})
+            row["n"] += 1
+    return sorted((r for r in seen.values() if r["n"] >= 2), key=lambda r: -r["n"])
 
 
 def compute(now: datetime | None = None) -> dict:
@@ -221,8 +239,10 @@ def compute(now: datetime | None = None) -> dict:
 
     now = now or datetime.now(UTC)
     t0 = time.monotonic()
+    _progress(0.0)
     legs, sports, rows = [], [], 0
-    for sport in sorted(cv.coverage()):
+    units = sorted(cv.coverage())
+    for i, sport in enumerate(units):
         n0 = len(legs)
         for key, comp in cv._units(sport):
             if not comp.get("shard"):
@@ -234,19 +254,33 @@ def compute(now: datetime | None = None) -> dict:
                     legs.append(g)
         if len(legs) > n0:
             sports.append(sport)
+        _progress(0.5 * (i + 1) / max(len(units), 1))
     groups = pool(legs)
+    by_legs: dict[str, list] = {}
+    for g in legs:
+        by_legs.setdefault(g["sport"], []).append(g)
+    by_sport: dict[str, list] = {}
+    for j, sport in enumerate(sorted(by_legs)):
+        by_sport[sport] = best_multis(pool(by_legs[sport]))
+        _progress(0.5 + 0.4 * (j + 1) / max(len(by_legs), 1))
+    bands = best_multis(groups)
+    _progress(0.95)
     return {
         "built": now.isoformat(),
         "rows_scanned": rows,
         "legs_usable": len(legs),
         "games": len(groups),
         "sports": sports,
-        "bands": best_multis(groups),
+        "bands": bands,
+        "by_sport": by_sport,
+        "shared": _shared(bands),
         "seconds": round(time.monotonic() - t0, 1),
     }
 
 
 def _refresh() -> None:
+    with _lock:
+        _state.update(started=time.time(), progress=0.0)
     try:
         res = compute()
         with _lock:
@@ -255,7 +289,144 @@ def _refresh() -> None:
         log.warning("discover: compute failed", exc_info=True)
     finally:
         with _lock:
-            _state["busy"] = False
+            _state.update(busy=False, progress=1.0)
+
+
+def status() -> dict:
+    """Progress of the running search and the age of the last result; never raises."""
+    try:
+        with _lock:
+            res, busy, prog, at = _state["result"], _state["busy"], _state["progress"], _state["at"]
+        return {
+            "busy": bool(busy),
+            "progress": float(prog),
+            "built": res.get("built") if res else None,
+            "age_s": round(time.monotonic() - at) if res else None,
+        }
+    except Exception:  # noqa: BLE001 - the status strip must never break the page
+        return {"busy": False, "progress": 0.0, "built": None, "age_s": None}
+
+
+def refresh_now() -> bool:
+    """Start a refresh now unless one is running. True when one was started."""
+    try:
+        with _lock:
+            if _state["busy"]:
+                return False
+            _state["busy"] = True
+        threading.Thread(target=_refresh, daemon=True, name="discover").start()
+        return True
+    except Exception:  # noqa: BLE001
+        log.warning("discover: refresh_now failed", exc_info=True)
+        return False
+
+
+def eta(start: str | None, now: datetime | None = None) -> str:
+    """ "in 5h 00m" until an ISO start, "" when unknown or past."""
+    t = _when(start)
+    if t is None:
+        return ""
+    secs = int((t - (now or datetime.now(UTC))).total_seconds())
+    if secs <= 0:
+        return ""
+    h, m = divmod(secs // 60, 60)
+    return f"in {h}h {m:02d}m" if h else f"in {m}m"
+
+
+def layout(bands: list[dict] | None, now: datetime | None = None) -> dict:
+    """The Bet now page from a list of band summaries: the two likeliest picks, the others
+    grouped by first kick-off, and the games that feed two or more picks."""
+    now = now or datetime.now(UTC)
+    have = [dict(b, eta=eta(b["pick"]["first_start"], now)) for b in bands or [] if b.get("pick")]
+    have.sort(key=lambda b: -b["pick"]["p_all"])
+    top, rest = have[:2], have[2:]
+    rest.sort(key=lambda b: b["pick"]["first_start"] or "")
+    groups: list[dict] = []
+    for b in rest:
+        key = b["pick"]["first_start"]
+        if groups and groups[-1]["start"] == key:
+            groups[-1]["items"].append(b)
+        else:
+            groups.append({"start": key, "eta": b["eta"], "items": [b]})
+    return {
+        "top": top,
+        "groups": groups,
+        "shared": _shared(have),
+        "none": not have,
+        "age_s": status()["age_s"],
+    }
+
+
+MAIN_FAMILIES = ("total", "totals", "line", "spread", "handicap", "h2h")
+
+
+def next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict]:
+    """The next n games of a sport by start: each with its main line (the total, line or
+    head-to-head leg closest to 50/50) and how many player props it has. Reads only the
+    competition shards those games sit in. Never raises."""
+    from melbcup import catalogue_view as cv
+
+    now = now or datetime.now(UTC)
+    try:
+        evs = [
+            e
+            for k in cv.GROUPS.get(sport) or (sport,)
+            for e in ((cv._index(k) or {}).get("events") or [])
+            if (_when(e.get("starts_at")) or now) > now
+        ]
+        evs.sort(key=lambda e: e.get("starts_at") or "~")
+        evs = evs[:n]
+        units = {(c["competition_id"]): (k, c) for k, c in cv._units(sport)}
+        shards: dict[str, list[dict]] = {}
+        out = []
+        for e in evs:
+            cid = e.get("competition_id") or ""
+            unit = units.get(cid) or units.get("")
+            rows: list[dict] = []
+            if unit and unit[1].get("shard"):
+                key = f"{unit[0]}:{unit[1]['shard']}"
+                if key not in shards:
+                    shards[key] = cv._shard(*unit)
+                rows = [r for r in shards[key] if str(r.get("event_id")) == str(e["event_id"])]
+            props = sum(1 for r in rows if r.get("is_player_prop"))
+            main = [
+                r
+                for r in rows
+                if not r.get("is_player_prop")
+                and r.get("market_prob") is not None
+                and r.get("price_decimal")
+                and (r.get("market_family") or r.get("market_type")) in MAIN_FAMILIES
+            ]
+            m = min(main, key=lambda r: abs(r["market_prob"] - 0.5), default=None)
+            out.append(
+                {
+                    "id": e["event_id"],
+                    "name": e.get("event_name") or str(e["event_id"]),
+                    "start": e.get("starts_at"),
+                    "comp": e.get("competition"),
+                    "props": props,
+                    "main": None
+                    if m is None
+                    else {
+                        "label": " ".join(
+                            str(x)
+                            for x in (
+                                m.get("participant_name"),
+                                m.get("market_name_raw"),
+                                m.get("line_raw"),
+                                m.get("side"),
+                            )
+                            if x not in (None, "")
+                        ),
+                        "p": float(m["market_prob"]),
+                        "price": float(m["price_decimal"]),
+                    },
+                }
+            )
+        return out
+    except Exception:  # noqa: BLE001 - the page shows no games rather than failing
+        log.warning("discover: next_games failed", exc_info=True)
+        return []
 
 
 def latest(wait: bool = False) -> dict | None:

@@ -258,12 +258,12 @@ VIEWS = ("players", "markets")
 
 def pick_view(sport: str, code: str | None) -> str:
     """The sub-tab: "" is the page's own default (NBA's multis tabs, the All matrix); the rest are
-    the catalogue views. Every other sport lands on Players."""
+    the catalogue views. Every other sport lands on its Bet now page."""
     if sport in ("racing", "home"):
         return ""
     if code in VIEWS:
         return code
-    return "" if sport in ("nba", "all") else "players"
+    return ""
 
 
 def pick(code: str | None) -> str:

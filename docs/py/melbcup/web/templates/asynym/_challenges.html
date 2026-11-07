@@ -132,24 +132,18 @@
 {# the wallet #}
 <section class="card chs-wallet">
   <div class="vlabel">Bonus wallet · not cash</div>
-  <p class="note">Credits the bookmaker gave you, kept per bookmaker. You type in what they gave and what they allow; the app moves nothing.</p>
-  {% for prov, b in chs.balances.items() %}<p class="say"><b>{{ prov }}</b> ${{ '%.2f' % b.open }} in bonus credits{% if b.held %} (${{ '%.2f' % b.held }} held by challenges){% endif %}</p>{% else %}<p class="say">No credits recorded.</p>{% endfor %}
+  <p class="note">Credits the bookmaker gave you, kept per bookmaker. You type in what they gave you; the app moves nothing.</p>
   {% for k in chs.credits %}
-  <div class="chs-credit"><b>{{ k.id }}</b> · {{ k.bookmaker }} ${{ '%.2f' % k.amount }}{% if k.expires_at_utc %} · expires {{ k.expires_at_utc | when }}{% endif %} · {{ k.status }}{% if k.challenge %} for {{ k.challenge }}{% endif %}{% if k.note %}<br><small>{{ k.note }}</small>{% endif %}
+  <div class="chs-credit"><b>{{ k.provider }}</b> ${{ '%.2f' % k.amount }}{% if k.expiry %} · expires {{ k.expiry }}{% endif %}{% if k.challenge %} · held for {{ k.challenge }}{% endif %}{% if k.note %}<br><small>{{ k.note }}</small>{% endif %}
     <form method="get" action="/nba" class="ch-act"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="wid" value="{{ k.id }}">
-      {% if not k.challenge %}<label>Split into (the amounts {{ k.bookmaker }} lets you) <input name="wparts" placeholder="5, 5"></label><button type="submit" name="ch" value="wsplit" class="ghost">Record split</button>
-      {% if chs.list %}<label>Hold for <select name="chid">{% for it in chs.list %}<option value="{{ it.rec.id }}"{{ ' selected' if it.rec.id == cid }}>{{ it.rec.name }}</option>{% endfor %}</select></label><button type="submit" name="ch" value="walloc" class="ghost">Hold for challenge</button>{% endif %}
-      {% else %}<button type="submit" name="ch" value="wrel" class="ghost">Release hold</button>{% endif %}
-      <button type="submit" name="ch" value="wexp" class="ghost">Expired</button></form></div>
-  {% endfor %}
-  <details><summary>+ Record a credit</summary>
+      <button type="submit" name="ch" value="wred" class="ghost">Used</button></form></div>
+  {% else %}<p class="say">No credits recorded.</p>{% endfor %}
+  <details><summary>+ Add a bonus credit</summary>
   <form method="get" action="/nba" class="ch-start"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="wgrant">
     <label>Bookmaker <input name="wprov" placeholder="Sportsbet" required></label>
     <label>Amount $<input name="wamt" inputmode="decimal" required></label>
     <label>Expires <input name="wexp" type="date"></label>
-    <label>Splits offered (optional) <input name="wplans" placeholder="5+5;2+3+5"></label>
-    <label>Where it came from <input name="wnote" maxlength="200" placeholder="e.g. sign-up offer email 7 Nov"></label>
-    <button type="submit">Record credit</button></form></details>
+    <button type="submit">Add credit</button></form></details>
 </section>
 {% if chs.open %}
 <section class="card chs-wager">
@@ -172,22 +166,3 @@
   {% endfor %}
 </section>
 {% endif %}
-<section class="card chs-promo">
-  <div class="vlabel">Compare how to fund a bet</div>
-  <form method="get" action="/nba" class="ch-start"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="pr" value="1">
-    <label>Leg chances % (comma) <input name="pc"  placeholder="80, 70"></label>
-    <label>Accepted price <input name="pp" inputmode="decimal"></label>
-    <label>Stake $<input name="ps" inputmode="decimal"></label>
-    <label>Boosted price (optional) <input name="pb" inputmode="decimal"></label>
-    <label>Winnings boost % (optional) <input name="pf" inputmode="decimal"></label>
-    <label>Money-back cap $ (exactly one leg fails; optional) <input name="pk" inputmode="decimal"></label>
-    <label>A bonus credit is worth (0 to 1) <input name="pr_rate" inputmode="decimal" value="0"></label>
-    <label>Where these offer terms came from <input name="pn" maxlength="200"></label>
-    <button type="submit">Compare</button></form>
-  {% if chs.promo %}{% if chs.promo.error %}<p class="say chs-err">{{ chs.promo.error }}</p>{% else %}
-  <p class="note">{{ chs.promo.objective }}</p>
-  <div class="chs-table"><table><thead><tr><th>Funding</th><th>All win</th><th>Exactly 1 fails</th><th>Cash back</th><th>Bonus value</th><th>Net</th></tr></thead><tbody>
-  {% for r in chs.promo.rows %}<tr><td>{{ r.funding }}<br><small>{{ r.note }}</small></td><td>{{ '%.1f' % (r.p_all * 100) }}%</td><td>{{ '%.1f' % (r.p_one_fail * 100) }}%</td><td>${{ '%.2f' % r.exp_cash_return }}</td><td>${{ '%.2f' % r.exp_bonus_value }}{% if r.bonus_used %} (uses ${{ '%.2f' % r.bonus_used }}){% endif %}</td><td><b>${{ '%.2f' % r.net }}</b></td></tr>{% endfor %}
-  </tbody></table></div>
-  <p class="note">Pull 'Em / cash-out is not valued here: it is not a free removal of a leg.</p>{% endif %}{% endif %}
-</section>
