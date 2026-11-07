@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 import threading
 import time
 from datetime import UTC, datetime, timedelta
@@ -360,6 +361,14 @@ def layout(bands: list[dict] | None, now: datetime | None = None) -> dict:
 MAIN_FAMILIES = ("total", "totals", "line", "spread", "handicap", "h2h")
 
 
+# a game's main line is a full-game market, never an alternate, pick-your-own, half, quarter or
+# period line (those can sit nearer 50/50 by chance)
+_NOT_MAIN = re.compile(
+    r"alt|pick your own|half|quarter|period|1st|2nd|3rd|4th|team total|touchdown|race to|margin",
+    re.I,
+)
+
+
 def next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict]:
     """The next n games of a sport by start: each with its main line (the total, line or
     head-to-head leg closest to 50/50) and how many player props it has. Reads only the
@@ -396,6 +405,8 @@ def next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict
                 and r.get("market_prob") is not None
                 and r.get("price_decimal")
                 and (r.get("market_family") or r.get("market_type")) in MAIN_FAMILIES
+                and (r.get("period") in (None, "", "full_game"))
+                and not _NOT_MAIN.search(str(r.get("market_name_raw") or ""))
             ]
             m = min(main, key=lambda r: abs(r["market_prob"] - 0.5), default=None)
             out.append(
