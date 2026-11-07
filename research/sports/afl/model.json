@@ -1,0 +1,48 @@
+{
+ "n_train": 2671,
+ "seasons": [
+  2013,
+  2025
+ ],
+ "power_k": 1.02,
+ "recal": [
+  0.06439909413932983,
+  1.003771007010621
+ ],
+ "elo": [
+  0.06441902278318995,
+  1.006977488167208,
+  -0.0038869354138765955
+ ],
+ "elo_rest": [
+  0.06310908227412347,
+  1.008281279197413,
+  -3.1215352965262986e-05,
+  -0.16070611775058058
+ ],
+ "elo_params": {
+  "k": 10,
+  "hga": 40
+ },
+ "elo_ratings_end": {
+  "Adelaide": 1619.6,
+  "Brisbane": 1656.7,
+  "Carlton": 1509.2,
+  "Collingwood": 1593.1,
+  "Essendon": 1219.8,
+  "Fremantle": 1742.3,
+  "GWS Giants": 1526.5,
+  "Geelong": 1673.7,
+  "Gold Coast": 1426.9,
+  "Hawthorn": 1655.2,
+  "Melbourne": 1537.0,
+  "North Melbourne": 1333.7,
+  "Port Adelaide": 1396.8,
+  "Richmond": 1217.7,
+  "St Kilda": 1465.0,
+  "Sydney": 1650.8,
+  "West Coast": 1207.6,
+  "Western Bulldogs": 1568.5
+ },
+ "note": "Start from de-margined single-book close; adjustments are listed but only used if holdout_results.json shows a gain outside its 95% range."
+}
