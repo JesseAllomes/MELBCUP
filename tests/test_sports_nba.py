@@ -5,6 +5,8 @@ import sys
 import numpy as np
 
 sys.path.insert(0, "tools/sports/nba")
+for _m in ("build", "model", "test", "common", "fetch"):
+    sys.modules.pop(_m, None)  # another sport's tools load modules with these names
 import build  # noqa: E402
 import model as M  # noqa: E402
 

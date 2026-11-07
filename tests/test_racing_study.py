@@ -14,6 +14,8 @@ import pytest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "tools", "sports", "racing"))
 sys.path.insert(0, os.path.join(HERE, ".."))
+for _m in ("build", "model", "test", "common", "fetch"):
+    sys.modules.pop(_m, None)  # another sport's tools load modules with these names
 import build  # noqa: E402
 import common  # noqa: E402
 import model as M  # noqa: E402
