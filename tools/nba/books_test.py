@@ -41,9 +41,10 @@ def _ll(p: float, y: int) -> float:
     return -(y * math.log(p) + (1 - y) * math.log(1 - p))
 
 
-def rows_for(snap: dict, legs_by_book: dict, box_rows: dict) -> list[dict]:
-    """One row per bet the US books price: model chance, the markets, and the result."""
-    from settle import settle
+def rows_for(snap: dict, legs_by_book: dict, slate, now) -> list[dict]:
+    """One row per bet the US books price: model chance, the markets, and the result. Each leg
+    settles against its own game (settle.settle_one): the snapshot spans 36 hours of games."""
+    from settle import settle_one
 
     us = {b: g for b, g in legs_by_book.items() if b != "pb"}
     m_us, m_pb = L.market_probs(us), L.feed_market(legs_by_book.get("pb", []))
@@ -52,11 +53,11 @@ def rows_for(snap: dict, legs_by_book: dict, box_rows: dict) -> list[dict]:
     for legs in us.values():
         for g in legs:
             key = L.bet_key(g)
-            if key in seen or key not in m_us:
+            if key in seen or key not in m_us or g.get("model") is None:  # model ways need one
                 continue
             seen.add(key)
-            res = settle([g], box_rows)[0]["result"]
-            if res == "void":
+            res = settle_one(g, slate, now, snap["board"]["day"])["result"]
+            if res not in ("won", "lost"):
                 continue
             out.append(
                 {
@@ -102,8 +103,9 @@ def report(rows: list[dict]) -> str:
 
 
 def score(paths: list[str]) -> None:
-    from settle import box
+    from settle import Slate
 
+    slate, now = Slate(), dt.datetime.now(dt.UTC)
     latest: dict = {}  # one snapshot per night: the latest (closest to tip-off)
     for p in paths:
         snap = json.loads(Path(p).read_text())
@@ -111,10 +113,10 @@ def score(paths: list[str]) -> None:
         if day not in latest or snap["at"] > latest[day]["at"]:
             latest[day] = snap
     rows: list[dict] = []
-    for day, snap in sorted(latest.items()):
+    for _day, snap in sorted(latest.items()):
         board = snap["board"]
         legs = {b: L.legs_from(evs, board)[0] for b, evs in snap["books"].items()}
-        rows += rows_for(snap, legs, box(day))
+        rows += rows_for(snap, legs, slate, now)
     print(report(rows) if rows else "nothing settled yet")
 
 
