@@ -1,6 +1,7 @@
-"""The deployed Function is a flat package (tools/deploy_azure.py): every module it imports
-must load without the `melbcup` package. A `from melbcup import ...` with no flat fallback left the Function
-with zero functions loaded on 7 Nov 2026 (nothing ran for 14 hours)."""
+"""The deployed Function is a flat package (tools/deploy_azure.py): every module it
+imports must load without the `melbcup` package. A `from melbcup import ...` with no flat
+fallback left the Function with zero functions loaded on 7 Nov 2026 (nothing ran for 14
+hours)."""
 
 import importlib.util
 import shutil
