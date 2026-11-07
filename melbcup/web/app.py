@@ -347,9 +347,29 @@ def create_app(
             n for n in blob_names(account, os.environ.get("AZURE_CLIENT_ID")) if data_ok.match(n)
         ]
         rows = "".join(f'<li><a href="/data/{n}">{n}</a></li>' for n in sorted(names))
+        gh = "https://github.com/JesseAllomes/MELBCUP/tree/main/"
+        code = "".join(
+            f'<li><a href="{gh}{p}">{p}</a> {what}</li>'
+            for p, what in (
+                ("research", "every test and backtest result"),
+                (
+                    "tools/nba",
+                    "NBA model, tuning, backtests, learners (model_v3.json, model_v4.json)",
+                ),
+                ("tools/racing", "racing learner"),
+                ("tools/sports", "per-sport data pullers and models"),
+                ("melbcup", "the app: nba_legs.py (chances, multis), nba_challenge.py, live.py"),
+                ("data", "data shipped with the app"),
+                ("docs/data", "the racing archive"),
+            )
+        )
         return HTMLResponse(
             f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
-            f"<title>AsynymBet data</title><h1>AsynymBet data</h1><ul>{rows}</ul>"
+            f"<title>AsynymBet data</title><h1>AsynymBet data</h1>"
+            f"<h2>Datasets (live, Azure)</h2><ul>{rows}</ul>"
+            f"<h2>Models, research and code (GitHub)</h2><ul>{code}</ul>"
+            f"<p><a href='https://github.com/JesseAllomes/MELBCUP/tree/live'>Live racing observations</a>"
+            f" (branch live)</p>"
         )
 
     @app.get("/data/{name:path}")
