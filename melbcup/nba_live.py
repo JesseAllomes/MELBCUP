@@ -18,7 +18,8 @@ from zoneinfo import ZoneInfo
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 UA = "Mozilla/5.0 (compatible; asynymbet)"
 TTL_S = 60
-NY = ZoneInfo("America/New_York")
+NY = ZoneInfo("America/New_York")  # only to derive the NBA's US game date
+MELB = ZoneInfo("Australia/Melbourne")  # every time the owner sees
 _CACHE: dict[str, tuple[float, dict]] = {}
 
 LEG = re.compile(
@@ -170,9 +171,19 @@ def track(label: str, now: datetime | None = None, fetch=None) -> dict | None:
     verdict = None
     if state == "post":
         verdict = "won" if failed == 0 else ("lost1" if failed == 1 else "lost")
+    comp = (summary.get("header", {}).get("competitions") or [{}])[0]
+    starts = str(comp.get("date") or "")
+    clock = status.get("type", {}).get("shortDetail", "")
+    if state == "pre":  # ESPN's pre-game text is US time: show the tip-off in Melbourne time
+        try:
+            tip = datetime.fromisoformat(starts.replace("Z", "+00:00")).astimezone(MELB)
+            clock = f"Tip-off {tip:%a %-d %b %-I:%M %p} {tip.tzname()}"
+        except ValueError:
+            clock = ""
     return {
         "state": state,
-        "clock": status.get("type", {}).get("shortDetail", ""),
+        "starts_at": starts,  # UTC ISO as ESPN gives it
+        "clock": clock,
         "legs": out,
         "failed": failed,
         "verdict": verdict,
