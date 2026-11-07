@@ -88,3 +88,47 @@ def test_one_fail_chance_is_exact_for_independent_legs():
         math.prod(ps[j] if j != i else 1 - ps[i] for j in range(len(ps))) for i in range(len(ps))
     )
     assert abs(res["p_one_fail"] - brute) < 1e-9
+
+
+def test_review_23_equal_price_higher_chance_survives_pruning():
+    worse = [row("1", 2.0, 0.40 + i / 1000) for i in range(8)]
+    good = row("1", 2.0, 0.50)
+    group = D.pool(legs(worse + [good]))[0]
+    assert max(g["p"] for g in group) == 0.50
+
+
+def test_review_24_boundary_multi_is_found():
+    L = legs([row("A", 1.500, 0.62), row("A", 1.505, 0.61), row("B", 1.332, 0.70)])
+    pick = D.best_multis(D.pool(L), bands=((2.0, 3.0),))[0]["pick"]
+    assert pick is not None and abs(pick["price"] - 2.00) < 0.01
+    assert abs(math.prod(g["price"] for g in pick["legs"]) - 1.505 * 1.332) < 1e-9
+
+
+def test_review_25_matches_brute_force_on_random_slates():
+    import random
+
+    rnd = random.Random(7)
+    bands = ((1.5, 2.0), (2.0, 3.0), (3.0, 5.0), (5.0, 10.0))
+    for _ in range(25):
+        rows = []
+        for e in range(6):
+            for _ in range(rnd.randint(1, 4)):
+                price = round(rnd.uniform(1.05, 3.2), 3)
+                p = min(0.97, max(0.31, 1 / price * rnd.uniform(0.88, 0.99)))
+                rows.append(row(str(e), price, round(p, 4)))
+        L = legs(rows)
+        got = D.best_multis(D.pool(L), bands=bands)
+        for res, (lo, hi) in zip(got, bands, strict=True):
+            best = None
+            for k in range(2, 7):
+                for combo in itertools.combinations(L, k):
+                    if len({g["event_id"] for g in combo}) < k:
+                        continue
+                    if lo <= math.prod(g["price"] for g in combo) < hi:
+                        lp = sum(math.log(g["p"]) for g in combo)
+                        best = lp if best is None or lp > best else best
+            if best is None:
+                assert res["pick"] is None
+            else:
+                assert res["pick"] is not None, (lo, hi)
+                assert math.log(res["pick"]["p_all"]) >= best - 1e-9, (lo, hi)

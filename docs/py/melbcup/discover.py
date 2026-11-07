@@ -15,9 +15,9 @@ Honesty rules (independent review, owner-agreed):
   it does not claim value.
 - An odds range with nothing that fits says so; it is never padded.
 
-The search is exact for its pool: a multiple-choice knapsack over log-price bins (one leg per
-game, up to MAX_LEGS), maximising the sum of log chances, then the exact product is checked
-against the range.
+The search is a multiple-choice knapsack over log-price bins (one leg per game, up to MAX_LEGS)
+keeping several exact-price states per bin, maximising the sum of log chances; the exact product
+is checked against each range. Tests compare it with brute force on small slates.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ MAX_AGE_S = 3 * 3600  # a price older than this is not used
 HORIZON_H = 48  # games starting within this many hours
 MIN_LEAD_S = 5 * 60  # and not about to start
 MIN_CHANCE = 0.30  # a leg below this is never worth its place at these ranges
-PER_EVENT = 8  # best legs kept per game (least margin first)
+PER_EVENT = 12  # legs kept per game from its price frontier (least margin first)
 MAX_EVENTS = 250  # games kept for the search
 BIN = 0.01  # log-price resolution of the search
 REFRESH_S = 600
@@ -93,50 +93,90 @@ def leg_of(r: dict, sport: str, now: datetime) -> dict | None:
     }
 
 
-def margin_ratio(g: dict) -> float:
-    """log(chance) / log(1/price): 1.0 for a margin-free leg, lower the more margin it carries."""
-    return math.log(g["p"]) / -math.log(g["price"])
+def value_at_price(g: dict) -> float:
+    """log(chance x price): 0 for a margin-free leg, more negative the more margin it carries.
+    At the same price the higher chance always scores higher (independent review, 2026-11-07:
+    an earlier ratio ranked this backwards)."""
+    return math.log(g["p"] * g["price"])
+
+
+LOCAL_DOM = 1.10  # a leg is dropped only for one at most 10% dearer with at least its chance
+
+
+def _frontier(legs: list[dict]) -> list[dict]:
+    """One game's legs that can matter at some target: drop a leg only when another leg priced
+    above it, but by no more than LOCAL_DOM, has at least its chance (a dearer, likelier leg is
+    better at a lower price limit, and the 10% cap keeps cheaper legs an upper limit may need).
+    The PER_EVENT legs with least margin are kept."""
+    pts = sorted(legs, key=lambda g: g["price"])
+    keep = [
+        g
+        for i, g in enumerate(pts)
+        if not any(
+            h["p"] >= g["p"] and g["price"] < h["price"] <= g["price"] * LOCAL_DOM
+            for h in pts[i + 1 :]
+        )
+    ]
+    keep.sort(key=value_at_price, reverse=True)
+    return keep[:PER_EVENT]
 
 
 def pool(legs: list[dict]) -> list[list[dict]]:
-    """Legs grouped by game, PER_EVENT least-margin legs each, the MAX_EVENTS best games."""
+    """Legs grouped by game (each game's price frontier), the MAX_EVENTS games whose best leg
+    carries the least margin."""
     by: dict[str, list[dict]] = {}
     for g in legs:
         by.setdefault(g["event_id"], []).append(g)
-    groups = [sorted(v, key=margin_ratio, reverse=True)[:PER_EVENT] for v in by.values()]
-    groups.sort(key=lambda v: margin_ratio(v[0]), reverse=True)
+    groups = [_frontier(v) for v in by.values()]
+    groups = [v for v in groups if v]
+    groups.sort(key=lambda v: max(value_at_price(g) for g in v), reverse=True)
     return groups[:MAX_EVENTS]
 
 
+def _keep(states: list, cand: tuple) -> list:
+    """Up to three states per (legs, bin): the best chance, the dearest exact price and the
+    cheapest exact price, so a combination just across a range boundary is never lost."""
+    pool_ = states + [cand]
+    out: list = []
+    for s_ in (
+        max(pool_, key=lambda s: s[0]),
+        max(pool_, key=lambda s: s[1]),
+        min(pool_, key=lambda s: s[1]),
+    ):
+        if not any(s_ is o for o in out):
+            out.append(s_)
+    return out
+
+
 def best_multis(groups: list[list[dict]], bands=BANDS) -> list[dict]:
-    """For each (lo, hi) odds range: the highest-chance multi whose price is in [lo, hi), one leg
-    per game, MIN_LEGS to MAX_LEGS legs; or none, with a reason."""
+    """For each (lo, hi) odds range: the highest-chance multi whose exact price is in [lo, hi),
+    one leg per game, MIN_LEGS to MAX_LEGS legs; or none, with a reason. Searched over log-price
+    bins keeping several exact-price states per bin; checked against brute force in the tests."""
     top = math.log(max(hi for _, hi in bands))
-    nb = int(top / BIN) + 2
-    # dp[k][bin] = (sum log p, legs): best k-leg multi in that log-price bin
-    dp: list[dict[int, tuple[float, tuple]]] = [{} for _ in range(MAX_LEGS + 1)]
-    dp[0][0] = (0.0, ())
+    # dp[k][bin] = [(sum log p, exact sum log price, legs), ...]
+    dp: list[dict[int, list]] = [{} for _ in range(MAX_LEGS + 1)]
+    dp[0][0] = [(0.0, 0.0, ())]
     for group in groups:
-        steps = [(g, int(round(math.log(g["price"]) / BIN)), math.log(g["p"])) for g in group]
+        steps = [(g, math.log(g["price"]), math.log(g["p"])) for g in group]
         for k in range(MAX_LEGS - 1, -1, -1):  # downwards: a game adds at most one leg
-            cur, nxt = dp[k], dp[k + 1]
-            for b, (lp, legs) in list(cur.items()):
-                for g, db, dlp in steps:
-                    nbin = b + db
-                    if nbin >= nb:
-                        continue
-                    val = lp + dlp
-                    old = nxt.get(nbin)
-                    if old is None or val > old[0]:
-                        nxt[nbin] = (val, legs + (g,))
+            nxt = dp[k + 1]
+            for states in list(dp[k].values()):
+                for lp, lpr, legs in states:
+                    for g, dpr, dlp in steps:
+                        tot = lpr + dpr
+                        if tot > top + BIN:
+                            continue
+                        b = int(tot / BIN)
+                        nxt[b] = _keep(nxt.get(b, []), (lp + dlp, tot, legs + (g,)))
     out = []
     for lo, hi in bands:
         best = None
         for k in range(MIN_LEGS, MAX_LEGS + 1):
-            for lp, legs in dp[k].values():
-                price = math.prod(g["price"] for g in legs)
-                if lo <= price < hi and (best is None or lp > best[0]):
-                    best = (lp, legs)
+            for states in dp[k].values():
+                for lp, _lpr, legs in states:
+                    price = math.prod(g["price"] for g in legs)
+                    if lo <= price < hi and (best is None or lp > best[0]):
+                        best = (lp, legs)
         out.append(_summary(lo, hi, best))
     return out
 
