@@ -23,7 +23,8 @@ import time
 import urllib.error
 import urllib.request
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta  # noqa: F401
+from zoneinfo import ZoneInfo
 
 import numpy as np
 
@@ -113,7 +114,7 @@ def model_chances(R, v3):
         mu = np.maximum(mins, 0) * rate * np.power(np.clip(R[f"opp_{s}"][idx], 0.5, 2.0), a_opp)
         for j, ix in enumerate(idx):
             when = datetime.fromisoformat(str(R["when"][ix]).replace("Z", "+00:00"))
-            us = (when - timedelta(hours=5)).date().isoformat()  # tip-off in the US evening
+            us = when.astimezone(ZoneInfo("America/New_York")).date().isoformat()  # the US game date (DST-correct)
             out[(str(R["pid"][ix]), us, s)] = (float(mu[j]), math.exp(log_phi), ca, cb)
     return out
 

@@ -523,7 +523,14 @@ def migrate(cookie_raw: str | None) -> dict:
     return store
 
 
+class StoreUnavailable(RuntimeError):
+    """The durable store could not be read (not the same as 'nothing stored yet')."""
+
+
 def _read() -> dict | None:
+    """The stored challenges, None only when nothing has been stored yet. Any other failure
+    raises StoreUnavailable, so a read hiccup can never be mistaken for an empty store and
+    saved over the owner's challenges."""
     account = os.environ.get("NBA_ACCOUNT")
     try:
         if account:
@@ -534,8 +541,8 @@ def _read() -> dict | None:
             p = _local_path()
             raw = p.read_bytes() if p.exists() else None
         return json.loads(raw) if raw else None
-    except (OSError, ValueError):
-        return None
+    except Exception as e:  # noqa: BLE001
+        raise StoreUnavailable(str(e)) from e
 
 
 def load(cookie_raw: str | None = None, fresh_read: bool = False) -> dict:
@@ -543,7 +550,12 @@ def load(cookie_raw: str | None = None, fresh_read: bool = False) -> dict:
     now = time.monotonic()
     if not fresh_read and _CACHE[1] is not None and now - _CACHE[0] < CACHE_S:
         return copy.deepcopy(_CACHE[1])
-    store = _read()
+    try:
+        store = _read()
+    except StoreUnavailable:
+        if _CACHE[1] is not None:  # serve the last good copy, read-only
+            return copy.deepcopy(_CACHE[1]) | {"_unavailable": True}
+        return migrate(None) | {"_unavailable": True}
     if not isinstance(store, dict) or "challenges" not in store:
         store = migrate(cookie_raw)
     _CACHE[:] = [now, copy.deepcopy(store)]
@@ -551,12 +563,18 @@ def load(cookie_raw: str | None = None, fresh_read: bool = False) -> dict:
 
 
 def save(store: dict) -> None:
+    """Write the store. Refuses a store loaded while the real one was unreadable. Each save also
+    refreshes that day's backup copy (challenges/backup-<YYYYMMDD>.json)."""
+    if store.get("_unavailable"):
+        raise StoreUnavailable("not saving: the stored challenges could not be read")
     data = json.dumps(store, separators=(",", ":")).encode()
     account = os.environ.get("NBA_ACCOUNT")
     if account:
         from melbcup.push_store import blob_writer
 
-        blob_writer(account, os.environ.get("AZURE_CLIENT_ID"))(STORE_BLOB, data)
+        w = blob_writer(account, os.environ.get("AZURE_CLIENT_ID"))
+        w(STORE_BLOB, data)
+        w(f"challenges/backup-{time.strftime('%Y%m%d', time.gmtime())}.json", data)
     else:
         p = _local_path()
         p.parent.mkdir(parents=True, exist_ok=True)

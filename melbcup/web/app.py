@@ -530,9 +530,13 @@ def create_app(
         if settings.asynym and path in ("nba", "sports") and "ch" in query:  # challenges, wallet, recorded wagers
             before = nba_challenge.load(request.cookies.get(nba_challenge.COOKIE))
             store, changed, _ = nba_challenge.apply_store(before, query, melbourne_today().isoformat())
-            if changed or (store.get("migrated") and nba_challenge._read() is None):
-                nba_challenge.save(store)
-            if request.cookies.get(nba_challenge.COOKIE):  # the cookie was only the migration source
+            try:  # the cookie (the old single challenge) is dropped only once the store holds it
+                if changed or (store.get("migrated") and nba_challenge._read() is None):
+                    nba_challenge.save(store)
+                safe = nba_challenge._read() is not None
+            except nba_challenge.StoreUnavailable:
+                safe = False
+            if safe and request.cookies.get(nba_challenge.COOKIE):
                 response.delete_cookie(nba_challenge.COOKIE)
         if settings.asynym:  # ASYNYM=1: which agencies are ON, and TAB, Ladbrokes, Neds money
             for name, value in asynym.cookie_changes(query).items():

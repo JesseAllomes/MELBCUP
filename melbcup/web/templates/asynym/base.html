@@ -24,7 +24,7 @@
     {% include "asynym/_header.html" %}
     <div class="scr">
     {% block content %}{% endblock %}
-    {% if can_fetch and not snap.saved %}
+    {% if can_fetch and not snap.saved and nav != 'sports' %}{# racing controls: racing screens only #}
     <div class="status">
       <p class="src">{{ [('Live' if snap.auto else ''), ('prices ' ~ (snap.priced_at | local_time) if snap.priced_at else ''), ('results ' ~ (snap.results_at | local_time) if snap.results_at else ''), ('loading card…' if snap.loading or (not card and not snap.field_due) else '')] | select | join(' · ') }}</p>
       {% if not snap.auto %}
