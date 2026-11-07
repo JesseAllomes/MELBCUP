@@ -246,11 +246,11 @@ SPORTS += (
 )
 BY_CODE = {s.code: s for s in SPORTS}
 TABS = (
-    (("nba", "NBA"),)
+    (("home", "Best multis"), ("nba", "NBA"))
     + tuple((s.code, s.name) for s in SPORTS if s.code != "nba")
     + (("all", "All"),)
 )
-DEFAULT = "nba"
+DEFAULT = "home"  # the Sports home: best multis across every sport (owner, 2026-11-07)
 
 
 VIEWS = ("players", "markets")
@@ -259,7 +259,7 @@ VIEWS = ("players", "markets")
 def pick_view(sport: str, code: str | None) -> str:
     """The sub-tab: "" is the page's own default (NBA's multis tabs, the All matrix); the rest are
     the catalogue views. Every other sport lands on Players."""
-    if sport == "racing":
+    if sport in ("racing", "home"):
         return ""
     if code in VIEWS:
         return code
@@ -268,4 +268,4 @@ def pick_view(sport: str, code: str | None) -> str:
 
 def pick(code: str | None) -> str:
     """The ?sport= value to show: a known tab, else NBA."""
-    return code if code in BY_CODE or code == "all" else DEFAULT
+    return code if code in BY_CODE or code in ("all", "home") else DEFAULT

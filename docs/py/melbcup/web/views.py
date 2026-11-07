@@ -941,6 +941,10 @@ class Views:
             if view:
                 ctx["cat"] = catalogue_view.query(sport, view, query)
             ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
+            if sport == "home":
+                from melbcup import discover
+
+                ctx["disc"] = discover.latest()
             if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub

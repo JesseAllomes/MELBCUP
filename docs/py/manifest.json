@@ -1,5 +1,5 @@
 {
- "build": "35f9eb07b9cc",
+ "build": "70abf1c4ffdc",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -18,6 +18,7 @@
   "melbcup/catalogue_view.py",
   "melbcup/config.py",
   "melbcup/data_public.py",
+  "melbcup/discover.py",
   "melbcup/domain.py",
   "melbcup/history.py",
   "melbcup/live.py",

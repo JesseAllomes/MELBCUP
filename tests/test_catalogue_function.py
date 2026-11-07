@@ -45,7 +45,7 @@ def fake_rotation(calls):
     return run
 
 
-def test_tick_builds_then_waits_30_minutes(fa, monkeypatch):
+def test_tick_builds_every_run_not_twice_inside_9_minutes(fa, monkeypatch):
     calls = []
     monkeypatch.setattr(fa.catalogue, "run_rotation", fake_rotation(calls))
     nba = fa.service.get_container_client("nba")
@@ -55,9 +55,9 @@ def test_tick_builds_then_waits_30_minutes(fa, monkeypatch):
     state = json.loads(nba.data["catalogue/state.json"])
     assert state["cursor"] == 1 and state["last_build"].startswith("2026-11-07T10:00")
     assert "catalogue/raw/nba/20260101/0000.json.gz" not in nba.data  # raw kept 3 days
+    fa._catalogue_tick(NOW + dt.timedelta(minutes=5), time.monotonic())
+    assert len(calls) == 1  # not twice inside one 10-minute tick
     fa._catalogue_tick(NOW + dt.timedelta(minutes=10), time.monotonic())
-    assert len(calls) == 1  # not within 30 minutes
-    fa._catalogue_tick(NOW + dt.timedelta(minutes=30), time.monotonic())
     assert len(calls) == 2 and calls[1][0] == 1  # the rotation cursor carries on
 
 

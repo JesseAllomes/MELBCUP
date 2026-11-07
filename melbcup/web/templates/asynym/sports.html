@@ -80,7 +80,7 @@
 {% endif %}
 {% endmacro %}
 {% macro subtabs() %}
-{% if sport != 'racing' %}
+{% if sport not in ('racing', 'home') %}
 <nav class="sp-tabs sp-sub" aria-label="Views">
   {% if sport in ('nba', 'all') %}<a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else 'Coverage' }}</a>{% endif %}
   <a href="/sports?sport={{ sport }}&view=players" class="{{ 'on' if view == 'players' }}"{% if view == 'players' %} aria-current="page"{% endif %}>{{ 'Players · all props' if sport == 'nba' else 'Players' }}</a>
@@ -98,6 +98,31 @@
 {% if sport not in ('nba', 'all') %}{{ cover(hub) }}{% endif %}
 {% elif sport == 'nba' %}
 {{ super() }}
+{% elif sport == 'home' %}
+<section class="card sp-card dz-head">
+  <h2>Best multis across every sport</h2>
+  <p class="note">For each odds range, the multi with the highest chance that every leg wins, from every PointsBet market with a fair price (the bookmaker's own odds with its margin taken out). One leg per game, so legs don't depend on each other. NBA head-to-head is left out, as you set.</p>
+  {% if disc %}<p class="note">Worked out {{ disc.built | iso_time }} from {{ disc.legs_usable }} usable legs in {{ disc.games }} games ({{ disc.sports | join(', ') }}).</p>{% endif %}
+</section>
+{% if not disc %}
+<section class="card sp-card"><p>Working out the best multis… this page refreshes itself.</p></section>
+{% else %}
+{% for b in disc.bands %}
+<section class="card sp-card dz-band">
+  <h2>${{ '%g' | format(b.lo) }} – ${{ '%g' | format(b.hi) }}</h2>
+  {% if not b.pick %}
+  <p class="note">{{ b.reason }}</p>
+  {% else %}{% set p = b.pick %}
+  <p class="dz-big"><b>{{ '%.1f' | format(p.p_all * 100) }}%</b> chance all legs win · price <b>${{ '%.2f' | format(p.price) }}</b></p>
+  <p class="note">Exactly one leg fails: {{ '%.1f' | format(p.p_one_fail * 100) }}% (matters for money-back offers) · fair price ${{ '%.2f' | format(p.fair_price) }} · expected return {{ '%+.1f' | format(p.expected_return * 100) }}% per bet at this price</p>
+  <ol class="dz-legs">
+    {% for g in p.legs %}<li><b>{{ g.label }}</b> <span class="dz-px">{{ '%.2f' | format(g.price) }} · {{ '%.0f' | format(g.p * 100) }}%</span><small>{{ g.event }} · {{ g.sport }} · {{ g.start | iso_time }} · price seen {{ g.seen | iso_time }}</small></li>{% endfor %}
+  </ol>
+  {% endif %}
+</section>
+{% endfor %}
+<p class="note">Prices are PointsBet's as last read and can move; the price is the legs multiplied, and PointsBet's own multi price can differ, so check the slip. A high chance is not value: every multi here returns less than it costs on average.</p>
+{% endif %}
 {% elif sport == 'all' %}
 <section class="card sp-card">
   <h2>What the app has, by sport</h2>

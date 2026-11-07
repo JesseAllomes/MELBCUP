@@ -54,8 +54,9 @@ def test_each_tab_renders(c, code):
         assert f">{label}</a>" in r.text
 
 
-def test_default_is_nba(c):
-    assert "NBA player props" in c.get("/sports").text
+def test_default_is_best_multis_and_nba_still_there(c):
+    assert "Best multis across every sport" in c.get("/sports").text  # the Sports home (owner)
+    assert "NBA player props" in c.get("/sports?sport=nba").text
 
 
 def test_matrix_has_every_sport(c):

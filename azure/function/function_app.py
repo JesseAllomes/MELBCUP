@@ -222,7 +222,7 @@ def _nba_work(moment: dt.datetime) -> None:
     logging.info("us books %s", nba_props.pretip_ping(nba, moment))
 
 
-CATALOGUE_EVERY_S = 1740  # a build at most every 30 minutes (29 min: the 10-minute timer jitters)
+CATALOGUE_EVERY_S = 540  # every run (the 10-minute timer jitters): the best-multis page needs fresh prices
 CATALOGUE_END_S = 42.0  # seconds after the run starts: the Function times out at 55 s (host.json)
 CATALOGUE_STATE = "catalogue/state.json"
 
