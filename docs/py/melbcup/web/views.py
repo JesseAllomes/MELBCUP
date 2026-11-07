@@ -495,7 +495,9 @@ class Views:
         out["chs"] = sub["chs"]
         out["ch_state"] = sub["ch_state"]
         out["ch_tl"] = self._stage_timeline(out.get("ch"), out.get("ch_x"))
-        out["ch_sug"] = self._stage_pick(disc, sport, out.get("ch_x")) if out["ch_tl"] else None
+        out["ch_sug"] = self._stage_pick(
+            disc, sport, out.get("ch_x"), (out.get("ch") or {}).get("legs")
+        ) if out["ch_tl"] else None
         return out
 
     @staticmethod
@@ -515,14 +517,20 @@ class Views:
         return out
 
     @staticmethod
-    def _stage_pick(disc, sport: str, x: float | None) -> dict | None:
+    def _stage_pick(disc, sport: str, x: float | None, legs: int | None = None) -> dict | None:
         """The pick for a stage aiming at x times the stake: this sport's pick from the odds range
         containing x, else the all-sports one; None when no range holds it."""
         if x is None or not disc:
             return None
+        bl = (disc.get("by_legs") or {}) if legs else {}  # per-leg-count bands, built with the rest
         for name, bands in (
-            (sport, (disc.get("by_sport") or {}).get(sport)),
-            ("all sports", disc.get("bands")),
+            (
+                sport,
+                ((bl.get("by_sport") or {}).get(sport) or {}).get(legs)
+                if legs
+                else (disc.get("by_sport") or {}).get(sport),
+            ),
+            ("all sports", (bl.get("home") or {}).get(legs) if legs else disc.get("bands")),
         ):
             for b in bands or []:
                 if b.get("pick") and b["lo"] <= x < b["hi"]:
@@ -544,7 +552,7 @@ class Views:
             return {
                 "ch": run,
                 "ch_step": None,
-                "ch_plan": {"start": 10.0, "goal": 1000.0, "keep": True},
+                "ch_plan": {"start": 10.0, "goal": 1000.0, "keep": True, "legs": None},
                 "ch_games": [],
                 "ch_preview": [],
                 "ch_best": None,
@@ -561,13 +569,18 @@ class Views:
         if state is not None and state.get("active") is False:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
         legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
+        want = (state or {}).get("legs") or nba_challenge._legs(query.get("chlegs"))
+        lim = {"min_legs": want, "max_legs": want} if want else {}
         p_start = nba_challenge._money(query.get("chstart")) or 10.0
         p_goal = max(nba_challenge._money(query.get("chgoal")) or 1000.0, p_start * 2)
         p_keep = query.get("chkeep", "1") == "1" if query.get("chplan") else True
+        fresh_run = state is None or not (state["steps"] or state.get("placed"))
+        if state is not None and fresh_run:  # a just-created run: the planner stays open
+            p_start, p_goal, p_keep = state["start"], state["goal"], state.get("keep", True)
         preview = (
-            []
-            if state is not None
-            else self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep)
+            self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep, want)
+            if fresh_run
+            else []
         )
         best, why = nba_challenge.recommend(preview) if preview else (None, "")
         step, games, wait, push, alt_agency = None, [], None, [], None
@@ -576,14 +589,14 @@ class Views:
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
             legs = [g for g in legs_now if nba_challenge.allowed(state, g.get("startsAt"))]
             if state.get("mode", "game") == "game":
-                games = nba_legs.same_game_for(legs, x, stake=state["bank"])
+                games = nba_legs.same_game_for(legs, x, stake=state["bank"], **lim)
                 step = max(games, key=lambda m: m["chance"]) if games else None
                 chosen = state.get("pick")  # a game the owner stuck to for this stage
                 if chosen:
                     step = next((m for m in games if m.get("game") == chosen), step)
                 alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
             else:
-                step = nba_legs.stack_for(legs, x, stake=state["bank"])
+                step = nba_legs.stack_for(legs, x, stake=state["bank"], **lim)
             earliest, not_night = nba_challenge.next_window(state)
             if not step and (earliest or not_night):
                 wait = {"after": earliest, "night": not_night}
@@ -652,7 +665,7 @@ class Views:
             if (state and step and nba_challenge._when(step.get("startsAt")))
             else None,
             "ch_why": why,
-            "ch_plan": {"start": p_start, "goal": p_goal, "keep": p_keep},
+            "ch_plan": {"start": p_start, "goal": p_goal, "keep": p_keep, "legs": want},
             "ch_wait": wait,
             "ch_finish": nba_challenge.finish_chance(
                 step["chance"], state, nba_challenge.typical([g["chance"] for g in games])
@@ -711,7 +724,9 @@ class Views:
                 for g in ((a.get("report") or {}).get("all_legs") or [])
                 if nba_challenge.allowed(state, g.get("startsAt"))
             ]
-            found = nba_legs.same_game_for(legs, x, stake=state["bank"])
+            n = state.get("legs")
+            lim = {"min_legs": n, "max_legs": n} if n else {}
+            found = nba_legs.same_game_for(legs, x, stake=state["bank"], **lim)
             top = max(found, key=lambda m: m["chance"]) if found else None
             if top and (best is None or top["chance"] > best["chance"]):
                 left = getattr(self, "_agency_left", {}).get(code, 0.0)
@@ -726,16 +741,22 @@ class Views:
             return best
         return None
 
-    def _stage_preview(self, legs, nba_challenge, nba_legs, start=10.0, goal=1000.0, keep=True):
+    def _stage_preview(
+        self, legs, nba_challenge, nba_legs, start=10.0, goal=1000.0, keep=True, want=None
+    ):
         """The set-up table for this start and goal (nba_challenge.plan): per stage count, the
         payout a stage, tonight's best and typical stage chance and the run's. Kept per lines and
         goal, so only a new goal does the search (about a second)."""
-        key = (id(legs), len(legs), round(goal / start, 3), keep)
+        key = (id(legs), len(legs), round(goal / start, 3), keep, want)
         cache = self.__dict__.setdefault("_plan_cache", {})
         if key not in cache:
 
             def chances_for(xmap):
-                many = nba_legs.same_game_many(legs, list(set(xmap.values())))
+                many = nba_legs.same_game_many(
+                    legs,
+                    list(set(xmap.values())),
+                    **({"min_legs": want, "max_legs": want} if want else {}),
+                )
                 return {n: [g["chance"] for g in many[x]] for n, x in xmap.items()}
 
             if len(cache) > 8:

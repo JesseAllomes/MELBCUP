@@ -21,6 +21,8 @@
     <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
     <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
     <label class="ch-mode">Stages <select name="chn">{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}</select></label>
+    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if None == n }}>{{ n }}</option>{% endfor %}</select></label>
+    <p class="note">Right after you create it, the planner shows the best stage count for this start and goal; change the stages there.</p>
     <label class="ch-mode"><input type="radio" name="chmode" value="game" checked> One game per stage</label>
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
     <button type="submit">Create and start</button>
@@ -39,10 +41,11 @@
   <p class="say">Roll the bank into one multi a stage; pick how many stages. Fewer stages pay more each and are harder to win; more stages are easier each but you need more wins in a row. One loss ends the run.</p>
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
-    <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%g' % ch_plan.start }}"></label>
+    <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%.2f' % ch_plan.start if ch_plan.start != ch_plan.start|round(0) else '%g' % ch_plan.start }}"></label>
     <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%g' % ch_plan.goal }}"></label>
     <input type="hidden" name="chkeep" value="0">
     <label class="ch-mode"><input type="checkbox" name="chkeep" value="1"{{ ' checked' if ch_plan.keep }}> Take my start back after the first win</label>
+<label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch_plan.legs == n }}>{{ n }}</option>{% endfor %}</select></label>
     <button type="submit" name="chplan" value="1" class="ghost">Best stages for this goal</button>
   {% if ch_best %}
   <p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>
@@ -60,6 +63,20 @@
   {% else %}
   {% set one_game = ch.get('mode', 'game') == 'game' %}
   {% set placed = ch.get('placed') %}
+  {% if not ch.steps and not placed and ch_preview %}
+  <div class="ch-plan" id="ch-plan">
+  <div class="vlabel">Plan: ${{ '%.2f' % ch.start }} → ${{ '%.2f' % ch.goal }}</div>
+  {% if ch_best %}<p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>{% endif %}
+  {% if ch_preview[0].typical is not none %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
+  <p class="note ch-links">{{ ch.get('stages', 3) }} stages (<a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=dropstage&chs=0">- fewer</a> · <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=addstage&chs=0">+ more</a>)</p>
+  </div>
+  {% endif %}
+  {% if not placed %}
+  <form method="get" action="/sports" class="ch-act ch-legs">
+    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch.get('legs') == n }}>{{ n }}</option>{% endfor %}</select></label>
+    <button type="submit" name="ch" value="chlegs" class="ghost">Set</button></form>
+  {% endif %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   {% if not ch.get('placed') %}<p class="note ch-links"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% if ch.get('pick') %} · stuck to {{ ch.pick }}{% endif %}</p>{% endif %}
   <div class="ch-bar" role="meter" aria-valuemin="0" aria-valuemax="{{ ch.goal }}" aria-valuenow="{{ ch.bank }}"><i style="width:{{ [((ch.bank / ch.goal) * 100) | round(1), 100] | min }}%"></i></div>

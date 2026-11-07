@@ -70,6 +70,11 @@ def _money(text: str | None) -> float | None:
     return v if 0 < v < 1_000_000 else None
 
 
+def _legs(text) -> int | None:
+    """Legs per multi: 2-4, or None for the best chance at any count."""
+    return int(text) if str(text) in ("2", "3", "4") else None
+
+
 def fresh(
     start=10.0,
     goal=1000.0,
@@ -79,8 +84,10 @@ def fresh(
     bets=None,
     stages=DEFAULT_STAGES,
     per_night=1,
+    legs=None,
 ) -> dict:
     return {
+        "legs": legs,
         "start": start,
         "goal": goal,
         "bank": start,
@@ -108,6 +115,7 @@ def _again(state: dict, **extra) -> dict:
             state.get("bets", []),
             state.get("stages", DEFAULT_STAGES),
             state.get("per_night", 1),
+            state.get("legs"),
         )
         | extra
     )
@@ -152,16 +160,19 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             old.get("bets", []),
             stages,
             per_night,
+            _legs(query.get("chlegs")),
         )
         return run
     if (
         state is None
-        or act not in ("place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best")
+        or act not in ("chlegs", "place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best")
         or state.get("active") is False
     ):
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
+    if act == "chlegs":  # legs per multi, any time before the stage is placed
+        return state | {"legs": _legs(query.get("chlegs"))} if not state.get("placed") else state
     if act == "skip":  # a weak night: this stage waits for a later one (owner, 2026-11-05)
         night_ = str(query.get("chnight") or "")
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):

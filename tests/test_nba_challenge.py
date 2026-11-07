@@ -472,3 +472,24 @@ def test_times_the_owner_sees_are_melbourne_time():
     assert views.when(c["expires_at_utc"]).endswith("11:59pm")
     s, *_ = do(s, ch="wgr", chid="ch1", wprov="PB", wlegs="x", wodds="2", wstake="5")
     assert s["wagers"][0]["at"].endswith("Z")  # recorded in UTC, rendered with `when`
+
+
+def test_cents_and_legs_per_multi_are_kept():
+    s = C.apply(None, {"ch": "start", "chstart": "10.27", "chgoal": "500.55", "chlegs": "2"}, DAY)
+    assert s["start"] == 10.27 and s["goal"] == 500.55 and s["legs"] == 2
+    s = C.apply(s, {"ch": "chlegs", "chlegs": "", "chs": "0"}, DAY)
+    assert s["legs"] is None
+    s = C.apply(s, {"ch": "chlegs", "chlegs": "3", "chs": "0"}, DAY)
+    assert s["legs"] == 3
+
+
+def test_nba_suggestion_honours_legs():
+    from melbcup import nba_legs
+
+    legs = [
+        {"event": f"e{i}", "game": f"G{i}", "player": f"p{i}", "chance": 0.8, "price": 1.45, "startsAt": None, "label": f"p{i} o", "market": "m", "line": 1}
+        for i in range(6)
+    ]
+    for n in (2, 3):
+        step = nba_legs.stack_for(legs, 2.0, min_legs=n, max_legs=n)
+        assert step and step["legs"] == n

@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Per-sport tabs (v8-2): the bottom bar, every sport x tab, old NBA links, the honest SGM state."""
 
 from pathlib import Path
@@ -77,3 +78,8 @@ def test_challenge_tab_creates_an_all_sports_challenge(c):
 def test_games_tab_links_to_the_all_tab(c):
     t = c.get("/sports?sport=football&tab=games").text
     assert "tab=all&event=" in t or "No games listed" in t
+
+
+def test_new_nba_challenge_shows_planner_and_legs(c):
+    t = c.get("/sports?sport=nba&tab=challenge&ch=newch&chscope=nba&chname=P&chstart=10.27&chgoal=100&chlegs=2").text
+    assert "Legs per multi" in t and "10.27" in t

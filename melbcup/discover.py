@@ -34,6 +34,7 @@ log = logging.getLogger(__name__)
 BANDS = ((1.5, 2.0), (2.0, 3.0), (3.0, 5.0), (5.0, 10.0), (10.0, 20.0))
 MAX_LEGS = 6
 MIN_LEGS = 2
+LEG_CHOICES = (2, 3, 4)  # the challenge's 'legs per multi'
 MAX_AGE_S = 3 * 3600  # a price older than this is not used
 HORIZON_H = 48  # games starting within this many hours
 MIN_LEAD_S = 5 * 60  # and not about to start
@@ -153,10 +154,16 @@ def _keep(states: list, cand: tuple) -> list:
     return keep
 
 
-def best_multis(groups: list[list[dict]], bands=BANDS) -> list[dict]:
+def best_multis(groups: list[list[dict]], bands=BANDS, legs: int | None = None) -> list[dict]:
     """For each (lo, hi) odds range: the highest-chance multi whose exact price is in [lo, hi),
     one leg per game, MIN_LEGS to MAX_LEGS legs; or none, with a reason. Searched over log-price
-    bins keeping several exact-price states per bin; checked against brute force in the tests."""
+    bins keeping several exact-price states per bin; checked against brute force in the tests.
+    `legs` keeps only multis of exactly that many legs."""
+    return best_multis_by_legs(groups, bands, (legs,) if legs else None)[legs or 0]
+
+
+def best_multis_by_legs(groups, bands=BANDS, counts=None) -> dict[int, list[dict]]:
+    """One search, the best multi per band for each leg count in `counts`; key 0 is any count."""
     top = math.log(max(hi for _, hi in bands))
     # dp[k][bin] = [(sum log p, exact sum log price, legs), ...]
     dp: list[dict[int, list]] = [{} for _ in range(MAX_LEGS + 1)]
@@ -173,16 +180,21 @@ def best_multis(groups: list[list[dict]], bands=BANDS) -> list[dict]:
                             continue
                         b = int(tot / BIN)
                         nxt[b] = _keep(nxt.get(b, []), (lp + dlp, tot, legs + (g,)))
-    out = []
-    for lo, hi in bands:
-        best = None
-        for k in range(MIN_LEGS, MAX_LEGS + 1):
-            for states in dp[k].values():
-                for lp, _lpr, legs in states:
-                    price = math.prod(g["price"] for g in legs)
-                    if lo <= price < hi and (best is None or lp > best[0]):
-                        best = (lp, legs)
-        out.append(_summary(lo, hi, best))
+    out: dict[int, list] = {}
+    for key in (0, *(counts or ())):
+        ks = range(MIN_LEGS, MAX_LEGS + 1) if key == 0 else (key,)
+        out[key] = []
+        for lo, hi in bands:
+            best = None
+            for k in ks:
+                if not 0 <= k <= MAX_LEGS:
+                    continue
+                for states in dp[k].values():
+                    for lp, _lpr, legs in states:
+                        price = math.prod(g["price"] for g in legs)
+                        if lo <= price < hi and (best is None or lp > best[0]):
+                            best = (lp, legs)
+            out[key].append(_summary(lo, hi, best))
     return out
 
 
@@ -261,10 +273,14 @@ def compute(now: datetime | None = None) -> dict:
     for g in legs:
         by_legs.setdefault(g["sport"], []).append(g)
     by_sport: dict[str, list] = {}
+    by_sport_legs: dict[str, dict] = {}
     for j, sport in enumerate(sorted(by_legs)):
-        by_sport[sport] = best_multis(pool(by_legs[sport]))
+        r = best_multis_by_legs(pool(by_legs[sport]), BANDS, LEG_CHOICES)
+        by_sport[sport] = r.pop(0)
+        by_sport_legs[sport] = r
         _progress(0.5 + 0.4 * (j + 1) / max(len(by_legs), 1))
-    bands = best_multis(groups)
+    r = best_multis_by_legs(groups, BANDS, LEG_CHOICES)
+    bands = r.pop(0)
     _progress(0.95)
     return {
         "built": now.isoformat(),
@@ -274,6 +290,7 @@ def compute(now: datetime | None = None) -> dict:
         "sports": sports,
         "bands": bands,
         "by_sport": by_sport,
+        "by_legs": {"home": r, "by_sport": by_sport_legs},  # {n: bands} per leg count
         "shared": _shared(bands),
         "seconds": round(time.monotonic() - t0, 1),
     }

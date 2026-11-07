@@ -931,13 +931,13 @@ def by_game(legs, n=6):
     return sorted(out, key=lambda x: (x["startsAt"] or "", x["game"]))
 
 
-def stack_for(legs, target, stake=10.0, floor=0.5, min_legs=2):
+def stack_for(legs, target, stake=10.0, floor=0.5, min_legs=2, max_legs=10):
     """The likeliest one-leg-per-game stack paying at least `target` times the stake (or None)."""
     by_game = {}
     for g in _auto(legs):
         if g["chance"] >= floor and g["price"] > 1.0:
             by_game.setdefault(g["event"], []).append(g)
-    picks = best_stack([frontier(gs) for gs in by_game.values()], target, min_legs)
+    picks = best_stack([frontier(gs) for gs in by_game.values()], target, min_legs, max_legs)
     return ({"target": target} | multi(picks, stake)) if picks else None
 
 
@@ -949,7 +949,7 @@ def _player_groups(gs):
     return [f for f in (frontier(x) for x in by_player.values()) if f]
 
 
-def same_game_many(legs, targets, stake=10.0, min_legs=2) -> dict:
+def same_game_many(legs, targets, stake=10.0, min_legs=2, max_legs=SAME_MAX_LEGS) -> dict:
     """{target: [each game's likeliest same-game stack reaching it, soonest tip-off first]},
     one search per game for all the targets."""
     by_game = {}
@@ -957,7 +957,7 @@ def same_game_many(legs, targets, stake=10.0, min_legs=2) -> dict:
         by_game.setdefault(g["event"], []).append(g)
     out = {t: [] for t in targets}
     for gs in by_game.values():
-        found = best_same_game(_player_groups(gs), targets, min_legs=min_legs)
+        found = best_same_game(_player_groups(gs), targets, max_legs=max_legs, min_legs=min_legs)
         for t, hit in found.items():
             if hit:
                 out[t].append(
@@ -969,10 +969,10 @@ def same_game_many(legs, targets, stake=10.0, min_legs=2) -> dict:
     return out
 
 
-def same_game_for(legs, target, stake=10.0):
+def same_game_for(legs, target, stake=10.0, min_legs=2, max_legs=SAME_MAX_LEGS):
     """For each game, the likeliest same-game stack (one leg per player) whose legs multiply to at
     least `target`; soonest tip-off first."""
-    return same_game_many(legs, [target], stake)[target]
+    return same_game_many(legs, [target], stake, min_legs, max_legs)[target]
 
 
 def stacks(legs, stake=10.0, floor=0.5, min_legs=2):

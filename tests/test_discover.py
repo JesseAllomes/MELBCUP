@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Best multis across sports: exact for its pool, one leg per game, honest exclusions."""
 
 import itertools
@@ -172,3 +173,11 @@ def test_narrow_ranges_match_brute_force():
         ):
             misses += 1
     assert misses == 0, misses
+
+
+def test_legs_filter_and_by_legs_agree():
+    groups = [[{**g, "event": str(i)} for g in legs([row(str(i), 1.5, 0.6)])] for i in range(5)]
+    for n in (2, 3):
+        got = D.best_multis(groups, ((2.0, 20.0),), legs=n)[0]["pick"]
+        assert got and len(got["legs"]) == n
+        assert D.best_multis_by_legs(groups, ((2.0, 20.0),), (n,))[n][0]["pick"]["price"] == got["price"]
