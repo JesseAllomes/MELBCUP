@@ -121,6 +121,7 @@ jobs:
           cp melbcup/webpush.py build/pkg/webpush.py
           cp melbcup/tgbot.py build/pkg/tgbot.py
           cp melbcup/nba_challenge.py build/pkg/nba_challenge.py
+          cp melbcup/wallet.py build/pkg/wallet.py
           touch build/pkg/tools/__init__.py
           pip install --no-cache-dir --only-binary=:all: -r azure/function/requirements.txt --target build/pkg/.python_packages/lib/site-packages
       - uses: Azure/functions-action@v1

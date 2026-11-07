@@ -287,6 +287,7 @@ def deploy_function(label):
     shutil.copy(ROOT / "melbcup/webpush.py", pkg / "webpush.py")
     shutil.copy(ROOT / "melbcup/tgbot.py", pkg / "tgbot.py")
     shutil.copy(ROOT / "melbcup/nba_challenge.py", pkg / "nba_challenge.py")
+    shutil.copy(ROOT / "melbcup/wallet.py", pkg / "wallet.py")  # nba_challenge imports it
     (pkg / "tools/__init__.py").touch()
     subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--no-cache-dir", "--only-binary=:all:",
                     "--platform", "manylinux2014_x86_64", "--python-version", FUNC_PY, "--implementation", "cp",

@@ -27,7 +27,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from melbcup import wallet
+try:
+    from melbcup import wallet
+except ImportError:  # the Function package: flat modules (tools/deploy_azure.py)
+    import wallet
 
 COOKIE = "nba_challenge"
 MIN_X = 1.2

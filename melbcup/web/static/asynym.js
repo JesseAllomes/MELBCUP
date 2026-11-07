@@ -270,3 +270,12 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
   tick();
 })();
+
+// Sports: keep the chosen sport in view in the chip row (owner 2026-11-08: it snapped back to the
+// start after every tap, so the next sport had to be scrolled to again).
+(function () {
+  var on = document.querySelector(".sp-tabs a.on");
+  if (!on || !on.parentNode) return;
+  var row = on.parentNode;
+  row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
+})();
