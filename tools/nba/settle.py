@@ -19,7 +19,12 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 from espn_history import API, game_rows, get  # noqa: E402
-from legs import norm  # noqa: E402
+from legs import norm as _norm  # noqa: E402
+
+
+def norm(name: str | None) -> str:
+    """Accents, Jr./III suffixes, punctuation and hyphens ignored: Karl-Anthony == Karl Anthony."""
+    return _norm((name or "").replace("-", " ").replace("\u2010", " ").replace("\u2011", " "))
 
 FIELD = {"points": "points", "reboundsTotal": "reboundsTotal", "assists": "assists", "threePointersMade": "threePointersMade"}
 
@@ -78,8 +83,9 @@ class Slate:
             out = []
             for ev in self.fetch(f"{API}/scoreboard?dates={day}").get("events", []):
                 final = bool(ev.get("status", {}).get("type", {}).get("completed"))
-                rows = {norm(r["name"]): r for r in game_rows(self.fetch(f"{API}/summary?event={ev['id']}"))} if final else {}
-                out.append({"id": str(ev.get("id")), "words": team_words(ev.get("name", "")), "final": final, "rows": rows})
+                box_rows = game_rows(self.fetch(f"{API}/summary?event={ev['id']}")) if final else []
+                rows = {norm(r["name"]): r for r in box_rows}
+                out.append({"id": str(ev.get("id")), "words": team_words(ev.get("name", "")), "final": final, "rows": rows, "box": box_rows})
             self.days[day] = out
         return self.days[day]
 
@@ -91,6 +97,28 @@ class Slate:
     def day_rows(self, day: str) -> dict:
         """Every finished game's box rows on a US date, by name (for legacy legs with no game)."""
         return {n: r for g in self.games(day) if g["final"] for n, r in g["rows"].items()}
+
+
+def find_player(g: dict, game: dict) -> tuple[dict | None, str | None]:
+    """The leg's player in this game's box score: by ESPN athlete id where the leg has one, else by
+    normalised name. Rows come from this one game's box, so they are on one of its two teams; a
+    leg's team, when it is a short code (BOS), must also be one of those teams. Two rows with the
+    same normalised name: (None, why) so the leg is "unresolved", never guessed."""
+    box = game.get("box") or list(game["rows"].values())
+    pid = str(g.get("espn_athlete") or g.get("athleteId") or "")
+    if pid:
+        by_id = [r for r in box if str(r.get("id")) == pid]
+        if len(by_id) == 1:
+            return by_id[0], None
+    hits = [r for r in box if norm(r["name"]) == norm(g["player"])]
+    team = str(g.get("team") or "")
+    if len(hits) > 1 and team and len(team) <= 4:  # a short team code can split a name clash
+        hits = [r for r in hits if (r.get("team") or "").upper() == team.upper()] or hits
+    if len(hits) > 1:
+        return None, f"ambiguous name: {len(hits)} box rows match {g['player']}"
+    if hits and team and len(team) <= 4 and (hits[0].get("team") or "").upper() != team.upper():
+        return None, f"{g['player']} is on {hits[0].get('team')}, leg says {team}"
+    return (hits[0] if hits else None), None
 
 
 def settle_one(g: dict, slate: Slate, now: datetime, day: str) -> dict:
@@ -105,11 +133,13 @@ def settle_one(g: dict, slate: Slate, now: datetime, day: str) -> dict:
         return g | {"result": "unresolved" if late else "pending", "actual": None, "why": "no matching ESPN game"}
     if not game["final"]:
         return g | {"result": "pending", "actual": None, "why": "not final", "espn_event": game["id"]}
-    r = game["rows"].get(norm(g["player"]))
+    r, why = find_player(g, game)
+    if why:
+        return g | {"result": "unresolved", "actual": None, "why": why, "espn_event": game["id"]}
     if r is None:
         return g | {"result": "void", "actual": None, "why": "did not play", "espn_event": game["id"]}
     out = settle([g], {norm(g["player"]): r})[0]
-    return out | {"espn_event": game["id"]}
+    return out | {"espn_event": game["id"], "espn_athlete": str(r.get("id")), "participant_id": str(r.get("id"))}
 
 
 def settle_multi_v2(m: dict, slate: Slate, now: datetime, day: str) -> dict:

@@ -84,15 +84,32 @@ def parse(label: str) -> tuple[str, list[dict]]:
     return game, legs
 
 
-def _event(game: str, now: datetime, fetch=None) -> str | None:
+DATE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b|\b(\d{4})(\d{2})(\d{2})\b")
+
+
+def label_day(label: str) -> str | None:
+    """The US date (YYYYMMDD) written in a bet's label, if it has one."""
+    m = DATE.search(label or "")
+    if not m:
+        return None
+    return "".join(g for g in m.groups() if g)
+
+
+def _event(game: str, now: datetime, fetch=None, day: str | None = None) -> str | None:
+    """The one ESPN game with these teams: on the bet's own date when it has one, else today or
+    yesterday (US). Zero or several matches: None, never a guess."""
     want = set(norm(game.replace(" @ ", " ").replace(" at ", " ")).split())
+    if not want:
+        return None
     us = now - timedelta(hours=5)
-    for day in (us, us - timedelta(days=1)):
-        for e in _get(f"{API}/scoreboard?dates={day:%Y%m%d}", fetch).get("events", []):
+    days = [day] if day else [f"{d:%Y%m%d}" for d in (us, us - timedelta(days=1))]
+    hits = []
+    for d in days:
+        for e in _get(f"{API}/scoreboard?dates={d}", fetch).get("events", []):
             have = set(norm(e.get("name", "").replace(" at ", " ")).split())
-            if want and want <= have:
-                return e["id"]
-    return None
+            if want <= have and e["id"] not in hits:
+                hits.append(e["id"])
+    return hits[0] if len(hits) == 1 else None
 
 
 def _box(summary: dict) -> dict:
@@ -117,15 +134,18 @@ def _box(summary: dict) -> dict:
 
 def track(label: str, now: datetime | None = None, fetch=None) -> dict | None:
     """{"state": pre|in|post, "clock", "legs": [...], "failed", "verdict"} or None if the game
-    cannot be found. A leg is won as soon as an over reaches its line, failed as soon as an under
-    passes it; otherwise it is decided at full time. Verdict at full time: won, lost1 (exactly one
-    leg failed: a 'money back if one leg fails' bet), lost."""
+    cannot be found (or is not exactly one game: on the bet's own date if its label has one, else
+    today or yesterday). A leg is won as soon as an over reaches its line, failed as soon as an
+    under passes it; otherwise it is decided at full time. The bet's verdict only at full time
+    ("post"): won, lost1 (exactly one leg failed: a 'money back if one leg fails' bet), lost."""
     game, legs = parse(label)
+    day = label_day(label)
+    game = DATE.sub("", game).strip(" ,-()") if day else game
     if not game or not legs:
         return None
     now = now or datetime.now(UTC)
     try:
-        eid = _event(game, now, fetch)
+        eid = _event(game, now, fetch, day)
         if eid is None:
             return None
         summary = _get(f"{API}/summary?event={eid}", fetch)

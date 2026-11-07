@@ -180,6 +180,47 @@ def reconcile(v1: list[dict], v2: list[dict]) -> dict:
     return dict(c)
 
 
+RECHECK_FROM_H, RECHECK_TO_H = 24, 48
+
+
+def last_start(rows: list[dict], day: str) -> dt.datetime:
+    starts = [x["startsAt"] for r in rows for x in [r] + (r.get("detail") or []) if x.get("startsAt")]
+    if starts:
+        return max(dt.datetime.fromisoformat(s.replace("Z", "+00:00")) for s in starts)
+    return dt.datetime.strptime(day, "%Y%m%d").replace(tzinfo=dt.UTC) + dt.timedelta(hours=36)
+
+
+def _ckey(x) -> str:
+    return "|".join(str(p) for p in _key(x))
+
+
+def recheck_day(store, day, kept, slate, now) -> list[dict]:
+    """A frozen day is re-checked once, 24-48 h after its last game, for ESPN stat corrections.
+    A changed result is appended to corrections.jsonl ({key, was, now, at, why}); the day file is
+    rewritten with the new result, the first-frozen copy kept in <day>/settled-v2.orig.jsonl.
+    Returns the rows to use (the corrected ones, or the frozen ones)."""
+    mark = f"{day}/recheck-v2.json"
+    age = now - last_start(kept, day)
+    if store.read(mark) is not None or not dt.timedelta(hours=RECHECK_FROM_H) <= age < dt.timedelta(hours=RECHECK_TO_H):
+        return kept
+    fresh = {_ckey(x): x for x in day_legs_v2(store, day, slate, now)}
+    changes, out = [], []
+    for old in kept:
+        new = fresh.get(_ckey(old))
+        if new is None or new["result"] in ("pending", "unresolved") or new["result"] == old["result"]:
+            out.append(old); continue
+        changes.append({"key": _ckey(old), "was": old["result"], "now": new["result"], "at": now.isoformat(),
+                        "why": f"ESPN box score changed on re-check: actual {old.get('actual')} -> {new.get('actual')}"})
+        out.append(new | {"result_revision": int(old.get("result_revision", 1)) + 1})
+    if changes:
+        if store.read(f"{day}/settled-v2.orig.jsonl") is None:
+            store.write(f"{day}/settled-v2.orig.jsonl", "".join(json.dumps(x) + "\n" for x in kept).encode())
+        store.write("corrections.jsonl", (store.read("corrections.jsonl") or b"") + "".join(json.dumps(c) + "\n" for c in changes).encode())
+        store.write(f"{day}/settled-v2.jsonl", "".join(json.dumps(x) + "\n" for x in out).encode())
+    store.write(mark, json.dumps({"at": now.isoformat(), "changes": len(changes)}).encode())
+    return out
+
+
 def forward_v2(store, slate, now) -> str:
     """Rebuild forward-v2.jsonl from every logged day (a day with nothing left open is kept in
     <day>/settled-v2.jsonl and not re-fetched). forward.jsonl, the original log, is never changed;
@@ -188,7 +229,8 @@ def forward_v2(store, slate, now) -> str:
     for day in logged_days(store):
         done = store.read(f"{day}/settled-v2.jsonl")
         if done is not None:
-            rows += [json.loads(x) for x in done.decode().splitlines() if x.strip()]
+            kept = [json.loads(x) for x in done.decode().splitlines() if x.strip()]
+            rows += recheck_day(store, day, kept, slate, now)
             continue
         got = day_legs_v2(store, day, slate, now)
         if got and not any(x["result"] in ("pending", "unresolved") for x in got):

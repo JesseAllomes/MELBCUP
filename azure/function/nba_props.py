@@ -185,9 +185,63 @@ LEG_KEYS = (
 )  # fmt: skip
 
 
-def log_leg(agency: str, g: dict, value: bool) -> dict:
-    return {"agency": agency, "k": g["line"], "value": value} | {
+QUOTES_CAP = 20
+
+
+def log_leg(agency: str, g: dict, value: bool, now: dt.datetime | None = None) -> dict:
+    leg = {"agency": agency, "k": g["line"], "value": value} | {
         k: g[k] for k in LEG_KEYS if k in g
+    }
+    if now is not None:
+        leg["quoted_at"] = now.astimezone(dt.UTC).isoformat()
+        leg["quotes"] = []
+    return leg
+
+
+def keep_first_quote(new: dict, prior: dict | None, now: dt.datetime, logged_at: str = "") -> dict:
+    """A logged price is immutable: the first price and its quoted_at stay. A later, different
+    price goes into quotes [{price, at}] (the newest 20); the leg's other fields refresh."""
+    at = now.astimezone(dt.UTC).isoformat()
+    if not prior:
+        qa = new.get("quoted_at") or at
+        return new | {
+            "quoted_at": qa,
+            "observed_at_utc": qa,
+            "quoted_decimal_odds": new.get("price"),
+            "quotes": new.get("quotes", []),
+        }
+    quotes = list(prior.get("quotes") or [])
+    last = quotes[-1]["price"] if quotes else prior.get("price")
+    if new.get("price") is not None and new["price"] != last:
+        quotes.append({"price": new["price"], "at": at})
+    first_at = prior.get("quoted_at") or logged_at or at
+    first = prior.get("price")
+    return new | {
+        "price": first,
+        "quoted_at": first_at,
+        "quoted_decimal_odds": first,  # selection.schema.json names
+        "observed_at_utc": first_at,
+        "quotes": quotes[-QUOTES_CAP:],
+    }
+
+
+def keep_first_multi(new: dict, prior: dict | None, now: dt.datetime, logged_at: str = "") -> dict:
+    """A multi's price is the product of its components' prices, not the bookmaker's accepted
+    SGM/multi odds: that is "accepted_price", null unless the owner records it."""
+    new = new | {"component_price": new["price"], "accepted_price": None}
+    if prior is None:
+        qa = new.get("quoted_at") or now.astimezone(dt.UTC).isoformat()
+        return new | {"quoted_at": qa, "quotes": []}
+    q = keep_first_quote(
+        new | {"price": new["price"]},
+        prior | {"price": prior.get("component_price", prior.get("price"))},
+        now,
+        logged_at,
+    )
+    return q | {
+        "component_price": q["price"],
+        "price": q["price"],
+        "accepted_price": prior.get("accepted_price"),
     }
 
 
@@ -226,7 +280,17 @@ def build_log(agency: str, rep: dict, prior: dict, now: dt.datetime) -> dict:
     that has started drops out of the feed, so its legs (and multis starting on it) are carried
     forward from the prior log."""
     value = {(g["event"], g["label"]) for g in rep["value_legs"]}
-    legs = [log_leg(agency, g, (g["event"], g["label"]) in value) for g in rep["all_legs"]]
+    iso = now.isoformat()
+    was = {(g.get("event"), g.get("label")): g for g in prior.get("legs", [])}
+    legs = [
+        keep_first_quote(
+            log_leg(agency, g, (g["event"], g["label"]) in value, now),
+            was.get((g["event"], g["label"])),
+            now,
+            prior.get("loggedAt", ""),
+        )
+        for g in rep["all_legs"]
+    ]
     live = {g["event"] for g in legs}
     legs += [g for g in prior.get("legs", []) if g["event"] not in live]
     multis = []
@@ -246,8 +310,12 @@ def build_log(agency: str, rep: dict, prior: dict, now: dt.datetime) -> dict:
                 "tip": grp.get("startsAt") or "",
             }
         )
+    was_m = {_multi_key(m): m for m in prior.get("multis", [])}
+    multis = [
+        keep_first_multi(m, was_m.get(_multi_key(m)), now, prior.get("loggedAt", ""))
+        for m in multis
+    ]
     have = {_multi_key(m) for m in multis}
-    iso = now.isoformat()
     for m in prior.get("multis", []):
         if _multi_key(m) not in have and any(
             (d.get("startsAt") or "9") <= iso for d in m["detail"]
