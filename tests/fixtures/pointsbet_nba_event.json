@@ -1,0 +1,2246 @@
+{
+ "listing": {
+  "key": "2968005",
+  "name": "Denver Nuggets @ Indiana Pacers",
+  "startsAt": "2026-11-07T22:00:00Z",
+  "homeTeam": "Indiana Pacers",
+  "awayTeam": "Denver Nuggets"
+ },
+ "detail": {
+  "fixedOddsMarkets": [
+   {
+    "key": "118824537",
+    "name": "Point Spread (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Point Spread",
+    "groupName": "Game Lines",
+    "outcomes": [
+     {
+      "key": "21",
+      "name": "Indiana Pacers +7.5",
+      "price": 1.9,
+      "points": 7.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "22",
+      "name": "Denver Nuggets -7.5",
+      "price": 1.9,
+      "points": -7.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824539",
+    "name": "Total (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Total",
+    "groupName": "Game Lines",
+    "outcomes": [
+     {
+      "key": "29",
+      "name": "Over 228.5",
+      "price": 1.95,
+      "points": 228.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "30",
+      "name": "Under 228.5",
+      "price": 1.87,
+      "points": 228.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     }
+    ]
+   },
+   {
+    "key": "118693164",
+    "name": "Moneyline (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Moneyline",
+    "groupName": "Game Lines",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers",
+      "price": 3.3,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Denver Nuggets",
+      "price": 1.36,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824538",
+    "name": "Pick Your Own Line (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Pick Your Own Line",
+    "groupName": "Pick Your Own",
+    "outcomes": [
+     {
+      "key": "3",
+      "name": "Indiana Pacers -4.5",
+      "price": 4.3,
+      "points": -4.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Denver Nuggets +4.5",
+      "price": 1.2,
+      "points": 4.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "5",
+      "name": "Indiana Pacers -3.5",
+      "price": 3.8,
+      "points": -3.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "6",
+      "name": "Denver Nuggets +3.5",
+      "price": 1.25,
+      "points": 3.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "7",
+      "name": "Indiana Pacers -2.5",
+      "price": 3.5,
+      "points": -2.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "8",
+      "name": "Denver Nuggets +2.5",
+      "price": 1.29,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824540",
+    "name": "Alternate Totals (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Totals",
+    "groupName": "Pick Your Own",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Over 214.5",
+      "price": 1.24,
+      "points": 214.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "2",
+      "name": "Under 214.5",
+      "price": 3.7,
+      "points": 214.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "3",
+      "name": "Over 215.5",
+      "price": 1.27,
+      "points": 215.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "4",
+      "name": "Under 215.5",
+      "price": 3.4,
+      "points": 215.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "5",
+      "name": "Over 216.5",
+      "price": 1.29,
+      "points": 216.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "6",
+      "name": "Under 216.5",
+      "price": 3.3,
+      "points": 216.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     }
+    ]
+   },
+   {
+    "key": "118761101",
+    "name": "Winning Margin (10 Pt Bands) (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Winning Margin (10 Pt Bands)",
+    "groupName": "Main Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers By 1-10",
+      "price": 4.3,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Indiana Pacers By 11-20",
+      "price": 11.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Indiana Pacers By 21+",
+      "price": 36.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Denver Nuggets By 1-10",
+      "price": 2.85,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "5",
+      "name": "Denver Nuggets By 11-20",
+      "price": 3.6,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "6",
+      "name": "Denver Nuggets By 21+",
+      "price": 5.75,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118761099",
+    "name": "Margins 10.5 (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Margins 10.5",
+    "groupName": "Margin Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers By 1-10",
+      "price": 4.3,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Indiana Pacers By 11+",
+      "price": 9.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Denver Nuggets By 1-10",
+      "price": 2.85,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Denver Nuggets By 11+",
+      "price": 2.4,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824541",
+    "name": "Indiana Pacers Total (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Home Total",
+    "groupName": "Totals",
+    "outcomes": [
+     {
+      "key": "9",
+      "name": "Over 108.5",
+      "price": 1.69,
+      "points": 108.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "10",
+      "name": "Under 108.5",
+      "price": 2.15,
+      "points": 108.5,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118824542",
+    "name": "Denver Nuggets Total (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Away Total",
+    "groupName": "Totals",
+    "outcomes": [
+     {
+      "key": "11",
+      "name": "Over 118.5",
+      "price": 1.95,
+      "points": 118.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "12",
+      "name": "Under 118.5",
+      "price": 1.8,
+      "points": 118.5,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118761105",
+    "name": "Total Points Bands (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Total Points Bands",
+    "groupName": "Totals Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "<180.5",
+      "price": 101.0,
+      "points": 180.5,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "2",
+      "name": "181-190",
+      "price": 41.0,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "3",
+      "name": "191-200",
+      "price": 15.0,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "4",
+      "name": "201-210",
+      "price": 7.5,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "5",
+      "name": "211-220",
+      "price": 5.25,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "6",
+      "name": "221-230",
+      "price": 4.3,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     }
+    ]
+   },
+   {
+    "key": "118761098",
+    "name": "Game - Odd/Evens (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Game - Odd/Evens",
+    "groupName": "Totals Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Odd",
+      "price": 1.87,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "2",
+      "name": "Even",
+      "price": 1.95,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     }
+    ]
+   },
+   {
+    "key": "118824716",
+    "name": "Player Points Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Points Over/Under",
+    "groupName": "Player Points Markets",
+    "outcomes": [
+     {
+      "key": "23",
+      "name": "Aaron Gordon Over 12.5",
+      "price": 1.8,
+      "points": 12.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "24",
+      "name": "Aaron Gordon Under 12.5",
+      "price": 1.95,
+      "points": 12.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "79",
+      "name": "Aaron Nesmith Over 12.5",
+      "price": 1.9,
+      "points": 12.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "80",
+      "name": "Aaron Nesmith Under 12.5",
+      "price": 1.83,
+      "points": 12.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "61",
+      "name": "Andrew Nembhard Over 15.5",
+      "price": 1.8,
+      "points": 15.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "62",
+      "name": "Andrew Nembhard Under 15.5",
+      "price": 1.95,
+      "points": 15.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118824717",
+    "name": "Alternate Points (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Points",
+    "groupName": "Player Points Markets",
+    "outcomes": [
+     {
+      "key": "116",
+      "name": "Aaron Gordon To Score 10+ Points",
+      "price": 1.29,
+      "points": 9.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "117",
+      "name": "Aaron Gordon To Score 11+ Points",
+      "price": 1.4,
+      "points": 10.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "118",
+      "name": "Aaron Gordon To Score 12+ Points",
+      "price": 1.59,
+      "points": 11.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "119",
+      "name": "Aaron Gordon To Score 13+ Points",
+      "price": 1.77,
+      "points": 12.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "120",
+      "name": "Aaron Gordon To Score 14+ Points",
+      "price": 2.05,
+      "points": 13.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "121",
+      "name": "Aaron Gordon To Score 15+ Points",
+      "price": 2.35,
+      "points": 14.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831990",
+    "name": "Player Assists Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Assists Over/Under",
+    "groupName": "Player Assists Markets",
+    "outcomes": [
+     {
+      "key": "15",
+      "name": "Aaron Gordon Over 2.5",
+      "price": 1.9,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "16",
+      "name": "Aaron Gordon Under 2.5",
+      "price": 1.83,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "55",
+      "name": "Andrew Nembhard Over 7.5",
+      "price": 2.05,
+      "points": 7.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "56",
+      "name": "Andrew Nembhard Under 7.5",
+      "price": 1.74,
+      "points": 7.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "27",
+      "name": "Cameron Johnson Over 2.5",
+      "price": 2.3,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "28",
+      "name": "Cameron Johnson Under 2.5",
+      "price": 1.59,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831994",
+    "name": "Alternate Assists (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Assists",
+    "groupName": "Player Assists Markets",
+    "outcomes": [
+     {
+      "key": "17",
+      "name": "Aaron Gordon To Get 2+ Assists",
+      "price": 1.31,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "18",
+      "name": "Aaron Gordon To Get 4+ Assists",
+      "price": 3.3,
+      "points": 3.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "19",
+      "name": "Aaron Gordon To Get 6+ Assists",
+      "price": 12.0,
+      "points": 5.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "61",
+      "name": "Andrew Nembhard To Get 10+ Assists",
+      "price": 3.9,
+      "points": 9.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "62",
+      "name": "Andrew Nembhard To Get 12+ Assists",
+      "price": 9.0,
+      "points": 11.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "58",
+      "name": "Andrew Nembhard To Get 4+ Assists",
+      "price": 1.07,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118831524",
+    "name": "Player Rebounds Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Rebounds Over/Under",
+    "groupName": "Player Rebounds Markets",
+    "outcomes": [
+     {
+      "key": "15",
+      "name": "Aaron Gordon Over 5.5",
+      "price": 1.87,
+      "points": 5.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "16",
+      "name": "Aaron Gordon Under 5.5",
+      "price": 1.87,
+      "points": 5.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "59",
+      "name": "Aaron Nesmith Over 3.5",
+      "price": 2.0,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "60",
+      "name": "Aaron Nesmith Under 3.5",
+      "price": 1.77,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "67",
+      "name": "Andrew Nembhard Over 3.5",
+      "price": 2.35,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "68",
+      "name": "Andrew Nembhard Under 3.5",
+      "price": 1.57,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118831526",
+    "name": "Alternate Rebounds (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Rebounds",
+    "groupName": "Player Rebounds Markets",
+    "outcomes": [
+     {
+      "key": "13",
+      "name": "Aaron Gordon To Get 10+ Rebounds",
+      "price": 9.5,
+      "points": 9.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Aaron Gordon To Get 4+ Rebounds",
+      "price": 1.19,
+      "points": 3.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "11",
+      "name": "Aaron Gordon To Get 6+ Rebounds",
+      "price": 1.83,
+      "points": 5.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "12",
+      "name": "Aaron Gordon To Get 8+ Rebounds",
+      "price": 3.7,
+      "points": 7.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "65",
+      "name": "Aaron Nesmith To Get 2+ Rebounds",
+      "price": 1.11,
+      "points": 1.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "66",
+      "name": "Aaron Nesmith To Get 4+ Rebounds",
+      "price": 1.95,
+      "points": 3.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118831238",
+    "name": "Player 3-Pointers Made (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player 3-Pointers Made",
+    "groupName": "Player Three Pointer Markets",
+    "outcomes": [
+     {
+      "key": "3",
+      "name": "Nikola Jokic Over 1.5",
+      "price": 2.2,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Nikola Jokic Under 1.5",
+      "price": 1.67,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Aaron Gordon Over 1.5",
+      "price": 2.1,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Aaron Gordon Under 1.5",
+      "price": 1.71,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "15",
+      "name": "Jamal Murray Over 2.5",
+      "price": 1.59,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000996299",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "16",
+      "name": "Jamal Murray Under 2.5",
+      "price": 2.3,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000996299",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831239",
+    "name": "Alternate Threes (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Threes",
+    "groupName": "Player Three Pointer Markets",
+    "outcomes": [
+     {
+      "key": "13",
+      "name": "Aaron Gordon To Get 1+ Three Pointers",
+      "price": 1.22,
+      "points": 0.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "14",
+      "name": "Aaron Gordon To Get 2+ Three Pointers",
+      "price": 2.1,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "15",
+      "name": "Aaron Gordon To Get 3+ Three Pointers",
+      "price": 4.2,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "16",
+      "name": "Aaron Gordon To Get 4+ Three Pointers",
+      "price": 10.0,
+      "points": 3.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "97",
+      "name": "Aaron Nesmith To Get 1+ Three Pointers",
+      "price": 1.09,
+      "points": 0.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "98",
+      "name": "Aaron Nesmith To Get 2+ Three Pointers",
+      "price": 1.48,
+      "points": 1.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118824712",
+    "name": "Player To Record A Double Double (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Record A Double Double",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Nikola Jokic",
+      "price": 1.13,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Andrew Nembhard",
+      "price": 3.9,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "8",
+      "name": "Pascal Siakam",
+      "price": 4.4,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001070990",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Jamal Murray",
+      "price": 5.25,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000996299",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Aaron Gordon",
+      "price": 10.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Christian Braun",
+      "price": 23.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6001793966",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824713",
+    "name": "Player To Record A Triple Double (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Record A Triple Double",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Nikola Jokic",
+      "price": 2.35,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831993",
+    "name": "Player Pts + Rebs + Asts Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Pts + Rebs + Asts Over/Under",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "13",
+      "name": "Aaron Gordon Over 21.5",
+      "price": 1.9,
+      "points": 21.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "14",
+      "name": "Aaron Gordon Under 21.5",
+      "price": 1.83,
+      "points": 21.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "25",
+      "name": "Andrew Nembhard Over 26.5",
+      "price": 1.87,
+      "points": 26.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "26",
+      "name": "Andrew Nembhard Under 26.5",
+      "price": 1.87,
+      "points": 26.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "9",
+      "name": "Cameron Johnson Over 18.5",
+      "price": 2.0,
+      "points": 18.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Cameron Johnson Under 18.5",
+      "price": 1.77,
+      "points": 18.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831991",
+    "name": "Player Points + Assists Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Points + Assists Over/Under",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "13",
+      "name": "Aaron Gordon Over 15.5",
+      "price": 1.83,
+      "points": 15.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "14",
+      "name": "Aaron Gordon Under 15.5",
+      "price": 1.83,
+      "points": 15.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "27",
+      "name": "Andrew Nembhard Over 23.5",
+      "price": 1.87,
+      "points": 23.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "28",
+      "name": "Andrew Nembhard Under 23.5",
+      "price": 1.8,
+      "points": 23.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "19",
+      "name": "Cameron Johnson Over 13.5",
+      "price": 1.77,
+      "points": 13.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "20",
+      "name": "Cameron Johnson Under 13.5",
+      "price": 1.9,
+      "points": 13.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831525",
+    "name": "Player Points + Rebounds Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Points + Rebounds Over/Under",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "13",
+      "name": "Aaron Gordon Over 18.5",
+      "price": 1.85,
+      "points": 18.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "14",
+      "name": "Aaron Gordon Under 18.5",
+      "price": 1.85,
+      "points": 18.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "31",
+      "name": "Aaron Nesmith Over 16.5",
+      "price": 2.05,
+      "points": 16.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "32",
+      "name": "Aaron Nesmith Under 16.5",
+      "price": 1.69,
+      "points": 16.5,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "33",
+      "name": "Andrew Nembhard Over 19.5",
+      "price": 1.9,
+      "points": 19.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "34",
+      "name": "Andrew Nembhard Under 19.5",
+      "price": 1.8,
+      "points": 19.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118831992",
+    "name": "Player Assists + Rebounds Over/Under (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player Assists + Rebounds Over/Under",
+    "groupName": "Player Multi Stat Markets",
+    "outcomes": [
+     {
+      "key": "5",
+      "name": "Aaron Gordon Over 8.5",
+      "price": 2.05,
+      "points": 8.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "6",
+      "name": "Aaron Gordon Under 8.5",
+      "price": 1.69,
+      "points": 8.5,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "21",
+      "name": "Andrew Nembhard Over 10.5",
+      "price": 1.87,
+      "points": 10.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "22",
+      "name": "Andrew Nembhard Under 10.5",
+      "price": 1.8,
+      "points": 10.5,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "9",
+      "name": "Cameron Johnson Over 6.5",
+      "price": 2.0,
+      "points": 6.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Cameron Johnson Under 6.5",
+      "price": 1.71,
+      "points": 6.5,
+      "side": "Away",
+      "playerId": "6001770162",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824714",
+    "name": "Player To Record A Double Double And Team To Win (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Record A Double Double And Team To Win",
+    "groupName": "Player Misc Stat Markets",
+    "outcomes": [
+     {
+      "key": "4",
+      "name": "Aaron Gordon & Denver Nuggets",
+      "price": 12.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Andrew Nembhard & Indiana Pacers",
+      "price": 8.5,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Christian Braun & Denver Nuggets",
+      "price": 29.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6001793966",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "2",
+      "name": "Jamal Murray & Denver Nuggets",
+      "price": 6.5,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000996299",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "1",
+      "name": "Nikola Jokic & Denver Nuggets",
+      "price": 1.53,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "8",
+      "name": "Pascal Siakam & Indiana Pacers",
+      "price": 10.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001070990",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118824715",
+    "name": "Player To Record A Triple Double And Team To Win (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Record A Triple Double And Team To Win",
+    "groupName": "Player Misc Stat Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Nikola Jokic & Denver Nuggets",
+      "price": 2.9,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118761103",
+    "name": "1st Half Winning Margin (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "1st Half Winning Margin",
+    "groupName": "1st Half Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers By 1-5",
+      "price": 5.5,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Indiana Pacers By 6-10",
+      "price": 7.5,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Indiana Pacers By 11-15",
+      "price": 14.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Indiana Pacers By 16-20",
+      "price": 29.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "5",
+      "name": "Indiana Pacers By 21+",
+      "price": 46.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "6",
+      "name": "Denver Nuggets By 1-5",
+      "price": 4.75,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118761102",
+    "name": "1st Quarter Team Win Margin Bands (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "1st Quarter Team Win Margin Bands",
+    "groupName": "1st Quarter Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers By 1-5",
+      "price": 4.3,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Indiana Pacers By 6-10",
+      "price": 7.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Indiana Pacers By 11+",
+      "price": 13.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Denver Nuggets By 1-5",
+      "price": 3.8,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "5",
+      "name": "Denver Nuggets By 6-10",
+      "price": 4.5,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "6",
+      "name": "Denver Nuggets By 11+",
+      "price": 5.5,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118761104",
+    "name": "Tribet 5.5 (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Tribet 5.5",
+    "groupName": "Spreads Markets",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Indiana Pacers By 6+",
+      "price": 4.75,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Denver Nuggets By 6+",
+      "price": 1.63,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Either Team To Win By 5 Or Less",
+      "price": 3.6,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     }
+    ]
+   },
+   {
+    "key": "118819836",
+    "name": "Half Time/Full Time (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Halftime/Fulltime",
+    "groupName": "Doubles",
+    "outcomes": [
+     {
+      "key": "6",
+      "name": "Denver Nuggets - Denver Nuggets",
+      "price": 1.83,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "5",
+      "name": "Denver Nuggets - Indiana Pacers",
+      "price": 9.0,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "2",
+      "name": "Indiana Pacers - Denver Nuggets",
+      "price": 5.0,
+      "points": 0.0,
+      "side": "Neither",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": null
+     },
+     {
+      "key": "1",
+      "name": "Indiana Pacers - Indiana Pacers",
+      "price": 4.75,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Tie - Denver Nuggets",
+      "price": 26.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Tie - Indiana Pacers",
+      "price": 46.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     }
+    ]
+   },
+   {
+    "key": "118761100",
+    "name": "Team Win Margin Bands (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Winning Margin 12-Way",
+    "groupName": "Other",
+    "outcomes": [
+     {
+      "key": "7",
+      "name": "Denver Nuggets By 1-5",
+      "price": 6.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Denver Nuggets By 11-15",
+      "price": 5.75,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Denver Nuggets By 16-20",
+      "price": 8.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "11",
+      "name": "Denver Nuggets By 21-25",
+      "price": 12.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "12",
+      "name": "Denver Nuggets By 26+",
+      "price": 9.5,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "8",
+      "name": "Denver Nuggets By 6-10",
+      "price": 4.5,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": null,
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118838230",
+    "name": "Alternate Steals (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Steals",
+    "groupName": "Alternate Steals",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Nikola Jokic To Get 1+ Steals",
+      "price": 1.22,
+      "points": 0.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "2",
+      "name": "Nikola Jokic To Get 2+ Steals",
+      "price": 2.0,
+      "points": 1.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Nikola Jokic To Get 3+ Steals",
+      "price": 4.2,
+      "points": 2.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831996",
+    "name": "Alternate Rebounds + Assists (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Rebounds + Assists",
+    "groupName": "Alternate Rebounds + Assists",
+    "outcomes": [
+     {
+      "key": "2",
+      "name": "Demar Derozan To Get 4+",
+      "price": 1.25,
+      "points": 3.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Demar Derozan To Get 6+",
+      "price": 1.95,
+      "points": 5.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Demar Derozan To Get 8+",
+      "price": 4.2,
+      "points": 7.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Nikola Jokic To Get 18+",
+      "price": 1.18,
+      "points": 17.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "11",
+      "name": "Nikola Jokic To Get 20+",
+      "price": 1.36,
+      "points": 19.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "12",
+      "name": "Nikola Jokic To Get 22+",
+      "price": 1.83,
+      "points": 21.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831527",
+    "name": "Alternate Points + Rebounds (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Points + Rebounds",
+    "groupName": "Alternate Points + Rebounds",
+    "outcomes": [
+     {
+      "key": "2",
+      "name": "Demar Derozan To Get 10+",
+      "price": 1.19,
+      "points": 9.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Demar Derozan To Get 15+",
+      "price": 1.9,
+      "points": 14.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Demar Derozan To Get 20+",
+      "price": 4.2,
+      "points": 19.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "8",
+      "name": "Nikola Jokic To Get 30+",
+      "price": 1.14,
+      "points": 29.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Nikola Jokic To Get 35+",
+      "price": 1.44,
+      "points": 34.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Nikola Jokic To Get 40+",
+      "price": 2.15,
+      "points": 39.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831995",
+    "name": "Alternate Points + Assists (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Points + Assists",
+    "groupName": "Alternate Points + Assists",
+    "outcomes": [
+     {
+      "key": "2",
+      "name": "Demar Derozan To Get 10+",
+      "price": 1.15,
+      "points": 9.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "3",
+      "name": "Demar Derozan To Get 15+",
+      "price": 1.77,
+      "points": 14.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Demar Derozan To Get 20+",
+      "price": 3.7,
+      "points": 19.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Nikola Jokic To Get 30+",
+      "price": 1.22,
+      "points": 29.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Nikola Jokic To Get 35+",
+      "price": 1.69,
+      "points": 34.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "11",
+      "name": "Nikola Jokic To Get 40+",
+      "price": 2.75,
+      "points": 39.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118831997",
+    "name": "Alternate Points + Rebounds + Assists (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Alternate Points + Rebounds + Assists",
+    "groupName": "Alternate Points + Rebounds + Assists",
+    "outcomes": [
+     {
+      "key": "3",
+      "name": "Demar Derozan To Get 15+",
+      "price": 1.4,
+      "points": 14.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "4",
+      "name": "Demar Derozan To Get 20+",
+      "price": 2.5,
+      "points": 19.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "5",
+      "name": "Demar Derozan To Get 25+",
+      "price": 5.25,
+      "points": 24.5,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "9",
+      "name": "Nikola Jokic To Get 40+",
+      "price": 1.16,
+      "points": 39.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "10",
+      "name": "Nikola Jokic To Get 45+",
+      "price": 1.5,
+      "points": 44.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "11",
+      "name": "Nikola Jokic To Get 50+",
+      "price": 2.2,
+      "points": 49.5,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118824711",
+    "name": "Player To Score First Basket (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Score First Basket",
+    "groupName": "Player To Score First Basket",
+    "outcomes": [
+     {
+      "key": "1",
+      "name": "Kelly Oubre Jr.",
+      "price": 11.5,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6000852166",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "2",
+      "name": "Ivica Zubac",
+      "price": 7.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6000994293",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "3",
+      "name": "Pascal Siakam",
+      "price": 7.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001070990",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Aaron Nesmith",
+      "price": 12.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "5",
+      "name": "Andrew Nembhard",
+      "price": 10.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "6",
+      "name": "Nikola Jokic",
+      "price": 5.75,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   },
+   {
+    "key": "118827264",
+    "name": "Player To Score Most Points (Denver Nuggets @ Indiana Pacers)",
+    "eventClass": "Player To Score Most Points",
+    "groupName": "Player To Score Most Points",
+    "outcomes": [
+     {
+      "key": "3",
+      "name": "Pascal Siakam",
+      "price": 5.25,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001070990",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "4",
+      "name": "Aaron Nesmith",
+      "price": 41.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001593872",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "5",
+      "name": "Andrew Nembhard",
+      "price": 13.0,
+      "points": 0.0,
+      "side": "Home",
+      "playerId": "6001592278",
+      "isOpenForBetting": true,
+      "teamId": "6000003419"
+     },
+     {
+      "key": "6",
+      "name": "Demar Derozan",
+      "price": 31.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607420",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "7",
+      "name": "Nikola Jokic",
+      "price": 1.95,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607468",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     },
+     {
+      "key": "8",
+      "name": "Aaron Gordon",
+      "price": 31.0,
+      "points": 0.0,
+      "side": "Away",
+      "playerId": "6000607864",
+      "isOpenForBetting": true,
+      "teamId": "6000003417"
+     }
+    ]
+   }
+  ],
+  "specialFixedOddsMarkets": []
+ }
+}

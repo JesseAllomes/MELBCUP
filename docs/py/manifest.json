@@ -1,5 +1,5 @@
 {
- "build": "37c73b2f7545",
+ "build": "4ad1f2e3b9a1",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -20,6 +20,7 @@
   "melbcup/domain.py",
   "melbcup/history.py",
   "melbcup/live.py",
+  "melbcup/markets.py",
   "melbcup/model/__init__.py",
   "melbcup/model/features.py",
   "melbcup/model/probability.py",
