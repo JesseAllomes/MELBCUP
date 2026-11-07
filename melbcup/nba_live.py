@@ -13,10 +13,12 @@ import re
 import time
 import urllib.request
 from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 UA = "Mozilla/5.0 (compatible; asynymbet)"
 TTL_S = 60
+NY = ZoneInfo("America/New_York")
 _CACHE: dict[str, tuple[float, dict]] = {}
 
 LEG = re.compile(
@@ -101,7 +103,7 @@ def _event(game: str, now: datetime, fetch=None, day: str | None = None) -> str 
     want = set(norm(game.replace(" @ ", " ").replace(" at ", " ")).split())
     if not want:
         return None
-    us = now - timedelta(hours=5)
+    us = now.astimezone(NY)  # the US (New York, DST-correct) date
     days = [day] if day else [f"{d:%Y%m%d}" for d in (us, us - timedelta(days=1))]
     hits = []
     for d in days:

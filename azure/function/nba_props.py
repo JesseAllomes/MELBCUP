@@ -257,7 +257,7 @@ def _prod(xs) -> float:
 
 
 def _slim_detail(g: dict) -> dict:
-    return {k: g.get(k) for k in LEG_KEYS if k in g and k != "event"} | {
+    return {k: g.get(k) for k in LEG_KEYS if k in g} | {
         "line": g["line"],
         "k": g["line"],
     }

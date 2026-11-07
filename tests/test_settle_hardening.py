@@ -168,3 +168,72 @@ def test_live_undated_label_needs_exactly_one_match():
     assert nba_live.track(lab, now, live_fetch("post", other_day_game=True)) is None
     nba_live._CACHE.clear()
     assert nba_live.track(lab, now, live_fetch("post"))["verdict"] == "won"
+
+
+# --- event/player id maps, DST, multi identity ------------------------------------------------
+def test_event_map_persisted_then_settles_by_espn_id_from_summary_status(tmp_path):
+    store = daily.LocalStore(str(tmp_path))
+    g = leg("Anthony Black", 4, agency="pb", event="PB-77")
+    store.write("20261104/log-pb.json", json.dumps({"agency": "pb", "day": "20261104", "legs": [g], "multis": []}).encode())
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        return mk(SUMMARY)(url) | ({"header": {"competitions": [{"status": {"type": {"completed": True}}}]}} if "summary" in url else {})
+    daily.forward_v2(store, Slate(fetch), NOW)
+    m = json.loads(store.read("event-map.json"))
+    assert m["pb:PB-77"]["espn_event"] == "1" and m["pb:PB-77"]["matched_on"] == "date+teams" and m["pb:PB-77"]["at"]
+    assert json.loads(store.read("player-map.json")) == {"anthony black|ORL": "9"}
+    # next run: no scoreboard needed, the mapped ESPN event is read directly
+    calls.clear()
+    s2 = Slate(fetch, json.loads(store.read("event-map.json")), json.loads(store.read("player-map.json")))
+    out = settle_one(g, s2, NOW, "20261104")
+    assert out["result"] == "won" and out["espn_event"] == "1" and out["espn_athlete"] == "9"
+    assert not any("scoreboard" in c for c in calls)
+
+
+def test_two_espn_games_for_one_provider_event_is_unresolved():
+    ev = {"20261104": EV["20261104"] * 1 + [{"id": "5", "name": "Orlando Magic at Phoenix Suns", "status": {"type": {"completed": True}}}]}
+    def fetch(url):
+        if "scoreboard" in url:
+            return {"events": ev.get(url.rsplit("=", 1)[1], [])}
+        return SUMMARY["1"]
+    s = Slate(fetch)
+    out = settle_one(leg("Anthony Black", 4, agency="pb", event="X"), s, NOW, "20261104")
+    assert out["result"] == "unresolved" and "2 ESPN games" in out["why"] and not s.event_map
+
+
+def test_us_day_is_dst_correct():
+    from settle import us_day
+    # 23:30 ET tip: EDT on 1 Nov 2026 (UTC-4), EST on 8 Nov 2026 (UTC-5)
+    assert us_day("2026-11-02T03:30:00Z") == "20261101"
+    assert us_day("2026-11-09T04:30:00Z") == "20261108"
+    assert us_day("2026-11-09T03:30:00Z") == "20261108"  # 22:30 EST
+    assert us_day("2026-11-02T04:30:00Z") == "20261101"  # after the change: 23:30 EST on the 1st
+    assert us_day("2026-10-31T03:30:00Z") == "20261030"  # before it: 23:30 EDT on the 30th
+
+
+def test_live_us_date_is_dst_correct():
+    nba_live._CACHE.clear()
+    seen = []
+    # 04:30 UTC on 1 Nov 2026 is 00:30 EDT (DST ends at 06:00 UTC): a fixed -5 h gave 31 Oct
+    nba_live._event(
+        "Atlanta Hawks @ Washington Wizards",
+        dt.datetime(2026, 11, 1, 4, 30, tzinfo=dt.UTC),
+        lambda u: seen.append(u) or {"events": []},
+    )
+    assert seen[0].endswith("20261101") and seen[1].endswith("20261031")
+
+
+def test_same_multi_logged_on_two_days_counts_once(tmp_path):
+    store = daily.LocalStore(str(tmp_path))
+    d1, d2 = leg("Anthony Black", 4, agency="pb"), leg("Jaren Jackson", 5, agency="pb")
+    for day, order in (("20261103", (d1, d2)), ("20261104", (d2, d1))):
+        m = {"kind": "by_game", "agency": "pb", "price": 2.25, "picks": ["a"], "detail": list(order)}
+        store.write(f"{day}/log-pb.json", json.dumps({"agency": "pb", "day": day, "legs": [], "multis": [m]}).encode())
+    daily.forward_v2(store, Slate(mk(SUMMARY)), NOW)
+    rows = [json.loads(x) for x in store.read("forward-v2.jsonl").decode().splitlines()]
+    assert len(rows) == 2 and rows[0]["multi_key"] == rows[1]["multi_key"]
+    assert [r["latest"] for r in rows] == [False, True]
+    import forward_report
+    assert len(forward_report.load(str(tmp_path / "forward-v2.jsonl"))) == 1

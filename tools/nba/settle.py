@@ -10,12 +10,14 @@ then the running totals are printed. Token-free.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 import sys
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(__file__))
 from espn_history import API, game_rows, get  # noqa: E402
@@ -62,9 +64,13 @@ def settle(legs: list[dict], rows: dict) -> list[dict]:
 UNRESOLVED_AFTER_H = 12
 
 
+NY = ZoneInfo("America/New_York")
+
+
 def us_day(starts: str) -> str:
+    """The US (New York, DST-correct) date a game is played on, from its UTC start."""
     when = datetime.fromisoformat(starts.replace("Z", "+00:00"))
-    return (when - timedelta(hours=5)).strftime("%Y%m%d")  # the US evening the game is played
+    return when.astimezone(NY).strftime("%Y%m%d")
 
 
 def team_words(game: str) -> set[str]:
@@ -73,51 +79,116 @@ def team_words(game: str) -> set[str]:
 
 
 class Slate:
-    """ESPN's games by US date, each fetched once per run; box scores only for finished games."""
+    """ESPN games, each fetched once per run. The ESPN event id is the identity: the first time a
+    provider event ("<agency>:<id>") is matched to an ESPN game (US date + team names) the mapping
+    goes into event_map; after that the game is read by id (summary?event=), its final state from
+    the summary's own status. player_map ("<norm name>|<team>": athlete id) is learned from box
+    scores. daily.forward_v2 loads and saves both (event-map.json, player-map.json)."""
 
-    def __init__(self, fetch=get):
-        self.fetch, self.days = fetch, {}
+    def __init__(self, fetch=get, event_map=None, player_map=None):
+        self.fetch, self.days, self.byid = fetch, {}, {}
+        self.event_map = {} if event_map is None else event_map
+        self.player_map = {} if player_map is None else player_map
+        self.dirty = False
 
-    def games(self, day: str) -> list[dict]:
+    def scoreboard(self, day: str) -> list[dict]:
         if day not in self.days:
-            out = []
-            for ev in self.fetch(f"{API}/scoreboard?dates={day}").get("events", []):
-                final = bool(ev.get("status", {}).get("type", {}).get("completed"))
-                box_rows = game_rows(self.fetch(f"{API}/summary?event={ev['id']}")) if final else []
-                rows = {norm(r["name"]): r for r in box_rows}
-                out.append({"id": str(ev.get("id")), "words": team_words(ev.get("name", "")), "final": final, "rows": rows, "box": box_rows})
-            self.days[day] = out
+            self.days[day] = self.fetch(f"{API}/scoreboard?dates={day}").get("events", [])
         return self.days[day]
 
-    def game(self, leg: dict) -> dict | None:
+    def by_id(self, eid: str, hint_final: bool = False) -> dict | None:
+        eid = str(eid)
+        if eid not in self.byid:
+            try:
+                summ = self.fetch(f"{API}/summary?event={eid}")
+            except Exception:  # noqa: BLE001 - ESPN down: the leg stays pending this run
+                return {"id": eid, "final": False, "box": [], "teams": {}, "rows": {}}
+            comp = (summ.get("header", {}).get("competitions") or [{}])[0]
+            status = comp.get("status", {}).get("type") or {}
+            final = bool(status["completed"]) if "completed" in status else (status.get("state") == "post" if "state" in status else hint_final)
+            box_rows = game_rows(summ) if final else []
+            names = {}
+            for t in summ.get("boxscore", {}).get("players", []):
+                tm = t.get("team", {})
+                names[tm.get("abbreviation")] = team_words(" ".join(str(tm.get(k) or "") for k in ("displayName", "location", "name")))
+            self.byid[eid] = {"id": eid, "final": final, "box": box_rows, "teams": names,
+                              "rows": {norm(r["name"]): r for r in box_rows}}
+        return self.byid[eid]
+
+    def resolve(self, leg: dict, now: datetime | None = None) -> tuple[dict | None, str | None]:
+        """(game, why). game None with why None: no ESPN game on that date yet (pending/unresolved
+        by age); why set: more than one candidate, or ESPN could not be read."""
+        key = f"{leg.get('agency')}:{leg['event']}" if leg.get("event") and leg.get("agency") else None
+        if key and key in self.event_map:
+            game = self.by_id(self.event_map[key]["espn_event"])
+            return game, None
         want = team_words(leg["game"].replace("@", " "))
-        hits = [g for g in self.games(us_day(leg["startsAt"])) if want and want <= g["words"]]
-        return hits[0] if len(hits) == 1 else None
+        hits = [e for e in self.scoreboard(us_day(leg["startsAt"]))
+                if want and want <= team_words(e.get("name", ""))]
+        if len(hits) > 1:
+            return None, f"{len(hits)} ESPN games match {leg['game']} on {us_day(leg['startsAt'])}"
+        if not hits:
+            return None, None
+        ev = hits[0]
+        done = bool(ev.get("status", {}).get("type", {}).get("completed"))
+        # a game the scoreboard shows unfinished is not fetched (final or not is read from the
+        # summary only once it may be over)
+        game = self.by_id(ev["id"], done) if done else {"id": str(ev["id"]), "final": False, "box": [], "teams": {}, "rows": {}}
+        if key:
+            self.event_map[key] = {"espn_event": str(ev["id"]), "matched_on": "date+teams", "at": (now or datetime.now(UTC)).isoformat()}
+            self.dirty = True
+        return game, None
+
+    def game(self, leg: dict) -> dict | None:
+        return self.resolve(leg)[0]
 
     def day_rows(self, day: str) -> dict:
         """Every finished game's box rows on a US date, by name (for legacy legs with no game)."""
-        return {n: r for g in self.games(day) if g["final"] for n, r in g["rows"].items()}
+        out = {}
+        for e in self.scoreboard(day):
+            if not e.get("status", {}).get("type", {}).get("completed"):
+                continue
+            g = self.by_id(e["id"], True)
+            if g["final"]:
+                out.update(g["rows"])
+        return out
 
 
-def find_player(g: dict, game: dict) -> tuple[dict | None, str | None]:
-    """The leg's player in this game's box score: by ESPN athlete id where the leg has one, else by
-    normalised name. Rows come from this one game's box, so they are on one of its two teams; a
-    leg's team, when it is a short code (BOS), must also be one of those teams. Two rows with the
-    same normalised name: (None, why) so the leg is "unresolved", never guessed."""
-    box = game.get("box") or list(game["rows"].values())
+def _team_ok(leg_team: str, abbr: str | None, game: dict) -> bool:
+    """Does the leg's team (a code like BOS or a name like Boston Celtics) fit this box team?"""
+    t = (leg_team or "").strip()
+    if not t:
+        return True
+    if t.upper() == (abbr or "").upper():
+        return True
+    return bool(team_words(t)) and team_words(t) <= game["teams"].get(abbr, set())
+
+
+def find_player(g: dict, game: dict, slate: Slate | None = None) -> tuple[dict | None, str | None]:
+    """The leg's player in this one game's box score (so on one of its two teams): by ESPN athlete
+    id (on the leg, else learned in player_map), else by normalised name, narrowed by the leg's
+    team when it names one. Two rows still matching: (None, why), "unresolved", never guessed."""
+    box = game["box"]
     pid = str(g.get("espn_athlete") or g.get("athleteId") or "")
+    if not pid and slate is not None:
+        learned = {str(slate.player_map[k]) for ab in game["teams"] if (k := f"{norm(g['player'])}|{ab}") in slate.player_map}
+        if len(learned) == 1:
+            pid = learned.pop()
     if pid:
         by_id = [r for r in box if str(r.get("id")) == pid]
         if len(by_id) == 1:
             return by_id[0], None
     hits = [r for r in box if norm(r["name"]) == norm(g["player"])]
     team = str(g.get("team") or "")
-    if len(hits) > 1 and team and len(team) <= 4:  # a short team code can split a name clash
-        hits = [r for r in hits if (r.get("team") or "").upper() == team.upper()] or hits
+    if team:
+        fit = [r for r in hits if _team_ok(team, r.get("team"), game)]
+        if hits and not fit and not any(_team_ok(team, ab, game) for ab in game["teams"]):
+            fit = hits  # the leg's team text is not one we can read: do not reject on it
+        if hits and not fit:
+            return None, f"{g['player']} is on {hits[0].get('team')}, leg says {team}"
+        hits = fit
     if len(hits) > 1:
         return None, f"ambiguous name: {len(hits)} box rows match {g['player']}"
-    if hits and team and len(team) <= 4 and (hits[0].get("team") or "").upper() != team.upper():
-        return None, f"{g['player']} is on {hits[0].get('team')}, leg says {team}"
     return (hits[0] if hits else None), None
 
 
@@ -127,25 +198,42 @@ def settle_one(g: dict, slate: Slate, now: datetime, day: str) -> dict:
     start = datetime.fromisoformat(g["startsAt"].replace("Z", "+00:00"))
     if start > now:
         return g | {"result": "pending", "actual": None, "why": "not started"}
-    game = slate.game(g)
+    game, why = slate.resolve(g, now)
+    if why:
+        return g | {"result": "unresolved", "actual": None, "why": why}
     if game is None:
         late = now - start > timedelta(hours=UNRESOLVED_AFTER_H)
         return g | {"result": "unresolved" if late else "pending", "actual": None, "why": "no matching ESPN game"}
     if not game["final"]:
         return g | {"result": "pending", "actual": None, "why": "not final", "espn_event": game["id"]}
-    r, why = find_player(g, game)
+    r, why = find_player(g, game, slate)
     if why:
         return g | {"result": "unresolved", "actual": None, "why": why, "espn_event": game["id"]}
     if r is None:
         return g | {"result": "void", "actual": None, "why": "did not play", "espn_event": game["id"]}
     out = settle([g], {norm(g["player"]): r})[0]
-    return out | {"espn_event": game["id"], "espn_athlete": str(r.get("id")), "participant_id": str(r.get("id"))}
+    pid = str(r.get("id"))
+    if r.get("team"):
+        if slate.player_map.get(f"{norm(r['name'])}|{r['team']}") != pid:
+            slate.player_map[f"{norm(r['name'])}|{r['team']}"] = pid
+            slate.dirty = True
+    return out | {"espn_event": game["id"], "espn_athlete": pid, "participant_id": pid}
+
+
+def leg_key(d: dict) -> tuple:
+    return (d.get("game"), us_day(d["startsAt"]) if d.get("startsAt") else "", d.get("label"))
+
+
+def multi_key(m: dict, agency: str | None = None) -> str:
+    """Stable identity of a multi: sha1 of (agency, sorted leg keys), the same on every day it is logged."""
+    keys = sorted(json.dumps(leg_key(d)) for d in m.get("detail", []))
+    return hashlib.sha1(json.dumps([agency or m.get("agency"), keys]).encode()).hexdigest()
 
 
 def settle_multi_v2(m: dict, slate: Slate, now: datetime, day: str) -> dict:
     """A lost leg loses the multi at once; otherwise any open leg keeps it pending; a void leg
     drops out (the price shrinks by its price); all void: void."""
-    legs = [settle_one(d | {"line": d.get("line", d.get("k"))}, slate, now, day) for d in m["detail"]]
+    legs = [settle_one(d | {"line": d.get("line", d.get("k")), "agency": d.get("agency") or m.get("agency")}, slate, now, day) for d in m["detail"]]
     res_of = [d["result"] for d in legs]
     price = m["price"]
     if "lost" in res_of:
@@ -159,14 +247,14 @@ def settle_multi_v2(m: dict, slate: Slate, now: datetime, day: str) -> dict:
         for d in legs:
             if d["result"] == "void" and d.get("price"):
                 price /= d["price"]
-    return m | {"detail": legs, "result": res, "price": round(price, 2), "stake_price": m["price"]}
+    return m | {"detail": legs, "result": res, "price": round(price, 2), "stake_price": m["price"], "multi_key": multi_key(m)}
 
 
 def settle_log_v2(log: dict, slate: Slate, now: datetime) -> list[dict]:
     ag, day = log.get("agency"), log.get("day")
     out = [settle_one(x, slate, now, day) | {"kind": "leg", "agency": ag, "day": day} for x in log.get("legs", [])]
     out += [
-        settle_multi_v2(m, slate, now, day) | {"agency": ag, "day": day, "mkind": m.get("kind"), "kind": "multi"}
+        settle_multi_v2(m | {"agency": m.get("agency") or ag}, slate, now, day) | {"agency": ag, "day": day, "mkind": m.get("kind"), "kind": "multi"}
         for m in log.get("multis", [])
     ]
     return out

@@ -33,7 +33,15 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board import load_v3, make_board  # noqa: E402
 from espn_history import API, game_rows, get  # noqa: E402
-from settle import Slate, settle, settle_log, settle_log_v2, settle_one  # noqa: E402
+from settle import (  # noqa: E402
+    Slate,
+    multi_key,
+    settle,
+    settle_log,
+    settle_log_v2,
+    settle_one,
+    us_day,
+)
 
 NY = ZoneInfo("America/New_York")
 LOOKBACK_DAYS = 3
@@ -222,6 +230,20 @@ def recheck_day(store, day, kept, slate, now) -> list[dict]:
 
 
 def forward_v2(store, slate, now) -> str:
+    """forward_v2_rows with the ESPN event and athlete maps (event-map.json, player-map.json)
+    loaded first and saved after if settlement learned anything."""
+    for name, attr in (("event-map.json", "event_map"), ("player-map.json", "player_map")):
+        raw = store.read(name)
+        if raw:
+            getattr(slate, attr).update(json.loads(raw))
+    msg = _forward_v2(store, slate, now)
+    if slate.dirty:
+        store.write("event-map.json", json.dumps(slate.event_map, indent=1, sort_keys=True).encode())
+        store.write("player-map.json", json.dumps(slate.player_map, indent=1, sort_keys=True).encode())
+    return msg
+
+
+def _forward_v2(store, slate, now) -> str:
     """Rebuild forward-v2.jsonl from every logged day (a day with nothing left open is kept in
     <day>/settled-v2.jsonl and not re-fetched). forward.jsonl, the original log, is never changed;
     forward-v2-reconcile.json records what changed and why."""
@@ -238,12 +260,16 @@ def forward_v2(store, slate, now) -> str:
         rows += got
     # the same bet is logged on every day its game was on the board: flag the copy logged last
     # (priced closest to the start) so a calibration or return counts each bet once
+    # (a multi is the same bet by multi_key: agency + its legs' game, NY date and label)
     last = {}
     for i, x in enumerate(rows):
-        if x["kind"] == "leg" and x.get("startsAt"):
-            last[(x["agency"], x.get("game"), x["startsAt"][:10], x["label"])] = i
+        if x["kind"] == "multi":
+            x["multi_key"] = x.get("multi_key") or multi_key(x, x.get("agency"))
+            last[("multi", x["multi_key"])] = i
+        elif x.get("startsAt"):
+            last[(x["agency"], x.get("game"), us_day(x["startsAt"]), x["label"])] = i
     keep = set(last.values())
-    rows = [x | {"latest": i in keep or x["kind"] != "leg" or not x.get("startsAt")} for i, x in enumerate(rows)]
+    rows = [x | {"latest": i in keep or (x["kind"] == "leg" and not x.get("startsAt"))} for i, x in enumerate(rows)]
     store.write("forward-v2.jsonl", "".join(json.dumps(x) + "\n" for x in rows).encode())
     v1 = [json.loads(x) for x in (store.read("forward.jsonl") or b"").decode().splitlines() if x.strip()]
     rec = reconcile(v1, rows) | {"built": now.isoformat()}
