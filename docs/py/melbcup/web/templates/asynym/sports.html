@@ -80,7 +80,7 @@
 {% endif %}
 {% endmacro %}
 {% macro subtabs() %}
-{% if sport != 'racing' %}
+{% if sport not in ('racing', 'home') %}
 <nav class="sp-tabs sp-sub" aria-label="Views">
   {% if sport in ('nba', 'all') %}<a href="/sports?sport={{ sport }}" class="{{ 'on' if not view }}"{% if not view %} aria-current="page"{% endif %}>{{ 'Multis' if sport == 'nba' else 'Coverage' }}</a>{% endif %}
   <a href="/sports?sport={{ sport }}&view=players" class="{{ 'on' if view == 'players' }}"{% if view == 'players' %} aria-current="page"{% endif %}>{{ 'Players · all props' if sport == 'nba' else 'Players' }}</a>
