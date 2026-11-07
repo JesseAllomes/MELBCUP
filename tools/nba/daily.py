@@ -49,6 +49,10 @@ class LocalStore:
         p = os.path.join(self.root, name); os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
         open(p, "wb").write(data)
 
+    def names(self, prefix):
+        d = os.path.join(self.root, prefix)
+        return [prefix + f for f in sorted(os.listdir(d))] if os.path.isdir(d) else []
+
 
 class BlobStore:
     def __init__(self, account):
@@ -66,6 +70,9 @@ class BlobStore:
 
     def write(self, name, data: bytes):
         self.c.upload_blob(name, data, overwrite=True, timeout=120)
+
+    def names(self, prefix):
+        return [b.name for b in self.c.list_blobs(name_starts_with=prefix)]
 
 
 def season_label(ev):
@@ -146,6 +153,20 @@ def books_snapshot(store, board, now, snap=None) -> str:
         return f"books snapshot failed ({type(exc).__name__}); "
 
 
+def learn_racing(store) -> str:
+    """Refit the racing favourite-longshot tuning from the graded-race log (tools/racing/learn.py).
+    A failure here never stops the NBA run."""
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "racing"))
+        from learn import parse_log, tuned
+        names = sorted(n for n in store.names("racing/log/") if n.endswith(".jsonl"))
+        out = tuned(parse_log("\n".join((store.read(n) or b"").decode() for n in names)))
+        store.write("racing/tuning.json", json.dumps(out, indent=1).encode())
+        return f"racing tuning {out.get('market_alpha')} from {out.get('races', '?')} races; "
+    except Exception as e:  # noqa: BLE001
+        return f"racing learn skipped ({type(e).__name__}); "
+
+
 def run(store, now, fetch=get):
     today = now.astimezone(NY).date()
     hist = read_history(store)
@@ -164,7 +185,7 @@ def run(store, now, fetch=get):
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
-    msg = books_snapshot(store, board, now) + f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
+    msg = learn_racing(store) + books_snapshot(store, board, now) + f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg
 
