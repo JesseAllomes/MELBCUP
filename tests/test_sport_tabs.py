@@ -83,3 +83,41 @@ def test_games_tab_links_to_the_all_tab(c):
 def test_new_nba_challenge_shows_planner_and_legs(c):
     t = c.get("/sports?sport=nba&tab=challenge&ch=newch&chscope=nba&chname=P&chstart=10.27&chgoal=100&chlegs=2").text
     assert "Legs per multi" in t and "10.27" in t
+
+
+def _synthetic_disc():
+    from datetime import UTC, datetime, timedelta
+
+    t = (datetime.now(UTC) + timedelta(hours=5)).isoformat()
+    legs = [
+        {"label": f"Team{i} to win", "price": 1.6, "p": 0.6, "event": f"A{i} v B{i}", "event_id": f"e{i}", "start": t, "sport": "nba"}
+        for i in range(3)
+    ]
+    pk = {"legs": legs, "price": 4.1, "p_all": 0.216, "fair_price": 4.6, "expected_return": -0.1, "cut": 0.1}
+    rows = [{"lo": lo, "hi": lo * 1.15, "pick": pk if lo >= 2.0 else None, "reason": None} for lo in discover.LADDER]
+    return {"ladder": rows, "by_sport_ladder": {}, "bands": [], "by_sport": {}, "by_legs": {}}
+
+
+def test_pick_for_price_at_least_target():
+    d = _synthetic_disc()
+    r = discover.pick_for(2.3, None, None, d)
+    assert r["band"]["pick"]["price"] >= 2.3 and r["band"]["lo"] >= 2.3
+    assert discover.pick_for(99, None, None, d)["pick"] is None
+
+
+def test_all_sports_challenge_on_nba_tab_shows_suggestion(c, monkeypatch):
+    monkeypatch.setattr(discover, "latest", lambda wait=False: _synthetic_disc())
+    c.get("/sports?sport=nba&tab=challenge&ch=newch&chscope=all&chname=Run&chstart=10&chgoal=100&chn=3")
+    page = c.get("/sports?sport=nba&tab=challenge").text
+    import re
+
+    cid = re.search(r"chid=([\w-]+)", page).group(1)
+    t = c.get(f"/sports?sport=nba&tab=challenge&chid={cid}").text
+    assert "no suggestion" not in t
+    assert "I placed this" in t and "Team0 to win" in t
+
+
+def test_record_a_bet_form_on_multis_and_sgm(c):
+    for u in ("/sports?sport=football&tab=multis", "/sports?sport=nfl&tab=sgm", "/sports?sport=home&tab=multis"):
+        t = c.get(u).text
+        assert "+ Record a bet I placed" in t and 'name="nbbw"' in t, u

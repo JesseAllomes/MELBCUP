@@ -32,6 +32,28 @@ from datetime import UTC, datetime, timedelta
 log = logging.getLogger(__name__)
 
 BANDS = ((1.5, 2.0), (2.0, 3.0), (3.0, 5.0), (5.0, 10.0), (10.0, 20.0))
+LADDER = (
+    1.5,
+    1.75,
+    2.0,
+    2.25,
+    2.5,
+    2.75,
+    3.0,
+    3.5,
+    4.0,
+    4.5,
+    5.0,
+    6.0,
+    7.0,
+    8.0,
+    10.0,
+    12.0,
+    15.0,
+    20.0,
+)
+LADDER_BANDS = tuple((t, round(t * 1.15, 4)) for t in LADDER)  # price in [t, t*1.15)
+ALL_BANDS = BANDS + LADDER_BANDS  # one search serves both
 MAX_LEGS = 6
 MIN_LEGS = 2
 LEG_CHOICES = (2, 3, 4)  # the challenge's 'legs per multi'
@@ -230,6 +252,32 @@ def _summary(lo: float, hi: float, best) -> dict:
     }
 
 
+def _split(rows: list[dict]) -> tuple[list[dict], list[dict]]:
+    return rows[: len(BANDS)], rows[len(BANDS) :]
+
+
+def pick_for(target: float, sport: str | None = None, legs: int | None = None, disc=None):
+    """The ladder pick for the smallest rung t >= target (its price is also >= target), sport or
+    all sports, `legs` per multi when asked. Returns {"band", "src"} or {"pick": None, "reason"}."""
+    disc = disc if disc is not None else latest()
+    if not disc or not disc.get("ladder"):
+        return {"pick": None, "reason": "Prices are still loading."}
+    if legs:
+        lg = disc.get("ladder_legs") or {}
+        by_s = (lg.get("by_sport") or {}).get(sport) or {}
+        home = (lg.get("home") or {}).get(legs)
+        srcs = [(sport, by_s.get(legs)), ("all sports", home)]
+    else:
+        mine = (disc.get("by_sport_ladder") or {}).get(sport)
+        srcs = [(sport, mine), ("all sports", disc["ladder"])]
+    for name, rows in srcs:
+        for b in rows or []:
+            if b["lo"] >= target and b.get("pick") and b["pick"]["price"] >= target:
+                return {"band": b, "src": name or "all sports"}
+    why = f"No fresh, fairly priced multi pays {target:.1f}x or more right now."
+    return {"pick": None, "reason": why}
+
+
 def _progress(v: float) -> None:
     with _lock:
         _state["progress"] = round(min(max(v, 0.0), 1.0), 3)
@@ -274,13 +322,20 @@ def compute(now: datetime | None = None) -> dict:
         by_legs.setdefault(g["sport"], []).append(g)
     by_sport: dict[str, list] = {}
     by_sport_legs: dict[str, dict] = {}
+    by_sport_ladder: dict[str, list] = {}
+    by_sport_ladder_legs: dict[str, dict] = {}
     for j, sport in enumerate(sorted(by_legs)):
-        r = best_multis_by_legs(pool(by_legs[sport]), BANDS, LEG_CHOICES)
-        by_sport[sport] = r.pop(0)
-        by_sport_legs[sport] = r
+        r = best_multis_by_legs(pool(by_legs[sport]), ALL_BANDS, LEG_CHOICES)
+        r = {k: _split(v) for k, v in r.items()}
+        by_sport[sport] = r[0][0]
+        by_sport_ladder[sport] = r[0][1]
+        by_sport_legs[sport] = {k: v[0] for k, v in r.items() if k}
+        by_sport_ladder_legs[sport] = {k: v[1] for k, v in r.items() if k}
         _progress(0.5 + 0.4 * (j + 1) / max(len(by_legs), 1))
-    r = best_multis_by_legs(groups, BANDS, LEG_CHOICES)
-    bands = r.pop(0)
+    r = {k: _split(v) for k, v in best_multis_by_legs(groups, ALL_BANDS, LEG_CHOICES).items()}
+    bands, ladder = r[0]
+    r_ladder = {k: v[1] for k, v in r.items() if k}
+    r = {k: v[0] for k, v in r.items() if k}
     _progress(0.95)
     return {
         "built": now.isoformat(),
@@ -291,6 +346,9 @@ def compute(now: datetime | None = None) -> dict:
         "bands": bands,
         "by_sport": by_sport,
         "by_legs": {"home": r, "by_sport": by_sport_legs},  # {n: bands} per leg count
+        "ladder": ladder,
+        "by_sport_ladder": by_sport_ladder,
+        "ladder_legs": {"home": r_ladder, "by_sport": by_sport_ladder_legs},
         "shared": _shared(bands),
         "seconds": round(time.monotonic() - t0, 1),
     }

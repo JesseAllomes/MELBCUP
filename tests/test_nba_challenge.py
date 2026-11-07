@@ -563,3 +563,23 @@ def test_placed_card_stays_after_place():
     t = Path(C.__file__).parent / "web/templates/asynym"
     for f in ("_challenges.html", "sports.html"):
         assert 'value="chbet"' in (t / f).read_text() and "Edit this bet" in (t / f).read_text()
+
+
+def test_record_a_bet_with_jet_boost_saves_four_legs_and_credits_on_win():
+    from melbcup import nba_live, wallet
+
+    store = C.empty_store()
+    q = {
+        "ch": "bet", "nbgame": "Houston Rockets @ Phoenix Suns", "nbag": "sb", "nbs": "5", "nbp": "5.00",
+        "nbbw": "2", "nbtip": "2026-11-08T02:10:00Z",
+        "nbwhat": "Alperen Sengun 15+ Points\nDevin Booker Under 3.5 Rebounds\nTari Eason Under 1.5 Made Threes\nMarcus Smart Under 1.5 Made Threes",
+    }
+    store, changed, err = C.apply_store(store, q, "2026-11-08")
+    assert changed and not err
+    bet = store["own"]["bets"][0]
+    assert bet["bonus_if_win"] == 2.0 and bet["stake"] == 5.0 and bet["price"] == 5.0
+    game, legs = nba_live.parse(bet["label"])
+    assert game == "Houston Rockets @ Phoenix Suns" and len(legs) == 4
+    store, _, err = C.apply_store(store, {"ch": "betwon", "nbid": str(bet["id"]), "nbr": "25"}, "2026-11-08")
+    assert not err
+    assert wallet.balances(store["ledger"], "2026-11-08")["Sportsbet"]["open"] == 2.0

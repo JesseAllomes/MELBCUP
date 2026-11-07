@@ -121,14 +121,24 @@
   {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | when }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
   <p class="note">A win pays back into {{ ag.name }}; a loss ends the run.{% if ch.get('keep', True) and not ch.steps %} After this win ${{ '%.0f' % ch.start }} goes back to your pool and the rest rolls on.{% endif %}</p>
   {% elif chs.open.scope == 'all' %}
-  <p class="say">All Sports: no suggestion. Type in the legs you chose at any bookmaker, on any sport; aim for about <b>{{ '%.1f' % ch_x }}x</b> this stage.</p>
+  {% if ch_sug %}{% set p = ch_sug.band.pick %}
+  <div class="vrow">{{ ring(p.p_all, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % (ch.bank * p.price) }}</b><span>{{ p.legs | length }}-leg multi · one leg per game · ${{ '%.2f' % p.price }} · {{ ch_sug.src | capitalize }}</span></div></div>
+  <ol class="nba-picks">{% for g in p.legs %}<li>{{ g.label }} <small>{{ (g.p * 100) | round | int }}% · ${{ '%.2f' % g.price }} · {{ g.event }} · {{ g.start | iso_time }}</small></li>{% endfor %}</ol>
+  <form method="get" action="/sports" class="ch-act">
+    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+    <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
+    <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == 'pb' }}>{{ a.name }}</option>{% endfor %}</select></label>
+    <button type="submit">I placed this · ${{ '%.2f' % ch.bank }}</button>
+  </form>
+  {% else %}<p class="say">All Sports: nothing fresh pays about <b>{{ '%.1f' % ch_x }}x</b> right now. Check back closer to kick-off.</p>{% endif %}
+  <details class="fold"><summary>Placed something else? Enter it</summary>
   <form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <label>Legs <input name="chl" maxlength="120" placeholder="e.g. Collingwood to win; Lakers -3.5" required></label>
     <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" required></label>
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
-  </form>
+  </form></details>
   {% elif ch_step %}{% set m = ch_step %}
   {% if ch.get('bonus') %}<p class="say">Replaying this stage with your <b>${{ '%.2f' % ch.bonus }} bonus bet</b> (a one-leg loss gave it back). Use the bonus bet at the bookmaker; it pays the winnings only, so the price aims one higher.</p>{% endif %}
   <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>

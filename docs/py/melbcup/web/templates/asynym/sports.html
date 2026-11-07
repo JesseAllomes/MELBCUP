@@ -199,7 +199,7 @@
         <form method="get" action="/sports" class="acts">
           <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
           <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
-          <label class="fine">At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }}</option>{% endfor %}</select></label>
+          <label class="fine">At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == 'pb' }}>{{ a.name }}</option>{% endfor %}</select></label>
           <button type="submit" class="go big">I placed this · ${{ '%.2f' % ch.bank }}</button></form>
       </article>
       {% else %}
@@ -244,6 +244,7 @@
 {{ super() }}
 {% elif sport == 'home' and sp_tab in ('', 'multis') %}
 {{ bet_now(bn, disc, '', bonus) }}
+{{ record_bet('/sports', sport, sp_tab or 'multis', rec_games, chs.list | map(attribute='rec') | list if chs else []) }}
 {% elif sport == 'all' %}
 <section class="card sp-card">
   <h2>What the app has, by sport</h2>
@@ -273,9 +274,11 @@
 {{ next_games(games, sport) }}
 {% if no_feed %}<section class="card sp-card sp-cov"><p class="cat-cov">{{ no_feed }}</p></section>{% endif %}
 {% elif sp_tab == 'sgm' %}
+{{ record_bet('/sports', sport, sp_tab, rec_games, chs.list | map(attribute='rec') | list if chs else []) }}
 <section class="bn"><div class="empty"><b>Same-game multis need a measured correlation model</b>NBA only for now. In one game the legs are linked, so multiplying their chances would mislead; {{ hub.name if hub else 'this sport' }} has no measured model yet.</div></section>
 {% else %}
 {{ bet_now(bn, disc, hub.name) }}
+{{ record_bet('/sports', sport, sp_tab or 'multis', rec_games, chs.list | map(attribute='rec') | list if chs else []) }}
 {% if no_feed %}<section class="card sp-card sp-cov"><p class="cat-cov">{{ no_feed }}</p></section>{% endif %}
 {{ cover(hub) }}
 {% endif %}

@@ -517,25 +517,15 @@ class Views:
         return out
 
     @staticmethod
-    def _stage_pick(disc, sport: str, x: float | None, legs: int | None = None) -> dict | None:
-        """The pick for a stage aiming at x times the stake: this sport's pick from the odds range
-        containing x, else the all-sports one; None when no range holds it."""
+    def _stage_pick(disc, sport: str | None, x: float | None, legs: int | None = None):
+        """The automatic pick for a stage aiming at x times the stake: the likeliest multi priced
+        at x or more (fine ladder), this sport's else all sports'; None when none."""
         if x is None or not disc:
             return None
-        bl = (disc.get("by_legs") or {}) if legs else {}  # per-leg-count bands, built with the rest
-        for name, bands in (
-            (
-                sport,
-                ((bl.get("by_sport") or {}).get(sport) or {}).get(legs)
-                if legs
-                else (disc.get("by_sport") or {}).get(sport),
-            ),
-            ("all sports", (bl.get("home") or {}).get(legs) if legs else disc.get("bands")),
-        ):
-            for b in bands or []:
-                if b.get("pick") and b["lo"] <= x < b["hi"]:
-                    return {"band": b, "src": name}
-        return None
+        from melbcup import discover
+
+        r = discover.pick_for(x, sport if sport not in (None, "home", "all") else None, legs, disc)
+        return r if r.get("band") else None
 
     def _challenge(self, query: Mapping[str, str], ctx: dict) -> dict:
         """The $10 -> $1000 challenge (cookie on the phone; app.py saves the change)."""
@@ -1070,6 +1060,14 @@ class Views:
                     ctx["games"] = sorted(every, key=lambda g: g.get("start") or "~")[:12]
                 elif tab == "games":
                     ctx["games"] = discover.next_games(sport)
+                if sport == "home":
+                    ctx["rec_games"] = [
+                        g["name"]
+                        for s_ in catalogue_view.coverage()
+                        for g in discover.next_games(s_, 3)
+                    ][:30]
+                else:
+                    ctx["rec_games"] = [g["name"] for g in discover.next_games(sport, 12)]
                 ctx["no_feed"] = (
                     catalogue_view.NO_FEED
                     if sport != "home" and not catalogue_view.coverage_line(sport)
@@ -1094,6 +1092,12 @@ class Views:
                 t0 = time.perf_counter()
                 ctx.update(self._challenge(query, ctx))
                 ctx["ch_tl"] = self._stage_timeline(ctx.get("ch"), ctx.get("ch_x"))
+                if ((ctx.get("chs") or {}).get("open") or {}).get("scope") == "all":
+                    from melbcup import discover
+
+                    ctx["ch_sug"] = self._stage_pick(
+                        discover.latest(), None, ctx.get("ch_x"), (ctx.get("ch") or {}).get("legs")
+                    )
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
             return self.env.get_template("asynym/sports.html").render(ctx)

@@ -7,6 +7,16 @@
   <label>Stake $<input name="nbs" inputmode="decimal" value="10"></label>
   <label>Price got $<input name="nbp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
   <button type="submit">Save bet</button></form></details>{% endmacro %}
+{% macro record_bet(action, sport, tab, games, chlist) %}<details class="nb-place nb-rec"><summary>+ Record a bet I placed</summary><form method="get" action="{{ action }}" class="ch-act">
+  {% if sport %}<input type="hidden" name="sport" value="{{ sport }}">{% endif %}<input type="hidden" name="tab" value="{{ tab }}"><input type="hidden" name="ch" value="bet">
+  <label>Game <select name="nbgame">{% for g in games %}<option value="{{ g }}">{{ g }}</option>{% endfor %}<option value="">Other</option></select></label>
+  <label>Legs <textarea name="nbwhat" rows="4" maxlength="300" placeholder="Alperen Sengun 15+ Points" required></textarea></label>
+  <label>Bookmaker <select name="nbag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }}</option>{% endfor %}</select></label>
+  <label>Stake $<input name="nbs" inputmode="decimal" required></label>
+  <label>Price $<input name="nbp" inputmode="decimal" required></label>
+  <label>Bonus if it wins $<input name="nbbw" inputmode="decimal" placeholder="e.g. Jet Boost 2"></label>
+  <label>Add to challenge <select name="nbch"><option value="">None, my own bet</option>{% for c in chlist or [] %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
+  <button type="submit">Save bet</button></form></details>{% endmacro %}
 {% macro tracked(t, bonus_ok=false) %}{% if t %}<div class="nb-track"><small>{{ t.clock }}</small><ul>{% for l in t.legs %}<li class="{{ 'ok' if l.ok == true else ('bad' if l.ok == false else '') }}">{{ '✓' if l.ok == true else ('✗' if l.ok == false else '·') }} {{ l.label }} <b>{{ l.now if l.now is not none else '–' }}{% if not l.under %}/{{ l.k }}{% else %} (under {{ l.k }}){% endif %}</b></li>{% endfor %}</ul>
 {% if t.verdict == 'won' %}<p class="say">All legs won: put in the dollars paid into your account (not the odds) and tap <b>Won</b>.</p>{% elif t.verdict == 'lost1' %}<p class="say">One leg failed{% if bonus_ok %}: if you used money back, tap <b>Lost by one leg</b>{% endif %}.</p>{% elif t.verdict == 'lost' %}<p class="say">{{ t.failed }} legs failed: tap <b>Lost</b>.</p>{% endif %}</div>{% endif %}{% endmacro %}
 {% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
@@ -34,11 +44,13 @@
   {% if v.source == 'bundled' %}<p class="note">Using the model board shipped with the app: Azure's daily board could not be read just now.</p>{% endif %}
 </section>
 
+{% set _chl = (chs.list | map(attribute='rec') | list) if chs and chs.list else [] %}
+{{ record_bet('/nba', '', nba_tab, (v.board.games | map(attribute='name') | map('replace', ' at ', ' @ ') | list) if v.board else [], _chl) }}
 {% if nba_own %}
 <section class="card nb-own">
   <div class="vlabel">Your bets</div>
   {% for b in nba_own %}
-  <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
+  <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.bonus_if_win %} · ${{ '%.2f' % b.bonus_if_win }} bonus if it wins{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
   {{ tracked((track or {}).get(b.id)) }}
   {% if b.state == 'placed' %}<form method="get" action="/nba" class="ch-act"><input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="nbid" value="{{ b.id }}">
     <label>Paid into your account $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>

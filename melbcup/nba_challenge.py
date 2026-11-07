@@ -293,7 +293,7 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
     bets = [dict(b) for b in base.get("bets", [])]
     if act == "bet":
         stake, price = _money(query.get("nbs")) or 10.0, _money(query.get("nbp"))
-        label = (query.get("nbl") or "")[:90]
+        label = (query.get("nbl") or "")[:300]
         key = f"{today}|{label}|{stake}|{price}"
         if any(b.get("k") == key for b in bets):
             return base  # the same page reloaded
@@ -311,6 +311,7 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
                 "ret": 0.0,
                 "tip": (query.get("nbtip") or "")[:32],
             }
+            | ({"bonus_if_win": bw} if (bw := _money(query.get("nbbw"))) else {})
         )
     else:
         for b in bets:
@@ -699,9 +700,35 @@ def apply_store(store: dict, query: Mapping[str, str], today: str = "") -> tuple
     return store, changed, err
 
 
+def _compose(q: Mapping[str, str]) -> Mapping[str, str]:
+    """The record-a-bet form's Game + Legs lines become the label "Game: leg, leg" the live
+    tracker parses (legs one per line or comma separated)."""
+    what = q.get("nbwhat")
+    if what is None:
+        return q
+    legs = [x.strip() for x in re.split(r"[\n;,]+", what) if x.strip()]
+    game = (q.get("nbgame") or "").strip()
+    return {**q, "nbl": (f"{game}: " if game else "") + ", ".join(legs)}
+
+
 def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) -> None:
+    q = _compose(q)
+    if act == "bet" and q.get("nbch"):  # recorded against a challenge: the wager path
+        rec = find(store, q.get("nbch"))
+        if rec is None:
+            raise ValueError("no such challenge")
+        wq = {
+            "wlegs": q.get("nbl"), "wprov": AGENCY_NAMES.get(q.get("nbag") or "", q.get("nbag")),
+            "wodds": q.get("nbp"), "wstake": q.get("nbs"), "wbw": q.get("nbbw"),
+        }
+        _record_wager(store, rec, wq, today, op)
+        return
     if act in ("bet", "betwon", "betlost"):
         store["own"] = apply(store["own"], q, today)
+        if act == "betwon":
+            for b in (store["own"] or {}).get("bets", []):
+                if str(b.get("id")) == str(q.get("nbid")) and b.get("own") and b["state"] == "won":
+                    _bonus_credit(store, b, today, f"bw-own{b['id']}")
         return
     if act == "newch":
         name = (q.get("chname") or "").strip()[:40] or f"Challenge {store['next']}"
@@ -734,6 +761,19 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         store["challenges"].remove(rec)
     else:
         rec["state"] = apply(rec["state"], q, today) or rec["state"]
+
+
+AGENCY_NAMES = {"sb": "Sportsbet", "bf": "Betfair", "pb": "PointsBet", "tab": "TAB", "lb": "Ladbrokes", "neds": "Neds"}
+
+
+def _bonus_credit(store, b: dict, today: str, op: str) -> None:
+    """A bet that pays a bonus bet when it wins (e.g. Jet Boost): add that credit to the wallet."""
+    amt = b.get("bonus_if_win")
+    if not amt:
+        return
+    prov = AGENCY_NAMES.get(b.get("ag"), b.get("ag") or b.get("provider") or "")
+    entry = {"t": "grant", "amount": amt, "provider": prov, "note": "Bonus bet from a winning bet", "op": op}
+    store["ledger"] = wallet.append(store["ledger"], entry, today)
 
 
 def _wallet_action(store, act, q, today, op) -> None:
@@ -775,6 +815,8 @@ def _record_wager(store, rec, q, today, op) -> None:
         "day": today, "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "state": "placed", "ret": 0.0, "op": op,
     }
+    if bw := _money(q.get("wbw")):
+        w["bonus_if_win"] = bw
     if funding == "boost":
         w["boost_price"] = _money(q.get("wboost"))
         if not w["boost_price"]:
@@ -796,6 +838,8 @@ def _settle_wager(store, rec, act, q) -> None:
     for w in store["wagers"]:
         if str(w["id"]) == str(q.get("wid")) and w["challenge"] == rec["id"] and w["state"] == "placed":
             w["state"] = "won" if act == "wgrwon" else "lost"
+            if act == "wgrwon" and w.get("bonus_if_win"):
+                _bonus_credit(store, w, w["day"], f"bw-w{w['id']}")
             if act == "wgrwon":
                 win = w["odds"] - 1 if w["funding"] == "bonus" else w["odds"]
                 w["ret"] = _money(q.get("wret")) or round(w["stake"] * win, 2)
