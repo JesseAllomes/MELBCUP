@@ -7,8 +7,12 @@ Blob container `nba` (account from NBA_ACCOUNT, managed identity from AZURE_CLIE
   <day>/board.json         the model's expected counts for that US date's games (tools/nba/board.py)
   board-latest.json        the same, for the Function's legs step (tools/nba/legs.py)
   <day>/legs.json          written by the Function (prices change all day; the last copy is kept)
-  <day>/settled.jsonl      that day's legs settled against ESPN (tools/nba/settle.py)
-  forward.jsonl            every settled leg so far: the forward test on real prices
+  <day>/settled.jsonl      v1: that day's legs settled by name against one day's box scores
+  forward.jsonl            v1, frozen 2026-11-07: legs of later games were settled against the
+                           wrong game (independent review); kept unchanged as the audit record
+  <day>/settled-v2.jsonl   a day's legs settled by event, written once nothing is left open
+  forward-v2.jsonl         every logged leg and multi, settled by event (pending until final)
+  forward-v2-reconcile.json  v1 against v2, record by record
 
 Steps, each bounded: (1) add the last few days' finished games to the history, (2) settle
 yesterday's legs, (3) build the board for today, or for the next day with games. The US date is New York's, the NBA's own calendar.
@@ -21,13 +25,15 @@ import datetime as dt
 import gzip
 import json
 import os
+import re
 import sys
+from collections import Counter, defaultdict
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board import load_v3, make_board  # noqa: E402
 from espn_history import API, game_rows, get  # noqa: E402
-from settle import settle, settle_log  # noqa: E402
+from settle import Slate, settle, settle_log, settle_log_v2, settle_one  # noqa: E402
 
 NY = ZoneInfo("America/New_York")
 LOOKBACK_DAYS = 3
@@ -132,6 +138,78 @@ def settle_day(store, day, rows_by_name):
     return len(done)
 
 
+def logged_days(store) -> list[str]:
+    return sorted({n.split("/")[0] for n in store.names("") if re.fullmatch(r"\d{8}", n.split("/")[0])})
+
+
+def day_legs_v2(store, day, slate, now):
+    """One logged day settled by event (settle.settle_log_v2). Legacy days (legs.json only, no
+    start times) settle against that day's finished games by name, as before."""
+    logs = [json.loads(raw) for ag in ("pb", "sb") if (raw := store.read(f"{day}/log-{ag}.json"))]
+    if logs:
+        return [x for lg in logs for x in settle_log_v2(lg, slate, now)]
+    raw = store.read(f"{day}/legs.json")
+    if raw is None:
+        return []
+    d = json.loads(raw)
+    value = {(g["event"], g["label"]) for g in d.get("value_legs", []) + d.get("closed_value_legs", [])}
+    return [settle_one(g, slate, now, day) | {"day": day, "agency": "pb", "kind": "leg", "value": (g["event"], g["label"]) in value}
+            for g in d.get("all_legs", [])]
+
+
+def _key(x):
+    return (x.get("day"), x.get("agency"), x.get("kind"), x.get("event"), x.get("label") or "|".join(x.get("picks") or []), x.get("mkind"))
+
+
+def reconcile(v1: list[dict], v2: list[dict]) -> dict:
+    """How the event-matched settlement differs from the original forward.jsonl, record by record."""
+    old = {_key(x): x["result"] for x in v1}
+    c = defaultdict(int)
+    for x in v2:
+        was, now_ = old.get(_key(x)), x["result"]
+        if was is None:
+            c["new"] += 1
+        elif was == now_:
+            c["clean"] += 1
+        elif now_ in ("pending", "unresolved"):
+            c[f"was_{was}_now_{now_}"] += 1
+        else:
+            c[f"corrected_{was}_to_{now_}"] += 1
+    c["by_result_v2"] = dict(Counter(x["result"] for x in v2))
+    c["v1_records"], c["v2_records"] = len(v1), len(v2)
+    return dict(c)
+
+
+def forward_v2(store, slate, now) -> str:
+    """Rebuild forward-v2.jsonl from every logged day (a day with nothing left open is kept in
+    <day>/settled-v2.jsonl and not re-fetched). forward.jsonl, the original log, is never changed;
+    forward-v2-reconcile.json records what changed and why."""
+    rows = []
+    for day in logged_days(store):
+        done = store.read(f"{day}/settled-v2.jsonl")
+        if done is not None:
+            rows += [json.loads(x) for x in done.decode().splitlines() if x.strip()]
+            continue
+        got = day_legs_v2(store, day, slate, now)
+        if got and not any(x["result"] in ("pending", "unresolved") for x in got):
+            store.write(f"{day}/settled-v2.jsonl", "".join(json.dumps(x) + "\n" for x in got).encode())
+        rows += got
+    # the same bet is logged on every day its game was on the board: flag the copy logged last
+    # (priced closest to the start) so a calibration or return counts each bet once
+    last = {}
+    for i, x in enumerate(rows):
+        if x["kind"] == "leg" and x.get("startsAt"):
+            last[(x["agency"], x.get("game"), x["startsAt"][:10], x["label"])] = i
+    keep = set(last.values())
+    rows = [x | {"latest": i in keep or x["kind"] != "leg" or not x.get("startsAt")} for i, x in enumerate(rows)]
+    store.write("forward-v2.jsonl", "".join(json.dumps(x) + "\n" for x in rows).encode())
+    v1 = [json.loads(x) for x in (store.read("forward.jsonl") or b"").decode().splitlines() if x.strip()]
+    rec = reconcile(v1, rows) | {"built": now.isoformat()}
+    store.write("forward-v2-reconcile.json", json.dumps(rec, indent=1).encode())
+    left = sum(x["result"] in ("pending", "unresolved") for x in rows)
+    return f"forward-v2 {len(rows)} records ({left} open); "
+
+
 BOOKS_TEST_UNTIL = "2026-11-08"  # US-books test (owner, 2026-11-04): ~56 Odds API credits a night
 
 
@@ -169,23 +247,29 @@ def learn_racing(store) -> str:
 
 def run(store, now, fetch=get):
     today = now.astimezone(NY).date()
+    seen = {}
+
+    def cached(url):  # one ESPN call per URL per run, shared by the history and settlement steps
+        if url not in seen:
+            seen[url] = fetch(url)
+        return seen[url]
+
     hist = read_history(store)
-    added, boxes = add_recent(store, hist, today, fetch)
-    yday = (today - dt.timedelta(days=1)).strftime("%Y%m%d")
-    settled = settle_day(store, yday, boxes.get(yday, {}))
+    added, boxes = add_recent(store, hist, today, cached)
+    settled = forward_v2(store, Slate(cached), now)
     # the next US date with games (today, or up to AHEAD_DAYS later on a night off), so the page
     # always has the coming slate; that day's own run rebuilds it with the latest injuries
     for ahead in range(AHEAD_DAYS + 1):
         day = (today + dt.timedelta(days=ahead)).strftime("%Y%m%d")
-        scoreboard = fetch(f"{API}/scoreboard?dates={day}")
+        scoreboard = cached(f"{API}/scoreboard?dates={day}")
         if scoreboard.get("events"):
             break
     games = [(g["gameTimeUTC"], g["season"], g["players"]) for g in hist]
-    board = make_board(games, day, scoreboard, fetch(f"{API}/injuries"), load_v3())
+    board = make_board(games, day, scoreboard, cached(f"{API}/injuries"), load_v3())
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
-    msg = learn_racing(store) + books_snapshot(store, board, now) + f"nba daily {day}: history +{added} ({len(hist)} games), settled {settled} legs of {yday}, board {len(board['games'])} games / {len(board['players'])} players"
+    msg = learn_racing(store) + books_snapshot(store, board, now) + settled + f"nba daily {day}: history +{added} ({len(hist)} games), board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg
 

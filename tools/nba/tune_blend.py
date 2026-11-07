@@ -24,7 +24,7 @@ def load(path: str) -> list[tuple[float, float, int]]:
         if not line.strip():
             continue
         x = json.loads(line)
-        if x.get("model") is None or x.get("market") is None:
+        if x.get("model") is None or x.get("market") is None or not x.get("latest", True):
             continue
         won = x["won"] if "won" in x else {"won": 1, "lost": 0}.get(x.get("result"))
         if won is None:

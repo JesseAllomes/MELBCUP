@@ -64,14 +64,15 @@ def test_daily_adds_games_settles_yesterday_once_and_builds_board(tmp_path):
     daily.run(store, now, fake_espn("20261103"))
     after = [json.loads(x) for x in gzip.decompress(store.read(daily.HISTORY)).decode().splitlines()]
     assert len(after) == 21 and after[-1]["season"] == "00226"
-    settled = [json.loads(x) for x in store.read("20261103/settled.jsonl").decode().splitlines()]
+    settled = [json.loads(x) for x in store.read("20261103/settled-v2.jsonl").decode().splitlines()]
     assert [(x["result"], x["value"]) for x in settled] == [("won", True), ("lost", False)]
     board = json.loads(store.read("board-latest.json"))
     assert board["day"] == "20261104" and {p["name"] for p in board["players"]} == {"Joel Embiid", "Cade Cunningham"}
     assert store.read("20261104/board.json") == store.read("board-latest.json")
     daily.run(store, now, fake_espn("20261103"))  # a second run neither re-adds nor re-settles
     assert len(gzip.decompress(store.read(daily.HISTORY)).decode().splitlines()) == 21
-    assert len(store.read("forward.jsonl").decode().splitlines()) == 2
+    assert len(store.read("forward-v2.jsonl").decode().splitlines()) == 2
+    assert store.read("forward.jsonl") is None  # v1 is frozen: nothing new is appended
 
 
 def test_a_night_off_builds_the_next_game_day(tmp_path):

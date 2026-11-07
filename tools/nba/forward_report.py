@@ -21,8 +21,12 @@ def bucket(c: float) -> int:
 
 
 def load(path: str) -> list[dict]:
+    """Records of a forward log. forward-v2 rows still open (pending, unresolved) or repeated on a
+    later day's log (latest false) are left out, so each settled bet counts once."""
     with open(path) as f:
-        return [json.loads(line) for line in f if line.strip()]
+        rows = [json.loads(line) for line in f if line.strip()]
+    open_ = ("pending", "unresolved")
+    return [x for x in rows if x["result"] not in open_ and x.get("latest", True)]
 
 
 def table(rows: list[dict]) -> list[str]:

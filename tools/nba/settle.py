@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 from espn_history import API, game_rows, get  # noqa: E402
@@ -42,6 +44,101 @@ def settle(legs: list[dict], rows: dict) -> list[dict]:
             over = r[FIELD[g["stat"]]] >= g["line"]
             res = "won" if over != bool(g.get("under")) else "lost"  # an under wins below the line
         out.append(g | {"result": res, "actual": None if r is None else r.get(FIELD[g["stat"]])})
+    return out
+
+
+# --- event-matched settlement (independent review, 2026-11-07) ---------------------------------
+# A day's log holds the bookmaker's whole board, which runs a day or two ahead. Settling every leg
+# against that one day's box scores by player name gave later games' legs an earlier game's result
+# (1,492 legs) or a false void (6,397). Now a leg with a start time and game is settled only
+# against its own game: the ESPN game on its US date whose teams match, and only once that game is
+# final. Not started or not final: "pending". Final, but no matching game after 12 hours:
+# "unresolved". Final and the player is not in the box score: "void" (did not play).
+UNRESOLVED_AFTER_H = 12
+
+
+def us_day(starts: str) -> str:
+    when = datetime.fromisoformat(starts.replace("Z", "+00:00"))
+    return (when - timedelta(hours=5)).strftime("%Y%m%d")  # the US evening the game is played
+
+
+def team_words(game: str) -> set[str]:
+    words = re.sub(r"[^a-z0-9 ]", " ", (game or "").lower()).split()
+    return {w for w in words if w not in ("at", "vs", "v")}
+
+
+class Slate:
+    """ESPN's games by US date, each fetched once per run; box scores only for finished games."""
+
+    def __init__(self, fetch=get):
+        self.fetch, self.days = fetch, {}
+
+    def games(self, day: str) -> list[dict]:
+        if day not in self.days:
+            out = []
+            for ev in self.fetch(f"{API}/scoreboard?dates={day}").get("events", []):
+                final = bool(ev.get("status", {}).get("type", {}).get("completed"))
+                rows = {norm(r["name"]): r for r in game_rows(self.fetch(f"{API}/summary?event={ev['id']}"))} if final else {}
+                out.append({"id": str(ev.get("id")), "words": team_words(ev.get("name", "")), "final": final, "rows": rows})
+            self.days[day] = out
+        return self.days[day]
+
+    def game(self, leg: dict) -> dict | None:
+        want = team_words(leg["game"].replace("@", " "))
+        hits = [g for g in self.games(us_day(leg["startsAt"])) if want and want <= g["words"]]
+        return hits[0] if len(hits) == 1 else None
+
+    def day_rows(self, day: str) -> dict:
+        """Every finished game's box rows on a US date, by name (for legacy legs with no game)."""
+        return {n: r for g in self.games(day) if g["final"] for n, r in g["rows"].items()}
+
+
+def settle_one(g: dict, slate: Slate, now: datetime, day: str) -> dict:
+    if not (g.get("startsAt") and g.get("game")):  # legacy leg: the log's own day, by name
+        return settle([g], slate.day_rows(day))[0]
+    start = datetime.fromisoformat(g["startsAt"].replace("Z", "+00:00"))
+    if start > now:
+        return g | {"result": "pending", "actual": None, "why": "not started"}
+    game = slate.game(g)
+    if game is None:
+        late = now - start > timedelta(hours=UNRESOLVED_AFTER_H)
+        return g | {"result": "unresolved" if late else "pending", "actual": None, "why": "no matching ESPN game"}
+    if not game["final"]:
+        return g | {"result": "pending", "actual": None, "why": "not final", "espn_event": game["id"]}
+    r = game["rows"].get(norm(g["player"]))
+    if r is None:
+        return g | {"result": "void", "actual": None, "why": "did not play", "espn_event": game["id"]}
+    out = settle([g], {norm(g["player"]): r})[0]
+    return out | {"espn_event": game["id"]}
+
+
+def settle_multi_v2(m: dict, slate: Slate, now: datetime, day: str) -> dict:
+    """A lost leg loses the multi at once; otherwise any open leg keeps it pending; a void leg
+    drops out (the price shrinks by its price); all void: void."""
+    legs = [settle_one(d | {"line": d.get("line", d.get("k"))}, slate, now, day) for d in m["detail"]]
+    res_of = [d["result"] for d in legs]
+    price = m["price"]
+    if "lost" in res_of:
+        res = "lost"
+    elif any(r in ("pending", "unresolved") for r in res_of):
+        res = "pending"
+    elif all(r == "void" for r in res_of):
+        res = "void"
+    else:
+        res = "won"
+        for d in legs:
+            if d["result"] == "void" and d.get("price"):
+                price /= d["price"]
+    return m | {"detail": legs, "result": res, "price": round(price, 2), "stake_price": m["price"]}
+
+
+def settle_log_v2(log: dict, slate: Slate, now: datetime) -> list[dict]:
+    ag, day = log.get("agency"), log.get("day")
+    out = [settle_one(x, slate, now, day) | {"kind": "leg", "agency": ag, "day": day} for x in log.get("legs", [])]
+    out += [
+        settle_multi_v2(m, slate, now, day) | {"agency": ag, "day": day, "mkind": m.get("kind"), "kind": "multi"}
+        for m in log.get("multis", [])
+    ]
     return out
 
 
