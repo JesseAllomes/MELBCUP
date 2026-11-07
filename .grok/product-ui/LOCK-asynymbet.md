@@ -25,3 +25,14 @@ Spec: .grok/product-ui/v7/3-top-two.html (rounds: v5 -> owner mix 1+2+4; v6 -> A
 - Challenge tab: no promo-compare form, no split/hold/expired controls; wallet = list + one collapsed
   "+ Add a bonus credit" + "Used".
 - Times Melbourne; ring colours per the base lock (green 60%+, purple 30-59%, amber <30%).
+
+# Per-sport tabs lock (owner BUILD 2026-11-07): v8 direction 2 "Bottom bar" (+ 1's screen layout)
+Spec: .grok/product-ui/v8/2-bottom-bar.html (layout of screens per v8/1-segmented-tabs.html).
+- Every sport (NBA, NFL, NHL, Football, AFL, NRL, Cricket, ...) has the same tabs: Multis | Challenge | Games |
+  SGM | All, as a fixed bottom tab bar on sport pages; the sport chip row stays at the top.
+- Multis = the v7-3 Bet now layout for that sport. NBA uses its own picker (nba_legs, audit rules).
+- Challenge = that sport's + All Sports challenges, stage timeline (v8-2), suggested bet per stage chosen
+  automatically; only actions: I placed this / Won / Lost / One leg failed -> bonus; wallet list + "+ Add a bonus credit".
+- Games = next games, main line + fair %, tap -> that game's markets and player props.
+- SGM = NBA's same-game multis; other sports an honest state (no measured correlation model yet).
+- All = every market (catalogue), search behind a link.
