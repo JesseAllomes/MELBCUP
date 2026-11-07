@@ -165,7 +165,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("chlegs", "place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best")
+        or act not in ("chlegs", "place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best", "chbet")
         or state.get("active") is False
     ):
         return state
@@ -228,6 +228,19 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first
+    if act == "chbet":  # fix the real stake / price / legs of the placed bet (owner, 2026-11-07)
+        pl = state["placed"]
+        stake, price = _money(query.get("chstake")), _money(query.get("chp"))
+        if not stake or (price is not None and price <= 1):
+            return state
+        extra = round(max(stake - state["bank"], 0.0), 2)
+        new = pl | {"stake": stake, "price": price or pl.get("price"), "rest": round(max(state["bank"] - stake, 0.0), 2)}
+        if query.get("chl"):
+            new["label"] = query["chl"][:120]
+        if extra:
+            new["added"] = extra  # topped up: cash added today
+        bets = [b | new if b.get("id") == pl.get("id") else b for b in state.get("bets", [])]
+        return state | {"placed": new, "bets": bets}
     if act == "isbonus":  # the stake was a bonus bet after all: not money, and it pays winnings only
         placed = state["placed"] | {"bonus": 1}
         bets = [b | {"bonus": 1} if b.get("id") == placed.get("id") else b for b in state.get("bets", [])]
@@ -247,6 +260,9 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         )[-MAX_HISTORY:]
         return _again(state | {"bets": _settle(state, "lost"), "past": past})
     returned = _money(query.get("chr"))
+    pl = state["placed"]
+    if returned is None and pl.get("price") and "rest" in pl:
+        returned = round(pl["stake"] * pl["price"], 2)
     bonus = bool(state["placed"].get("bonus"))  # a bonus bet pays its winnings only
     if returned is None or returned <= (0 if bonus else state["placed"]["stake"]):
         return state
@@ -262,6 +278,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             -MAX_HISTORY:
         ]
         return _again(state | {"bets": bets, "past": past}, last_win=returned)
+    bank = round(bank + pl.get("rest", 0.0), 2)  # money not staked stays in the bank
     return state | {"bank": bank, "steps": steps, "kept": kept, "placed": None, "bets": bets}
 
 

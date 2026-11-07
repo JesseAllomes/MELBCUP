@@ -100,6 +100,7 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         )  # the stage's tip-off travels with it
         html = c.get("/nba?tab=challenge&chid=ch1&ch=place&chs=0&chag=pb&chp=5.36&chl=x").text
         assert "Placed: $10.00 at PointsBet" in html and 'value="53.60"' in html
+        assert "Edit this bet" in html and 'value="chbet"' in html and "Potential return" in html
         for tab in ("stacks", "games", "same", "all"):  # the challenge stays on its own tab
             other = c.get(f"/nba?tab={tab}").text
             assert (
@@ -511,3 +512,46 @@ def test_edit_challenge_recomputes_target_and_leaves_others():
     assert a2["state"]["legs"] == 2 and a2["state"]["stages"] == 4
     assert C.next_x(a2["state"]) != x0
     assert str(b2) == before_b
+
+
+def _two_challenges():
+    st = C.empty_store()
+    for n in ("A", "B"):
+        st, _, _ = C.apply_store(st, {"ch": "newch", "chname": n, "chmode": "multi"}, DAY)
+    st, _, _ = C.apply_store(st, {"ch": "place", "chid": "ch1", "chs": "0", "chag": "pb", "chp": "5", "chl": "x"}, DAY)
+    return st
+
+
+def test_chbet_edits_the_placed_stake_and_price_and_the_maths_follow():
+    st = _two_challenges()
+    other = str(st["challenges"][1])
+    q = {"ch": "chbet", "chid": "ch1", "chs": "0", "chstake": "15.50", "chp": "2.10", "chl": "new legs", "op": "e1"}
+    st2, changed, err = C.apply_store(st, q, DAY)
+    pl = st2["challenges"][0]["state"]["placed"]
+    assert changed and not err and pl["stake"] == 15.5 and pl["price"] == 2.1 and pl["label"] == "new legs"
+    assert pl["added"] == 5.5  # topped up from the $10 bank
+    assert str(st2["challenges"][1]) == other  # the other challenge is untouched
+    assert st2["challenges"][0]["state"]["bets"][0]["stake"] == 15.5
+    assert C.apply_store(st2, q, DAY)[1] is False  # same op: nothing
+    won, _, _ = C.apply_store(st2, {"ch": "won", "chid": "ch1", "chs": "0", "chr": "32.55"}, DAY)
+    assert won["challenges"][0]["state"]["steps"][0]["to"] == 32.55
+    lost, _, _ = C.apply_store(st2, {"ch": "lost", "chid": "ch1", "chs": "0"}, DAY)
+    assert lost["challenges"][0]["state"]["placed"] is None
+
+
+def test_chbet_lower_stake_leaves_the_rest_in_the_bank():
+    st = _two_challenges()
+    st["challenges"][0]["state"]["bank"] = 20.0
+    st["challenges"][0]["state"]["placed"]["stake"] = 20.0
+    st, _, _ = C.apply_store(st, {"ch": "chbet", "chid": "ch1", "chs": "0", "chstake": "15.50", "chp": "2.10", "op": "e2"}, DAY)
+    won, _, _ = C.apply_store(st, {"ch": "won", "chid": "ch1", "chs": "0"}, DAY)
+    s = won["challenges"][0]["state"]
+    assert s["steps"][0]["to"] == 32.55 and s["kept"] == 10.0 and s["bank"] == 27.05
+
+
+def test_placed_card_stays_after_place():
+    from pathlib import Path
+
+    t = Path(C.__file__).parent / "web/templates/asynym"
+    for f in ("_challenges.html", "sports.html"):
+        assert 'value="chbet"' in (t / f).read_text() and "Edit this bet" in (t / f).read_text()

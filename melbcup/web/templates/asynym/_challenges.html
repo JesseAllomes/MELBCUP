@@ -100,6 +100,14 @@
   {% if placed %}
   {% set ag = az.get(placed.ag) %}
   <p class="say"><b>Placed: ${{ '%.2f' % placed.stake }} at {{ ag.name }}</b>{% if placed.price %} · ${{ '%.2f' % placed.price }}{% endif %}{% if placed.bonus %} · bonus bet (pays winnings only){% endif %}<br><small>{{ placed.label }}</small></p>
+<p class="note">Potential return {% if placed.price %}${{ '%.2f' % (placed.stake * placed.price) }}{% else %}-{% endif %}{% if placed.tip %} · kick-off {{ placed.tip | when }}{% endif %}</p>
+<details class="ch-edit"><summary>Edit this bet</summary>
+<form method="get" action="/sports" class="ch-act">
+<input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}b{{ ch.steps | length }}"><input type="hidden" name="ch" value="chbet"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+<label>Stake $<input name="chstake" inputmode="decimal" value="{{ '%.2f' % placed.stake }}"></label>
+<label>Price $<input name="chp" inputmode="decimal" value="{{ ('%.2f' % placed.price) if placed.price else '' }}"></label>
+<label>Legs <input name="chl" maxlength="120" value="{{ placed.label }}"></label>
+<button type="submit">Save bet</button></form></details>
   {% if not placed.bonus %}<p class="note"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=isbonus&chs={{ ch.steps | length }}">Staked with a bonus bet? Mark it</a> (not your money; it pays winnings only)</p>{% endif %}
   {{ tracked((track or {}).get(placed.id), not placed.bonus) }}
   <form method="get" action="/sports" class="ch-act">
