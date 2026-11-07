@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=183 -->
+<!-- drainclamp-build: state; schema=1; generation=184 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T20:53:22+00:00 cae87d5f 2026-11-04 DIRECT DEPLOY LIVE: tools/deploy_azure.py (checks -> function one-deploy zip, job+web code layer on running image via ghcr, PUT spec, cost_guard --live). Env: scratch azure.env + ghcr.env (KV ghcr-publish-token, owner approved). azure-deploy.yml push trigger removed (dispatch only for full rebuilds). Deployed d40ed08c: money rework, challenge one-game-per-stage + placed/won/lost + keep start, Sportsbet default agency, archive-to-gcs schedule off. main = d40ed08c, no workflow fired. Owner bets at Sportsbet: legs priced on PointsBet; next candidate: Sportsbet player props feed. 2023-24 multis backtest still running.
 - 2026-11-03T21:01:17+00:00 9a57fd1b 2026-11-04 challenge stages picker live (2-8 stages, stage_x even split with keep: 3 = 5x; re-balances; start screen shows per-option stage % and run % on tonight's lines). deploy_azure replaces previous code layer. Pending question to owner: add Sportsbet player props feed? 2023-24 backtest running.
 - 2026-11-03T21:10:36+00:00 2a120c3e 2026-11-04 challenge scheduling live (ee27747a): stages a night 1|2, GAP 3h tip-to-tip, later nights after quota, chance to finish from here (stage chance^remaining), result due (tip+2.5h), header alert strip labels (Stage N tips off / result due; in-app only, not push). Backtest 2023-24: cross 26.6/27.5, same-game 29.0/30.7 -> calibrated; 2024-25 $50 gap = noise. Open offers: Sportsbet props feed; real push notifications (web push) for alerts when app closed.
 - 2026-11-03T21:14:25+00:00 48b7a168 2026-11-04 challenge: ch=new (New challenge, back to set-up; blocked while a stage is placed; history+bets kept); BUFFER 1h after result -> GAP 3.5h tip-to-tip. Deployed web. Open question to owner: Sportsbet props first, or push notifications?
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-07T06:06:19+00:00 sports 2026-11-07: Grok's uncommitted Azure deploy (sports page + func-sports, maxInstances 100, not in cost guard) saved to branch grok-sports (grok-live/); maths flaws: +EV from best-price ROI, band hit rate applied to cheap end, missing tools/markets/scan_multis.py, brute-force multi search. Web/job/function redeployed from main (sports page down); /data page live (datasets + GitHub links for review). func-sports cap to 1 BLOCKED (needs owner 'cap func-sports'). Costs Nov MTD A$6.81: Parlebros ~A$6.3, betting app ~A$0.46. RUNNING workflow wf_ce17b5aa-2e8 (8 Sonnet agents in worktrees: nba, racing, football, afl, nrl, nfl, nhl, tennis) -> tools/sports/<sport>/, research/sports/<sport>.md, blob nba/sports/<sport>/; NBA agent also builds nightly learner, racing agent persists RaceCheck + learner. NEXT: review each branch (maths, honest hold-out), merge, deploy; owner doing independent review via /data.
 - 2026-11-07T12:28:21+00:00 8ee66bf8 2026-11-07 resumed under DC after drift: rp0/rp1/cat1/dz1 done+deployed (owner approved); pk1 in review; ui7 restarted under product-ui (production UI agent stopped); CLAUDE.md rules saved locally (push pending owner approval)
 - 2026-11-07T13:37:18+00:00 f09fccf1 2026-11-07 ui7 round 2 (v6 A-D, mix of 1+2+4, bet+why visual) sent, waiting owner pick; dz1 follow-up: research upper-limit counterexample fixed (two-sided fronts per bin, 300 narrow ranges = brute force, 18 s); further-research pack read: alt-line count curves (P1), quote ages, accepted prices -> sh1/eq1
+- 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
