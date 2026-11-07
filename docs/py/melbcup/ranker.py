@@ -143,7 +143,7 @@ def _summary(stack, objective, payoff):
         "p_all": round(p_all, 5),
         "p_exactly_one_fail": round(p_one, 5),
         "p_all_win_low": round(_lower_bound(stack, p_all), 5),
-        "quote_status": "estimated_product_price",  # product of leg prices, not a bookmaker multi quote
+        "quote_status": "estimated_product_price",
         "evidence_status": "unvalidated",
         "value": _value(objective, stack, price, p_all, p_one, payoff),
     }
