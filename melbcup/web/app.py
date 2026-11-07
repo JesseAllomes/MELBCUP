@@ -521,16 +521,13 @@ def create_app(
                 response.delete_cookie(PB_COOKIE)
         if settings.asynym and path == "nba" and query.get("us") in ("0", "1"):  # US books toggle
             response.set_cookie("nba_us", query["us"], **keep)
-        if settings.asynym and path == "nba" and "ch" in query:  # the $10 -> $1000 challenge
-            state = nba_challenge.apply(
-                nba_challenge.parse(request.cookies.get(nba_challenge.COOKIE)),
-                query,
-                melbourne_today().isoformat(),
-            )
-            if state is None:
+        if settings.asynym and path == "nba" and "ch" in query:  # challenges, wallet, recorded wagers
+            before = nba_challenge.load(request.cookies.get(nba_challenge.COOKIE))
+            store, changed, _ = nba_challenge.apply_store(before, query, melbourne_today().isoformat())
+            if changed or (store.get("migrated") and nba_challenge._read() is None):
+                nba_challenge.save(store)
+            if request.cookies.get(nba_challenge.COOKIE):  # the cookie was only the migration source
                 response.delete_cookie(nba_challenge.COOKIE)
-            else:
-                response.set_cookie(nba_challenge.COOKIE, nba_challenge.dump(state), **keep)
         if settings.asynym:  # ASYNYM=1: which agencies are ON, and TAB, Ladbrokes, Neds money
             for name, value in asynym.cookie_changes(query).items():
                 if value is None:

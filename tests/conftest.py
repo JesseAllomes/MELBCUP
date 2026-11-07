@@ -359,3 +359,13 @@ def _web_clock_before_the_card(monkeypatch):
 
     monkeypatch.setattr(views, "datetime", Fixed)
     yield
+
+
+@pytest.fixture(autouse=True)
+def _challenge_store(tmp_path, monkeypatch):
+    """Challenges persist to a file (or blob); never to the real home or storage in a test."""
+    monkeypatch.setenv("NBA_CHALLENGES_FILE", str(tmp_path / "challenges_state.json"))
+    monkeypatch.delenv("NBA_ACCOUNT", raising=False)
+    from melbcup import nba_challenge
+
+    nba_challenge._CACHE[:] = [0.0, None]

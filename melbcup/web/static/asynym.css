@@ -423,3 +423,18 @@ details.form summary, details.rec summary { cursor: pointer; color: var(--brand)
 .nb-track li.ok { color: var(--good); } .nb-track li.bad { color: var(--bad); }
 .nb-track small { color: var(--muted); }
 a.pick-other { text-decoration: none; color: inherit; }
+
+/* challenges: list cards, wallet, wagers (360-412px first) */
+.chs-list{display:grid;gap:8px;margin:8px 0}
+.chs-card{display:block;padding:10px 12px;border:1px solid var(--line,#ddd);border-radius:10px;text-decoration:none;color:inherit}
+.chs-card.open{border-color:var(--accent,#0a7);box-shadow:0 0 0 1px var(--accent,#0a7)}
+.chs-card span,.chs-card small{display:block;opacity:.8;font-size:.85em}
+.chs-scope{display:inline!important;opacity:.7}
+.chs-new,.chs-wallet details{margin:8px 0}
+.chs-new summary,.chs-wallet summary{cursor:pointer;padding:8px 0}
+.chs-credit{padding:8px 0;border-top:1px solid var(--line,#ddd);overflow-wrap:anywhere}
+.chs-err{color:var(--bad,#c33)}
+.chs-table{overflow-x:auto}
+.chs-table table{border-collapse:collapse;width:100%;font-size:.85em}
+.chs-table th,.chs-table td{padding:4px 6px;text-align:left;vertical-align:top}
+@media(max-width:420px){.chs .ch-start label,.chs-wager .ch-start label,.chs-wallet label,.chs-promo label{display:block;width:100%}.chs input,.chs select{max-width:100%;box-sizing:border-box}}
