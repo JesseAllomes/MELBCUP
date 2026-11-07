@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hmac
 import os
+import re
 import secrets
 import threading
 import time
@@ -328,11 +329,53 @@ def create_app(
             done = await run_in_threadpool(push.telegram, update)
             return JSONResponse({"ok": True, "done": done})
 
+    # The owner's datasets as plain links (owner, 2026-11-07): read straight from Blob, no login.
+    # Phone alert records (push/) and the US switch are left out.
+    data_ok = re.compile(
+        r"^(board-latest\.json|view-latest\.json\.gz|forward\.jsonl|schedule\.json|"
+        r"us-latest\.json|legs-latest\.json|(history|bookstest|racing)/[\w./-]+|\d{8}/[\w.-]+)$"
+    )
+
+    @app.get("/data", response_class=HTMLResponse)
+    def data_index():
+        from melbcup.nba_feed import blob_names
+
+        account = os.environ.get("NBA_ACCOUNT")
+        if not account:
+            raise HTTPException(404, "no data store here")
+        names = [
+            n for n in blob_names(account, os.environ.get("AZURE_CLIENT_ID")) if data_ok.match(n)
+        ]
+        rows = "".join(f'<li><a href="/data/{n}">{n}</a></li>' for n in sorted(names))
+        return HTMLResponse(
+            f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
+            f"<title>AsynymBet data</title><h1>AsynymBet data</h1><ul>{rows}</ul>"
+        )
+
+    @app.get("/data/{name:path}")
+    def data_file(name: str):
+        from melbcup.nba_feed import blob_reader
+
+        account = os.environ.get("NBA_ACCOUNT")
+        if not account or not data_ok.match(name) or ".." in name:
+            raise HTTPException(404, "not a dataset")
+        raw = blob_reader(account, os.environ.get("AZURE_CLIENT_ID"))(name)
+        if raw is None:
+            raise HTTPException(404, "not found")
+        kind = (
+            "application/gzip"
+            if name.endswith(".gz")
+            else ("application/json" if name.endswith(".json") else "text/plain; charset=utf-8")
+        )
+        return Response(raw, media_type=kind, headers={"Cache-Control": "no-store"})
+
     @app.get("/api/nba/us-pretip")
     def nba_us_pretip():
         """The Function calls this about 30 min before a slate's first tip: the US books are pulled
         then if they are on and due (a pull not due costs nothing, so anyone may call it)."""
-        return JSONResponse({"pulled": views.nba_us_pretip()}, headers={"Cache-Control": "no-store"})
+        return JSONResponse(
+            {"pulled": views.nba_us_pretip()}, headers={"Cache-Control": "no-store"}
+        )
 
     @app.get("/api/nba/stamp", dependencies=[Depends(require_login)])
     def nba_stamp():

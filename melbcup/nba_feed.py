@@ -80,6 +80,25 @@ def blob_reader(account: str, client_id: str | None) -> Callable[[str], bytes | 
     return read
 
 
+def blob_names(account: str, client_id: str | None, prefix: str = "") -> list[str]:
+    """Every blob name in container `nba` (under `prefix`), with the app's managed identity."""
+    import re
+
+    names, marker = [], ""
+    while True:
+        resp = httpx.get(
+            f"https://{account}.blob.core.windows.net/nba",
+            params={"restype": "container", "comp": "list", "prefix": prefix, "marker": marker},
+            headers={"Authorization": f"Bearer {_token(client_id)}", "x-ms-version": "2021-08-06"},
+            timeout=TIMEOUT_S,
+        )
+        resp.raise_for_status()
+        names += re.findall(r"<Name>([^<]+)</Name>", resp.text)
+        marker = (re.findall(r"<NextMarker>([^<]*)</NextMarker>", resp.text) or [""])[0]
+        if not marker:
+            return names
+
+
 def nearest(legs: list[dict], min_chance: float = 0.75, n: int = 5) -> list[dict]:
     """When nothing is value: the likely legs whose price comes closest to fair."""
     likely = [g for g in legs if g["chance"] >= min_chance]
