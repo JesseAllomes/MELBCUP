@@ -33,5 +33,7 @@ def test_function_package_imports_without_melbcup(tmp_path):
         "import sys; sys.modules['melbcup'] = None; sys.path.insert(0, sys.argv[1]); "
         "import function_app; print('ok')"
     )
-    r = subprocess.run([sys.executable, "-c", code, str(pkg)], capture_output=True, text=True, timeout=120)
+    r = subprocess.run(
+        [sys.executable, "-c", code, str(pkg)], capture_output=True, text=True, timeout=120
+    )
     assert r.stdout.strip() == "ok", r.stderr[-800:]
