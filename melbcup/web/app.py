@@ -7,11 +7,12 @@ Rendering and actions live in views.py, shared with the browser build.
 from __future__ import annotations
 
 import hmac
+import html
 import os
-import re
 import secrets
 import threading
 import time
+import zlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
@@ -23,12 +24,13 @@ from fastapi.responses import (
     PlainTextResponse,
     RedirectResponse,
     Response,
+    StreamingResponse,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from melbcup import nba_challenge
+from melbcup import data_public, nba_challenge
 from melbcup.archive import Archive
 from melbcup.autobet import BetError, Betting, PinError, start_loop
 from melbcup.config import Settings, load_settings
@@ -330,64 +332,142 @@ def create_app(
             return JSONResponse({"ok": True, "done": done})
 
     # The owner's datasets as plain links (owner, 2026-11-07): read straight from Blob, no login.
-    # Phone alert records (push/) and the US switch are left out.
-    data_ok = re.compile(
-        r"^(board-latest\.json|view-latest\.json\.gz|forward\.jsonl|schedule\.json|"
-        r"us-latest\.json|legs-latest\.json|(history|bookstest|racing|sports)/[\w./-]+|\d{8}/[\w.-]+)$"
-    )
+    # Phone alert records (push/) and the US switch are left out. Every file streams; a .gz file
+    # also has a plain-text copy at /data/plain/<name> (?rows=N for the first N lines), so tools
+    # that cannot unzip (ChatGPT's browser) can read it; /data/export/asynym-data.zip has it all.
+    data_ok, data_about = data_public.DATA_OK, data_public.DATA_ABOUT
 
-    @app.get("/data", response_class=HTMLResponse)
-    def data_index():
-        from melbcup.nba_feed import blob_names
+    def _about(name: str) -> str:
+        return next(what for pre, what in data_about if name.startswith(pre))
+
+    def _data_names() -> dict[str, int]:
+        from melbcup.nba_feed import blob_sizes
 
         account = os.environ.get("NBA_ACCOUNT")
         if not account:
             raise HTTPException(404, "no data store here")
-        names = [
-            n for n in blob_names(account, os.environ.get("AZURE_CLIENT_ID")) if data_ok.match(n)
-        ]
-        rows = "".join(f'<li><a href="/data/{n}">{n}</a></li>' for n in sorted(names))
+        sizes = blob_sizes(account, os.environ.get("AZURE_CLIENT_ID"))
+        return {n: b for n, b in sizes.items() if data_ok.match(n)}
+
+    @app.get("/robots.txt", response_class=PlainTextResponse)
+    def robots():
+        return "User-agent: *\nAllow: /data\nDisallow: /\n"
+
+    @app.get("/data/index.json")
+    def data_manifest(request: Request):
+        base = str(request.base_url).rstrip("/")
+        return JSONResponse(
+            [
+                {
+                    "name": n,
+                    "bytes": b,
+                    "about": _about(n),
+                    "url": f"{base}/data/{n}",
+                    "plain": f"{base}/data/plain/{n}" if n.endswith(".gz") else None,
+                }
+                for n, b in sorted(_data_names().items())
+            ],
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.get("/data", response_class=HTMLResponse)
+    def data_index():
+        names = _data_names()
+        groups: dict[str, list[str]] = {}
+        for n in sorted(names):
+            groups.setdefault(_about(n), []).append(n)
+
+        def row(n: str) -> str:
+            mb = f"{names[n] / 1e6:.1f} MB" if names[n] >= 1e5 else f"{names[n] / 1e3:.0f} KB"
+            plain = (
+                f' · <a href="/data/plain/{n}?rows=2000">first 2000 rows as text</a>'
+                f' · <a href="/data/plain/{n}">all as text</a>'
+                if n.endswith(".gz")
+                else ""
+            )
+            return f'<li><a href="/data/{n}">{n}</a> ({mb}){plain}</li>'
+
+        order = [what for _, what in data_about]
+        body = "".join(
+            f"<h3>{html.escape(what)}</h3><ul>{''.join(row(n) for n in groups[what])}</ul>"
+            for what in order
+            if what in groups
+        )
         gh = "https://github.com/JesseAllomes/MELBCUP/tree/main/"
         code = "".join(
             f'<li><a href="{gh}{p}">{p}</a> {what}</li>'
             for p, what in (
-                ("research", "every test and backtest result"),
                 (
-                    "tools/nba",
-                    "NBA model, tuning, backtests, learners (model_v3.json, model_v4.json)",
+                    "research",
+                    "every test and backtest result (research/sports: per-sport write-ups)",
                 ),
+                ("tools/sports", "per-sport data pullers, models and hold-out tests"),
+                ("tools/nba", "NBA model, tuning, backtests (model_v3.json, model_v4.json)"),
                 ("tools/racing", "racing learner"),
-                ("tools/sports", "per-sport data pullers and models"),
                 ("melbcup", "the app: nba_legs.py (chances, multis), nba_challenge.py, live.py"),
-                ("data", "data shipped with the app"),
-                ("docs/data", "the racing archive"),
             )
         )
         return HTMLResponse(
-            f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
-            f"<title>AsynymBet data</title><h1>AsynymBet data</h1>"
-            f"<h2>Datasets (live, Azure)</h2><ul>{rows}</ul>"
-            f"<h2>Models, research and code (GitHub)</h2><ul>{code}</ul>"
-            f"<p><a href='https://github.com/JesseAllomes/MELBCUP/tree/live'>Live racing observations</a>"
-            f" (branch live)</p>"
+            "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
+            "<title>AsynymBet data</title><h1>AsynymBet data</h1>"
+            "<p>Open, no login. Machine-readable list: <a href='/data/index.json'>/data/index.json</a>."
+            " Compressed files (.gz) also open as plain text.</p>"
+            f"{body}<h2>Code and write-ups (GitHub)</h2><ul>{code}</ul>"
         )
 
-    @app.get("/data/{name:path}")
-    def data_file(name: str):
-        from melbcup.nba_feed import blob_reader
+    def _kind(name: str) -> str:
+        if name.endswith(".zip"):
+            return "application/zip"
+        if name.endswith(".gz"):
+            return "application/gzip"
+        if name.endswith(".json"):
+            return "application/json"
+        return "text/plain; charset=utf-8"
+
+    def _open(name: str):
+        from melbcup.nba_feed import blob_stream
 
         account = os.environ.get("NBA_ACCOUNT")
         if not account or not data_ok.match(name) or ".." in name:
             raise HTTPException(404, "not a dataset")
-        raw = blob_reader(account, os.environ.get("AZURE_CLIENT_ID"))(name)
-        if raw is None:
+        got = blob_stream(account, os.environ.get("AZURE_CLIENT_ID"), name)
+        if got is None:
             raise HTTPException(404, "not found")
-        kind = (
-            "application/gzip"
-            if name.endswith(".gz")
-            else ("application/json" if name.endswith(".json") else "text/plain; charset=utf-8")
-        )
-        return Response(raw, media_type=kind, headers={"Cache-Control": "no-store"})
+        return got
+
+    @app.get("/data/plain/{name:path}")
+    def data_plain(name: str, rows: int = 0):
+        """A .gz dataset unzipped on the fly as text (rows=N: only the first N lines)."""
+        _, chunks = _open(name)
+
+        def text():
+            z = zlib.decompressobj(16 + zlib.MAX_WBITS) if name.endswith(".gz") else None
+            left = rows if rows > 0 else None
+            for c in chunks:
+                out = z.decompress(c) if z else c
+                if left is not None:
+                    lines = out.split(b"\n")
+                    if len(lines) - 1 >= left:
+                        yield b"\n".join(lines[:left]) + b"\n"
+                        getattr(chunks, "close", lambda: None)()  # stop the download
+                        return
+                    left -= len(lines) - 1
+                yield out
+            if z:
+                yield z.flush()
+
+        kind = "text/csv; charset=utf-8" if ".csv" in name else _kind(name.removesuffix(".gz"))
+        return StreamingResponse(text(), media_type=kind, headers={"Cache-Control": "no-store"})
+
+    @app.get("/data/{name:path}")
+    def data_file(name: str):
+        size, chunks = _open(name)
+        headers = {"Cache-Control": "no-store"}
+        if size:
+            headers["Content-Length"] = str(size)
+        if name.endswith((".zip", ".gz")):
+            headers["Content-Disposition"] = f'attachment; filename="{name.rsplit("/", 1)[-1]}"'
+        return StreamingResponse(chunks, media_type=_kind(name), headers=headers)
 
     @app.get("/api/nba/us-pretip")
     def nba_us_pretip():

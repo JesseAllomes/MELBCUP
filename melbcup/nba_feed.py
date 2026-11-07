@@ -15,6 +15,7 @@ from __future__ import annotations
 import gzip
 import json
 import os
+import re
 import threading
 import time
 from collections.abc import Callable
@@ -78,6 +79,57 @@ def blob_reader(account: str, client_id: str | None) -> Callable[[str], bytes | 
         return resp.content
 
     return read
+
+
+def blob_stream(account: str, client_id: str | None, name: str):
+    """(size, chunk iterator) for a blob of container `nba`, streamed, or None when missing."""
+    if not os.environ.get("IDENTITY_ENDPOINT"):
+        return None
+    client = httpx.Client(timeout=httpx.Timeout(TIMEOUT_S, read=120))
+    req = client.build_request(
+        "GET",
+        f"https://{account}.blob.core.windows.net/nba/{name}",
+        headers={"Authorization": f"Bearer {_token(client_id)}", "x-ms-version": "2021-08-06"},
+    )
+    resp = client.send(req, stream=True)
+    if resp.status_code == 404:
+        resp.close()
+        client.close()
+        return None
+    resp.raise_for_status()
+
+    def chunks():
+        try:
+            yield from resp.iter_bytes(1 << 16)
+        finally:
+            resp.close()
+            client.close()
+
+    return int(resp.headers.get("content-length") or 0), chunks()
+
+
+def blob_sizes(account: str, client_id: str | None) -> dict[str, int]:
+    """{name: bytes} for every blob of container `nba`."""
+    out: dict[str, int] = {}
+    if not os.environ.get("IDENTITY_ENDPOINT"):
+        return out
+    marker = ""
+    while True:
+        r = httpx.get(
+            f"https://{account}.blob.core.windows.net/nba",
+            params={"restype": "container", "comp": "list", "marker": marker},
+            headers={"Authorization": f"Bearer {_token(client_id)}", "x-ms-version": "2021-08-06"},
+            timeout=TIMEOUT_S,
+        )
+        r.raise_for_status()
+        for m in re.finditer(
+            r"<Name>([^<]+)</Name>.*?<Content-Length>(\d+)</Content-Length>", r.text, re.S
+        ):
+            out[m[1]] = int(m[2])
+        nxt = re.search(r"<NextMarker>([^<]+)</NextMarker>", r.text)
+        if not nxt:
+            return out
+        marker = nxt[1]
 
 
 def blob_names(account: str, client_id: str | None, prefix: str = "") -> list[str]:
