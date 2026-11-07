@@ -382,7 +382,7 @@ def _nba_money(path, query, cookies, today):
     except ImportError:  # the phone's offline copy leaves the NBA code out
         return None, {}, 0.0
     state = nba_challenge.parse((cookies or {}).get(nba_challenge.COOKIE))
-    if path == "/nba" and "ch" in query:
+    if path in ("/nba", "/sports") and "ch" in query:
         state = nba_challenge.apply(state, query, today.isoformat())
     used, profit = nba_challenge.today_money(state, today.isoformat())
     return state, used, profit
@@ -847,8 +847,18 @@ class Views:
         ctx["pb_on"] = ctx["az"].get("pb").on
         ctx["tab_q"] = query.get("tab", "")
         ctx["path"] = path
-        ctx["keep"] = {k: query[k] for k in ("tab", "date") if k in query}
-        ctx["nav"] = {"/": "home", "/mine": "mine", "/nba": "nba"}.get(path, "days")
+        ctx["keep"] = {k: query[k] for k in ("tab", "date", "sport") if k in query}
+        ctx["nav"] = {"/": "home", "/mine": "mine", "/sports": "sports"}.get(path, "days")
+        if path == "/sports":
+            from melbcup import sports_hub
+
+            ctx["sport"] = sport = sports_hub.pick(query.get("sport"))
+            ctx.update(hub_tabs=sports_hub.TABS, hub_sports=sports_hub.SPORTS)
+            ctx["hub"] = sports_hub.BY_CODE.get(sport)
+            if sport != "nba":
+                return self.env.get_template("asynym/sports.html").render(ctx)
+            path = "/nba"  # the NBA content below, rendered inside the hub
+            ctx["path"] = "/sports"
         if path == "/nba":
             self._agencies_on = set(ctx["az"].codes_on) if ctx.get("az") else set()
             self._agency_left = {a.code: a.left for a in ctx["az"].on} if ctx.get("az") else {}
@@ -863,7 +873,7 @@ class Views:
                 ctx.update(self._challenge(query, ctx))
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
-            return self.env.get_template("asynym/nba.html").render(ctx)
+            return self.env.get_template("asynym/sports.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))
             ctx["takes"] = asynym.home_takes(day, race_call, snap.race_date) if day else []
