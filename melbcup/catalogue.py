@@ -755,6 +755,57 @@ def _gz(obj) -> bytes:
     return gzip.compress(json.dumps(obj, separators=(",", ":")).encode())
 
 
+LATEST_MAX_ROWS = 20000
+
+
+def shard_doc(doc: dict, cov: dict | None = None) -> tuple[dict, dict]:
+    """(index, {competition_id: shard doc}) for one sport: the index is small (events, a row per
+    competition with counts and facets, the coverage row); each shard holds one competition's rows."""
+    by: dict[str, list] = {}
+    for r in doc["selections"]:
+        by.setdefault(str(r.get("league_id") or ""), []).append(r)
+    comps: dict[str, dict] = {}
+    for e in doc["events"]:
+        cid = str(e.get("competition_id") or "")
+        c = comps.setdefault(
+            cid, {"competition_id": cid, "competition": e.get("competition"), "events": 0}
+        )
+        c["events"] += 1
+        c["first_start"] = min(
+            filter(None, [c.get("first_start"), e.get("starts_at")]), default=None
+        )
+    for cid in by:
+        comps.setdefault(
+            cid, {"competition_id": cid, "competition": by[cid][0].get("competition"), "events": 0}
+        )
+    shards = {}
+    for cid, c in comps.items():
+        rows = by.get(cid, [])
+        c.update(
+            outcomes=len(rows),
+            player_outcomes=sum(1 for r in rows if r.get("is_player_prop")),
+            families=sorted({r.get("market_family") or "other" for r in rows}),
+            periods=sorted({r.get("period") or "" for r in rows} - {""}),
+            shard=f"comp-{cid}.json.gz" if rows else None,
+        )
+        if rows:
+            shards[cid] = {
+                "built": doc["built"], "provider": doc["provider"], "sport": doc["sport"],
+                "competition_id": cid, "competition": c["competition"],
+                "events": [e for e in doc["events"] if str(e.get("competition_id") or "") == cid],
+                "selections": rows,
+            }  # fmt: skip
+    index = {
+        "built": doc["built"], "provider": doc["provider"], "sport": doc["sport"],
+        "rows": len(doc["selections"]),
+        "player_rows": sum(c["player_outcomes"] for c in comps.values()),
+        "events": doc["events"],
+        "competitions": sorted(comps.values(), key=lambda c: (c.get("first_start") or "~", c["competition_id"])),
+        "coverage": cov,
+    }  # fmt: skip
+    return index, shards
+
+
 def write_build(result: dict, write, read=None, include_raw: bool = True) -> list[str]:
     """Write a build through `write(name, bytes)`. `read(name) -> bytes | None` lets coverage.json
     keep the rows of sports this run did not build (rotation). Returns the names written."""
@@ -766,8 +817,18 @@ def write_build(result: dict, write, read=None, include_raw: bool = True) -> lis
 
     built = next(iter(result["docs"].values()), {}).get("built") or _iso(datetime.now(UTC))
     stamp = _parse(built) or datetime.now(UTC)
+    cov_by = {r["sport"]: r for r in result["coverage"]}
     for k, doc in result["docs"].items():
-        put(f"catalogue/{k}/latest.json.gz", _gz(doc))
+        index, shards = shard_doc(doc, cov_by.get(k))
+        for cid, shard in shards.items():
+            put(f"catalogue/{k}/comp-{cid}.json.gz", _gz(shard))
+        put(f"catalogue/{k}/index.json", json.dumps(index, separators=(",", ":")).encode())
+        small = len(doc["selections"]) <= LATEST_MAX_ROWS
+        # a big sport keeps only a stub here: the rows live in the per-competition shards
+        put(
+            f"catalogue/{k}/latest.json.gz",
+            _gz(doc if small else {**doc, "selections": [], "sharded": True}),
+        )
         put(
             f"catalogue/unmapped/{k}.json",
             json.dumps(result["unmapped"].get(k, []), indent=1).encode(),

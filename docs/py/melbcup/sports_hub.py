@@ -230,6 +230,20 @@ SPORTS: tuple[Sport, ...] = (
         "Not tested: no dataset yet.",
     ),
 )
+SPORTS += (
+    Sport(
+        "other",
+        "Other",
+        True,
+        "PointsBet",
+        ("player props where offered",),
+        (),
+        "",
+        "",
+        "",
+        "Other basketball, American football, ice hockey and baseball leagues, grouped by competition.",
+    ),
+)
 BY_CODE = {s.code: s for s in SPORTS}
 TABS = (
     (("nba", "NBA"),)

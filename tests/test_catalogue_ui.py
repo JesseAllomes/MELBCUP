@@ -85,7 +85,9 @@ def test_pagination_reaches_every_row(tmp_path, monkeypatch):
 def test_all_is_union_of_every_sport():
     union = cv.query("all", "markets", {})
     per = {s: cv.query(s, "markets", {})["total"] for s in ("nba", "afl", "nfl", "football")}
-    assert union["total"] == sum(per.values()) and union["sports"] == sorted(per)
+    # streaming union: every offered row is counted, and reading stops once the page is filled
+    assert union["all_total"] == sum(per.values()) and union["sports"] == sorted(per)
+    assert union["partial"] and len(union["rows"]) == cv.PAGE_SIZE and union["link_next"]
     assert cv.query("all", "players", {"q": "daicos"})["total"] > 0  # T52: search crosses sports
 
 

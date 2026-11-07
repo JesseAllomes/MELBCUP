@@ -49,9 +49,10 @@
     <select name="mapped" aria-label="Mapping"><option value="">Mapped and unmapped</option><option value="mapped"{{ ' selected' if cat.f.mapped == 'mapped' }}>Mapped only</option><option value="unmapped"{{ ' selected' if cat.f.mapped == 'unmapped' }}>Unmapped only</option></select>
   </div>
   <label class="cat-alt"><input type="checkbox" name="alt" value="1"{{ ' checked' if cat.f.alt }}> Alternate lines only</label>
+  {% if cat.comp_opts %}<label class="cat-comp">Competition <select name="comp" aria-label="Competition">{% for k, n in cat.comp_opts %}<option value="{{ k }}"{{ ' selected' if k == cat.comp }}>{{ n }}</option>{% endfor %}</select></label>{% endif %}
   <div class="cat-go"><button type="submit">Search</button><a href="{{ cat.link_clear }}">Clear</a></div>
 </form>
-<p class="note cat-n">{% if cat.total %}Showing {{ cat.first }}–{{ cat.last }} of {{ cat.total }}{% if cat.total != cat.all_total %} (filtered from {{ cat.all_total }}){% endif %}{% else %}Nothing matches ({{ cat.all_total }} offered){% endif %}. Every offered line is listed whatever its chance, price or multi eligibility.</p>
+<p class="note cat-n">{% if cat.partial %}Showing {{ cat.first }}–{{ cat.last }}, more matches follow (pick a competition to narrow){% elif cat.total %}Showing {{ cat.first }}–{{ cat.last }} of {{ cat.total }}{% if cat.total != cat.all_total %} (filtered from {{ cat.all_total }}){% endif %}{% else %}Nothing matches ({{ cat.all_total }} offered){% endif %}. Every offered line is listed whatever its chance, price or multi eligibility.</p>
 {% if cat.view == 'players' %}
 {% for ev in cat.groups %}
 <section class="card cat-ev">
@@ -72,8 +73,8 @@
 {% if cat.pages > 1 %}
 <nav class="cat-pg" aria-label="Pages">
   {% if cat.link_prev %}<a href="{{ cat.link_first }}">First</a><a href="{{ cat.link_prev }}">Previous</a>{% endif %}
-  <span>Page {{ cat.page }} of {{ cat.pages }}</span>
-  {% if cat.link_next %}<a class="more" href="{{ cat.link_next }}">View more</a><a href="{{ cat.link_last }}">Last</a>{% endif %}
+  <span>Page {{ cat.page }}{% if not cat.partial %} of {{ cat.pages }}{% endif %}</span>
+  {% if cat.link_next %}<a class="more" href="{{ cat.link_next }}">View more</a>{% if cat.link_last %}<a href="{{ cat.link_last }}">Last</a>{% endif %}{% endif %}
 </nav>
 {% endif %}
 {% endif %}
