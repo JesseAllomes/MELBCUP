@@ -21,6 +21,10 @@ picks saved once 25-35 minutes before the jump ("early") and again at every chec
 3 minutes ("late"), both at the default amounts ($150 Sportsbet, $50 Betfair). Once the race
 has a result both are graded, so the History page can show which does better over many races.
 Records only: nothing is placed.
+
+Saved (owner, 2026-11-07): each meeting's checks go to blob racing/<date>/<venue>/checks.json and
+are restored when the meeting loads; every graded race adds a line to racing/log/<date>.jsonl;
+tools/racing/learn.py turns the log into racing/tuning.json, which the model reads at start.
 """
 
 from __future__ import annotations
@@ -33,13 +37,13 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from melbcup import history
+from melbcup import history, racing_store
 from melbcup.bets import DayPicks, build_picks
 from melbcup.bets.allocate import allocate_accounts
 from melbcup.bets.grade import _exotic as grade_exotic
 from melbcup.config import MELBOURNE, Settings
 from melbcup.domain import Card, Race, betfair_net
-from melbcup.model.probability import RaceModel, assess
+from melbcup.model.probability import RaceModel, assess, set_tuning
 from melbcup.sources import apply_exchange, apply_market, apply_result, load_card
 from melbcup.sources.betfair import BetfairClient
 from melbcup.sources.formfav import FormFavClient
@@ -260,8 +264,14 @@ class LiveBoard:
         archive: Archive | None = None,
         rc: RacingComClient | None = None,
         bf: BetfairClient | None = None,
+        store: racing_store.RacingStore | None = None,
     ):
         self.settings = settings
+        # Durable checks, graded-race log and tuning (blob container nba); None off Azure.
+        self.store = store if store is not None else racing_store.from_env()
+        self._restored: tuple[date, str] | None = None
+        if self.store is not None:
+            set_tuning(self.store.load_tuning())
         self.rc = rc  # racing.com: field, prices, results; the app's entry points supply it
         self.ff = ff or (
             FormFavClient(settings.formfav_api_key) if settings.formfav_api_key else None
@@ -303,6 +313,7 @@ class LiveBoard:
         self._updated_at: datetime | None = None
         # Last-minute check per race. In memory only: a restart (or a new deploy) loses it.
         self._checks: dict[int, RaceCheck] = {}
+        self._logged: set[int] = set()  # races already written to the graded-race log
 
     # -- reading ------------------------------------------------------------------------------
 
@@ -426,6 +437,26 @@ class LiveBoard:
             self._form_at = now
             self._models = {r.number: assess(r) for r in card.races}
             self._updated_at = now
+        self._restore_checks()
+
+    def _restore_checks(self) -> None:
+        """After a restart or deploy, bring back this meeting's saved picks (once per meeting)."""
+        key = (self.race_date, self.venue.lower())
+        if self.store is None or self._restored == key:
+            return
+        saved = self.store.load_checks(self.race_date, self.venue, RaceCheck, CheckLine)
+        with self._lock:
+            for n, c in saved.items():
+                self._checks.setdefault(n, c)
+            self._restored = key
+
+    def _save_checks(self) -> None:
+        if self.store is None:
+            return
+        with self._lock:
+            checks, day, venue = dict(self._checks), self.race_date, self.venue
+        if checks:
+            self.store.save_checks(day, venue, checks)
 
     def _load_prices(self, now: datetime) -> None:
         to_run = [r.number for r in self._card.races if r.result is None]
@@ -487,6 +518,7 @@ class LiveBoard:
                 else:
                     had = replace(had, late=saved, late_at=now, jump=race.start_time)
                 self._checks[n] = had
+        self._save_checks()
 
     def _betfair_prices(self, now: datetime) -> tuple[dict, str | None]:
         """Betfair's prices for the meeting and a status line. A Betfair failure never stops
@@ -572,6 +604,7 @@ class LiveBoard:
 
     def _load_results(self, now: datetime) -> None:
         results = self.rc.results(self.race_date, self.venue, [r.number for r in self._card.races])
+        to_log: list[dict] = []
         with self._lock:
             for race in self._card.races:
                 if race.number in results:
@@ -580,10 +613,23 @@ class LiveBoard:
                 check = self._checks.get(race.number)
                 if check is not None and race.result is not None and race.result.finish:
                     self._checks[race.number] = grade_check(check, race)
+                final = race.result is not None and race.result.status == "final"
+                if final and race.number not in self._logged and race.number in self._models:
+                    self._logged.add(race.number)
+                    to_log.append(
+                        racing_store.graded_row(
+                            race.number, self._models[race.number], self._checks.get(race.number)
+                        )
+                    )
             self._results_at = now
             self._updated_at = now
             day = build_picks([self._models[n] for n in sorted(self._models)])
             self._history = history.merge(self._history, history.entries(day))
+            day_, venue_ = self.race_date, self.venue
+        if self.store is not None and to_log:
+            for row in to_log:
+                self.store.log_race(day_, venue_, row)
+            self._save_checks()
 
     def history(self) -> list[dict]:
         with self._lock:
@@ -627,6 +673,7 @@ class LiveBoard:
                 return True
             self.race_date, self.venue = race_date, venue
             self._card, self._models, self._checks = None, {}, {}
+            self._logged = set()
             self._form_at = self._priced_at = self._updated_at = self._results_at = None
             self._price_try = self._results_try = None
             self._errors = []

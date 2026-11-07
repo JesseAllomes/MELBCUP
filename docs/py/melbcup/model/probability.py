@@ -87,8 +87,27 @@ def _normalise(p: dict[int, float]) -> dict[int, float]:
     return {n: v / total for n, v in p.items()} if total > 0 else {}
 
 
-def corrected_market(market: dict[int, float], alpha: float = MARKET_ALPHA) -> dict[int, float]:
-    """The margin-free market with the favourite-long-shot correction: p ** alpha, renormalised."""
+TUNING: dict = {}
+ALPHA_RANGE = (1.0, 1.3)  # a tuning file can move alpha only inside this band
+
+
+def set_tuning(tuning: dict | None) -> None:
+    """Apply racing/tuning.json (written by tools/racing/learn.py). Bad or missing values are
+    ignored, so the frozen MARKET_ALPHA stays in force."""
+    TUNING.clear()
+    a = (tuning or {}).get("market_alpha")
+    if isinstance(a, (int, float)) and ALPHA_RANGE[0] <= a <= ALPHA_RANGE[1]:
+        TUNING["market_alpha"] = float(a)
+
+
+def market_alpha() -> float:
+    return TUNING.get("market_alpha", MARKET_ALPHA)
+
+
+def corrected_market(market: dict[int, float], alpha: float | None = None) -> dict[int, float]:
+    """The margin-free market with the favourite-long-shot correction: p ** alpha, renormalised.
+    alpha defaults to the tuned value, else the frozen MARKET_ALPHA."""
+    alpha = market_alpha() if alpha is None else alpha
     return _normalise({n: max(p, 0.0) ** alpha for n, p in market.items()})
 
 
