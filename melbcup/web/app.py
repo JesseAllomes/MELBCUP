@@ -355,7 +355,7 @@ def create_app(
 
     @app.get("/data/index.json")
     def data_manifest(request: Request):
-        base = str(request.base_url).rstrip("/")
+        base = str(request.base_url).rstrip("/").replace("http://", "https://", 1)  # behind TLS
         return JSONResponse(
             [
                 {
