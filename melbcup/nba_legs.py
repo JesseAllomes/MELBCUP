@@ -29,9 +29,11 @@ import random
 import re
 import unicodedata
 import urllib.request
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
+from functools import lru_cache
 from operator import mul
 from statistics import NormalDist
+from zoneinfo import ZoneInfo
 
 PB = "https://api.au.pointsbet.com/api/mes/v3"
 UA = {
@@ -41,6 +43,18 @@ UA = {
 LEG = re.compile(
     r"^(?P<who>.+?) To (?:Score|Get|Have|Record|Make|Hit) (?P<k>\d+)\+ (?P<what>.+)$", re.I
 )
+
+
+# PointsBet's player Over/Under markets sit in one group per stat, next to the "To Score N+" rungs:
+# an outcome "Aaron Gordon Over 12.5" / "Aaron Gordon Under 12.5". Combined-stat groups (Pts + Reb)
+# are other groups and stay out: the model prices single stats only.
+PB_OU_GROUP = {
+    "Player Points Markets": "points",
+    "Player Rebounds Markets": "reboundsTotal",
+    "Player Assists Markets": "assists",
+    "Player Three Pointer Markets": "threePointersMade",
+}
+PB_OU = re.compile(r"^(?P<who>.+?) (?P<side>Over|Under) (?P<line>\d+(?:\.\d+)?)$")
 
 
 def chance(mu: float, phi: float, ca: float, cb: float, k: int) -> float:
@@ -161,6 +175,7 @@ def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
                         "stat": stat,
                         "k": k,
                         "under": False,
+                        "src": "alt",
                     }
                 )
             elif ou:
@@ -179,6 +194,7 @@ def sportsbet_outcomes(markets: list[dict]) -> list[dict]:
                         "stat": stat,
                         "k": math.floor(line) + 1,
                         "under": under,
+                        "src": "ou",
                     }
                 )
     return out
@@ -264,6 +280,55 @@ def find(players, who, teams):
     return None
 
 
+_GAME = re.compile(r"^(?P<away>.+?)\s+(?:@|at)\s+(?P<home>.+)$", re.I)
+try:
+    _NY = ZoneInfo("America/New_York")
+except Exception:  # no tz database on this host: fixed EST, wrong by an hour in summer only
+    _NY = timezone(timedelta(hours=-5))
+
+
+@lru_cache(maxsize=8192)
+def _event_id(game, starts, raw):
+    hit = _GAME.match(game or "")
+    if not hit:  # no teams to reconcile on: the provider's own id, never shared with another feed
+        return ("raw", str(raw))
+    day = ""
+    try:
+        day = (
+            datetime.fromisoformat(str(starts).replace("Z", "+00:00"))
+            .astimezone(_NY)
+            .date()
+            .isoformat()
+        )
+    except (TypeError, ValueError):
+        pass
+    return (norm(hit["away"]), norm(hit["home"]), day)
+
+
+def event_id(g: dict) -> tuple:
+    """The canonical game: (away team, home team, US Eastern game date). Bookmakers' own event ids
+    differ and their start times can be minutes apart, but the teams and the New York date agree."""
+    return _event_id(g.get("game"), g.get("startsAt"), g.get("event"))
+
+
+def bet_key(g: dict) -> tuple:
+    """The same settlement predicate at any agency: game, player, stat, line (N+ is Over N-0.5),
+    side and period. The same player and line in another game is another bet."""
+    return (
+        event_id(g),
+        g.get("player"),
+        g.get("stat"),
+        g.get("line"),
+        bool(g.get("under")),
+        g.get("period", "full"),
+    )
+
+
+def _pair_id(g: dict) -> tuple:
+    k = bet_key(g)
+    return k[:4] + k[5:]  # the bet without its side: what an Over and its Under share
+
+
 BLEND_W = (
     0.0  # real prices (research/nba/dunk_real_prices.txt): the market beat the model, best weight 0
 )
@@ -283,33 +348,115 @@ def blend(model: float, market: float | None, w: float | None = None) -> float:
     return 1 / (1 + math.exp(-(w * _logit(model) + (1 - w) * _logit(market))))
 
 
+# The margin on a single-sided quote (an alternate "N+" rung, or a lone side), as the log gap
+# between 1/price and the chance, by price band: fitted against leave-PB-out US consensus at the
+# same line (Fable audit 2026-11-07, B2: +0.076 at 1.3-2.2 and +0.063 at 2.2-3.0, n=4,332 rungs;
+# 0.067 at <=1.3 from the forward log); at 3.0+ the rung's chance was overstated (ROI -28%), so
+# 0.10 until the long-over bias is measured against outcomes.
+RUNG_MARGIN = ((1.3, 0.067), (2.2, 0.076), (3.0, 0.063))
+RUNG_MARGIN_LONG = 0.10
+
+
+def rung_margin(price: float) -> float:
+    for top, m in RUNG_MARGIN:
+        if price < top or (top == 1.3 and price <= top):
+            return m
+    return RUNG_MARGIN_LONG
+
+
+def single_chance(price: float) -> float:
+    return min(math.exp(-rung_margin(price)) / price, 0.999)
+
+
 def feed_market(legs: list[dict]) -> dict:
-    """One agency's implied chance per bet_key. An over/under pair on the same line has its margin
-    removed; a single-sided leg (an alternate "N+" ladder) is 1/price over the feed's overround,
-    estimated from its own pairs (OVERROUND when it has none)."""
-    sides: dict = {}
+    """One agency's implied chance per bet_key. The margin comes off only inside the bookmaker's own
+    native two-way market: a main Over with the main Under of the same line. An alternate "N+" rung
+    is a second quote of the same outcome, never the counterpart of a main Under; it (and any lone
+    side) gets 1/price less the single-sided margin for its price band. A bet with a native pair
+    uses the pair; otherwise the mean of its single-sided quotes."""
+    pairs: dict = {}
+    singles: dict = {}
     for g in legs:
-        sides.setdefault((g["player"], g["stat"], g["line"]), {})[bool(g["under"])] = g["price"]
-    books = [1 / v[False] + 1 / v[True] for v in sides.values() if len(v) == 2]
-    over = sum(books) / len(books) if books else OVERROUND
+        if g.get("src", "ou") == "ou":
+            side = pairs.setdefault(_pair_id(g), {})
+            side[bool(g["under"])] = max(g["price"], side.get(bool(g["under"]), 0.0))
+        else:
+            singles.setdefault(bet_key(g), []).append(g["price"])
     out = {}
-    for (who, stat, line), v in sides.items():
-        for under, price in v.items():
-            key = (who, stat, line, under)
-            if len(v) == 2:
-                out[key] = (1 / price) / (1 / v[False] + 1 / v[True])
-            else:
-                out[key] = min((1 / price) / max(over, 1.0), 0.999)
+    for pid, v in pairs.items():
+        base = pid[:4]
+        rest = pid[4:]
+        if len(v) == 2:
+            tot = 1 / v[False] + 1 / v[True]
+            for under, price in v.items():
+                out[(*base, under, *rest)] = (1 / price) / tot
+        else:
+            for under, price in v.items():
+                singles.setdefault((*base, under, *rest), []).append(price)
+    for key, prices in singles.items():
+        if key not in out:
+            out[key] = sum(single_chance(p) for p in prices) / len(prices)
     return out
 
 
-def market_probs(legs_by_agency: dict) -> dict:
-    """{bet_key: mean implied chance over every agency that prices the bet}."""
+CONFLICT = 0.02  # a higher rung this far (in chance) above a lower one is a conflict, not noise
+
+
+class Market(dict):
+    """{bet_key: chance} plus `flagged`: the keys whose ladder conflicted by more than CONFLICT."""
+
+    flagged: frozenset = frozenset()
+
+
+def _pava_down(vals: list[float]) -> list[float]:
+    """Least-squares non-increasing fit (pool adjacent violators)."""
+    blocks: list[list] = []  # [sum, count]
+    for v in vals:
+        blocks.append([v, 1])
+        while len(blocks) > 1 and blocks[-2][0] / blocks[-2][1] < blocks[-1][0] / blocks[-1][1]:
+            b = blocks.pop()
+            blocks[-1][0] += b[0]
+            blocks[-1][1] += b[1]
+    return [b[0] / b[1] for b in blocks for _ in range(b[1])]
+
+
+def monotone(market: dict) -> Market:
+    """Per (game, player, stat, period) the chance of N+1+ cannot exceed that of N+ (and an under
+    only grows with its line). Fitted by isotonic regression on the logits; where the raw quotes
+    conflict by more than CONFLICT the bets are flagged, and automatic picks leave them out."""
+    ladders: dict = {}
+    for k, p in market.items():
+        eid, who, stat, line, under, per = k
+        if line is not None:
+            ladders.setdefault((eid, who, stat, per, under), []).append((line, k, p))
+    out, flagged = Market(market), set()
+    for (_e, _w, _s, _p, under), rows in ladders.items():
+        rows.sort(key=lambda r: r[0])
+        if len(rows) < 2:
+            continue
+        raw = [r[2] for r in rows]
+        for a, b in zip(rows, rows[1:], strict=False):
+            gap = (a[2] - b[2]) if under else (b[2] - a[2])
+            if gap > CONFLICT:
+                flagged.update((a[1], b[1]))
+        lg = [_logit(p) for p in raw]
+        fit = _pava_down([-x for x in lg] if under else lg)  # an under grows with its line
+        if under:
+            fit = [-x for x in fit]
+        for r, x in zip(rows, fit, strict=True):
+            out[r[1]] = 1 / (1 + math.exp(-x))
+    out.flagged = frozenset(flagged)
+    return out
+
+
+def market_probs(legs_by_agency: dict) -> Market:
+    """{bet_key: mean implied chance over every agency that prices the bet}, made monotone along
+    each player's ladder in each game (see monotone)."""
     acc: dict = {}
     for legs in legs_by_agency.values():
         for k, p in feed_market(legs).items():
             acc.setdefault(k, []).append(p)
-    return {k: sum(v) / len(v) for k, v in acc.items()}
+    return monotone({k: sum(v) / len(v) for k, v in acc.items()})
 
 
 # Overs land slightly less often than the market says, unders slightly more (owner, 2026-11-06):
@@ -330,8 +477,11 @@ def shade(c: float, under: bool) -> float:
 def apply_market(legs: list[dict], market: dict) -> None:
     """Blend each leg's model chance with the market's (in place). "model" stays the pure model
     value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
+    flagged = getattr(market, "flagged", ())
     for g in legs:
-        m = market.get(bet_key(g))
+        key = bet_key(g)
+        m = market.get(key)
+        g["conflict"] = key in flagged
         if g["model"] is None:  # no board for this player: the market's, else its own price's
             c = m if m is not None else g.get("raw", g["chance"])
         else:
@@ -357,18 +507,24 @@ def legs_from(events, board):
             for o in m["outcomes"]:
                 if o.get("isOpenForBetting") is False or not o.get("price"):
                     continue
+                src = "ou"  # "ou": a main Over/Under pair; "alt": an alternate "N+" rung
                 if "stat" in o:  # already parsed (Sportsbet): player, stat, k, under
                     who, s, k, under = o["player"], o["stat"], int(o["k"]), bool(o.get("under"))
-                else:  # "X To Score 20+ Points" (PointsBet)
-                    hit = LEG.match(o.get("name") or "")
-                    if not hit:
-                        continue
+                    src = o.get("src", "ou")
+                elif hit := LEG.match(o.get("name") or ""):  # "X To Score 20+ Points" (PointsBet)
                     who, s, k, under = (
                         hit["who"],
                         stat_of(hit["what"], o.get("unitType")),
                         int(hit["k"]),
                         False,
                     )
+                    src = "alt"
+                elif (hit := PB_OU.match(o.get("name") or "")) and m.get("group") in PB_OU_GROUP:
+                    # "X Over 12.5" / "X Under 12.5": Over 12.5 is 13+, Under 12.5 is 12 or fewer
+                    who, s, under = hit["who"], PB_OU_GROUP[m["group"]], hit["side"] == "Under"
+                    k = math.floor(float(hit["line"])) + 1
+                else:
+                    continue
                 p = find(players, who, teams) if teams else None
                 if s is None:
                     continue
@@ -396,6 +552,8 @@ def legs_from(events, board):
                         "stat": s,
                         "line": k,
                         "under": under,
+                        "src": src,
+                        "period": "full",
                         "label": o["name"],
                         "price": price,
                         "model": model,
@@ -448,6 +606,7 @@ def multi(legs, stake, chance=None):
 
 
 def build(legs, min_chance, stake, min_ev=0.03):
+    legs = _auto(legs)
     ok = [g for g in legs if g["chance"] >= min_chance and g["ev"] >= min_ev]
     best_per = {}
     for g in sorted(ok, key=lambda g: (-g["ev"], -g["chance"])):
@@ -472,9 +631,25 @@ SAME_MAX_LEGS = 6  # a same-game multi longer than this almost never gets up
 SAME_FLOOR = 0.6
 
 
-def bet_key(g: dict) -> tuple:
-    """The same bet at any agency: player, stat, line and side."""
-    return (g.get("player"), g.get("stat"), g.get("line"), bool(g.get("under")))
+def dedupe(legs: list[dict]) -> list[dict]:
+    """One leg per settlement predicate: "Over 5.5" and "6+" (same game, player, stat, full game)
+    are one bet quoted twice, so keep the better price and list the other quotes on it."""
+    groups: dict = {}
+    for g in legs:  # a leg with no line to compare (not a parsed prop) is never merged
+        groups.setdefault(bet_key(g) if g.get("line") is not None else id(g), []).append(g)
+    kept = []
+    for grp in groups.values():
+        g = max(grp, key=lambda x: x["price"])  # the first of equal prices
+        others = [{"price": h["price"], "src": h.get("src", "ou")} for h in grp if h is not g]
+        if others:
+            g["same_as"] = others
+        kept.append(g)
+    return kept
+
+
+def _auto(legs: list[dict]) -> list[dict]:
+    """The legs automatic picks may use: one per predicate, none whose ladder conflicts."""
+    return [g for g in dedupe(legs) if not g.get("conflict")]
 
 
 def better_elsewhere(item: dict, prices: dict, code: str) -> dict | None:
@@ -546,11 +721,13 @@ def _search(groups, targets, max_legs):
     return states
 
 
-def top_stacks(groups, targets, n=1, min_legs=3, max_legs=10) -> dict:
+def top_stacks(groups, targets, n=1, min_legs=2, max_legs=10) -> dict:
     """For every payout target at once: the n likeliest stacks (as the legs multiply) whose price
     reaches it, at most one leg per group, likeliest first. One pass over a 1% log-price grid
     (prices above the largest target share its top bucket); each bucket keeps the likeliest
-    stacks not beaten on both chance and price (FRONT_CAP of them)."""
+    stacks not beaten on both chance and price (FRONT_CAP of them). Every leg count from min_legs
+    (2) to max_legs competes at the target: nothing forces three legs. A promotion that needs more
+    passes its own min_legs."""
     targets = sorted(set(targets))
     if not targets:
         return {}
@@ -572,14 +749,14 @@ def top_stacks(groups, targets, n=1, min_legs=3, max_legs=10) -> dict:
     return out
 
 
-def best_stacks(groups, targets, min_legs=3, max_legs=10) -> dict:
+def best_stacks(groups, targets, min_legs=2, max_legs=10) -> dict:
     """For every payout target at once: the stack most likely to get up whose price reaches it
     (top_stacks with n=1); None when nothing reaches it."""
     found = top_stacks(groups, targets, 1, min_legs, max_legs)
     return {t: (v[0] if v else None) for t, v in found.items()}
 
 
-def best_stack(groups, target, min_legs=3, max_legs=10):
+def best_stack(groups, target, min_legs=2, max_legs=10):
     """The likeliest stack reaching one payout target (see best_stacks)."""
     return best_stacks(groups, [target], min_legs, max_legs)[target]
 
@@ -664,13 +841,39 @@ def _cholesky(m):
             shrink *= 0.8
 
 
+def _nested(legs):
+    """Legs on one player's one stat are nested, not independent: of two overs the higher line
+    implies the lower, of two unders the lower line implies the higher, and an over with an under
+    is the band between them (0 when they cannot both win). Returns (the factor those legs
+    contribute, the remaining legs)."""
+    groups: dict = {}
+    for g in legs:
+        if g.get("line") is not None and g.get("player") and g.get("stat"):
+            groups.setdefault((g["player"], g["stat"], g.get("period", "full")), []).append(g)
+    factor, drop = 1.0, set()
+    for gs in groups.values():
+        if len(gs) < 2:
+            continue
+        over = [g for g in gs if not g.get("under")]
+        under = [g for g in gs if g.get("under")]
+        if over and under:
+            drop.update(id(g) for g in gs)
+            o, u = max(over, key=lambda g: g["line"]), min(under, key=lambda g: g["line"])
+            factor *= max(o["chance"] + u["chance"] - 1.0, 0.0) if o["line"] < u["line"] else 0.0
+        else:  # the strictest leg stands for them all (and keeps its correlations)
+            keep = min(gs, key=lambda g: g["chance"])
+            drop.update(id(g) for g in gs if g is not keep)
+    return factor, [g for g in legs if id(g) not in drop]
+
+
 def joint_chance(legs) -> float:
     """Chance every leg wins, the legs' normal scores correlated by CORR (a Gaussian copula) and
     each leg keeping its own chance. Monte Carlo over MC_DRAWS fixed, seeded draws, so the same
     legs always give the same answer; no correlation at all gives the plain product exactly."""
+    factor, legs = _nested(list(legs))
     legs = sorted(legs, key=lambda g: g["chance"])  # the least likely first: most draws stop early
     n = len(legs)
-    prod = math.prod(g["chance"] for g in legs)
+    prod = math.prod(g["chance"] for g in legs) * factor
     rho = [[1.0 if i == j else _rho(legs[i], legs[j]) for j in range(n)] for i in range(n)]
     if n < 2 or all(rho[i][j] == 0 for i in range(n) for j in range(i)):
         return prod
@@ -689,13 +892,13 @@ def joint_chance(legs) -> float:
                 break
         else:
             hits += 1
-    return hits / MC_DRAWS
+    return factor * hits / MC_DRAWS
 
 
-def best_same_game(groups, targets, top=MC_TOP, max_legs=SAME_MAX_LEGS) -> dict:
+def best_same_game(groups, targets, top=MC_TOP, max_legs=SAME_MAX_LEGS, min_legs=2) -> dict:
     """{target: (legs, joint chance) | None}: the additive search's `top` likeliest stacks per
     target, re-scored by joint_chance, the likeliest first."""
-    found = top_stacks(groups, targets, top, max_legs=max_legs)
+    found = top_stacks(groups, targets, top, min_legs=min_legs, max_legs=max_legs)
     cache: dict = {}
     out = {}
     for t, cands in found.items():
@@ -716,7 +919,7 @@ LEG_MIN_PRICE = 1.15  # a leg paying less barely moves a multi's price
 def by_game(legs, n=6):
     """Per game, each player's surest line that still pays LEG_MIN_PRICE or more; the most likely first."""
     games = {}
-    for g in legs:
+    for g in _auto(legs):
         if g["price"] >= LEG_MIN_PRICE:
             best = games.setdefault(g["event"], {}).get(g["player"])
             if best is None or (g["chance"], g["price"]) > (best["chance"], best["price"]):
@@ -728,13 +931,13 @@ def by_game(legs, n=6):
     return sorted(out, key=lambda x: (x["startsAt"] or "", x["game"]))
 
 
-def stack_for(legs, target, stake=10.0, floor=0.5):
+def stack_for(legs, target, stake=10.0, floor=0.5, min_legs=2):
     """The likeliest one-leg-per-game stack paying at least `target` times the stake (or None)."""
     by_game = {}
-    for g in legs:
+    for g in _auto(legs):
         if g["chance"] >= floor and g["price"] > 1.0:
             by_game.setdefault(g["event"], []).append(g)
-    picks = best_stack([frontier(gs) for gs in by_game.values()], target)
+    picks = best_stack([frontier(gs) for gs in by_game.values()], target, min_legs)
     return ({"target": target} | multi(picks, stake)) if picks else None
 
 
@@ -746,15 +949,15 @@ def _player_groups(gs):
     return [f for f in (frontier(x) for x in by_player.values()) if f]
 
 
-def same_game_many(legs, targets, stake=10.0) -> dict:
+def same_game_many(legs, targets, stake=10.0, min_legs=2) -> dict:
     """{target: [each game's likeliest same-game stack reaching it, soonest tip-off first]},
     one search per game for all the targets."""
     by_game = {}
-    for g in legs:
+    for g in _auto(legs):
         by_game.setdefault(g["event"], []).append(g)
     out = {t: [] for t in targets}
     for gs in by_game.values():
-        found = best_same_game(_player_groups(gs), targets)
+        found = best_same_game(_player_groups(gs), targets, min_legs=min_legs)
         for t, hit in found.items():
             if hit:
                 out[t].append(
@@ -772,16 +975,16 @@ def same_game_for(legs, target, stake=10.0):
     return same_game_many(legs, [target], stake)[target]
 
 
-def stacks(legs, stake=10.0, floor=0.5):
+def stacks(legs, stake=10.0, floor=0.5, min_legs=2):
     """For each payout target, the most likely stack: across games (one leg per game, a normal
     multi) and inside one game (one leg per player, a same-game multi)."""
-    usable = [g for g in legs if g["chance"] >= floor and g["price"] > 1.0]
+    usable = [g for g in _auto(legs) if g["chance"] >= floor and g["price"] > 1.0]
     by_game = {}
     for g in usable:
         by_game.setdefault(g["event"], []).append(g)
-    found = best_stacks([frontier(gs) for gs in by_game.values()], TARGETS)
+    found = best_stacks([frontier(gs) for gs in by_game.values()], TARGETS, min_legs)
     cross = [{"target": t} | multi(p, stake) for t, p in found.items() if p]
-    many = same_game_many(usable, TARGETS, stake)
+    many = same_game_many(usable, TARGETS, stake, min_legs)
     same = [
         max(many[t], key=lambda m: m["chance"]) for t in TARGETS if many[t]
     ]  # the best game per target
