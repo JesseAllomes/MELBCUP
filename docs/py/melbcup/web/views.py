@@ -545,9 +545,10 @@ class Views:
             return {"ch": None, "ch_step": None}
         state = ctx.get("ch_state")
         opened = (ctx.get("chs") or {}).get("open")
-        if opened is None:
+        previewing = bool(query.get("chpreview"))
+        if opened is None and not previewing:
             return {"ch": None, "ch_step": None}
-        if opened["scope"] != "nba":  # All Sports: no NBA suggestions, the legs are typed in
+        if opened is not None and opened["scope"] != "nba":  # All Sports: legs are typed in
             run = state if state and state.get("active") is not False else None
             return {
                 "ch": run,
@@ -573,9 +574,9 @@ class Views:
         lim = {"min_legs": want, "max_legs": want} if want else {}
         p_start = nba_challenge._money(query.get("chstart")) or 10.0
         p_goal = max(nba_challenge._money(query.get("chgoal")) or 1000.0, p_start * 2)
-        p_keep = query.get("chkeep", "1") == "1" if query.get("chplan") else True
+        p_keep = query.get("chkeep", "1") == "1" if (query.get("chplan") or previewing) else True
         fresh_run = state is None or not (state["steps"] or state.get("placed"))
-        if state is not None and fresh_run:  # a just-created run: the planner stays open
+        if state is not None and fresh_run and not previewing:  # a just-created run
             p_start, p_goal, p_keep = state["start"], state["goal"], state.get("keep", True)
         preview = (
             self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep, want)
@@ -661,6 +662,8 @@ class Views:
             "ch_games": games,
             "ch_preview": preview,
             "ch_best": best,
+            "ch_pv": previewing,
+            "ch_pname": query.get("chname", ""),
             "ch_night": nba_challenge.night(nba_challenge._when(step.get("startsAt")))
             if (state and step and nba_challenge._when(step.get("startsAt")))
             else None,

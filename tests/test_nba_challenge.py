@@ -93,7 +93,15 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         c.get("/?ag=1&on_pb=1&on_sb=1&pb=100")
         html = c.get("/nba?tab=challenge").text
         assert "Challenges · 0" in html and 'name="chname"' in html  # the list, nothing yet
+        fake = [{"n": n, "x": 3.0, "typical": 0.5, "run": 0.2} for n in (2, 3, 4)]
+        monkeypatch.setattr(views.Views, "_stage_preview", lambda self, *a, **k: fake)
+        pv = c.get("/nba?tab=challenge&chpreview=1&chname=Run&chstart=20&chgoal=500").text
+        assert 'class="ch-preview"' in pv and "Best:" in pv and 'value="500"' in pv
+        assert "Challenges · 0" in c.get("/nba?tab=challenge").text  # preview created nothing
         html = c.get("/nba?tab=challenge&ch=newch&chname=Run&chmode=multi").text
+        i = html.index('id="ch-plan"')
+        assert html[:i].rindex("<details") > html[:i].rindex("</details>")  # planner is in a fold
+        assert "<details" in html[i - 40 : i] and " open" not in html[i - 40 : i]
         assert "Stage 1 of 3 · bank $10.00 of $1000" in html and "Mark as placed · $10.00" in html
         assert (
             'name="chtip" value="2026-11-05T00:00:00Z"' in html

@@ -13,19 +13,20 @@
   </a>
   {% else %}<p class="say">No challenges yet. Start one below; run as many at once as you like, each with its own money.</p>{% endfor %}
   </div>
-  <details class="chs-new"><summary>+ New challenge</summary>
+  <details class="chs-new"{{ " open" if ch_pv else "" }}><summary>+ New challenge</summary>
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch">
-    <label>Name <input name="chname" maxlength="40" placeholder="e.g. NBA Props Run"></label>
+    <label>Name <input name="chname" maxlength="40" value="{{ ch_pname if ch_pv else '' }}" placeholder="e.g. NBA Props Run"></label>
     <label>Sports <select name="chscope"><option value="nba">NBA (suggested stages)</option><option value="all">All Sports (I type in the legs)</option></select></label>
-    <label>Start $<input name="chstart" inputmode="decimal" value="10"></label>
-    <label>Goal $<input name="chgoal" inputmode="decimal" value="1000"></label>
-    <label class="ch-mode">Stages <select name="chn">{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == 3 }}>{{ n }}</option>{% endfor %}</select></label>
-    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if None == n }}>{{ n }}</option>{% endfor %}</select></label>
-    <p class="note">Right after you create it, the planner shows the best stage count for this start and goal; change the stages there.</p>
+    <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%g' % ch_plan.start if ch_pv else 10 }}"></label>
+    <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%g' % ch_plan.goal if ch_pv else 1000 }}"></label>
+    {% if ch_pv and ch_preview and ch_preview[0].typical is not none %}{% if ch_best %}<p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>{% endif %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
+    <label class="ch-mode">Stages <select name="chn">{% set pbest = ch_best.n if (ch_pv and ch_best) else 3 %}{% for n in range(2, 9) %}<option value="{{ n }}"{{ ' selected' if n == pbest }}>{{ n }}</option>{% endfor %}</select></label>
+    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch_pv and ch_plan.legs == n }}>{{ n }}</option>{% endfor %}</select></label>
+    <button type="submit" name="chpreview" value="1" formnovalidate class="ghost" onclick="this.form.ch.disabled=true;this.form.op.disabled=true">Best stages for this goal</button>
     <label class="ch-mode"><input type="radio" name="chmode" value="game" checked> One game per stage</label>
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
-    <button type="submit">Create and start</button>
+    <button type="submit">Start challenge</button>
   </form></details>
   {% if chs.open and ch %}
   <details class="chs-edit"><summary>Edit challenge</summary>
@@ -79,12 +80,12 @@
   {% set one_game = ch.get('mode', 'game') == 'game' %}
   {% set placed = ch.get('placed') %}
   {% if not ch.steps and not placed and ch_preview %}
-  <div class="ch-plan" id="ch-plan">
+  <details class="ch-plan" id="ch-plan"><summary>Change stages</summary>
   <div class="vlabel">Plan: ${{ '%.2f' % ch.start }} → ${{ '%.2f' % ch.goal }}</div>
   {% if ch_best %}<p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>{% endif %}
   {% if ch_preview[0].typical is not none %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
   <p class="note ch-links">{{ ch.get('stages', 3) }} stages (<a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=dropstage&chs=0">- fewer</a> · <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=addstage&chs=0">+ more</a>)</p>
-  </div>
+  </details>
   {% endif %}
   {% if not placed %}
   <form method="get" action="/sports" class="ch-act ch-legs">
