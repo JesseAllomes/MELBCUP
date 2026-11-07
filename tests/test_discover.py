@@ -132,3 +132,43 @@ def test_review_25_matches_brute_force_on_random_slates():
             else:
                 assert res["pick"] is not None, (lo, hi)
                 assert math.log(res["pick"]["p_all"]) >= best - 1e-9, (lo, hi)
+
+
+def test_research_upper_limit_counterexample():
+    """Further research 7 Nov: A1 1.50/.60, A2 1.58/.62, B1 1.35/.70 in [2.00, 2.10) -> 2.025."""
+    L = legs([row("A", 1.50, 0.60), row("A", 1.58, 0.62), row("B", 1.35, 0.70)])
+    pick = D.best_multis(D.pool(L), bands=((2.00, 2.10),))[0]["pick"]
+    assert pick is not None and abs(pick["price"] - 2.025) < 0.01
+
+
+def test_narrow_ranges_match_brute_force():
+    import random
+
+    rnd = random.Random(11)
+    misses = 0
+    for _ in range(300):
+        rows = []
+        for e in range(5):
+            for _ in range(rnd.randint(1, 4)):
+                price = round(rnd.uniform(1.05, 2.6), 2)
+                rows.append(
+                    row(str(e), price, round(min(0.97, 1 / price * rnd.uniform(0.9, 0.99)), 4))
+                )
+        L = legs(rows)
+        lo = round(rnd.uniform(1.6, 6.0), 2)
+        band = (lo, round(lo * 1.05, 2))
+        res = D.best_multis(D.pool(L), bands=(band,))[0]
+        best = None
+        for k in range(2, 6):
+            for combo in itertools.combinations(L, k):
+                if (
+                    len({g["event_id"] for g in combo}) == k
+                    and band[0] <= math.prod(g["price"] for g in combo) < band[1]
+                ):
+                    lp = sum(math.log(g["p"]) for g in combo)
+                    best = lp if best is None or lp > best else best
+        if best is not None and (
+            res["pick"] is None or math.log(res["pick"]["p_all"]) < best - 1e-9
+        ):
+            misses += 1
+    assert misses == 0, misses

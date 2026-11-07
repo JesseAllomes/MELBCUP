@@ -37,8 +37,8 @@ MAX_AGE_S = 3 * 3600  # a price older than this is not used
 HORIZON_H = 48  # games starting within this many hours
 MIN_LEAD_S = 5 * 60  # and not about to start
 MIN_CHANCE = 0.30  # a leg below this is never worth its place at these ranges
-PER_EVENT = 12  # legs kept per game from its price frontier (least margin first)
-MAX_EVENTS = 250  # games kept for the search
+PER_EVENT = 10  # legs kept per game (least margin first)
+MAX_EVENTS = 150  # games kept for the search (speed: 18 s on the full catalogue)
 BIN = 0.01  # log-price resolution of the search
 REFRESH_S = 600
 
@@ -100,24 +100,16 @@ def value_at_price(g: dict) -> float:
     return math.log(g["p"] * g["price"])
 
 
-LOCAL_DOM = 1.10  # a leg is dropped only for one at most 10% dearer with at least its chance
-
-
 def _frontier(legs: list[dict]) -> list[dict]:
-    """One game's legs that can matter at some target: drop a leg only when another leg priced
-    above it, but by no more than LOCAL_DOM, has at least its chance (a dearer, likelier leg is
-    better at a lower price limit, and the 10% cap keeps cheaper legs an upper limit may need).
-    The PER_EVENT legs with least margin are kept."""
-    pts = sorted(legs, key=lambda g: g["price"])
-    keep = [
-        g
-        for i, g in enumerate(pts)
-        if not any(
-            h["p"] >= g["p"] and g["price"] < h["price"] <= g["price"] * LOCAL_DOM
-            for h in pts[i + 1 :]
-        )
-    ]
-    keep.sort(key=value_at_price, reverse=True)
+    """One game's legs worth searching: a leg is dropped only for another at the same price with
+    at least its chance (independent review, 2026-11-07: dropping a cheaper leg for a dearer,
+    likelier one breaks a range's upper limit). The PER_EVENT legs with least margin are kept."""
+    best: dict[float, dict] = {}
+    for g in legs:
+        k = round(g["price"], 3)
+        if k not in best or g["p"] > best[k]["p"]:
+            best[k] = g
+    keep = sorted(best.values(), key=value_at_price, reverse=True)
     return keep[:PER_EVENT]
 
 
@@ -133,19 +125,31 @@ def pool(legs: list[dict]) -> list[list[dict]]:
     return groups[:MAX_EVENTS]
 
 
+STATES_PER_BIN = 3
+
+
 def _keep(states: list, cand: tuple) -> list:
-    """Up to three states per (legs, bin): the best chance, the dearest exact price and the
-    cheapest exact price, so a combination just across a range boundary is never lost."""
+    """The states worth keeping in one (legs, price bin): those no other state beats on chance at
+    a price at least as low (they serve a range's upper limit) or at a price at least as high (they
+    serve its lower limit). Exact within a bin up to STATES_PER_BIN; tested against brute force."""
     pool_ = states + [cand]
-    out: list = []
-    for s_ in (
-        max(pool_, key=lambda s: s[0]),
-        max(pool_, key=lambda s: s[1]),
-        min(pool_, key=lambda s: s[1]),
-    ):
-        if not any(s_ is o for o in out):
-            out.append(s_)
-    return out
+
+    def front(desc: bool) -> list:
+        out, best = [], -math.inf
+        for st in sorted(pool_, key=lambda s: s[1], reverse=desc):
+            if st[0] > best:
+                out.append(st)
+                best = st[0]
+        return out
+
+    keep: list = []
+    for st in front(False) + front(True):
+        if not any(st is o for o in keep):
+            keep.append(st)
+    if len(keep) > STATES_PER_BIN:
+        keep.sort(key=lambda s: s[0], reverse=True)
+        keep = keep[:STATES_PER_BIN]
+    return keep
 
 
 def best_multis(groups: list[list[dict]], bands=BANDS) -> list[dict]:
