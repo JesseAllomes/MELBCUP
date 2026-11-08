@@ -745,9 +745,10 @@ class Views:
                 if cls == "g" and not g["under"]:
                     fill = 100.0
                 tiles.append({
-                    "cls": cls, "name": g["player"], "line": g["label"].replace(g["player"], "", 1).strip(),
+                    "cls": cls, "name": g["player"],
+                    "line": g["label"].replace(g["player"], "", 1).strip(),
                     "under": g["under"], "k": g["k"],
-                    "now": now if now is not None else 0, "fill": round(fill), "chance": lc,
+                    "now": now or 0, "fill": round(fill), "chance": lc,
                 })
             bet = live["p"]
         ring = bet
