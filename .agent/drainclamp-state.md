@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=191 -->
+<!-- drainclamp-build: state; schema=1; generation=192 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T23:56:59+00:00 e3eeeb79 2026-11-04 autobet OFF (owner): settings.autobet (AUTOBET=1 to enable), no loop/routes; BET_PIN removed from melbcup-web.json (KV secret melbcup-bet-pin untouched). Deployed web; /api/betting 404.
 - 2026-11-04T07:35:23+00:00 ba394214 2026-11-04 Sportsbet props LIVE (3760 lines; alt + O/U, unders; agency switch, SB first if on). Push alerts built (webpush/push_store/push_send/sw.js, Challenge tab card, beforeinstallprompt blocked) committed on branch e3ac8a5d? NOT deployed: needs owner approval for C10 loosening nba_props_run 27->72/day (deploy with LIMITS_APPROVED blocked by classifier without owner OK). Function app setting VAPID_PRIVATE_KEY already set; public key in melbcup-web.json; keys in scratch vapid.env. nba_probe_run removed from code/limits (still live on Function until next function deploy).
 - 2026-11-04T08:17:22+00:00 91c5fb57 2026-11-04 owner idea (LATER, not now): cost monitor at monitor.asynym.dev reporting all Azure usage and costs across the tenant (Cost Management query by RG/meter; usage Nov 1-4: functions 0.88 GB-h, tenant ~A$4.80 mostly rg-parlebros-fleet VM + E6 disk). Agency bubble committed f42bf317 (branch, not deployed). Still pending owner: approve nba_props_run 27->72/day to deploy alerts + bubble.
 - 2026-11-04T08:27:50+00:00 b9652955 2026-11-04 DEPLOYED cce33561 (owner approved timer 72/day): Chrome push + Telegram alerts (t.me/AsynymBetBot, token in Function setting TELEGRAM_BOT_TOKEN + scratch telegram.env; owner pasted token in chat -> suggest /revoke later), agency bubble, nba_probe retired. Live: sw.js 200, push card, nba_props_run every 10 min 20-23,0-7 UTC. Owner: follow DC output rules, terse.
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-07T22:30:48+00:00 6de5b342 2026-11-08 INCIDENT fixed: Function loaded 0 functions from 7 Nov 07:50 UTC (nba_challenge imported melbcup.wallet, missing from flat package) -> no NBA snapshots, catalogue, alerts for ~14h. Fix: flat fallback + wallet.py packaged + package-import test; deployed (owner approved); 6 functions loaded, NBA view + catalogue rotation running 22:30 UTC. Also deployed: ui8 per-sport bottom bar incl. Best multis, game name on hero legs, chip row stays.
 - 2026-11-08T00:19:31+00:00 fcdbf672 2026-11-08 challenges fixes deployed (cents, legs per multi, edit challenge, edit placed bet, planner at setup, All Sports ladder picks, record any bet + bonus-if-win, sticky stage pick, 400-char legs). Owner data: ch3/4/6 removed, 4 placed Sportsbet bets rebuilt as ch7-10 (goal $250, 2 stages), wallet c1 redeemed, c2 $10.72 granted; backup challenges/backup-before-rebuild-20261108T0009.json.
 - 2026-11-08T02:15:12+00:00 b0045fd2 2026-11-08 merged, awaiting deploy: challenge screen v9-3 + live chance (live_chance.py), racing staged load (field first), racing likely engine + Likely/Multis tabs (v10-3), NBA leg labels with stat + game. Owner 4 challenges rebuilt (ch7-10, 3 stages).
+- 2026-11-08T02:50:45+00:00 423d193a 2026-11-08 PRE-COMPACT. Live: Bet now/sports tabs, challenge screen v9-3 + live chance, racing staged load + Likely/Multis tabs, NBA labels, /sports speed fix. Pushed NOT deployed (needs 'approved: deploy web'): multi-game live tracker (label 'Game A: legs; Game B: legs'), discover first-refresh on fresh container. Owner data: challenges ch7-ch14 (A-H) to $250; backups challenges/backup-*.json. TODO: record-bet form multi-game option; All Sports stage planner; sh1 shadow scoreboard; eq1 equivalence; pf1 portfolio planner; racing best-chance vs value verdict choice.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
