@@ -554,7 +554,7 @@ def legs_from(events, board):
                         "under": under,
                         "src": src,
                         "period": "full",
-                        "label": o["name"],
+                        "label": _with_stat(o["name"], s),
                         "price": price,
                         "model": model,
                         "market": None,
@@ -795,6 +795,16 @@ CORR = {
     ("opp", "reb", "reb"): 0.012,
 }
 SHORT = {"points": "pts", "reboundsTotal": "reb", "assists": "ast", "threePointersMade": "3pm"}
+STAT_WORD = {"points": "Points", "reboundsTotal": "Rebounds", "assists": "Assists", "threePointersMade": "Threes"}
+
+
+def _with_stat(name: str, stat: str) -> str:
+    """PointsBet's over/under outcomes are named "Fred Vanvleet Under 2.5": the stat is only in the
+    market's name. Add it so a leg always reads in full (owner 2026-11-08: "2.5 what?")."""
+    low = (name or "").lower()
+    if any(w in low for w in ("point", "rebound", "assist", "three")):
+        return name
+    return f"{name} {STAT_WORD.get(stat, '')}".strip()
 MC_DRAWS = (
     4000  # copula draws per re-score (the same draws for every candidate, so they compare fairly)
 )

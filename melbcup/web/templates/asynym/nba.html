@@ -23,7 +23,7 @@
 {% macro nslip(m, tag, one) %}
 <article class="pc{{ ' one' if one }}">
   <div class="ph">{{ ring(m.chance, 54, 'chance') }}<div><span class="tag{{ ' g' if one }}">{{ tag }}</span><b class="pp">${{ '%.2f' % m.price }}</b><small>per $1 · {{ m.legs }} legs</small></div></div>
-  <ul>{% for d in m.detail %}<li><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span></li>{% endfor %}</ul>
+  <ul>{% for d in m.detail %}<li>{% if d.game %}<span class="pt"><span class="ev">{{ d.game }}</span>{{ d.startsAt | iso_time if d.startsAt else '' }}</span>{% endif %}<b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span></li>{% endfor %}</ul>
   <div class="why4">{% for d in m.detail %}<div class="lb"><span>{{ d.label }}</span><span class="bar"><i style="width:{{ (d.chance * 100) | round | int }}%"></i></span><b>{{ (d.chance * 100) | round | int }}%</b></div>{% endfor %}</div>
   <div class="pw"><span>Pays <b>${{ '%.2f' % m.price }}</b> · price says {{ (100 / m.price) | round | int }}%</span>{{ alt(m) }}</div>
   {{ placed(m) }}

@@ -446,3 +446,12 @@ def test_overs_are_shaded_down_and_unders_up_most_at_even_money():
     legs = [_leg("A", 20, False, 1.9, model=0.5), _leg("A", 20, True, 1.9, model=0.5)]
     L.apply_market(legs, {L.bet_key(legs[0]): 0.5, L.bet_key(legs[1]): 0.5})
     assert legs[0]["chance"] < 0.5 < legs[1]["chance"] and legs[0]["raw"] == 0.5
+
+
+def test_over_under_label_names_the_stat():
+    """Owner 2026-11-08: "Fred Vanvleet Under 2.5" — 2.5 what? The stat is added when missing."""
+    from melbcup.nba_legs import _with_stat
+
+    assert _with_stat("Fred Vanvleet Under 2.5", "assists") == "Fred Vanvleet Under 2.5 Assists"
+    assert _with_stat("Dylan Harper Under 5.5", "reboundsTotal") == "Dylan Harper Under 5.5 Rebounds"
+    assert _with_stat("Stephon Castle To Get 1+ Three Pointers", "threePointersMade").endswith("Pointers")
