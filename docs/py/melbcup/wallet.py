@@ -9,6 +9,8 @@ records what the provider actually gave and allowed. Entries (`t`):
   allocate credit, challenge                                   -> reserved for one challenge
   release  credit                                              -> the reservation ends (explicit)
   redeem   credit                                              -> used
+  use      credit, amount                                      -> part of a credit staked (leftover stays)
+  unuse    credit, amount                                      -> that part given back
   expire   credit                                              -> lapsed (also implied once the
            expiry date has passed)
 An entry may carry `op`: re-appending an op already in the ledger does nothing.
@@ -22,7 +24,7 @@ from zoneinfo import ZoneInfo
 MELBOURNE = ZoneInfo("Australia/Melbourne")
 
 MAX_CHILDREN = 10  # the provider interface the owner observed (pack: PROMOTIONS)
-KINDS = ("grant", "split", "allocate", "release", "redeem", "expire")
+KINDS = ("grant", "split", "allocate", "release", "redeem", "expire", "use", "unuse")
 
 
 class WalletError(ValueError):
@@ -80,6 +82,12 @@ def credits(ledger: list[dict], today: str = "") -> dict[str, dict]:
             c["challenge"] = None
         elif t == "redeem":
             c["status"] = "redeemed"
+        elif t in ("use", "unuse"):
+            c["amount"] = round(c["amount"] + (e["amount"] if t == "unuse" else -e["amount"]), 2)
+            if c["amount"] <= 0:
+                c["amount"], c["status"] = 0.0, "redeemed"
+            elif c["status"] == "redeemed":
+                c["status"] = "available"
         elif t == "expire":
             c["status"] = "expired"
     if today:
@@ -152,9 +160,11 @@ def append(ledger: list[dict], entry: dict, today: str = "") -> list[dict]:
         c = cs.get(cid)
         if c is None:
             raise WalletError("no such credit")
-        if c["status"] not in ("available", "reserved"):
+        if c["status"] not in ("available", "reserved") and not (t == "unuse" and c["status"] == "redeemed"):
             raise WalletError(f"credit is {c['status']}")
         new = {"t": t, "credit": cid}
+        if t in ("use", "unuse"):
+            new["amount"] = _amount(entry.get("amount"))
         if t == "split":
             parts = [_amount(p) for p in entry.get("parts") or []]
             if len(parts) < 2:
@@ -187,3 +197,33 @@ def append(ledger: list[dict], entry: dict, today: str = "") -> list[dict]:
     if entry.get("at"):
         new["at"] = entry["at"]
     return [*ledger, new]
+
+
+def use_leftover(ledger: list[dict], provider: str, amount, op: str, today: str = "", challenge: str = "") -> list[dict]:
+    """Automatic leftovers (owner, 2026-11-08): a bonus bet staked with `provider` uses up to `amount`
+    of that provider's credit, oldest-expiring first, across several credits if needed; the rest of
+    each credit stays available. Short credit deducts what exists and never raises. `op` makes a
+    repeat a no-op (entries carry `op`, `op.1`...)."""
+    try:
+        left = _amount(amount)
+    except WalletError:
+        return ledger
+    if any(str(e.get("op", "")).split(".")[0] == op for e in ledger):
+        return ledger
+    cs = [c for c in credits(ledger, today).values()
+          if c["provider"].lower() == provider.strip().lower() and c["amount"] > 0
+          and (c["status"] == "available" or (c["status"] == "reserved" and c["challenge"] == challenge))]
+    for n, c in enumerate(sorted(cs, key=lambda c: (c["expiry"] or "9999-12-31", c["id"]))):
+        if left <= 0:
+            break
+        take = round(min(left, c["amount"]), 2)
+        ledger = append(ledger, {"t": "use", "credit": c["id"], "amount": take, "op": op if n == 0 else f"{op}.{n}", "at": today}, today)
+        left = round(left - take, 2)
+    return ledger
+
+
+def unuse_leftover(ledger: list[dict], op: str, today: str = "") -> list[dict]:
+    """Give back what `use_leftover(op)` took (a bonus bet turned out cash, or was removed)."""
+    for e in [e for e in ledger if e["t"] == "use" and str(e.get("op", "")).split(".")[0] == op]:
+        ledger = append(ledger, {"t": "unuse", "credit": e["credit"], "amount": e["amount"], "op": f"un{e['op']}"}, today)
+    return ledger
