@@ -15,6 +15,7 @@
   <label>Stake $<input name="nbs" inputmode="decimal" required></label>
   <label>Price $<input name="nbp" inputmode="decimal" required></label>
   <label>Bonus if it wins $<input name="nbbw" inputmode="decimal" placeholder="e.g. Jet Boost 2"></label>
+  <label class="ch-mode"><input type="checkbox" name="nbbonus" value="1"> Staked with a bonus bet (comes off that bookmaker's credit)</label>
   <label>Add to challenge <select name="nbch"><option value="">None, my own bet</option>{% for c in chlist or [] %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
   <button type="submit">Save bet</button></form></details>{% endmacro %}
 {% macro tracked(t, bonus_ok=false) %}{% if t %}<div class="nb-track"><small>{{ t.clock }}</small><ul>{% for l in t.legs %}<li class="{{ 'ok' if l.ok == true else ('bad' if l.ok == false else '') }}">{{ '✓' if l.ok == true else ('✗' if l.ok == false else '·') }} {{ l.label }} <b>{{ l.now if l.now is not none else '–' }}{% if not l.under %}/{{ l.k }}{% else %} (under {{ l.k }}){% endif %}</b></li>{% endfor %}</ul>

@@ -399,6 +399,7 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
                 "tip": (query.get("nbtip") or "")[:32],
             }
             | ({"bonus_if_win": bw} if (bw := _money(query.get("nbbw"))) else {})
+            | ({"bonus": 1} if query.get("nbbonus") == "1" else {})  # staked with a bonus bet
         )
     else:
         for b in bets:

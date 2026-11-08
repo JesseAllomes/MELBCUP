@@ -63,3 +63,18 @@ def test_engine_bonus_bet_uses_credit():
     placed = s2["challenges"][0]["state"].get("placed")
     if placed and placed.get("bonus"):
         assert _left(s2) == round(10.72 - placed["stake"], 2)
+
+
+
+def test_own_bet_marked_bonus_uses_credit():
+    from melbcup import nba_challenge as C, wallet as W
+    day = "2026-11-08"
+    s = C.empty_store()
+    s, _, e = C.apply_store(s, {"ch": "wgrant", "wamt": "2.00", "wprov": "Sportsbet", "wexp": "2026-11-15", "op": "g1"}, day)
+    assert not e
+    q = {"ch": "bet", "nbag": "sb", "nbs": "2", "nbp": "426", "nbl": "York R3 SRM", "nbbonus": "1", "op": "b1"}
+    s, _, e = C.apply_store(s, q, day)
+    assert not e
+    left = sum(c["amount"] for c in W.credits(s["ledger"], day).values() if c["status"] == "available")
+    assert left == 0
+    assert s["own"]["bets"][-1]["bonus"] == 1
