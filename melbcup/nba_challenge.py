@@ -252,7 +252,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             "ag": query.get("chag") or "sb",
             "stake": state["bank"],
             "price": _money(query.get("chp")),
-            "label": (query.get("chl") or "")[:120],
+            "label": (query.get("chl") or "")[:400],
             "state": "placed",
             "ret": 0.0,
             "tip": (query.get("chtip") or "")[:32],
@@ -271,7 +271,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         extra = round(max(stake - state["bank"], 0.0), 2)
         new = pl | {"stake": stake, "price": price or pl.get("price"), "rest": round(max(state["bank"] - stake, 0.0), 2)}
         if query.get("chl"):
-            new["label"] = query["chl"][:120]
+            new["label"] = query["chl"][:400]
         if extra:
             new["added"] = extra  # topped up: cash added today
         bets = [b | new if b.get("id") == pl.get("id") else b for b in state.get("bets", [])]
