@@ -133,6 +133,17 @@ def _box(summary: dict) -> dict:
                 }
                 if "3PT" in idx:
                     row["threePointersMade"] = int(str(st[idx["3PT"]]).split("-")[0] or 0)
+                try:  # extras for the live chance; all optional
+                    if "MIN" in idx and str(st[idx["MIN"]]).isdigit():
+                        row["_min"] = int(st[idx["MIN"]])
+                    if "PF" in idx and str(st[idx["PF"]]).isdigit():
+                        row["_pf"] = int(st[idx["PF"]])
+                    for key, flag in (("didNotPlay", "_dnp"), ("ejected", "_ejected"),
+                                      ("active", "_active"), ("starter", "_starter")):
+                        if isinstance(a.get(key), bool):
+                            row[flag] = a[key]
+                except (IndexError, ValueError):
+                    pass
                 out[norm(a.get("athlete", {}).get("displayName", ""))] = row
     return out
 
@@ -204,7 +215,9 @@ def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | No
         else:
             ok = True if v >= g["k"] else (False if state == "post" else None)
         failed += ok is False
-        out.append(g | {"now": v, "ok": ok})
+        r = box.get(norm(g["player"])) or {}
+        extra = {k[1:]: r[k] for k in ("_min", "_pf", "_dnp", "_ejected", "_active", "_starter") if k in r}
+        out.append(g | {"now": v, "ok": ok} | extra)
     verdict = None
     if state == "post":
         verdict = "won" if failed == 0 else ("lost1" if failed == 1 else "lost")
@@ -223,8 +236,15 @@ def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | No
         clock_s = float(m_ or 0) * 60 + float(s_) if status.get("displayClock") else None
     except ValueError:
         clock_s = None
+    margin = None
+    try:
+        sc = [int(c.get("score")) for c in comp.get("competitors", [])]
+        margin = abs(sc[0] - sc[1]) if len(sc) == 2 else None
+    except (TypeError, ValueError):
+        pass
     return {
         "state": state,
+        "margin": margin,
         "period": period,
         "clock_s": clock_s,
         "frac_left": live_chance.frac_left(state, period, clock_s),

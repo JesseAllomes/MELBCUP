@@ -117,3 +117,33 @@ def test_challenge_page_renders_each_state(name, monkeypatch, tmp_path):
     if name == "lost":
         assert 'class="tile r"' in html and "Failed" in html and ">0%<" in html
     assert "Challenge actions" in html and 'value="won"' in html  # actions stay reachable
+
+
+def _one(under, now=10, fl=0.2, track_kw=None, **leg_kw):
+    leg = {"k": 20, "under": under, "now": now, "ok": None} | leg_kw
+    tr = _tr("in", [leg], fl=fl) | {"period": 4, "clock_s": 400} | (track_kw or {})
+    return L.bet_live(tr, {"legs": [{"chance": 0.5}]})
+
+
+def test_fouled_out_under_is_certain_and_over_dead():
+    assert _one(True, pf=6)["p"] == 1.0
+    assert _one(False, pf=6)["p"] == 0.0
+
+
+def test_dnp_over_is_dead():
+    assert _one(False, now=0, dnp=True)["p"] == 0.0
+    assert _one(True, now=0, dnp=True)["p"] == 1.0
+
+
+def test_blowout_helps_an_under_and_hurts_an_over():
+    base = {"min": 30, "starter": True}
+    calm = _one(True, **base)
+    blow = _one(True, track_kw={"margin": 25}, **base)
+    assert blow["p"] > calm["p"]
+    assert "blowout" in blow["why"][0]
+    assert _one(False, track_kw={"margin": 25}, **base)["p"] < _one(False, **base)["p"]
+
+
+def test_missing_fields_match_the_clock_only_chance():
+    got = _one(False, fl=0.3)["p"]
+    assert got == pytest.approx(L.leg_chance(0.5, 20, False, 10, 0.3))

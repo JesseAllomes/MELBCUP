@@ -36,17 +36,60 @@ def implied_mean(p: float, k: int, under: bool) -> float:
     return (lo + hi) / 2
 
 
-def leg_chance(pregame_p: float, k: int, under: bool, now: int | None, frac_left: float) -> float:
+def leg_chance(
+    pregame_p: float, k: int, under: bool, now: int | None, frac_left: float, left: float | None = None
+) -> float:
     """Chance this leg lands given `now` so far and `frac_left` (0..1) of the game still to play."""
     now = now or 0
     if now >= k:
         return 0.0 if under else 1.0
     frac_left = min(max(frac_left, 0.0), 1.0)
-    rest = implied_mean(pregame_p, k, under) * frac_left
+    # `left`: player-aware share of the full-game mean still to come (see player_left)
+    rest = implied_mean(pregame_p, k, under) * (frac_left if left is None else max(left, 0.0))
     need = k - now
     if under:
         return _cdf(rest, need - 1)  # rest <= (k - 1) - now
     return 1 - _cdf(rest, need - 1)  # rest >= k - now
+
+
+FULL_MIN = 34.0  # fallback expected full-game minutes for a player
+
+
+def player_left(g: dict, fl: float, track: dict) -> tuple[float, str]:
+    """(effective share of a 48 minute game still to play for this player, why). Falls back to
+    the game clock `fl` when the box score gave nothing about him. Never raises."""
+    try:
+        if g.get("dnp") or g.get("ejected") or (g.get("pf") or 0) >= 6:
+            why = "did not play" if g.get("dnp") else "ejected" if g.get("ejected") else "fouled out"
+            return 0.0, why
+        mins = g.get("min")
+        elapsed = 48.0 * (1 - fl)
+        if not isinstance(mins, (int, float)) or elapsed < 6:
+            rem, why = FULL_MIN * fl, ""  # same as scaling by the clock
+        else:
+            share = min(max(mins / elapsed, 0.0), 1.0)
+            rem, why = share * 48.0 * fl, ""
+        mult, tags = 1.0, []
+        margin, period = track.get("margin"), track.get("period") or 0
+        if isinstance(margin, (int, float)):
+            m = abs(margin)
+            late3 = period == 3 and (track.get("clock_s") or 720) <= 180
+            big = (period >= 4 and m >= 20) or (late3 and m >= 25)
+            if big and (g.get("starter") or not isinstance(mins, (int, float)) or mins >= 12):
+                mult *= 0.15 if (period >= 4 and m >= 30) else 0.35
+                tags.append("blowout")
+        if (g.get("pf") or 0) == 5:
+            mult *= 0.6
+            tags.append("5 fouls")
+        if g.get("active") is False:
+            mult *= 0.8
+            tags.append("on bench")
+        rem *= mult
+        if tags:
+            why = f"{rem:.0f} min left for him ({', '.join(tags)})"
+        return min(max(rem / FULL_MIN, 0.0), 1.5), why
+    except (TypeError, ValueError):
+        return fl, ""
 
 
 def frac_left(state: str, period: int | None, clock_s: float | None) -> float:
@@ -87,8 +130,9 @@ def bet_live(track: dict | None, placed: dict) -> dict:
     fl = track.get("frac_left")
     if fl is None:
         fl = frac_left(state, track.get("period"), track.get("clock_s"))
-    out = []
+    out, why = [], []
     for g, p0 in zip(legs, pre, strict=False):
+        w = ""
         if g.get("ok") is False:
             out.append(0.0)
         elif g.get("ok") is True:
@@ -98,11 +142,14 @@ def bet_live(track: dict | None, placed: dict) -> dict:
         elif state == "pre":
             out.append(p0)
         else:
-            out.append(leg_chance(p0, g["k"], g["under"], g.get("now"), fl))
+            left, w = player_left(g, fl, track)
+            out.append(leg_chance(p0, g["k"], g["under"], g.get("now"), fl, left))
+        why.append(w)
     known = None not in out
     return {
         "p": math.prod(out) if known else None,
         "legs": out,
         "approx": approx,
         "live": state == "in",
+        "why": why,
     }
