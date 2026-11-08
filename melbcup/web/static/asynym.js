@@ -182,6 +182,8 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   "use strict";
   var el = document.getElementById("nba-priced");
   if (!el) return;
+  // the Challenge tab keeps its own live numbers: no reload there (owner, 2026-11-08)
+  if (new URL(location.href).searchParams.get("tab") === "challenge" || document.querySelector(".chs-list")) return;
   var mine = Date.parse(el.getAttribute("data-priced") || "") || 0;
   var touched = false;
   ["click", "touchstart", "keydown", "wheel"].forEach(function (ev) {
@@ -189,7 +191,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   });
   function clean() {
     var u = new URL(location.href), keep = new URLSearchParams();
-    ["tab", "bk"].forEach(function (k) { if (u.searchParams.get(k)) keep.set(k, u.searchParams.get(k)); });
+    ["sport", "tab", "bk", "chid"].forEach(function (k) { if (u.searchParams.get(k)) keep.set(k, u.searchParams.get(k)); });
     return u.pathname + (keep.toString() ? "?" + keep.toString() : "");
   }
   (function poll(n) {
