@@ -184,13 +184,17 @@ def nba_props_run(timer: func.TimerRequest) -> None:
     """Every 10 minutes, around the clock (owner, 2026-11-07; was 7am-6:50pm AEDT): push the phone alerts that are due (owner,
     2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
     moment, started = now_utc(), time.monotonic()
+    # Alternate slots (owner, 2026-11-08): the catalogue needs a whole run's time budget (soccer did
+    # not fit after the NBA work and the rotation stuck). Alerts go out every run; NBA props on even
+    # 10-minute slots, the catalogue first on odd ones (and with any time left on even ones).
+    odd = (moment.minute // 10) % 2 == 1
     try:
-        _nba_work(moment)
-    finally:  # after the NBA work, whatever happened to it; a catalogue error never escapes
+        _nba_work(moment, props=not odd)
+    finally:  # a catalogue error never escapes
         _catalogue_tick(moment, started)
 
 
-def _nba_work(moment: dt.datetime) -> None:
+def _nba_work(moment: dt.datetime, props: bool = True) -> None:
     key, tg = os.environ.get("VAPID_PRIVATE_KEY"), os.environ.get("TELEGRAM_BOT_TOKEN")
     if key or tg:
         try:
@@ -199,7 +203,7 @@ def _nba_work(moment: dt.datetime) -> None:
             logging.info("alerts: %d sent, %d phones dropped", sent, dropped)
         except Exception:  # alerts must never stop the prices
             logging.exception("alerts: failed")
-    if os.environ.get("NBA_PROPS") == "0":
+    if not props or os.environ.get("NBA_PROPS") == "0":
         return
     container = blobs().get_container_client("nba-props")
     try:
@@ -253,6 +257,9 @@ def _catalogue_tick(moment: dt.datetime, started: float) -> None:
             lambda n, b: c.get_blob_client(n).upload_blob(b, overwrite=True),
             lambda n: _read_blob(c, n),
             lambda: [b.name for b in c.list_blobs(name_starts_with="catalogue/raw/")],
+            save_cursor=lambda k: c.get_blob_client(CATALOGUE_STATE).upload_blob(
+                json.dumps({"last_build": last or "", "cursor": k}), overwrite=True
+            ),
         )
         for n in out["expired"]:
             try:

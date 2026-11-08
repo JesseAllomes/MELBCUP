@@ -77,7 +77,7 @@ def test_tick_deadline_is_inside_the_function_timeout(fa, monkeypatch):
 
 def test_catalogue_error_never_breaks_the_nba_work(fa, monkeypatch):
     ran = []
-    monkeypatch.setattr(fa, "_nba_work", lambda moment: ran.append("nba"))
+    monkeypatch.setattr(fa, "_nba_work", lambda moment, props=True: ran.append("nba"))
 
     def boom(*a, **k):
         raise RuntimeError("catalogue down")
@@ -91,7 +91,7 @@ def test_catalogue_error_never_breaks_the_nba_work(fa, monkeypatch):
 def test_catalogue_runs_after_nba_work_even_if_it_failed(fa, monkeypatch):
     order = []
 
-    def bad(moment):
+    def bad(moment, props=True):
         order.append("nba")
         raise ValueError("nba failed")
 
@@ -108,3 +108,27 @@ def test_catalogue_switch_off(fa, monkeypatch):
     monkeypatch.setenv("CATALOGUE", "0")
     fa._catalogue_tick(NOW, time.monotonic())
     assert calls == []
+
+
+def test_rotation_saves_cursor_before_each_sport(monkeypatch):
+    """A run killed mid-sport (Function timeout) must start on the next sport next time."""
+    from melbcup import catalogue
+
+    saved = []
+    monkeypatch.setattr(catalogue, "build", lambda *a, **k: (_ for _ in ()).throw(TimeoutError()))
+    try:
+        catalogue.run_rotation(4, 0, None, lambda n, b: None, save_cursor=saved.append)
+    except TimeoutError:
+        pass
+    assert saved == [5]
+
+
+def test_odd_slot_skips_props(fa, monkeypatch):
+    import datetime as dt
+
+    seen = []
+    monkeypatch.setattr(fa, "now_utc", lambda: dt.datetime(2026, 11, 8, 6, 15, tzinfo=dt.UTC))
+    monkeypatch.setattr(fa, "_nba_work", lambda moment, props=True: seen.append(props))
+    monkeypatch.setattr(fa, "_catalogue_tick", lambda m, s: seen.append("cat"))
+    fa.nba_props_run(None)
+    assert seen == [False, "cat"]

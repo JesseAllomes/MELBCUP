@@ -11,6 +11,18 @@
         "targets": [
           "azure/function/collector_runtime.py"
         ]
+      },
+      {
+        "done": false,
+        "done_at": null,
+        "est_min": 20,
+        "goal": "catalogue unstick: cursor saved before each sport; catalogue gets its own timer + budget (soccer killed at 55s since 23:31 UTC 7 Nov)",
+        "id": "c2",
+        "note": "",
+        "targets": [
+          "melbcup/catalogue.py::run_rotation",
+          "azure/function/function_app.py::_catalogue_tick"
+        ]
       }
     ],
     "ui3": [
@@ -77,7 +89,7 @@
     ]
   },
   "errors": [],
-  "rev": 51,
+  "rev": 52,
   "review": {
     "advice": [],
     "config": {

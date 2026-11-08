@@ -947,7 +947,7 @@ def expired_raw(names, now: datetime, days: int = RAW_KEEP_DAYS) -> list[str]:
 
 
 def run_rotation(
-    cursor, deadline, now, write, read=None, list_names=None, fetch=None, **kw
+    cursor, deadline, now, write, read=None, list_names=None, fetch=None, save_cursor=None, **kw
 ) -> dict:
     """One scheduled run: build PointsBet sports one at a time, in rotation from `cursor`, until the
     monotonic `deadline` (at least one sport per run). Each sport is written as soon as it is built,
@@ -959,6 +959,8 @@ def run_rotation(
     for _ in range(len(order)):
         ps = order[i]
         keys = [k for k, v in SPORT_KEYS.items() if v == ps]
+        if save_cursor:  # saved first: a run killed mid-sport starts on the next sport, never sticks
+            save_cursor((i + 1) % len(order))
         res = build(keys, fetch, now, deadline=deadline, pb_sports=[ps], **kw)
         write_build(res, write, read)
         built.append(ps)
