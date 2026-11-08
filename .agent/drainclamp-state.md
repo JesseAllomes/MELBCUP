@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=204 -->
+<!-- drainclamp-build: state; schema=1; generation=205 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -110,6 +110,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | ch2 | Challenge list as accordion rows expanding in place (v9-1 behaviour): collapsed row = name, current leg odds, live % at right, bar fill = chance + game-time-left text; instant expand with saved figures, live fetched lazily; collapsed rows poll a tiny live-% summary endpoint | melbcup/web/;melbcup/nba_challenge.py;tests/ | done | ui7 |
 | bn1 | Bonus credits automatic leftovers (owner 2026-11-08): recording a bonus bet deducts its stake from that bookmaker's available credit, the remainder stays available | melbcup/wallet.py;melbcup/nba_challenge.py;tests/ | done |  |
 | nfl1 | NFL gets the full NBA treatment (owner 2026-11-08): picker with pk1 rules on NFL props/lines (event-aware keys, native-pair de-vig, monotone ladders, dedupe, min 2 legs), best multis/stage picks, ESPN live tracker + live chance per leg, auto settle by ESPN ids (America/New_York dates), challenges scope nfl, NFL tab same sub-tabs/design as NBA | melbcup/;melbcup/web/;tests/ | done | pk1 |
+| nfl2 | NFL fully separate from NBA (owner 2026-11-08): each page lists only its own challenges/bets/record-to options; scope fixed per page; stage preview honours chosen start/goal/legs/mode and auto-selects best stages; alerts link to own page; verified live with Playwright | melbcup/web/;melbcup/nba_challenge.py;tests/ | pending | nfl1 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
