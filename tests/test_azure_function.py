@@ -470,19 +470,18 @@ def test_disabled_and_bad_window_settings_stop_both_timers(fa, monkeypatch):
 
 
 def test_publish_gets_one_grace_hour_to_flush_after_the_stop(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
     monkeypatch.setenv("COLLECTOR_STOP_UTC", "2026-11-03T05:00:00Z")  # now is 05:07
     fa.service.put(
         "live-observations", "pending/2026-11-03/20261103T040000Z-az-a-0001.jsonl.gz", gz("x\n")
     )
     fa.publish(None)
-    assert len(net.commits) == 1
+    assert len(pub(fa)) == 1
     monkeypatch.setattr(fa, "now_utc", lambda: NOW + dt.timedelta(hours=1))
     fa.service.put(
         "live-observations", "pending/2026-11-03/20261103T050000Z-az-b-0001.jsonl.gz", gz("y\n")
     )
     fa.publish(None)
-    assert len(net.commits) == 1
+    assert len(pub(fa)) == 1
 
 
 # ---------------------------------------------------------------- D5 / D16: publish
@@ -499,85 +498,72 @@ def left(fa):
     return sorted(fa.service.containers.get("live-observations", {}))
 
 
-def test_d16_no_token_needed_when_nothing_is_pending(fa, monkeypatch):
-    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
-    fa.publish(None)  # would raise KeyError if the token were read eagerly
-    pend(fa, 12, "z")  # hour 12 of the previous day is closed: now it needs the token
-    with pytest.raises(KeyError):
-        fa.publish(None)
-    assert len(left(fa)) == 1
+def pub(fa):
+    return sorted(n for n in left(fa) if n.startswith("observations/"))
 
 
-def test_publish_commits_a_unique_path_then_deletes(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def pending(fa):
+    return [n for n in left(fa) if n.startswith("pending/")]
+
+
+def test_publish_uploads_a_unique_blob_then_deletes(fa, net):
     pend(fa, 3, "a")
     pend(fa, 3, "b")
     fa.publish(None)
-    (path,) = net.commits
-    assert path.startswith("observations/2026-11-02/azure-2026-11-02T0300Z-") and path.endswith(
-        ".jsonl.gz"
-    )
-    assert [n for n in left(fa) if n.startswith("pending/")] == []
+    (path,) = pub(fa)
+    assert path.startswith("observations/2026-11-02/azure-2026-11-02T0300Z-")
+    assert path.endswith(".jsonl.gz")
+    assert pending(fa) == []
 
 
-def test_d5_a_partial_delete_never_commits_the_leftovers_twice(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def test_a_partial_delete_never_publishes_the_leftovers_twice(fa, net):
     pend(fa, 3, "a")
     pend(fa, 3, "b")
     fa.service.delete_calls_before_failure = 1
-    with pytest.raises(RuntimeError):
-        fa.publish(None)
-    assert (
-        len(net.commits) == 1 and len(left(fa)) == 2
-    )  # committed; one pending blob left + the ledger
+    fa.publish(None)  # logged, never raises
+    assert len(pub(fa)) == 1 and len(pending(fa)) == 1
     fa.service.delete_calls_before_failure = None
     fa.publish(None)
-    assert len(net.commits) == 1  # the leftover is in the ledger: deleted, not published again
-    assert [n for n in left(fa) if n.startswith("pending/")] == []
-    # a blob that arrives late for the same hour gets its own unique path and replaces nothing
-    pend(fa, 3, "c")
+    assert len(pub(fa)) == 1 and pending(fa) == []
+    pend(fa, 3, "c")  # a late blob gets its own path and replaces nothing
     fa.publish(None)
-    assert len(net.commits) == 2 and len(set(net.commits)) == 2
+    assert len(pub(fa)) == 2
 
 
-def test_d5_same_blob_set_already_on_live_is_not_committed_again(fa, net, monkeypatch, rt):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def test_same_blob_set_already_in_blob_is_not_uploaded_again(fa, net, rt):
     name = pend(fa, 3, "a")
-    records_ = [types.SimpleNamespace(name=name)]
-    net.github_files.add(rt.hour_path("2026-11-02/03", records_))
+    path = rt.hour_path("2026-11-02/03", [types.SimpleNamespace(name=name)])
+    fa.service.put("live-observations", path, b"existing")
     fa.publish(None)
-    assert net.commits == [] and [n for n in left(fa) if n.startswith("pending/")] == []
+    assert fa.service.containers["live-observations"][path] == b"existing"
+    assert pending(fa) == []
 
 
-def test_d5_blobs_survive_a_failed_commit(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def test_blobs_survive_a_failed_upload(fa, net):
     pend(fa, 3, "a")
-    net.fail_commit = True
-    with pytest.raises(urllib.error.HTTPError):
-        fa.publish(None)
-    assert len(left(fa)) == 1  # nothing deleted, no ledger written
-    net.fail_commit = False
+    fa.service.fail_upload = True
+    fa.publish(None)  # logged, never raises
+    assert len(pending(fa)) == 1 and pub(fa) == []
+    fa.service.fail_upload = False
     fa.publish(None)
-    assert len(net.commits) == 1 and not [n for n in left(fa) if n.startswith("pending/")]
+    assert len(pub(fa)) == 1 and pending(fa) == []
 
 
-def test_d5_at_most_three_hours_per_run_oldest_first(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def test_at_most_three_hours_per_run_oldest_first(fa, net):
     for hour in (9, 4, 7, 1, 6):
         pend(fa, hour)
     fa.publish(None)
-    assert [p.split("T")[1][:2] for p in net.commits] == ["01", "04", "06"]
-    assert len([n for n in left(fa) if n.startswith("pending/")]) == 2
+    assert [p.split("T")[1][:2] for p in pub(fa)] == ["01", "04", "06"]
+    assert len(pending(fa)) == 2
     fa.publish(None)
-    assert len(net.commits) == 5 and not [n for n in left(fa) if n.startswith("pending/")]
+    assert len(pub(fa)) == 5 and pending(fa) == []
 
 
-def test_the_current_hour_is_never_published(fa, net, monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "t")
+def test_the_current_hour_is_never_published(fa, net):
     name = "pending/2026-11-03/20261103T050000Z-az-a-0001.jsonl.gz"
     fa.service.put("live-observations", name, gz("x\n"))
     fa.publish(None)
-    assert net.commits == [] and left(fa) == [name]
+    assert pub(fa) == [] and left(fa) == [name]
 
 
 # ---------------------------------------------------------------- D6 / D7 / risk 2: the webhook
@@ -663,72 +649,6 @@ def test_failed_attempts_count_against_the_hourly_cap(fa, net):
     for n in range(1, 7):
         assert hook(fa, issue_body(issue_id=n, number=n)).status_code == 502
     assert hook(fa, issue_body(issue_id=99, number=99)).status_code == 429
-
-
-def _commit_stub(patch_errors):
-    """A github_api stub for commit_github_file; `patch_errors` is a callable(call_no) that
-    raises or not."""
-    calls = {"patch": 0}
-
-    def fake(method, path, token, payload=None):
-        if path == "git/ref/heads/live":
-            return {"object": {"sha": "head"}}
-        if path.startswith("git/commits/"):
-            return {"tree": {"sha": "base"}}
-        if path == "git/blobs":
-            return {"sha": "b"}
-        if path == "git/trees":
-            return {"sha": "t"}
-        if path == "git/commits":
-            return {"sha": "c"}
-        if path == "git/refs/heads/live":
-            calls["patch"] += 1
-            patch_errors(calls["patch"], path)
-            return {}
-        raise AssertionError(path)
-
-    return fake, calls
-
-
-def test_commit_github_file_retries_a_moved_head(rt, monkeypatch):
-    monkeypatch.setattr(rt.time, "sleep", lambda s: None)
-
-    def errors(call_no, path):
-        if call_no == 1:
-            raise urllib.error.HTTPError(path, 409, "moved", {}, None)
-
-    fake, calls = _commit_stub(errors)
-    monkeypatch.setattr(rt, "github_api", fake)
-    assert rt.commit_github_file("d/f.json", b"x", "tok", "m") == "c"
-    assert calls["patch"] == 2
-
-
-def test_commit_github_file_gives_up_after_four_tries(rt, monkeypatch):
-    monkeypatch.setattr(rt.time, "sleep", lambda s: None)
-
-    def errors(call_no, path):
-        raise urllib.error.HTTPError(path, 422, "moved", {}, None)
-
-    fake, calls = _commit_stub(errors)
-    monkeypatch.setattr(rt, "github_api", fake)
-    with pytest.raises(urllib.error.HTTPError):
-        rt.commit_github_file("d/f.json", b"x", "tok", "m")
-    assert calls["patch"] == 4
-
-
-def test_github_path_exists_raises_errors_other_than_404(rt, monkeypatch):
-    def boom(method, path, token, payload=None):
-        raise urllib.error.HTTPError(path, 500, "boom", {}, None)
-
-    monkeypatch.setattr(rt, "github_api", boom)
-    with pytest.raises(urllib.error.HTTPError):
-        rt.github_path_exists("d/f.json", "tok")
-
-    def missing(method, path, token, payload=None):
-        raise urllib.error.HTTPError(path, 404, "missing", {}, None)
-
-    monkeypatch.setattr(rt, "github_api", missing)
-    assert rt.github_path_exists("d/f.json", "tok") is False
 
 
 def test_cadence_divisor_bands(rt):
