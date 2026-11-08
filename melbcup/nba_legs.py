@@ -474,7 +474,7 @@ def shade(c: float, under: bool) -> float:
     return 1 / (1 + math.exp(-lg))
 
 
-def apply_market(legs: list[dict], market: dict) -> None:
+def apply_market(legs: list[dict], market: dict, w: float | None = None) -> None:
     """Blend each leg's model chance with the market's (in place). "model" stays the pure model
     value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
     flagged = getattr(market, "flagged", ())
@@ -485,7 +485,7 @@ def apply_market(legs: list[dict], market: dict) -> None:
         if g["model"] is None:  # no board for this player: the market's, else its own price's
             c = m if m is not None else g.get("raw", g["chance"])
         else:
-            c = blend(g["model"], m)
+            c = blend(g["model"], m, w)
         g["raw"] = round(c, 4)  # before the over/under lean
         c = shade(c, bool(g["under"]))
         g["market"] = None if m is None else round(m, 4)
@@ -816,6 +816,10 @@ _DRAWS: list = []
 
 def _rho(a: dict, b: dict) -> float:
     """Correlation between two legs' normal scores: sign flipped when exactly one is an under."""
+    if a.get("sport") == "nfl":  # NFL legs carry their own fitted relations (melbcup/nfl_model.py)
+        from . import nfl_model
+
+        return nfl_model.rho(a, b)
     if a["player"] == b["player"]:
         rel = "self"
     elif a.get("team") == b.get("team"):

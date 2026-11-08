@@ -1,6 +1,6 @@
 """NFL legs under the NBA picker's "pk1" rules (owner, 2026-11-08: NFL gets the full NBA treatment).
 
-Catalogue rows (PointsBet, market-only: there is no NFL player model) become the same leg dicts
+Catalogue rows (PointsBet; the NFL player model of melbcup/nfl_model.py is blended in at a small weight) become the same leg dicts
 nba_legs builds, then go through nba_legs itself: event-aware bet_key, margin removed only inside a
 native over/under pair, alternate "N+" rungs priced by the margin table, identical bets
 deduplicated, ladders made monotone, OVER_SHADE. Nothing here re-implements those rules.
@@ -13,6 +13,7 @@ import time
 from datetime import UTC, datetime
 
 from . import nba_legs as N
+from . import nfl_model as M
 
 # catalogue market_family -> (stat id, words shown on a leg)
 FAMILY = {
@@ -103,7 +104,8 @@ def legs_from_rows(rows) -> list[dict]:
     """pk1 legs: the market chance of each bet across the feed (native pairs de-vigged, rungs by
     the margin table, ladders monotone), over/under lean applied. Dedupe is left to _auto/dedupe."""
     legs = [g for g in map(leg_of_row, rows) if g]
-    N.apply_market(legs, N.market_probs({"pb": legs}))
+    M.annotate(legs)  # model chance + team where the player has a mean; blended below at M.BLEND_W
+    N.apply_market(legs, N.market_probs({"pb": legs}), M.BLEND_W)
     return legs
 
 
@@ -140,8 +142,9 @@ def current_legs(now: datetime | None = None, horizon_h: int = 72) -> list[dict]
 
 def same_game(legs: list[dict], target: float, stake: float = 10.0) -> list[dict]:
     """The likeliest one-game multi (one leg per player) paying `target`x or more, per game.
-    Legs are treated as independent (no NFL correlation model): an approximation, flagged."""
-    return [m | {"independent": True} for m in N.same_game_for(legs, target, stake)]
+    Legs are correlated by the fitted NFL relations (melbcup/nfl_model.CORR, a Gaussian copula) when the
+    player has a model mean (team known); a leg with no mean is independent of the rest."""
+    return [m | {"independent": False} for m in N.same_game_for(legs, target, stake)]
 
 
 def cross_game(legs: list[dict], target: float, stake: float = 10.0) -> dict | None:
