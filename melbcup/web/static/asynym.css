@@ -739,14 +739,14 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .chv9 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .chv9 .tile{border-radius:12px;padding:9px;border:1.5px solid var(--org);background:var(--org-wash);min-height:104px}
 .chv9 .tile.g{border-color:var(--good);background:var(--good-wash)}
-.chv9 .tile.r{border-color:var(--bad);background:var(--bad-wash)}
+.chv9 .tile.r{display:block;padding:9px;gap:0;border:1.5px solid var(--bad);background:var(--bad-wash)}
 .chv9 .tile.n{border-color:var(--rule);background:var(--chip)}
 .chv9 .tile b{font-size:12.5px;display:block}
 .chv9 .tile small{font-size:10.5px;color:var(--muted);display:block}
 .chv9 .tile .v small{display:inline}
 .chv9 .tile.x{border-color:var(--rule);background:var(--chip);opacity:.6;filter:grayscale(1)}
 .chs-row.failed{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
-.chs-row.failed .chs-head{background:var(--bad-wash)}
+.chs-row.failed .chs-head{background:var(--bad-wash)!important}
 .chs-row.failed .chs-pct{color:var(--bad)}
 .chv9 .tile .v{font:800 22px/1.1 Inter;margin:5px 0 2px}
 .chv9 .tile .lb{height:9px}

@@ -363,6 +363,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       })
       .catch(function () {});
   }
+  poll();
   window.setInterval(poll, 30000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
 })();

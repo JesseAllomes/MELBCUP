@@ -119,7 +119,7 @@
 <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}b{{ ch.steps | length }}"><input type="hidden" name="ch" value="chbet"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
 <label>Stake $<input name="chstake" inputmode="decimal" value="{{ '%.2f' % placed.stake }}"></label>
 <label>Price $<input name="chp" inputmode="decimal" value="{{ ('%.2f' % placed.price) if placed.price else '' }}"></label>
-<label>Legs <input name="chl" maxlength="120" value="{{ placed.label }}"></label>
+<label>Legs <input name="chl" maxlength="400" value="{{ placed.label }}"></label>
 <button type="submit">Save bet</button></form></details>
   {% if not placed.bonus %}<p class="note"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=isbonus&chs={{ ch.steps | length }}">Staked with a bonus bet? Mark it</a> (not your money; it pays winnings only)</p>{% endif %}
   {{ tracked((track or {}).get(placed.id), not placed.bonus) }}
@@ -146,7 +146,7 @@
   <details class="fold"><summary>Placed something else? Enter it</summary>
   <form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
-    <label>Legs <input name="chl" maxlength="120" placeholder="e.g. Collingwood to win; Lakers -3.5" required></label>
+    <label>Legs <input name="chl" maxlength="400" placeholder="e.g. Collingwood to win; Lakers -3.5" required></label>
     <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" required></label>
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
