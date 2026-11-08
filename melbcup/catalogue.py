@@ -826,12 +826,23 @@ def _carry_over(k: str, index: dict, shards: dict, doc: dict, read) -> None:
     old_shard = {str(c.get("competition_id")): c.get("shard") for c in old.get("competitions", [])}
     carried_events: set = set()
     by_cid = {c["competition_id"]: c for c in index["competitions"]}
+    # the old shards are fetched in parallel (owner, 2026-11-08: 81 reads one at a time took 27 s and
+    # soccer ran past the Function's 55 s limit); only the gzip bytes are held, parsed one at a time
+    want = {cid: old_shard[cid] for cid in missing if old_shard.get(cid)}
+
+    def _get(name):
+        try:
+            return read(f"catalogue/{k}/{name}")
+        except OSError:
+            return None
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        got = dict(zip(want, pool.map(_get, want.values())))
     for cid, evs in missing.items():
-        name = old_shard.get(cid)
-        if not name:
+        if cid not in want:
             continue
         try:
-            raw = read(f"catalogue/{k}/{name}")
+            raw = got.pop(cid, None)
             rows = [
                 r
                 for r in (json.loads(gzip.decompress(raw)).get("selections", []) if raw else [])
@@ -875,10 +886,10 @@ def _carry_over(k: str, index: dict, shards: dict, doc: dict, read) -> None:
 def write_build(result: dict, write, read=None, include_raw: bool = True) -> list[str]:
     """Write a build through `write(name, bytes)`. `read(name) -> bytes | None` lets coverage.json
     keep the rows of sports this run did not build (rotation). Returns the names written."""
-    names = []
+    names, pending = [], []
 
-    def put(name, data):
-        write(name, data)
+    def put(name, data):  # queued; uploaded in parallel below (the order of `names` is kept)
+        pending.append((name, data))
         names.append(name)
 
     built = next(iter(result["docs"].values()), {}).get("built") or _iso(datetime.now(UTC))
@@ -911,6 +922,14 @@ def write_build(result: dict, write, read=None, include_raw: bool = True) -> lis
         rows = {**{r["sport"]: r for r in old if isinstance(r, dict) and "sport" in r}, **rows}
     ordered = sorted(rows.values(), key=lambda r: (r["sport"] not in CORE_KEYS, r["sport"]))
     put("catalogue/coverage.json", json.dumps(ordered, indent=1).encode())
+    # shards first in parallel; the index, latest and coverage files after, so a reader never sees
+    # an index that points at shards not yet written
+    later = [p for p in pending if not p[0].rsplit("/", 1)[-1].startswith("comp-")]
+    first = [p for p in pending if p not in later]
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        list(pool.map(lambda p: write(*p), first))
+    for p in later:
+        write(*p)
     return names
 
 
