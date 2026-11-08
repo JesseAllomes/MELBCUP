@@ -1,0 +1,39 @@
+{% from "asynym/_parts.html" import ring %}
+{# One single-bet row: race, jump time, runner, Win/Place, price + bookmaker, chance. #}
+{% macro single_rows(items, empty) %}
+{% if not items %}<p class="empty">{{ empty }}</p>{% else %}
+{% for b in items %}
+<div class="card lkc{{ ' first' if loop.first }}">
+  {{ ring(b.chance, 46) }}
+  <div class="m">
+    <div class="n">R{{ b.race }} {{ b.jump }} <em>#{{ b.runner }}</em> {{ b.name }} <em>{{ b.kind | title }}</em></div>
+    <div class="l">fair <b>${{ '%.2f' | format(b.fair_price) }}</b> · wins {{ (b.chance * 100) | round | int }} in 100</div>
+    <div class="rt">{% if b.expected_return < 0 %}Still loses about {{ (-b.expected_return * 100) | round | int }}c per $1 to the bookmaker margin.{% else %}Pays more than its chance deserves.{% endif %}</div>
+  </div>
+  <div class="pr"><b>${{ '%.2f' | format(b.price) }}</b><small class="bk">{{ b.agency_name }}</small></div>
+</div>
+{% endfor %}{% endif %}
+{% endmacro %}
+
+{% macro multi_groups(lk) %}
+{% if lk.loading and not lk.multi_groups %}<p class="empty">Prices loading. Multis appear once bookmaker prices arrive.</p>{% endif %}
+{% for g in lk.multi_groups %}
+{% for r in g.rows %}
+<div class="multi">
+  <div class="rng"><span>${{ '%g' | format(r.band.lo) }} – ${{ '%g' | format(r.band.hi) }}</span><span class="bk">{{ g.name }} · one leg per race</span></div>
+  {% if not r.pick %}<p class="fine">{{ r.reason or 'No qualifying multi in this range.' }}</p>{% else %}
+  {% set p = r.pick %}
+  <div class="top">
+    {{ ring(p.p_all, 46) }}
+    <div><div style="font-weight:700">{{ r.legs | length }}-leg multi</div><div class="fine">wins {{ (p.p_all * 100) | round | int }} in 100 · fair ${{ '%.2f' | format(p.fair_price) }}</div></div>
+    <div class="pr"><b>${{ '%.2f' | format(p.price) }}</b><small>$10 returns ${{ '%.2f' | format(p.price * 10) }}</small></div>
+  </div>
+  {% for l in r.legs %}
+  <div class="leg"><span class="j">R{{ l.race }} {{ l.jump }}</span><span class="w">#{{ l.runner }} {{ (l.label.split(' ', 2)[2] if l.label else '') | replace(' Win', '') | replace(' Place', '') }} <small>{{ l.kind | title }}</small></span><span class="o">${{ '%.2f' | format(l.price) }} <small class="bk">{{ g.name }}</small> <small>{{ (l.p * 100) | round | int }}%</small></span></div>
+  {% endfor %}
+  <div class="one">Exactly one leg fails: <b>{{ (p.p_one_fail * 100) | round | int }}%</b> of the time (a near miss)</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endfor %}
+{% endmacro %}

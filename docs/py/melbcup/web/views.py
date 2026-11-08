@@ -106,6 +106,59 @@ def local_time(dt: datetime | None) -> str:
     return f"{t.hour % 12 or 12}:{t.minute:02d}{'am' if t.hour < 12 else 'pm'}"
 
 
+AGENCY_NAMES = {"sportsbet": "Sportsbet", "pointsbet": "PointsBet", "betfair": "Betfair"}
+
+
+def likely_view(board, day, race_n=None) -> dict:
+    """The Likely and Multis tabs' data: LiveBoard.likely() with Melbourne jump times added.
+    Multis keep this race's runners when any multi has one (``mine``), else the meeting's."""
+    try:
+        raw = board.likely() or {}
+    except Exception:  # noqa: BLE001 - a bad board never breaks the page
+        raw = {}
+    starts = {rc.race.number: local_time(rc.race.start_time) for rc in (day.races if day else [])}
+
+    def row(b):
+        return {
+            **b,
+            "jump": starts.get(b["race"], "–"),
+            "agency_name": AGENCY_NAMES.get(b["agency"], b["agency"]),
+        }
+
+    singles = {n: [row(b) for b in v] for n, v in (raw.get("singles") or {}).items()}
+    groups = []
+    for ag, bands in (raw.get("multis") or {}).items():
+        rows = []
+        for band in bands or []:
+            pick = band.get("pick")
+            legs = []
+            for g in (pick or {}).get("legs", []):
+                n = int(str(g.get("event", "R0")).lstrip("R") or 0)
+                legs.append({**g, "race": n, "jump": starts.get(n, "–")})
+            has = race_n is not None and any(g["race"] == race_n for g in legs)
+            rows.append(
+                {
+                    "band": band,
+                    "pick": pick,
+                    "legs": legs,
+                    "has_race": has,
+                    "reason": band.get("reason"),
+                }
+            )
+        groups.append({"agency": ag, "name": AGENCY_NAMES.get(ag, ag), "rows": rows})
+    mine = race_n is not None and any(r["has_race"] for g in groups for r in g["rows"])
+    if mine:
+        for g in groups:
+            g["rows"] = [r for r in g["rows"] if r["has_race"] or not r["pick"]]
+    return {
+        "singles": singles.get(race_n, []) if race_n is not None else [],
+        "top": [row(b) for b in raw.get("meeting_top") or []],
+        "multi_groups": groups,
+        "multi_mine": mine,
+        "loading": not raw or (not raw.get("meeting_top") and not any(singles.values())),
+    }
+
+
 def when(value) -> str:
     """A Melbourne day and time: "Today 11:00am", "Tomorrow 11:00am" or "Thu 6 Nov 11:00am".
     Takes a datetime or an ISO string (as PointsBet and ESPN send them)."""
@@ -720,9 +773,13 @@ class Views:
         placed = ch.get("placed")
         tr = (ctx.get("track") or {}).get(placed["id"]) if placed else None
         tabs = [
-            {"letter": chr(65 + i % 26), "id": it["rec"]["id"], "name": it["rec"]["name"],
-             "on": it["rec"]["id"] == rec["id"],
-             "price": (it["rec"]["state"].get("placed") or {}).get("price")}
+            {
+                "letter": chr(65 + i % 26),
+                "id": it["rec"]["id"],
+                "name": it["rec"]["name"],
+                "on": it["rec"]["id"] == rec["id"],
+                "price": (it["rec"]["state"].get("placed") or {}).get("price"),
+            }
             for i, it in enumerate(chs.get("list") or [])
         ]
         start, bank, goal = ch["start"], ch["bank"], ch["goal"]
@@ -746,39 +803,62 @@ class Views:
                 fill = min((now or 0) / g["k"], 1.0) * 100
                 if cls == "g" and not g["under"]:
                     fill = 100.0
-                tiles.append({
-                    "cls": cls, "name": g["player"],
-                    "line": g["label"].replace(g["player"], "", 1).strip(),
-                    "under": g["under"], "k": g["k"],
-                    "now": now or 0, "fill": round(fill), "chance": lc,
-                })
+                tiles.append(
+                    {
+                        "cls": cls,
+                        "name": g["player"],
+                        "line": g["label"].replace(g["player"], "", 1).strip(),
+                        "under": g["under"],
+                        "k": g["k"],
+                        "now": now or 0,
+                        "fill": round(fill),
+                        "chance": lc,
+                    }
+                )
             bet = live["p"]
         ring = bet
         if ring is None and not placed:
             step = ctx.get("ch_step") or {}
             ring = step.get("chance")
         verdict = (tr or {}).get("verdict")
-        dead = bool(tr and tr.get("failed") and (tr["state"] == "post" or any(
-            g.get("ok") is False for g in tr["legs"])))
+        dead = bool(
+            tr
+            and tr.get("failed")
+            and (tr["state"] == "post" or any(g.get("ok") is False for g in tr["legs"]))
+        )
         blocks = []
         for i in range(n_all):
             if i < n_done:
                 st = ch["steps"][i]
                 blocks.append({"cls": "done", "k": f"Stage {i + 1}", "v": f"${st['to']:.2f}"})
             elif i == n_done:
-                blocks.append({"cls": "bad" if dead else "now", "k": f"Stage {i + 1}",
-                               "v": f"${bank:.2f}"})
+                blocks.append(
+                    {"cls": "bad" if dead else "now", "k": f"Stage {i + 1}", "v": f"${bank:.2f}"}
+                )
             else:
                 blocks.append({"cls": "next", "k": f"Stage {i + 1}", "v": "next"})
         odds = placed.get("price") if placed else (ctx.get("ch_step") or {}).get("price")
         return {
-            "tabs": tabs, "name": rec["name"], "pct": round(pct), "goal": goal,
-            "stages_done": n_done, "stages": n_all, "blocks": blocks, "tiles": tiles,
+            "tabs": tabs,
+            "name": rec["name"],
+            "pct": round(pct),
+            "goal": goal,
+            "stages_done": n_done,
+            "stages": n_all,
+            "blocks": blocks,
+            "tiles": tiles,
             "ring": None if ring is None else round(ring * 100),
-            "ring_cls": "" if ring is None else ("g" if ring >= .6 else "p" if ring >= .3 else "a"),
-            "odds": odds, "placed": bool(placed), "dead": dead, "verdict": verdict,
-            "in_play": bool(tr and tr["state"] == "in"), "clock": (tr or {}).get("clock", ""),
-            "live": bool(live and live["live"]), "approx": bool(live and live["approx"]),
+            "ring_cls": ""
+            if ring is None
+            else ("g" if ring >= 0.6 else "p" if ring >= 0.3 else "a"),
+            "odds": odds,
+            "placed": bool(placed),
+            "dead": dead,
+            "verdict": verdict,
+            "in_play": bool(tr and tr["state"] == "in"),
+            "clock": (tr or {}).get("clock", ""),
+            "live": bool(live and live["live"]),
+            "approx": bool(live and live["approx"]),
             "bonus": bool(placed and placed.get("bonus")),
             "tip": placed.get("tip") if placed else None,
             "any_play": bool(tr and tr["state"] == "in"),
@@ -1230,6 +1310,7 @@ class Views:
             return self.env.get_template("asynym/meetings.html").render(ctx)
         if path == "/meeting":
             ctx["rows"] = asynym.race_rows(day, race_call, snap.race_date) if day else []
+            ctx["lk"] = likely_view(self.board, day)
             return self.env.get_template("asynym/meeting.html").render(ctx)
         if path == "/mine":
             ctx["mine_lines"] = self._my_lines(day)
@@ -1244,6 +1325,8 @@ class Views:
         if path.startswith("/race/"):
             self._race_context(path, ctx)
             ctx["tab"] = asynym.race_tab(query.get("tab"), ctx["rc"].open)
+            if ctx["tab"] in ("likely", "multis"):
+                ctx["lk"] = likely_view(self.board, day, ctx["race"].number)
             takes = asynym.takes(ctx["rc"], snap.race_date) if ctx["rc"].open else []
             ctx["verdict_take"] = bool(takes) and race_call(ctx["rp"]).kind == "bet"
             ctx["takes"] = takes if ctx["verdict_take"] else []

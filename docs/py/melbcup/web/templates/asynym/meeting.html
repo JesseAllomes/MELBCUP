@@ -23,4 +23,13 @@
   {% endfor %}
 </section>
 {% endif %}
+{% from "asynym/_likely.html" import single_rows, multi_groups %}
+<section class="lk" aria-label="Likeliest today">
+  <div class="sec">Likeliest today <small>top 5 singles by chance</small></div>
+  {{ single_rows(lk.top, 'Prices loading. Likeliest bets appear once bookmaker prices arrive.') }}
+</section>
+<section class="lk" aria-label="Most likely multis">
+  <div class="sec">Most likely multis <small>one leg per race, one bookmaker</small></div>
+  {{ multi_groups(lk) }}
+</section>
 {% endblock %}

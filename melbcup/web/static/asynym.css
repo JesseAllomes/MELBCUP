@@ -749,3 +749,20 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .chv9 .tile.r .lb u{background:var(--bad)}
 .chv9-more{margin:10px 0}.chv9-more>summary{cursor:pointer;font-size:12px;color:var(--muted,#9D94B8);padding:8px 0}
 .chv9 .ring{--c:var(--bad,#FF6F7D)}.chv9 .ring i{background:var(--sheet,#15121C)}.chv9 .card{background:var(--sheet,#15121C)}
+
+/* Racing likely (v10-3) */
+.lkc{display:flex;gap:10px;align-items:center;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:9px 10px}
+.lkc.first{background:linear-gradient(160deg,#2A1E4A,var(--sheet) 60%);border-color:var(--brand)}
+.lkc .m{flex:1;min-width:0}.lkc .n{font-weight:700;font-size:14px}.lkc .n em{font-style:normal;color:var(--muted);font-weight:500;font-size:12px}
+.lkc .l{font-size:11.5px;color:var(--muted);margin-top:2px}.lkc .l b{color:var(--ink)}
+.lkc .rt{font-size:11px;color:var(--muted);margin-top:3px;border-top:1px solid var(--rule);padding-top:3px}
+.lk .pr{text-align:right;line-height:1.15}.pr b{font-size:17px;display:block}.pr small{font-size:10px;color:var(--muted)}
+.lk .why{font-size:11.5px;color:var(--muted);background:var(--chip);border-left:3px solid var(--brand);border-radius:0 8px 8px 0;padding:6px 9px}.why b{color:var(--ink)}
+.lk .bk{display:inline-block;font-size:10px;font-weight:700;background:var(--chip);border:1px solid var(--rule);border-radius:6px;padding:0 5px;color:var(--ink)}
+.lk .rng{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;color:var(--brand);margin-bottom:6px}
+.lk .multi{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:10px 12px}
+.lk .multi .top{display:flex;gap:10px;align-items:center}.multi .top .pr{margin-left:auto}
+.lk .leg{display:flex;gap:6px;font-size:12px;padding:3px 0;border-top:1px solid var(--rule);margin-top:3px}.leg:first-of-type{margin-top:7px}.leg .j{color:var(--muted);width:56px;flex:0 0 auto}.leg .w{flex:1}.leg .w small{color:var(--muted)}.leg .o{font-weight:700}
+.lk .one{font-size:11.5px;color:var(--muted);margin-top:5px}.one b{color:var(--warn)}
+.lk .fine{font-size:11px;color:var(--muted)}
+.lk{display:flex;flex-direction:column;gap:9px;margin:10px 0}.lk .sec{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between}.lk .sec small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)}
