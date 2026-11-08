@@ -46,8 +46,15 @@ AGENCIES = (
 CODES_ALL = tuple(a[0] for a in AGENCIES)
 ROUTED = ("sb", "bf", "pb")  # the accounts the allocator can send a bet to
 MONEY_COOKIES = {a[3]: a[2] for a in AGENCIES if a[0] not in ROUTED}
-TABS = ("bet", "field", "result", "mine")
-TAB_NAMES = {"bet": "Bet", "field": "Field", "result": "Result", "mine": "Mine"}
+TABS = ("bet", "likely", "multis", "field", "result", "mine")
+TAB_NAMES = {
+    "bet": "Bet",
+    "likely": "Likely",
+    "multis": "Multis",
+    "field": "Field",
+    "result": "Result",
+    "mine": "Mine",
+}
 MAX_TAKES = 4
 
 

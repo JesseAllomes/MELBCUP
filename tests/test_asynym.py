@@ -16,7 +16,9 @@ ON = {**ENV, "ASYNYM": "1", "PUBLIC_ACCESS": "1"}
 def make(env):
     board = board_with(Router(), Clock(START))
     board.load_card_now(wait=True)
-    return TestClient(create_app(load_settings(env), board, start_background=False))
+    client = TestClient(create_app(load_settings(env), board, start_background=False))
+    client.board = board
+    return client
 
 
 @pytest.fixture
@@ -111,7 +113,9 @@ def test_no_kids_bets_card(on):
 def test_autobet_is_off_unless_switched_on(on):
     """The owner does not use auto-betting (2026-11-04): no betting routes while AUTOBET is unset."""
     assert on.get("/api/betting").status_code == 404
-    assert on.post("/api/betting/bet", json={"race": 1, "runner": 1, "stake": 5, "pin": "x"}).status_code in (404, 405)
+    assert on.post(
+        "/api/betting/bet", json={"race": 1, "runner": 1, "stake": 5, "pin": "x"}
+    ).status_code in (404, 405)
 
 
 def test_alerts_live_in_settings_on_every_page(on, monkeypatch):
@@ -124,3 +128,67 @@ def test_alerts_live_in_settings_on_every_page(on, monkeypatch):
 def test_tabs_preload_but_action_links_never_do(on):
     html = on.get("/").text
     assert '<script type="speculationrules">' in html and '"selector_matches": ".act"' in html
+
+
+def _fake_likely(board):
+    def leg(n, num, name, kind, price, p):
+        return {
+            "event": f"R{n}",
+            "runner": num,
+            "kind": kind,
+            "price": price,
+            "p": p,
+            "label": f"R{n} #{num} {name} {kind.title()}",
+            "start": "",
+        }
+
+    s = {
+        "race": 1,
+        "runner": 4,
+        "name": "Tough Customer",
+        "kind": "win",
+        "chance": 0.31,
+        "price": 3.1,
+        "agency": "sportsbet",
+        "fair_price": 3.23,
+        "expected_return": -0.04,
+    }
+    pick = {
+        "legs": [
+            leg(1, 4, "Tough Customer", "place", 1.45, 0.7),
+            leg(2, 1, "Max Ruler", "place", 1.4, 0.7),
+        ],
+        "price": 2.03,
+        "p_all": 0.49,
+        "p_one_fail": 0.42,
+        "fair_price": 2.04,
+        "expected_return": -0.01,
+    }
+    board.likely = lambda *a, **k: {
+        "singles": {1: [s]},
+        "meeting_top": [s],
+        "multis": {
+            "sportsbet": [
+                {"lo": 2.0, "hi": 3.0, "pick": pick, "reason": None},
+                {"lo": 3.0, "hi": 5.0, "pick": None, "reason": "Nothing fits."},
+            ]
+        },
+    }
+
+
+def test_likely_and_multis_tabs_and_day_sections(on):
+    _fake_likely(on.board)
+    for tab in ("likely", "multis"):
+        r = on.get(f"/race/1?tab={tab}")
+        assert r.status_code == 200
+        assert "Tough Customer" in r.text and "Sportsbet" in r.text and "R1" in r.text
+    assert "Nothing fits." in on.get("/race/1?tab=multis").text
+    day = on.get("/meeting").text
+    assert "Likeliest today" in day and "Most likely multis" in day and "2-leg multi" in day
+
+
+def test_likely_empty_states(on):
+    on.board.likely = lambda *a, **k: {}
+    r = on.get("/race/1?tab=likely")
+    assert r.status_code == 200 and "Prices loading" in r.text
+    assert "Prices loading" in on.get("/meeting").text
