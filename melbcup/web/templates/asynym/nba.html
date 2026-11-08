@@ -47,10 +47,10 @@
 
 {% set _chl = (chs.list | map(attribute='rec') | list) if chs and chs.list else [] %}
 {{ record_bet('/nba', '', nba_tab, (v.board.games | map(attribute='name') | map('replace', ' at ', ' @ ') | list) if v.board else [], _chl) }}
-{% if nba_own %}
+{% set own_here = (nba_own or []) | selectattr('sport_of', 'equalto', sport or 'nba') | list %}{% if own_here %}
 <section class="card nb-own">
   <div class="vlabel">Your bets</div>
-  {% for b in nba_own %}
+  {% for b in own_here %}
   <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.bonus_if_win %} · ${{ '%.2f' % b.bonus_if_win }} bonus if it wins{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
   {{ tracked((track or {}).get(b.id)) }}
   {% if b.state == 'placed' %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport or 'nba' }}"><input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="nbid" value="{{ b.id }}">

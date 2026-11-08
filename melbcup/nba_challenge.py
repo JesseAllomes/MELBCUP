@@ -397,6 +397,7 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
                 "state": "placed",
                 "ret": 0.0,
                 "tip": (query.get("nbtip") or "")[:32],
+                **({"sport": s} if (s := query.get("sport")) in ("nba", "nfl") else {}),
             }
             | ({"bonus_if_win": bw} if (bw := _money(query.get("nbbw"))) else {})
             | ({"bonus": 1} if query.get("nbbonus") == "1" else {})  # staked with a bonus bet
@@ -423,10 +424,21 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
 def own_bets(state: dict | None, today: str) -> list[dict]:
     """The owner's own bets to show: every one still open, and today's settled ones."""
     return [
-        b
+        b | {"sport_of": bet_sport(b)}
         for b in (state or {}).get("bets", [])
         if b.get("own") and (b["state"] == "placed" or b.get("day") == today)
     ]
+
+
+_RACE = re.compile(r"\bR\d{1,2}\b|\bRace \d|Same Race Multi|\bTop \d\b")
+
+
+def bet_sport(b: dict) -> str:
+    """Which page an own bet belongs on: its recorded sport, else racing when the label reads like
+    a race (owner, 2026-11-08: a horse bet showed on the NFL page), else NBA (the older records)."""
+    if b.get("sport"):
+        return b["sport"]
+    return "racing" if _RACE.search(b.get("label") or "") else "nba"
 
 
 def today_money(state: dict | None, today: str) -> tuple[dict[str, float], float]:

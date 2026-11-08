@@ -78,3 +78,13 @@ def test_own_bet_marked_bonus_uses_credit():
     left = sum(c["amount"] for c in W.credits(s["ledger"], day).values() if c["status"] == "available")
     assert left == 0
     assert s["own"]["bets"][-1]["bonus"] == 1
+
+
+def test_own_bets_carry_their_sport():
+    from melbcup import nba_challenge as C
+    st = {"bets": [
+        {"own": 1, "state": "placed", "label": "York R3 Same Race Multi: 1 Yoi Uma Top 4"},
+        {"own": 1, "state": "placed", "label": "Bills @ Chiefs: Josh Allen Over 245.5 Passing Yards", "sport": "nfl"},
+        {"own": 1, "state": "placed", "label": "Rockets @ Suns: Kevin Durant Under 21.5 Points"},
+    ]}
+    assert [b["sport_of"] for b in C.own_bets(st, "2026-11-08")] == ["racing", "nfl", "nba"]
