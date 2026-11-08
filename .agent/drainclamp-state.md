@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=189 -->
+<!-- drainclamp-build: state; schema=1; generation=190 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-03T21:28:16+00:00 2149370d 2026-11-04 challenge isolated to its tab (top card removed; _challenge only on tab=challenge; alerts only there). Deployed web.
 - 2026-11-03T23:21:28+00:00 80c51b13 2026-11-04 kids' bets card removed (asynym Mine + race). Deployed. Owner asked about sharing with a friend: per-person state is cookies (separate per phone); shared: picks + server-side Betfair auto-bet API (/api/betting public read; PIN-guarded actions; BET_MODE not live) + Load card/Auto on buttons (server-wide).
 - 2026-11-03T23:56:59+00:00 e3eeeb79 2026-11-04 autobet OFF (owner): settings.autobet (AUTOBET=1 to enable), no loop/routes; BET_PIN removed from melbcup-web.json (KV secret melbcup-bet-pin untouched). Deployed web; /api/betting 404.
 - 2026-11-04T07:35:23+00:00 ba394214 2026-11-04 Sportsbet props LIVE (3760 lines; alt + O/U, unders; agency switch, SB first if on). Push alerts built (webpush/push_store/push_send/sw.js, Challenge tab card, beforeinstallprompt blocked) committed on branch e3ac8a5d? NOT deployed: needs owner approval for C10 loosening nba_props_run 27->72/day (deploy with LIMITS_APPROVED blocked by classifier without owner OK). Function app setting VAPID_PRIVATE_KEY already set; public key in melbcup-web.json; keys in scratch vapid.env. nba_probe_run removed from code/limits (still live on Function until next function deploy).
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-07T14:23:40+00:00 4aa76261 2026-11-07 ui7 deployed (owner approved): live /sports Bet now; first compute after deploy ~3 min, pages ~1 s; status endpoint live. Next: pk1 review, then sh1 shadow scoreboard.
 - 2026-11-07T21:28:26+00:00 94b106f8 2026-11-07 pk1 reviewed+merged to branch (tests pass, not deployed). ui8 BUILD (owner): every sport NBA-style tabs, v8-2 bottom bar + 1's layout, NBA Multis on new design with fixed picker; Sonnet low building in rb5-tabs.
 - 2026-11-07T22:30:48+00:00 6de5b342 2026-11-08 INCIDENT fixed: Function loaded 0 functions from 7 Nov 07:50 UTC (nba_challenge imported melbcup.wallet, missing from flat package) -> no NBA snapshots, catalogue, alerts for ~14h. Fix: flat fallback + wallet.py packaged + package-import test; deployed (owner approved); 6 functions loaded, NBA view + catalogue rotation running 22:30 UTC. Also deployed: ui8 per-sport bottom bar incl. Best multis, game name on hero legs, chip row stays.
+- 2026-11-08T00:19:31+00:00 fcdbf672 2026-11-08 challenges fixes deployed (cents, legs per multi, edit challenge, edit placed bet, planner at setup, All Sports ladder picks, record any bet + bonus-if-win, sticky stage pick, 400-char legs). Owner data: ch3/4/6 removed, 4 placed Sportsbet bets rebuilt as ch7-10 (goal $250, 2 stages), wallet c1 redeemed, c2 $10.72 granted; backup challenges/backup-before-rebuild-20261108T0009.json.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
