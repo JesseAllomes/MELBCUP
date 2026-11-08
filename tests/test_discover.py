@@ -181,3 +181,15 @@ def test_legs_filter_and_by_legs_agree():
         got = D.best_multis(groups, ((2.0, 20.0),), legs=n)[0]["pick"]
         assert got and len(got["legs"]) == n
         assert D.best_multis_by_legs(groups, ((2.0, 20.0),), (n,))[n][0]["pick"]["price"] == got["price"]
+
+
+def test_first_refresh_starts_on_a_fresh_container(monkeypatch):
+    """A container younger than REFRESH_S must still compute its first result (it waited 10 min)."""
+    calls = []
+    monkeypatch.setattr(D, "_refresh", lambda: calls.append(1))
+    monkeypatch.setattr(D.time, "monotonic", lambda: 30.0)  # 30 s after boot
+    monkeypatch.setitem(D._state, "result", None)
+    monkeypatch.setitem(D._state, "at", 0.0)
+    monkeypatch.setitem(D._state, "busy", False)
+    D.latest(wait=True)
+    assert calls == [1]

@@ -138,6 +138,41 @@ def _box(summary: dict) -> dict:
 
 
 def track(label: str, now: datetime | None = None, fetch=None) -> dict | None:
+    """A bet over one game ("Game: leg, leg") or several ("Game A: legs; Game B: legs", owner
+    2026-11-08: a multi across games must be tracked too). Several games: each followed on its
+    own, legs merged in order; in play while any game is, final ("post") only when all are; the
+    verdict (won / lost1 / lost) at the end of the last game."""
+    parts = [p.strip() for p in (label or "").split("; ") if p.strip()]
+    if len(parts) < 2 or not all(": " in p for p in parts):
+        return _track_one(label, now, fetch)
+    found = [_track_one(p, now, fetch) for p in parts]
+    if any(f is None for f in found):
+        return None
+    states = [f["state"] for f in found]
+    state = (
+        "post"
+        if all(x == "post" for x in states)
+        else ("in" if "in" in states or "post" in states else "pre")
+    )
+    legs = [leg for f in found for leg in f["legs"]]
+    failed = sum(f["failed"] for f in found)
+    out = dict(found[0])
+    out.update(
+        state=state,
+        legs=legs,
+        failed=failed,
+        clock=" · ".join(f.get("clock") or "" for f in found if f.get("clock")),
+        verdict=(
+            ("won" if failed == 0 else "lost1" if failed == 1 else "lost")
+            if state == "post"
+            else None
+        ),
+        games=len(found),
+    )
+    return out
+
+
+def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | None:
     """{"state": pre|in|post, "clock", "legs": [...], "failed", "verdict"} or None if the game
     cannot be found (or is not exactly one game: on the bet's own date if its label has one, else
     today or yesterday). A leg is won as soon as an over reaches its line, failed as soon as an

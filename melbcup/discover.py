@@ -555,7 +555,10 @@ def _next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dic
 def latest(wait: bool = False) -> dict | None:
     """The last result; starts a background refresh when it is older than REFRESH_S."""
     with _lock:
-        due = time.monotonic() - _state["at"] > REFRESH_S and not _state["busy"]
+        # no result yet, or an old one (monotonic counts from boot: a fresh container is younger
+        # than REFRESH_S, so "never computed" must be checked on its own)
+        old = _state["result"] is None or time.monotonic() - _state["at"] > REFRESH_S
+        due = old and not _state["busy"]
         if due:
             _state["busy"] = True
     if due:
