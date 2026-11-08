@@ -984,6 +984,17 @@ def same_game_many(legs, targets, stake=10.0, min_legs=2, max_legs=SAME_MAX_LEGS
     return out
 
 
+def stacks_many(legs, targets, stake=10.0, min_legs=2, max_legs=10) -> dict:
+    """{target: [the likeliest one-leg-per-game stack reaching it]} (an empty list when none does):
+    the 'one leg per game' counterpart of same_game_many."""
+    return {
+        t: [s]
+        if (s := stack_for(legs, t, stake=stake, min_legs=min_legs, max_legs=max_legs))
+        else []
+        for t in targets
+    }
+
+
 def same_game_for(legs, target, stake=10.0, min_legs=2, max_legs=SAME_MAX_LEGS):
     """For each game, the likeliest same-game stack (one leg per player) whose legs multiply to at
     least `target`; soonest tip-off first."""
