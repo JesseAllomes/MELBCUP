@@ -281,7 +281,7 @@
 {{ record_bet('/sports', sport, sp_tab, rec_games, chs.list | map(attribute='rec') | list if chs else []) }}
 {% if sgm %}<section class="card sp-card"><h2>Same-game multis</h2>
 {% for m in sgm %}<p><b>{{ m.game }}</b> · pays {{ '%.2f' | format(m.price) }}x · chance {{ '%.0f' | format(m.chance * 100) }}%<br>{{ m.picks | join(', ') }}</p>{% endfor %}
-<p class="note">Legs are treated as independent: there is no measured NFL correlation model, so the chance is approximate.</p></section>
+<p class="note">Legs are treated as independent: this sport has no measured same-game correlation model yet, so the chance is approximate.</p></section>
 {% else %}<section class="bn"><div class="empty"><b>Same-game multis need a measured correlation model</b>NBA only for now. In one game the legs are linked, so multiplying their chances would mislead; {{ hub.name if hub else 'this sport' }} has no measured model yet.</div></section>{% endif %}
 {% else %}
 {{ bet_now(bn, disc, hub.name) }}
