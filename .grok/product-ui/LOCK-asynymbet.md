@@ -46,3 +46,12 @@ Spec: .grok/product-ui/v9/3-opened-first.html.
   fills toward the limit), grey = not started. Overs can go green mid-game; unders only at full time.
 - Once placed, the chance updates live ("live estimate"): per leg, P(rest of game reaches/stays within the line)
   from the pre-game market chance scaled by time left; bet = product of live leg chances; 0 when a leg fails.
+
+# Racing likely + multis lock (owner BUILD 2026-11-08): v10 direction 3 style, two tabs
+Spec: .grok/product-ui/v10/3-likely-tab.html.
+- Race tabs become Bet | Likely | Multis | Field | Result | Mine. Bet keeps the honest value verdict.
+- Likely: the race's top 3 single bets by chance (Win/Place) with ring, best price + bookmaker, fair price, honest
+  return line; meeting-level "Likeliest today" (5 singles) on the day page.
+- Multis: most likely multis by odds range ($1.5-2 ... $10-20), one leg per race, one bookmaker, chance, price,
+  exactly-one-fails, legs with race no, runner, Win/Place and jump time (Melbourne). Same on the day page.
+- Data: LiveBoard.likely() (melbcup/racing_likely.py).
