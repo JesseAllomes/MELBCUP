@@ -11,7 +11,7 @@
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch">
     <label>Name <input name="chname" maxlength="40" value="{{ ch_pname if ch_pv else '' }}" placeholder="e.g. NBA Props Run"></label>
-    <label>Sports <select name="chscope"><option value="nba">NBA (suggested stages)</option><option value="all">All Sports (I type in the legs)</option></select></label>
+    <label>Sports <select name="chscope"><option value="nba">NBA (suggested stages)</option><option value="nfl">NFL (suggested stages)</option><option value="all">All Sports (I type in the legs)</option></select></label>
     <label>Start $<input name="chstart" inputmode="decimal" value="{{ '%g' % ch_plan.start if ch_pv else 10 }}"></label>
     <label>Goal $<input name="chgoal" inputmode="decimal" value="{{ '%g' % ch_plan.goal if ch_pv else 1000 }}"></label>
     {% if ch_pv and ch_preview and ch_preview[0].typical is not none %}{% if ch_best %}<p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>{% endif %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
@@ -116,7 +116,7 @@
   </form>
   {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | when }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
   <p class="note">A win pays back into {{ ag.name }}; a loss ends the run.{% if ch.get('keep', True) and not ch.steps %} After this win ${{ '%.0f' % ch.start }} goes back to your pool and the rest rolls on.{% endif %}</p>
-  {% elif chs.open.scope == 'all' %}
+  {% elif chs.open.scope in ('all', 'nfl') %}
   {% if ch_sug %}{% set p = ch_sug.band.pick %}
   <div class="vrow">{{ ring(p.p_all, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % (ch.bank * p.price) }}</b><span>{{ p.legs | length }}-leg multi · one leg per game · ${{ '%.2f' % p.price }} · {{ ch_sug.src | capitalize }}</span></div></div>
   <ol class="nba-picks">{% for g in p.legs %}<li>{{ g.label }} <small>{{ (g.p * 100) | round | int }}% · ${{ '%.2f' % g.price }} · {{ g.event }} · {{ g.start | iso_time }}</small></li>{% endfor %}</ol>
@@ -186,7 +186,7 @@
   {% for it in chs.list %}{% set c = it.rec %}{% set s = c.state %}{% set isopen = chs.open and chs.open.id == c.id %}{% set r = it.row %}{% if isopen and chcard %}{% set r = {'odds': r.odds, 'clock': chcard.clock or r.clock, 'failed': chcard.dead, 'pct': (chcard.ring if chcard.ring is not none else r.pct)} %}{% endif %}
   <div class="chs-row{{ ' open' if isopen }}{{ ' failed' if r.failed }}" data-id="{{ c.id }}" style="--p:{{ r.pct if r.pct is not none else 0 }}%">
     <button type="button" class="chs-head" aria-expanded="{{ 'true' if isopen else 'false' }}" aria-controls="chs-b-{{ c.id }}">
-      <span class="chs-main"><b>{{ c.name }}</b> <small class="chs-scope">{{ 'All Sports' if c.scope == 'all' else 'NBA' }}</small>
+      <span class="chs-main"><b>{{ c.name }}</b> <small class="chs-scope">{{ 'All Sports' if c.scope == 'all' else c.scope | upper }}</small>
         <small class="chs-sub">{% if it.status == 'draft' %}not started{% else %}stage {{ s.steps | length + 1 }} of {{ s.get('stages', 3) }} · bank ${{ '%.2f' % s.bank }} of ${{ '%.0f' % s.goal }}{% endif %}{% if it.status == 'waiting_result' %} · waiting on result{% endif %}</small>
         <small class="chs-clock">{{ r.clock }}</small></span>
       <span class="chs-odds">{% if r.odds %}${{ '%.2f' % r.odds }}{% endif %}</span>

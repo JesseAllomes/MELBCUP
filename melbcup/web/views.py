@@ -565,8 +565,9 @@ class Views:
         chs = ctx.get("chs")
         if not chs:
             return {"ch": None, "ch_step": None, "ch_tl": [], "ch_sug": None}
-        mine = [it for it in chs["list"] if it["rec"]["scope"] == "all"]
-        opened = chs["open"] if chs["open"] and chs["open"]["scope"] == "all" else None
+        scopes = ("all", sport) if sport == "nfl" else ("all",)  # NFL challenges ride its own tab
+        mine = [it for it in chs["list"] if it["rec"]["scope"] in scopes]
+        opened = chs["open"] if chs["open"] and chs["open"]["scope"] in scopes else None
         opened = opened or (mine[-1]["rec"] if mine else None)
         sub = {
             **ctx,
