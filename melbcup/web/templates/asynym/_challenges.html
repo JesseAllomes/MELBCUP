@@ -1,20 +1,30 @@
 {# Challenges: list, the open one, wallet, recorded wagers (owner, 2026-11-07). Included by nba.html. #}
 {% set OP = '<input type="hidden" name="op" value="' ~ chs.op ~ '">' %}
 {% set cid = chs.open.id if chs.open else '' %}
-<span id="ch-open"></span>{% include 'asynym/_chcard.html' %}
-<details class="chv9-more"{{ '' if (chcard and chcard.placed) else ' open' }}><summary>Challenge actions · list, new, edit, place, results</summary>
-<section class="card chs">
+<section class="card chs chs-acc">
   <div class="vlabel">Challenges · {{ chs.list | length }}</div>
   {% if chs.err %}<p class="say chs-err" role="alert">{{ chs.err }}</p>{% endif %}
   <div class="chs-list">
-  {% for it in chs.list %}{% set c = it.rec %}{% set s = c.state %}
-  <a class="chs-card{{ ' open' if chs.open and chs.open.id == c.id }}" href="/sports?sport={{ sport }}&tab=challenge&chid={{ c.id }}#ch-open">
-    <b>{{ c.name }}</b> <small class="chs-scope">{{ 'All Sports' if c.scope == 'all' else 'NBA' }}</small>
-    <span>{% if it.status == 'draft' %}not started{% else %}stage {{ s.steps | length + 1 }} of {{ s.get('stages', 3) }} · bank ${{ '%.2f' % s.bank }} of ${{ '%.0f' % s.goal }}{% endif %}{% if it.status == 'waiting_result' %} · waiting on result{% endif %}</span>
-    {% if it.held %}<small>bonus held: {% for k in it.held %}{{ k.bookmaker }} ${{ '%.2f' % k.amount }}{{ ', ' if not loop.last }}{% endfor %}</small>{% endif %}
-  </a>
+  {% for it in chs.list %}{% set c = it.rec %}{% set s = c.state %}{% set isopen = chs.open and chs.open.id == c.id %}{% set r = it.row %}{% if isopen and chcard %}{% set r = {'odds': r.odds, 'clock': chcard.clock or r.clock, 'failed': chcard.dead, 'pct': (chcard.ring if chcard.ring is not none else r.pct)} %}{% endif %}
+  <div class="chs-row{{ ' open' if isopen }}{{ ' failed' if r.failed }}" data-id="{{ c.id }}" style="--p:{{ r.pct if r.pct is not none else 0 }}%">
+    <button type="button" class="chs-head" aria-expanded="{{ 'true' if isopen else 'false' }}" aria-controls="chs-b-{{ c.id }}">
+      <span class="chs-main"><b>{{ c.name }}</b> <small class="chs-scope">{{ 'All Sports' if c.scope == 'all' else 'NBA' }}</small>
+        <small class="chs-sub">{% if it.status == 'draft' %}not started{% else %}stage {{ s.steps | length + 1 }} of {{ s.get('stages', 3) }} · bank ${{ '%.2f' % s.bank }} of ${{ '%.0f' % s.goal }}{% endif %}{% if it.status == 'waiting_result' %} · waiting on result{% endif %}</small>
+        <small class="chs-clock">{{ r.clock }}</small></span>
+      <span class="chs-odds">{% if r.odds %}${{ '%.2f' % r.odds }}{% endif %}</span>
+      <span class="chs-pct">{{ 'Failed' if r.failed else (r.pct ~ '%' if r.pct is not none else '–') }}</span>
+    </button>
+    <div class="chs-body" id="chs-b-{{ c.id }}" data-url="/sports?sport={{ sport }}&tab=challenge&chid={{ c.id }}"{{ '' if isopen else ' hidden' }}>
+      {% if it.held %}<small>bonus held: {% for k in it.held %}{{ k.bookmaker }} ${{ '%.2f' % k.amount }}{{ ', ' if not loop.last }}{% endfor %}</small>{% endif %}
+      {% if isopen %}<span id="ch-open"></span>{% include 'asynym/_chcard.html' %}
+      {% else %}<div class="chs-saved">{% if s.get('placed') %}<p class="say"><b>Placed: ${{ '%.2f' % s.placed.stake }}</b>{% if s.placed.price %} at ${{ '%.2f' % s.placed.price }}{% endif %}<br><small>{{ s.placed.label }}</small></p>{% else %}<p class="note">Stage {{ s.steps | length + 1 }} of {{ s.get('stages', 3) }} · bank ${{ '%.2f' % s.bank }}</p>{% endif %}</div>{% endif %}
+    </div>
+  </div>
   {% else %}<p class="say">No challenges yet. Start one below; run as many at once as you like, each with its own money.</p>{% endfor %}
   </div>
+</section>
+<details class="chv9-more"{{ '' if (chcard and chcard.placed) else ' open' }}><summary>Challenge actions · list, new, edit, place, results</summary>
+<section class="card chs">
   <details class="chs-new"{{ " open" if ch_pv else "" }}><summary>+ New challenge</summary>
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch">

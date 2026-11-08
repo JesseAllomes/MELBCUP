@@ -1,7 +1,6 @@
 {# The opened challenge card (owner lock 2026-11-08, v9 direction 3): chips, ring, stage blocks, leg tiles. #}
 {% if chcard %}{% set k = chcard %}
 <div class="chv9" id="chv9" data-live="{{ 1 if k.in_play else 0 }}">
-  <div class="tabs">{% for t in k.tabs %}<a href="/sports?sport={{ sport }}&tab=challenge&chid={{ t.id }}#ch-open" class="{{ 'on' if t.on }}" title="{{ t.name }}">{{ t.letter }}<small>{{ '%.2f' % t.price if t.price else '–' }}</small><i></i></a>{% endfor %}</div>
   <div class="card open{{ ' dead' if k.dead }}">
     <div class="top">
       <div class="ring big {{ k.ring_cls }}" style="--p:{{ k.ring if k.ring is not none else 0 }}"><i>{{ (k.ring ~ '%') if k.ring is not none else '–' }}</i></div>
@@ -13,6 +12,6 @@
     <div class="chv9-pb"><div class="pb"><u style="width:{{ k.pct }}%"></u></div><div class="pl"><span>Progress to ${{ '%g' % k.goal }}</span><b>{{ k.pct }}% · {{ k.stages_done }} of {{ k.stages }} stages</b></div></div>
     <div class="track">{% for b in k.blocks %}<div class="blk {{ b.cls }}"><small>{{ b.k }}</small><b>{{ b.v }}</b></div>{% endfor %}</div>
   </div>
-  {% if k.tiles %}<div class="tiles">{% for t in k.tiles %}<div class="tile {{ t.cls }}"><b>{{ t.name }}</b><small>{{ t.line }}</small><div class="v">{{ t.now }}<small> / {{ t.k }}</small></div><div class="lb"><u style="width:{{ t.fill }}%"></u></div><small>{% if t.cls == 'g' %}hit{% elif t.cls == 'r' %}failed{% elif t.chance is not none %}win {{ (t.chance * 100) | round | int }}%{% else %}not started{% endif %}{% if t.under %} · bar fills toward the limit{% endif %}</small></div>{% endfor %}</div>{% endif %}
+  {% if k.tiles %}<div class="tiles">{% for t in k.tiles %}<div class="tile {{ t.cls }}"><b>{{ t.name }}</b><small>{{ t.line }}</small><div class="v">{{ t.now }}<small> / {{ t.k }}</small></div><div class="lb"><u style="width:{{ t.fill }}%"></u></div><small>{% if t.cls == 'g' %}hit{% elif t.cls == 'r' %}{{ t.now }} / {{ t.k }} · failed{% elif t.cls == 'x' %}no longer counts{% elif t.chance is not none %}win {{ (t.chance * 100) | round | int }}%{% else %}not started{% endif %}{% if t.under and t.cls != 'x' %} · bar fills toward the limit{% endif %}</small></div>{% endfor %}</div>{% endif %}
 </div>
 {% endif %}

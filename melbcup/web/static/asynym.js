@@ -304,3 +304,65 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   }
   var timer = window.setInterval(tick, 60000);
 })();
+
+// Challenge accordion (owner, 2026-11-08): rows open in place from saved figures; the card with
+// live numbers is fetched after; collapsed rows poll live.json every 30 s while the page is visible.
+(function () {
+  "use strict";
+  var list = document.querySelector(".chs-list");
+  if (!list) return;
+  function rows() { return list.querySelectorAll(".chs-row"); }
+  function lazy(body) {
+    if (!body.dataset.url) return;
+    fetch(body.dataset.url, { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        var fresh = new DOMParser().parseFromString(html, "text/html").getElementById("chv9");
+        if (!fresh || body.hidden) return;
+        var mine = body.querySelector(".chv9");
+        if (mine) { mine.innerHTML = fresh.innerHTML; return; }
+        var saved = body.querySelector(".chs-saved");
+        if (saved) saved.remove();
+        body.appendChild(document.importNode(fresh, true));
+      })
+      .catch(function () {});
+  }
+  list.addEventListener("click", function (e) {
+    var head = e.target.closest(".chs-head");
+    if (!head) return;
+    var row = head.parentNode, body = row.querySelector(".chs-body");
+    var was = head.getAttribute("aria-expanded") === "true";
+    rows().forEach(function (r) {
+      r.classList.remove("open");
+      r.querySelector(".chs-head").setAttribute("aria-expanded", "false");
+      r.querySelector(".chs-body").hidden = true;
+    });
+    if (was) return;
+    row.classList.add("open");
+    head.setAttribute("aria-expanded", "true");
+    body.hidden = false;
+    lazy(body);
+  });
+  function poll() {
+    if (document.hidden) return;
+    fetch("/nba/challenges/live.json", { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        rows().forEach(function (row) {
+          var v = d[row.dataset.id];
+          if (!v) return;
+          row.classList.toggle("failed", !!v.failed);
+          if (v.failed) {
+            row.querySelector(".chs-pct").textContent = "Failed";
+          } else if (v.pct !== null && v.pct !== undefined) {
+            row.style.setProperty("--p", v.pct + "%");
+            row.querySelector(".chs-pct").textContent = v.pct + "%";
+          }
+          row.querySelector(".chs-clock").textContent = v.clock || "";
+        });
+      })
+      .catch(function () {});
+  }
+  window.setInterval(poll, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
+})();
