@@ -227,7 +227,7 @@ def _nba_work(moment: dt.datetime, props: bool = True) -> None:
 
 
 CATALOGUE_EVERY_S = 540  # every run (the 10-minute timer jitters): the best-multis page needs fresh prices
-CATALOGUE_END_S = 42.0  # seconds after the run starts: the Function times out at 55 s (host.json)
+CATALOGUE_END_S = 30.0  # build stops here; soccer then reads+writes ~44 shards before the 55 s timeout (host.json)
 CATALOGUE_STATE = "catalogue/state.json"
 
 
