@@ -742,7 +742,12 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .chv9 .tile.r{border-color:var(--bad);background:var(--bad-wash)}
 .chv9 .tile.n{border-color:var(--rule);background:var(--chip)}
 .chv9 .tile b{font-size:12.5px;display:block}
-.chv9 .tile small{font-size:10.5px;color:var(--muted)}
+.chv9 .tile small{font-size:10.5px;color:var(--muted);display:block}
+.chv9 .tile .v small{display:inline}
+.chv9 .tile.x{border-color:var(--rule);background:var(--chip);opacity:.6;filter:grayscale(1)}
+.chs-row.failed{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+.chs-row.failed .chs-head{background:var(--bad-wash)}
+.chs-row.failed .chs-pct{color:var(--bad)}
 .chv9 .tile .v{font:800 22px/1.1 Inter;margin:5px 0 2px}
 .chv9 .tile .lb{height:9px}
 .chv9 .tile.g .lb u{background:var(--good)}
@@ -766,3 +771,14 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .lk .one{font-size:11.5px;color:var(--muted);margin-top:5px}.one b{color:var(--warn)}
 .lk .fine{font-size:11px;color:var(--muted)}
 .lk{display:flex;flex-direction:column;gap:9px;margin:10px 0}.lk .sec{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between}.lk .sec small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)}
+
+/* challenge accordion rows: the bar fills left to right by the chance % (--p) */
+.chs-row{border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.chs-row.open{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.chs-head{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;background:linear-gradient(90deg,color-mix(in srgb,var(--brand) 22%,transparent) var(--p,0%),transparent var(--p,0%))}
+.chs-main{flex:1;min-width:0}
+.chs-main small{display:block;opacity:.8;font-size:.85em}
+.chs-odds{opacity:.85}
+.chs-pct{font-weight:700;min-width:3ch;text-align:right}
+.chs-body{padding:4px 12px 12px}
+.chs-body[hidden]{display:none}

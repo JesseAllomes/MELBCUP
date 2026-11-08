@@ -497,6 +497,18 @@ def create_app(
         discover.refresh_now()
         return Response(status_code=204)
 
+    @app.get("/nba/challenges/live.json", dependencies=[Depends(require_login)])
+    def nba_challenges_live(request: Request):
+        """{challenge id: {pct, clock}} for the accordion's collapsed rows (polled every ~30 s)."""
+        try:
+            store = nba_challenge.load(request.cookies.get(nba_challenge.COOKIE))
+            from melbcup.web.views import challenges_live
+
+            data = challenges_live(store)
+        except Exception:  # noqa: BLE001 - never crash a poll
+            data = {}
+        return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
     @app.get("/nba", dependencies=[Depends(require_login)])
     def nba_redirect(request: Request):
         """The NBA page moved into the Sports hub: same query, 307 so forms and old links work."""

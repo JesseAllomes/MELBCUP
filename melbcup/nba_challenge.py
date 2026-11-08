@@ -1014,3 +1014,48 @@ def _settle_wager(store, rec, act, q) -> None:
             if act == "wgrwon":
                 win = w["odds"] - 1 if w["funding"] == "bonus" else w["odds"]
                 w["ret"] = _money(q.get("wret")) or round(w["stake"] * win, 2)
+
+
+MELB = ZoneInfo("Australia/Melbourne")
+
+
+def game_left(track: dict | None, tip: datetime | None, now: datetime) -> str:
+    """Game time left as text, Melbourne time: "Q3 4:12 · 18 min left", "starts 7:30pm", "final"."""
+    state = (track or {}).get("state")
+    if state == "post":
+        return "final"
+    if state == "in":
+        q, secs = track.get("period"), track.get("clock_s")
+        if q and secs is not None and q <= 4:
+            left = max(0, 4 - q) * 12 + int((secs + 59) // 60)
+            return f"Q{q} {int(secs // 60)}:{int(secs % 60):02d} \u00b7 {left} min left"
+        if q:
+            return f"OT{q - 4}" if q > 4 else f"Q{q}"
+        return "in play"
+    start = tip or _when((track or {}).get("starts_at"))
+    if start and start > now:
+        return f"starts {start.astimezone(MELB):%-I:%M%p}".lower()
+    return "in play" if start else ""
+
+
+def row(rec: dict, track: dict | None = None, now: datetime | None = None) -> dict:
+    """The collapsed list row's figures from saved state (and a live track when given): the
+    leg odds, the chance now as a percent, the game time left."""
+    from melbcup import live_chance
+
+    now = now or datetime.now(UTC)
+    placed = (rec.get("state") or {}).get("placed") or {}
+    if not placed:
+        return {"odds": None, "pct": None, "clock": "", "failed": False}
+    p = live_chance.bet_live(track, placed)["p"]
+    legs = (track or {}).get("legs") or []
+    failed = bool(
+        any(g.get("ok") is False for g in legs)
+        or (track or {}).get("verdict") in ("lost", "lost1")
+    )
+    return {
+        "failed": failed,
+        "odds": placed.get("price"),
+        "pct": round(p * 100) if p is not None else None,
+        "clock": game_left(track, _when(placed.get("tip")), now),
+    }
