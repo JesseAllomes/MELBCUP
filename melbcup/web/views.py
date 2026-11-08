@@ -488,7 +488,7 @@ def _chs_ctx(store, rec, err, day) -> dict:
         "list": [
             {
                 "rec": c,
-                "row": nba_challenge.row(c),
+                "row": nba_challenge.row(c) | _LIVE_ROWS["rows"].get(c["id"], {}),
                 "status": nba_challenge.status(c),
                 "held": [
                     k
@@ -514,6 +514,9 @@ def _chs_ctx(store, rec, err, day) -> dict:
     }
 
 
+_LIVE_ROWS: dict = {"rows": {}}  # last live.json answer: the list renders with it at once
+
+
 def challenges_live(store, now=None) -> dict:
     """{challenge id: {pct, clock}} for the list's collapsed rows. Saved figures first; the
     tracker (cached a minute) only for placed stages that have tipped off. Never raises."""
@@ -535,6 +538,7 @@ def challenges_live(store, now=None) -> dict:
             out[c["id"]] = {"pct": r["pct"], "clock": r["clock"], "failed": r["failed"]}
         except Exception:  # noqa: BLE001
             continue
+    _LIVE_ROWS["rows"] = out
     return out
 
 
