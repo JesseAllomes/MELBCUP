@@ -2,12 +2,12 @@
   "chunks": {
     "az4": [
       {
-        "done": false,
-        "done_at": null,
+        "done": true,
+        "done_at": "2026-11-08T03:13:12+00:00",
         "est_min": 20,
         "goal": "r3: publish_pending writes Blob only, no GitHub live-branch commit",
         "id": "c1",
-        "note": "",
+        "note": "bcb62892 Blob-only publish_pending (merged, tests pass); dc_review ticket STALE so r3 still 'fixing' in tool",
         "targets": [
           "azure/function/collector_runtime.py"
         ]
@@ -77,7 +77,7 @@
     ]
   },
   "errors": [],
-  "rev": 50,
+  "rev": 51,
   "review": {
     "advice": [],
     "config": {
@@ -5059,6 +5059,13 @@
       "note": "",
       "source": "auto",
       "start": "2026-11-01T08:07:17+00:00"
+    },
+    {
+      "end": "2026-11-08T03:13:12+00:00",
+      "id": "s2",
+      "note": "",
+      "source": "auto",
+      "start": "2026-11-08T03:13:12+00:00"
     }
   ],
   "todos": [
