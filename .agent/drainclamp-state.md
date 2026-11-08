@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=195 -->
+<!-- drainclamp-build: state; schema=1; generation=196 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -123,7 +123,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-04T08:27:50+00:00 b9652955 2026-11-04 DEPLOYED cce33561 (owner approved timer 72/day): Chrome push + Telegram alerts (t.me/AsynymBetBot, token in Function setting TELEGRAM_BOT_TOKEN + scratch telegram.env; owner pasted token in chat -> suggest /revoke later), agency bubble, nba_probe retired. Live: sw.js 200, push card, nba_props_run every 10 min 20-23,0-7 UTC. Owner: follow DC output rules, terse.
 - 2026-11-04T08:32:46+00:00 c28436f0 2026-11-04 alerts moved to header Settings panel (global, every page); Agencies button renamed Settings. Deployed web.
 - 2026-11-04T09:05:17+00:00 6cfe336d 2026-11-04 st1 speed: NBA view staged by Function (view-latest.json.gz, both agencies, 9.6s build), best_stacks one pass + FRONT_CAP 3, racing picks cache, NBA warm-up at start, speculationrules prerender (.act excluded), Server-Timing header.
 - 2026-11-04T09:10:57+00:00 a64ce9f8 2026-11-04 HANDOFF: all live (bet.asynym.dev) via tools/deploy_azure.py (scratch env: azure.env, ghcr.env, vapid.env, telegram.env). Done today: Sportsbet props+agency switch+bubble, challenge (stages 2-8, per night 1|2, 3.5h gap, placed/won/lost money, keep start, new/reset), alerts (Chrome push + Telegram bot, in header Settings), speed (Function-staged view, picks cache, prerender), compact Settings tiles + smaller type, autobet off, kids card removed. NEXT: owner to link Telegram/Chrome alerts and test; owner may /revoke bot token; later: monitor.asynym.dev cost dashboard; SB forward-log settle; mm1/arb1/mkt1 parked.
@@ -143,6 +142,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-08T02:50:45+00:00 423d193a 2026-11-08 PRE-COMPACT. Live: Bet now/sports tabs, challenge screen v9-3 + live chance, racing staged load + Likely/Multis tabs, NBA labels, /sports speed fix. Pushed NOT deployed (needs 'approved: deploy web'): multi-game live tracker (label 'Game A: legs; Game B: legs'), discover first-refresh on fresh container. Owner data: challenges ch7-ch14 (A-H) to $250; backups challenges/backup-*.json. TODO: record-bet form multi-game option; All Sports stage planner; sh1 shadow scoreboard; eq1 equivalence; pf1 portfolio planner; racing best-chance vs value verdict choice.
 - 2026-11-08T02:58:17+00:00 05e47901 2026-11-08 NEXT BUILD after compact (owner: lowest token use, Sonnet low or cheaper): challenge list = accordion rows expanding IN PLACE (v9-1 behaviour), no new screen; collapsed row: name, live % chance at right, current leg odds, the row bar = chance fill with % at end AND a game-time-left indicator (bar or text, e.g. 'Q3 4:12 · 18 min left'); expand instantly with saved figures, live numbers fetched after expansion (lazy), collapsed rows poll only a tiny live-% summary endpoint. Also pending owner answers: bonus credits auto-leftover vs one-tap split vs both; review r3 (az4) fix/waive/dismiss; deploy approval for multi-game tracker + discover fresh-container fix (pushed).
 - 2026-11-08T03:02:46+00:00 7c66fa41 2026-11-08 deployed (owner approved): multi-game tracker + discover fresh-container fix (multis built ~1 min after deploy). Owner decisions: bonus credits = AUTOMATIC LEFTOVERS (recording a bonus bet deducts its stake from that bookmaker's credit, rest stays); review r3 = FIX (collector publishes to Blob only, not the GitHub live branch). Do after compact, lowest tokens: (1) challenge accordion rows per earlier log, (2) bonus auto-leftovers, (3) r3 fix.
+- 2026-11-08T03:16:52+00:00 2c4305e9 2026-11-08 OWNER STANDING APPROVAL: 'All deploy functions from this moment forward are approved. Stop asking' -> deploy web/function/job without asking. Merged: r3 Blob-only collector (bcb62892), bonus auto-leftovers (cc239805). Owner: failed bets must show as failed (added to ch2 accordion agent).
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped

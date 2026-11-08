@@ -488,6 +488,7 @@ def _chs_ctx(store, rec, err, day) -> dict:
         "list": [
             {
                 "rec": c,
+                "row": nba_challenge.row(c),
                 "status": nba_challenge.status(c),
                 "held": [
                     k
@@ -511,6 +512,30 @@ def _chs_ctx(store, rec, err, day) -> dict:
         "op": secrets.token_hex(4),  # fresh each render: the same form twice does nothing
         "own": store["own"],
     }
+
+
+def challenges_live(store, now=None) -> dict:
+    """{challenge id: {pct, clock}} for the list's collapsed rows. Saved figures first; the
+    tracker (cached a minute) only for placed stages that have tipped off. Never raises."""
+    from melbcup import nba_challenge, nba_live
+
+    now = now or datetime.now(UTC)
+    out: dict = {}
+    for c in (store or {}).get("challenges", []):
+        try:
+            placed = (c.get("state") or {}).get("placed") or {}
+            t = None
+            tip = nba_challenge._when(placed.get("tip"))
+            if placed.get("state") == "placed" and (tip is None or tip <= now):
+                try:
+                    t = nba_live.track(placed.get("label", ""), now)
+                except Exception:  # noqa: BLE001 - a bad feed must not break the list
+                    t = None
+            r = nba_challenge.row(c, t, now)
+            out[c["id"]] = {"pct": r["pct"], "clock": r["clock"], "failed": r["failed"]}
+        except Exception:  # noqa: BLE001
+            continue
+    return out
 
 
 def _own_bets(state, today) -> list[dict]:
@@ -826,6 +851,11 @@ class Views:
             and tr.get("failed")
             and (tr["state"] == "post" or any(g.get("ok") is False for g in tr["legs"]))
         )
+        if dead:  # the failed leg first; the rest no longer count
+            tiles = sorted(tiles, key=lambda t: t["cls"] != "r")
+            for t in tiles:
+                if t["cls"] != "r":
+                    t["cls"] = "x"
         blocks = []
         for i in range(n_all):
             if i < n_done:
