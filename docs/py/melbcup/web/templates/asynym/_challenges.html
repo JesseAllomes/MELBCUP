@@ -201,8 +201,8 @@
     <button type="submit">Add credit</button></form></details>
 </section>
 {% if chs.open %}
-<section class="card chs-wager">
-  <div class="vlabel">Record a wager you placed · {{ chs.open.name }}</div>
+<details class="card chs-wager">
+  <summary class="vlabel">Record a wager you placed · {{ chs.open.name }}</summary>
   <p class="note">Record only: you place it at the bookmaker yourself. Only this challenge claims the stake; others can share the exposure without a second money entry.</p>
   <form method="get" action="/sports" class="ch-start"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="wgr">
     <label>Bookmaker <input name="wprov" required></label>
@@ -219,5 +219,5 @@
     {% if w.state == 'placed' and w.challenge == cid %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="wid" value="{{ w.id }}">
       <label>Paid $<input name="wret" inputmode="decimal"></label><button type="submit" name="ch" value="wgrwon" class="won">Won</button><button type="submit" name="ch" value="wgrlost" class="lost">Lost</button></form>{% endif %}</div>
   {% endfor %}
-</section>
+</details>
 {% endif %}
