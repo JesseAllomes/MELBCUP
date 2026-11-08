@@ -540,11 +540,17 @@ def create_app(
                 response.set_cookie(PB_COOKIE, f"{pb:g}", **keep)
             else:
                 response.delete_cookie(PB_COOKIE)
-        if settings.asynym and path in ("nba", "sports") and query.get("us") in ("0", "1"):  # US books toggle
+        if (
+            settings.asynym and path in ("nba", "sports") and query.get("us") in ("0", "1")
+        ):  # US books toggle
             response.set_cookie("nba_us", query["us"], **keep)
-        if settings.asynym and path in ("nba", "sports") and "ch" in query:  # challenges, wallet, recorded wagers
+        if (
+            settings.asynym and path in ("nba", "sports") and "ch" in query
+        ):  # challenges, wallet, recorded wagers
             before = nba_challenge.load(request.cookies.get(nba_challenge.COOKIE))
-            store, changed, _ = nba_challenge.apply_store(before, query, melbourne_today().isoformat())
+            store, changed, _ = nba_challenge.apply_store(
+                before, query, melbourne_today().isoformat()
+            )
             try:  # the cookie (the old single challenge) is dropped only once the store holds it
                 if changed or (store.get("migrated") and nba_challenge._read() is None):
                     nba_challenge.save(store)

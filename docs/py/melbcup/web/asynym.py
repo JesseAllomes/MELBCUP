@@ -219,8 +219,9 @@ class Take:
         if self.line is not None and getattr(self.line, "record", ""):
             return self.line.record
         d = self.race_date.isoformat() if self.race_date else ""
-        return json.dumps([d, self.race, CODES[self.kind], self.number, "", self.stake],
-                          separators=(",", ":"))
+        return json.dumps(
+            [d, self.race, CODES[self.kind], self.number, "", self.stake], separators=(",", ":")
+        )
 
     @property
     def placed_at(self) -> str | None:
@@ -242,8 +243,10 @@ class Take:
         best_code, best_price = None, None
         for code in ROUTED:
             p = self.prices.get(code)
-            if code in on and p and (
-                best_code is None or _comparable(code, p) > _comparable(best_code, best_price)
+            if (
+                code in on
+                and p
+                and (best_code is None or _comparable(code, p) > _comparable(best_code, best_price))
             ):
                 best_code, best_price = code, p
         return best_code, best_price
@@ -369,11 +372,7 @@ def top_picks(rc) -> list[Pick]:
 
 def race_multi(day, number: int):
     """The likeliest worth-it multi (a "Good price" one) that has a leg in this race, or None."""
-    mine = [
-        m
-        for m in day.multis
-        if m.good and any(leg[0] == number for leg in m.multi_legs)
-    ]
+    mine = [m for m in day.multis if m.good and any(leg[0] == number for leg in m.multi_legs)]
     return max(mine, key=lambda m: m.chance or 0.0, default=None)
 
 

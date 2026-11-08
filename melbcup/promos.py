@@ -29,7 +29,9 @@ def p_all(chances: list[float]) -> float:
 
 
 def p_exactly_one_fails(chances: list[float]) -> float:
-    return sum((1 - c) * prod(x for j, x in enumerate(chances) if j != i) for i, c in enumerate(chances))
+    return sum(
+        (1 - c) * prod(x for j, x in enumerate(chances) if j != i) for i, c in enumerate(chances)
+    )
 
 
 def _row(name, note, p_win, p_one, cash_staked, cash_ret, bonus_in, bonus_used):
@@ -98,14 +100,32 @@ def payoff(
         if boost_price <= price:
             raise PromoError("a boosted price is above the accepted price")
         rows.append(
-            _row("Boost / Power Up", f"boosted price ${boost_price:.2f} (as entered)", pw, p1, stake, pw * stake * boost_price, 0.0, 0.0)
+            _row(
+                "Boost / Power Up",
+                f"boosted price ${boost_price:.2f} (as entered)",
+                pw,
+                p1,
+                stake,
+                pw * stake * boost_price,
+                0.0,
+                0.0,
+            )
         )
     if boost_fraction:  # a winnings boost lifts the profit only (pack: PROMOTIONS)
         extra = stake * (price - 1) * boost_fraction
         if max_extra_win is not None:
             extra = min(extra, max_extra_win)
         rows.append(
-            _row("Winnings boost", f"+{boost_fraction:.0%} on profit (cap {max_extra_win if max_extra_win is not None else 'none'})", pw, p1, stake, pw * (stake * price + extra), 0.0, 0.0)
+            _row(
+                "Winnings boost",
+                f"+{boost_fraction:.0%} on profit (cap {max_extra_win if max_extra_win is not None else 'none'})",
+                pw,
+                p1,
+                stake,
+                pw * (stake * price + extra),
+                0.0,
+                0.0,
+            )
         )
     if refund_cap:
         refund = min(refund_cap, stake)
@@ -113,14 +133,24 @@ def payoff(
             _row(
                 "Exactly-one-fail money back (bonus)",
                 f"refund up to ${refund:.2f} as bonus credit x rate {redeem_rate:g}",
-                pw, p1, stake, pw * stake * price, p1 * refund * redeem_rate, 0.0,
+                pw,
+                p1,
+                stake,
+                pw * stake * price,
+                p1 * refund * redeem_rate,
+                0.0,
             )
         )
     rows.append(
         _row(
             "Bonus-funded stake",
             f"stake ${stake:.2f} not returned on a win; counted at rate {redeem_rate:g}",
-            pw, p1, 0.0, pw * stake * (price - 1), 0.0, stake * redeem_rate,
+            pw,
+            p1,
+            0.0,
+            pw * stake * (price - 1),
+            0.0,
+            stake * redeem_rate,
         )
     )
     return {

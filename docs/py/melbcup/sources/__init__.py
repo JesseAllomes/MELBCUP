@@ -77,6 +77,12 @@ def load_card(
     """The field from racing.com, with each runner's recent runs and stewards' comments, then
     FormFav's form when there is a key."""
     card = rc.card(race_date, venue)
+    enrich_card(card, rc, ff)
+    return card
+
+
+def enrich_card(card: Card, rc: RacingComClient, ff: FormFavClient | None) -> None:
+    """Stage two of load_card: runs, stewards' comments and FormFav form, added to the card."""
     with _pool() as pool:
         enrich_from_racingcom(card, rc, pool)
         if ff is None:
@@ -85,7 +91,6 @@ def load_card(
             card.warnings.append(msg)
         else:
             enrich_from_formfav(card, ff, pool)
-    return card
 
 
 def enrich_from_racingcom(

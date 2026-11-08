@@ -322,8 +322,12 @@ class Betting:
             raise BetError(f"No runner {number} in race {race_no}.")
         now = self.clock()
         if any(
-            p.source == "hand" and p.race == race_no and p.number == number and p.kind == kind
-            and p.stake == float(stake) and now - p.at < DUPLICATE_GAP
+            p.source == "hand"
+            and p.race == race_no
+            and p.number == number
+            and p.kind == kind
+            and p.stake == float(stake)
+            and now - p.at < DUPLICATE_GAP
             for p in self.ledger
         ):
             raise BetError("That bet was just sent. Check Betfair before sending it again.")

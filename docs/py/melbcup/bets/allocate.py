@@ -75,8 +75,10 @@ def race_picks(rp) -> dict[str, Single | None]:
     wins = [s for s in rp.singles if s.kind == "win" and win_p.get(s.number, 0) >= MIN_WIN_PROB]
     places = [s for s in rp.singles if s.kind == "place" and s.price is not None]
     ews = [
-        s for s in rp.singles
-        if s.kind == "each_way" and (s.price or 0) >= EW_MIN_WIN_PRICE
+        s
+        for s in rp.singles
+        if s.kind == "each_way"
+        and (s.price or 0) >= EW_MIN_WIN_PRICE
         and win_p.get(s.number, 0) >= MIN_WIN_PROB
     ]
     return {
@@ -162,7 +164,12 @@ def allocate(
 
 
 def _plan(
-    day, budget, placed, races, cap_base, multis: list[Multi] | None = None,
+    day,
+    budget,
+    placed,
+    races,
+    cap_base,
+    multis: list[Multi] | None = None,
     room: dict[str, float] | None = None,
 ) -> tuple[list[Pick], list[Pick]]:
     """(horse, quinella, trifecta and multi picks with a stake; fixed First Fours and quaddies).
@@ -267,7 +274,8 @@ def _spend_rounding(shared: list[Pick], want: dict, pot: float, used: dict, cap:
         in_race[p.race] = in_race.get(p.race, 0) + p.stake
     while spare > 0:
         fits = [
-            p for p in shared
+            p
+            for p in shared
             if (step := 2 if p.kind == "each_way" else 1) <= spare
             and used.get(p.race, 0) + in_race[p.race] + step <= cap
         ]
@@ -313,6 +321,7 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
     the Betfair money is not used up; a stake under Betfair's $5 minimum (each way: $5 a half)
     is raised to it. The biggest price gains get the Betfair money first. Everything else goes
     to Sportsbet at Sportsbet's price."""
+
     def gain(p: Pick) -> float:
         s = p.single
         if s is None:
@@ -334,10 +343,7 @@ def route(picks: list[Pick], betfair_budget: float) -> list[Routed]:
             p.stake = int(need)
             out[id(p)] = Routed(p, "betfair", p.single.shown)
             left -= need
-    return [
-        out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p))
-        for p in picks
-    ]
+    return [out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p)) for p in picks]
 
 
 POINTSBET_JUDGED = "pointsbetau"  # Single.bookmaker when PointsBet pays most
@@ -373,7 +379,8 @@ def route_three(
 
     moved = sorted(
         (
-            p for p in picks
+            p
+            for p in picks
             if p.single is not None and p.single.bookmaker in ("betfair", POINTSBET_JUDGED)
         ),
         key=_promo_first(gain),
@@ -401,10 +408,7 @@ def route_three(
                 out[id(p)] = Routed(p, acct, account_price(day, p, acct))
                 left[acct] -= need
                 break
-    return [
-        out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p))
-        for p in picks
-    ]
+    return [out.get(id(p)) or Routed(p, "sportsbet", _sportsbet_price(p)) for p in picks]
 
 
 def _sportsbet_price(pick: Pick) -> float | None:
@@ -440,9 +444,7 @@ def placed_pick(day, p: Placed) -> Pick:
         multi = build_multi([r.model for r in day.races], p.key)
     if rp is not None:
         if p.kind in KINDS:
-            single = next(
-                (s for s in rp.singles if s.kind == p.kind and s.number == p.key), None
-            )
+            single = next((s for s in rp.singles if s.kind == p.kind and s.number == p.key), None)
         elif p.kind in ("quinella", "trifecta"):
             group = rp.quinellas if p.kind == "quinella" else rp.trifectas
             exotic = max(group, key=lambda e: e.prob, default=None)
@@ -450,8 +452,11 @@ def placed_pick(day, p: Placed) -> Pick:
             exotic = next((e for e in rp.first_fours if e.recommended), None)
     if p.kind in ("quaddie", "early_quaddie"):
         exotic = next(
-            (q for q in day.quaddies
-             if q.kind == p.kind and q.recommended and q.races and q.races[0] == p.race),
+            (
+                q
+                for q in day.quaddies
+                if q.kind == p.kind and q.recommended and q.races and q.races[0] == p.race
+            ),
             None,
         )
     promo = getattr(rp, "promo", None)
@@ -459,7 +464,9 @@ def placed_pick(day, p: Placed) -> Pick:
         if promo.promo.account == p.account:  # placed as the promo bet, at the promo bookmaker
             single = promo
     good = (
-        rp is not None and single is not None and rp.best.get(p.kind) is single
+        rp is not None
+        and single is not None
+        and rp.best.get(p.kind) is single
         and bool(single.stake)
     ) or (single is not None and single is promo)
     return Pick(p.race, p.kind, single, good, p.stake, exotic, multi)
@@ -511,9 +518,9 @@ def allocate_accounts(
             else None
         )
         picks, exotics = _plan(day, budget, placed, races, cap_base, multis, room)
-        routed = (
-            route_three(day, picks, bf_left, pb_left) if three else route(picks, bf_left)
-        ) + [Routed(e, "sportsbet", None) for e in exotics]
+        routed = (route_three(day, picks, bf_left, pb_left) if three else route(picks, bf_left)) + [
+            Routed(e, "sportsbet", None) for e in exotics
+        ]
         on_sb = sum(r.pick.stake for r in routed if r.account == "sportsbet")
         over = on_sb - sb_left
         if over <= 0 or budget <= 0:

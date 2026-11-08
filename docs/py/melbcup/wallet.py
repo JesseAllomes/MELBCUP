@@ -91,8 +91,11 @@ def credits(ledger: list[dict], today: str = "") -> dict[str, dict]:
         # a date the owner typed is a Melbourne day: it lapses at the end of it (UTC inside)
         c["expires_at_utc"] = (
             datetime.combine(date.fromisoformat(c["expiry"]), time(23, 59, 59), MELBOURNE)
-            .astimezone(UTC).isoformat().replace("+00:00", "Z")
-            if c["expiry"] else ""
+            .astimezone(UTC)
+            .isoformat()
+            .replace("+00:00", "Z")
+            if c["expiry"]
+            else ""
         )
         c["parent_token_id"], c["reserved_challenge_id"] = c["parent"], c["challenge"]
         if c["status"] == "available" and c["challenge"]:
@@ -141,7 +144,9 @@ def append(ledger: list[dict], entry: dict, today: str = "") -> list[dict]:
             "expiry": expiry,
             "note": str(entry.get("note") or "")[:200],
         }
-        if entry.get("plans"):  # the splits the provider showed for this credit, if the owner typed them
+        if entry.get(
+            "plans"
+        ):  # the splits the provider showed for this credit, if the owner typed them
             new["plans"] = [[_amount(a) for a in p] for p in entry["plans"]]
     else:
         c = cs.get(cid)
@@ -171,7 +176,11 @@ def append(ledger: list[dict], entry: dict, today: str = "") -> list[dict]:
             new["challenge"] = str(entry["challenge"])
         elif t == "release" and not c["challenge"]:
             raise WalletError("not allocated")
-        elif t == "redeem" and entry.get("challenge") and c["challenge"] not in (None, entry["challenge"]):
+        elif (
+            t == "redeem"
+            and entry.get("challenge")
+            and c["challenge"] not in (None, entry["challenge"])
+        ):
             raise WalletError("allocated to another challenge")
     if op:
         new["op"] = op

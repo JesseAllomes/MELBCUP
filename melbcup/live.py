@@ -29,6 +29,7 @@ tools/racing/learn.py turns the log into racing/tuning.json, which the model rea
 
 from __future__ import annotations
 
+import copy
 import logging
 import threading
 from collections import OrderedDict
@@ -44,7 +45,7 @@ from melbcup.bets.grade import _exotic as grade_exotic
 from melbcup.config import MELBOURNE, Settings
 from melbcup.domain import Card, Race, betfair_net
 from melbcup.model.probability import RaceModel, assess, set_tuning
-from melbcup.sources import apply_exchange, apply_market, apply_result, load_card
+from melbcup.sources import apply_exchange, apply_market, apply_result, enrich_card
 from melbcup.sources.betfair import BetfairClient
 from melbcup.sources.formfav import FormFavClient
 from melbcup.sources.http import SourceError
@@ -72,6 +73,31 @@ CHECK_LATE = timedelta(minutes=3)  # overwritten at every check this close to th
 CHECK_AMOUNTS = (150.0, 50.0)  # Sportsbet, Betfair: the page's default day amounts
 CHECK_KINDS = ("win", "place", "each_way", "quinella", "trifecta", "first_four")
 EXOTIC_DEPTH = {"quinella": 2, "trifecta": 3, "first_four": 4}
+
+
+_FORM_FIELDS = (
+    "run_notes",
+    "runs",
+    "career",
+    "track",
+    "distance",
+    "track_distance",
+    "going",
+    "going_records",
+    "first_up",
+    "second_up",
+    "running_style",
+    "early_speed",
+    "settling_position",
+    "class_rating",
+    "class_difference",
+    "within_class_range",
+    "notes",
+    "feed_win_prob",
+    "feed_place_prob",
+    "jockey_stats",
+    "trainer_stats",
+)
 
 
 @dataclass(frozen=True)
@@ -222,6 +248,7 @@ class Snapshot:
     errors: list[str] = field(default_factory=list)
     auto: bool = False
     loading: bool = False
+    enriching: bool = False
     priced_at: datetime | None = None
     form_at: datetime | None = None
     race_date: date | None = None
@@ -302,6 +329,9 @@ class LiveBoard:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._loading = False
+        self._enriching = False
+        self._gen = 0  # bumped per load and per meeting change; a stale enrichment is dropped
+        self._enrich_thread: threading.Thread | None = None
         self._card: Card | None = None
         self._models: dict[int, RaceModel] = {}
         self._form_at: datetime | None = None
@@ -326,6 +356,7 @@ class LiveBoard:
                 errors=list(self._errors),
                 auto=self.auto,
                 loading=self._loading,
+                enriching=self._enriching,
                 priced_at=self._priced_at,
                 form_at=self._form_at,
                 race_date=self.race_date,
@@ -430,14 +461,64 @@ class LiveBoard:
         if self._archived(now):  # saved earlier: nothing to fetch
             card = self.archive.load(self.race_date, self.venue)
         else:
-            card = load_card(self.rc, self.ff, self.race_date, self.venue)
+            card = self.rc.card(self.race_date, self.venue)  # stage 1: the bare field
+        staged = not self._archived(now)
         with self._lock:
             self._carry_prices(card)
             self._card = card
             self._form_at = now
             self._models = {r.number: assess(r) for r in card.races}
             self._updated_at = now
+            self._gen += 1
+            gen = self._gen
+            self._enriching = staged
         self._restore_checks()
+        if staged:
+            self._start_enrich(card, gen)
+
+    def _start_enrich(self, card: Card, gen: int) -> None:
+        """Stage 3: runs, stewards' comments and FormFav form, off the _work lock."""
+        t = threading.Thread(target=self._enrich, args=(card, gen), daemon=True, name="enrich")
+        self._enrich_thread = t
+        t.start()
+
+    def _enrich(self, card: Card, gen: int) -> None:
+        work = copy.deepcopy(card)
+        work.warnings = []
+        try:
+            enrich_card(work, self.rc, self.ff)
+        except Exception as exc:  # never a blank card: say so on the card
+            log.warning("enrichment failed: %s", exc)
+            work.warnings.append(f"Form and stewards' comments unavailable ({exc})")
+        with self._lock:
+            if gen != self._gen or self._card is not card:
+                return  # the meeting changed (or reloaded) meanwhile: discard
+            self._merge_form(card, work)
+            for race in card.races:
+                self._models[race.number] = assess(race)  # prices already on the card are kept
+            self._enriching = False
+            self._updated_at = self.clock()
+
+    @staticmethod
+    def _merge_form(card: Card, work: Card) -> None:
+        """Copy the form fields only; prices and results on the live card stay as they are."""
+        for w in work.warnings:
+            if w not in card.warnings:
+                card.warnings.append(w)
+        for race in card.races:
+            wr = next((r for r in work.races if r.number == race.number), None)
+            if wr is None:
+                continue
+            race.barrier_advantage = wr.barrier_advantage
+            for runner in race.runners:
+                wn = wr.runner(runner.number)
+                if wn is None:
+                    continue
+                for f in _FORM_FIELDS:
+                    setattr(runner, f, getattr(wn, f))
+                runner.scratched = runner.scratched or wn.scratched
+                if wn.last10 and not runner.last10:
+                    runner.last10 = wn.last10
 
     def _restore_checks(self) -> None:
         """After a restart or deploy, bring back this meeting's saved picks (once per meeting)."""
@@ -558,6 +639,8 @@ class LiveBoard:
 
         if wait:
             job()
+            if (t := self._enrich_thread) is not None:
+                t.join()
         else:
             threading.Thread(target=job, name="melbcup-load", daemon=True).start()
         return True
@@ -673,6 +756,8 @@ class LiveBoard:
                 return True
             self.race_date, self.venue = race_date, venue
             self._card, self._models, self._checks = None, {}, {}
+            self._gen += 1
+            self._enriching = False
             self._logged = set()
             self._form_at = self._priced_at = self._updated_at = self._results_at = None
             self._price_try = self._results_try = None

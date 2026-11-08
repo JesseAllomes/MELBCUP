@@ -495,9 +495,11 @@ class Views:
         out["chs"] = sub["chs"]
         out["ch_state"] = sub["ch_state"]
         out["ch_tl"] = self._stage_timeline(out.get("ch"), out.get("ch_x"))
-        sug = self._stage_pick(
-            disc, sport, out.get("ch_x"), (out.get("ch") or {}).get("legs")
-        ) if out["ch_tl"] else None
+        sug = (
+            self._stage_pick(disc, sport, out.get("ch_x"), (out.get("ch") or {}).get("legs"))
+            if out["ch_tl"]
+            else None
+        )
         st = out.get("ch")
         out["ch_sug_live"] = None
         out["ch_sug_at"] = None

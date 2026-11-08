@@ -36,7 +36,10 @@ CONFIDENCE_FORM_ONLY = ((0.34, "High"), (0.26, "Medium"), (0.0, "Low"))
 
 # Sportsbet's price against the fair price (1 / chance). Bookmakers normally pay 85-95% of fair.
 PRICE_VERDICTS = (
-    (1.0, "Good value"), (0.90, "Reasonable"), (0.82, "A bit short"), (0.0, "Short: skip")
+    (1.0, "Good value"),
+    (0.90, "Reasonable"),
+    (0.82, "A bit short"),
+    (0.0, "Short: skip"),
 )
 
 

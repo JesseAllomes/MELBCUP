@@ -45,7 +45,9 @@ BF_CASHBACK_MAX = 50.0
 
 ACCOUNT_OF = {"pointsbet": "pointsbet", "sportsbet": "sportsbet", "betfair": "betfair"}
 BOOKMAKER_OF = {  # Single.bookmaker
-    "pointsbet": "pointsbetau", "sportsbet": "sportsbet", "betfair": "betfair",
+    "pointsbet": "pointsbetau",
+    "sportsbet": "sportsbet",
+    "betfair": "betfair",
 }
 
 
@@ -138,13 +140,12 @@ class PromoBet:
             f"price (max stake ${self.promo.max_stake:g})."
         )
 
+
 def _bookie(bookmaker: str) -> str:
     return {"pointsbet": "PointsBet", "betfair": "Betfair"}.get(bookmaker, "Sportsbet")
 
 
-def best_promo_bet(
-    model, promos, pointsbet: bool, budget: float | None
-) -> PromoBet | None:
+def best_promo_bet(model, promos, pointsbet: bool, budget: float | None) -> PromoBet | None:
     """The best bet over ``promos`` for one race: every runner with the needed price valued, the
     highest worst-case EV that clears the buffer. A PointsBet promo needs ``pointsbet`` on."""
     if not budget or budget <= 0:
@@ -256,8 +257,13 @@ def payback_multi(models) -> tuple[Multi, float] | None:
                     continue
                 price = math.prod(g.price for g in legs)
                 ev = payback_ev(prob, price)
-                order = (ev, -size, tuple(-g.race for g in legs),
-                         tuple(-g.number for g in legs), tuple(-KIND_DIGIT[g.kind] for g in legs))
+                order = (
+                    ev,
+                    -size,
+                    tuple(-g.race for g in legs),
+                    tuple(-g.number for g in legs),
+                    tuple(-KIND_DIGIT[g.kind] for g in legs),
+                )
                 if best is None or order > best[0]:
                     best = (order, Multi(list(legs), prob, price, "pointsbet"), ev)
     return (best[1], best[2]) if best else None

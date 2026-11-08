@@ -27,6 +27,7 @@
     {% if can_fetch and not snap.saved and nav != 'sports' %}{# racing controls: racing screens only #}
     <div class="status">
       <p class="src">{{ [('Live' if snap.auto else ''), ('prices ' ~ (snap.priced_at | local_time) if snap.priced_at else ''), ('results ' ~ (snap.results_at | local_time) if snap.results_at else ''), ('loading card…' if snap.loading or (not card and not snap.field_due) else '')] | select | join(' · ') }}</p>
+      {% if snap.enriching %}<p class="src">Form and stewards' comments loading…</p>{% endif %}
       {% if not snap.auto %}
       <div class="btns">
         {% if card and snap.can_price %}<form method="post" action="/actions/prices?next={{ here | urlencode }}"><button type="submit">Refresh prices</button></form>{% endif %}

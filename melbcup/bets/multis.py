@@ -89,9 +89,7 @@ def _sportsbet_price(prices, kind: str) -> float | None:
     return prices.sportsbet_place if kind == "place" else prices.sportsbet_win
 
 
-def _leg(
-    model: RaceModel, number: int, kind: str = "win", price_of=_sportsbet_price
-) -> Leg | None:
+def _leg(model: RaceModel, number: int, kind: str = "win", price_of=_sportsbet_price) -> Leg | None:
     """``price_of(prices, kind)`` picks the bookmaker's price for the leg (Sportsbet's default)."""
     a = next((a for a in model.ranked() if a.number == number), None)
     prices = model.race.prices.get(number)
@@ -99,8 +97,9 @@ def _leg(
     price = prices and price_of(prices, kind)
     if a is None or not price or runner is None:
         return None
-    return Leg(model.race.number, number, runner.name, a.place if kind == "place" else a.win,
-               price, kind)
+    return Leg(
+        model.race.number, number, runner.name, a.place if kind == "place" else a.win, price, kind
+    )
 
 
 def _candidates(

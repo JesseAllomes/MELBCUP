@@ -130,7 +130,12 @@ def freeze(cid: str | None, state: dict, key: str, shown: dict) -> None:
         store = load()
         rec = find(store, cid)
         st = rec["state"] if rec else None
-        if st is None or st.get("placed") or shown_for(st, key) or len(st.get("steps", [])) != shown["stage"]:
+        if (
+            st is None
+            or st.get("placed")
+            or shown_for(st, key)
+            or len(st.get("steps", [])) != shown["stage"]
+        ):
             return
         st[key] = shown
         save(store)
@@ -200,35 +205,64 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         return run
     if (
         state is None
-        or act not in ("chlegs", "place", "won", "lost", "lost1", "reset", "new", "skip", "isbonus", "undo", "addstage", "dropstage", "pick", "best", "chbet")
+        or act
+        not in (
+            "chlegs",
+            "place",
+            "won",
+            "lost",
+            "lost1",
+            "reset",
+            "new",
+            "skip",
+            "isbonus",
+            "undo",
+            "addstage",
+            "dropstage",
+            "pick",
+            "best",
+            "chbet",
+        )
         or state.get("active") is False
     ):
         return state
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
     if act == "chlegs":  # legs per multi, any time before the stage is placed
-        return _unshown(state) | {"legs": _legs(query.get("chlegs"))} if not state.get("placed") else state
+        return (
+            _unshown(state) | {"legs": _legs(query.get("chlegs"))}
+            if not state.get("placed")
+            else state
+        )
     if act == "skip":  # a weak night: this stage waits for a later one (owner, 2026-11-05)
         night_ = str(query.get("chnight") or "")
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
             return state
         return state | {"skip": max(night_, state.get("skip") or "")}
     if act == "pick":  # stick to this game for the stage (owner, 2026-11-06)
-        return _unshown(state) | {"pick": str(query.get("chpick") or "")[:80]} if not state.get("placed") else state
+        return (
+            _unshown(state) | {"pick": str(query.get("chpick") or "")[:80]}
+            if not state.get("placed")
+            else state
+        )
     if act == "best":  # back to the best multi on the current prices
         return {k: v for k, v in _unshown(state).items() if k != "pick"}
     if act in ("addstage", "dropstage"):  # change the plan mid-run (owner, 2026-11-05)
         n = state.get("stages", DEFAULT_STAGES) + (1 if act == "addstage" else -1)
         done = len(state["steps"]) + (1 if state.get("placed") else 0)
         return state | {"stages": max(min(n, max(STAGES)), done + 1, min(STAGES))}
-    if act == "undo":  # the last stage's result was put in wrong: back to placed (owner, 2026-11-05)
+    if (
+        act == "undo"
+    ):  # the last stage's result was put in wrong: back to placed (owner, 2026-11-05)
         if state.get("placed") or not state["steps"]:
             return state
         won = [b for b in state.get("bets", []) if not b.get("own") and b["state"] == "won"]
         if not won:
             return state
         last = won[-1] | {"state": "placed", "ret": 0.0}
-        bets = [last if b.get("id") == last["id"] and not b.get("own") else b for b in state["bets"]]
+        bets = [
+            last if b.get("id") == last["id"] and not b.get("own") else b for b in state["bets"]
+        ]
         steps = state["steps"][:-1]
         return state | {
             "placed": last,
@@ -269,16 +303,25 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         if not stake or (price is not None and price <= 1):
             return state
         extra = round(max(stake - state["bank"], 0.0), 2)
-        new = pl | {"stake": stake, "price": price or pl.get("price"), "rest": round(max(state["bank"] - stake, 0.0), 2)}
+        new = pl | {
+            "stake": stake,
+            "price": price or pl.get("price"),
+            "rest": round(max(state["bank"] - stake, 0.0), 2),
+        }
         if query.get("chl"):
             new["label"] = query["chl"][:400]
         if extra:
             new["added"] = extra  # topped up: cash added today
         bets = [b | new if b.get("id") == pl.get("id") else b for b in state.get("bets", [])]
         return state | {"placed": new, "bets": bets}
-    if act == "isbonus":  # the stake was a bonus bet after all: not money, and it pays winnings only
+    if (
+        act == "isbonus"
+    ):  # the stake was a bonus bet after all: not money, and it pays winnings only
         placed = state["placed"] | {"bonus": 1}
-        bets = [b | {"bonus": 1} if b.get("id") == placed.get("id") else b for b in state.get("bets", [])]
+        bets = [
+            b | {"bonus": 1} if b.get("id") == placed.get("id") else b
+            for b in state.get("bets", [])
+        ]
         return state | {"placed": placed, "bets": bets}
     if act == "lost1" and not state["placed"].get("bonus"):
         # one leg failed on a 'money back as a bonus bet' multi (owner, 2026-11-05): the stage is
@@ -544,7 +587,9 @@ def next_x(state: dict) -> float:
     stages left (so a stage that paid more or less than planned re-balances the rest)."""
     keep_now = state.get("keep", True) and not state["steps"]
     x = stage_x(state["bank"], state["goal"], remaining(state), keep_now and not state.get("bonus"))
-    if state.get("bonus"):  # a bonus bet pays winnings only: one more unit of price for the same return
+    if state.get(
+        "bonus"
+    ):  # a bonus bet pays winnings only: one more unit of price for the same return
         x += 1
     return max(MIN_X, x)
 
@@ -567,13 +612,22 @@ CACHE_S = 5.0
 
 
 def _local_path() -> Path:
-    return Path(os.environ.get("NBA_CHALLENGES_FILE") or Path.home() / ".asynymbet" / "challenges_state.json")
+    return Path(
+        os.environ.get("NBA_CHALLENGES_FILE")
+        or Path.home() / ".asynymbet" / "challenges_state.json"
+    )
 
 
 def empty_store() -> dict:
     return {
-        "v": 1, "next": 1, "challenges": [], "own": fresh() | {"active": False},
-        "ledger": [], "wagers": [], "ops": [], "migrated": False,
+        "v": 1,
+        "next": 1,
+        "challenges": [],
+        "own": fresh() | {"active": False},
+        "ledger": [],
+        "wagers": [],
+        "ops": [],
+        "migrated": False,
     }
 
 
@@ -584,7 +638,12 @@ def migrate(cookie_raw: str | None) -> dict:
         own = [b for b in old.get("bets", []) if b.get("own")]
         store["own"] = store["own"] | {"bets": own}
         store["challenges"].append(
-            {"id": "ch1", "name": "Challenge 1", "scope": "nba", "state": old | {"bets": [b for b in old.get("bets", []) if not b.get("own")]}}
+            {
+                "id": "ch1",
+                "name": "Challenge 1",
+                "scope": "nba",
+                "state": old | {"bets": [b for b in old.get("bets", []) if not b.get("own")]},
+            }
         )
         store["next"], store["migrated"] = 2, True
     return store
@@ -658,18 +717,26 @@ def find(store: dict, cid: str | None) -> dict | None:
 def status(rec: dict) -> str:
     """draft (no run), waiting_result (a stage placed), active (the contract's names)."""
     s = rec["state"]
-    return "draft" if s.get("active") is False else "waiting_result" if s.get("placed") else "active"
+    return (
+        "draft" if s.get("active") is False else "waiting_result" if s.get("placed") else "active"
+    )
 
 
 def contract(rec: dict) -> dict:
     """The challenge in the pack's field names (contracts/challenge.schema.json), cents."""
     s = rec["state"]
     return {
-        "challenge_id": rec["id"], "name": rec["name"],
-        "scope": {"mode": "all_sports" if rec["scope"] == "all" else "single_sport", "sports": [] if rec["scope"] == "all" else ["nba"]},
+        "challenge_id": rec["id"],
+        "name": rec["name"],
+        "scope": {
+            "mode": "all_sports" if rec["scope"] == "all" else "single_sport",
+            "sports": [] if rec["scope"] == "all" else ["nba"],
+        },
         "status": status(rec),
-        "start_cash_cents": round(s["start"] * 100), "current_cash_cents": round(s["bank"] * 100),
-        "goal_cash_cents": round(s["goal"] * 100), "stages_planned": s.get("stages", DEFAULT_STAGES),
+        "start_cash_cents": round(s["start"] * 100),
+        "current_cash_cents": round(s["bank"] * 100),
+        "goal_cash_cents": round(s["goal"] * 100),
+        "stages_planned": s.get("stages", DEFAULT_STAGES),
         "stages_completed": len(s["steps"]),
     }
 
@@ -704,8 +771,12 @@ def _edit(state: dict, q: Mapping[str, str]) -> dict:
     n = max(min(n, max(STAGES)), done + 1, min(STAGES))
     keep = q.get("chkeep") == "1" if "chkeep" in q else state.get("keep", True)
     return state | {
-        "start": start, "bank": bank, "goal": max(goal, bank * 1.01, start * 2 if not done else 0),
-        "stages": n, "legs": _legs(q.get("chlegs")), "keep": keep,
+        "start": start,
+        "bank": bank,
+        "goal": max(goal, bank * 1.01, start * 2 if not done else 0),
+        "stages": n,
+        "legs": _legs(q.get("chlegs")),
+        "keep": keep,
     }
 
 
@@ -753,8 +824,11 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         if rec is None:
             raise ValueError("no such challenge")
         wq = {
-            "wlegs": q.get("nbl"), "wprov": AGENCY_NAMES.get(q.get("nbag") or "", q.get("nbag")),
-            "wodds": q.get("nbp"), "wstake": q.get("nbs"), "wbw": q.get("nbbw"),
+            "wlegs": q.get("nbl"),
+            "wprov": AGENCY_NAMES.get(q.get("nbag") or "", q.get("nbag")),
+            "wodds": q.get("nbp"),
+            "wstake": q.get("nbs"),
+            "wbw": q.get("nbbw"),
         }
         _record_wager(store, rec, wq, today, op)
         return
@@ -769,13 +843,17 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         name = (q.get("chname") or "").strip()[:40] or f"Challenge {store['next']}"
         scope = q.get("chscope") if q.get("chscope") in SCOPES else "nba"
         run = apply(fresh() | {"active": False}, {**q, "ch": "start"}, today)
-        store["challenges"].append({"id": f"ch{store['next']}", "name": name, "scope": scope, "state": run})
+        store["challenges"].append(
+            {"id": f"ch{store['next']}", "name": name, "scope": scope, "state": run}
+        )
         store["next"] += 1
         return
     if act in WALLET_ACTS:
         _wallet_action(store, act, q, today, op)
         return
-    rec = find(store, q.get("chid")) or (store["challenges"][0] if len(store["challenges"]) == 1 and not q.get("chid") else None)
+    rec = find(store, q.get("chid")) or (
+        store["challenges"][0] if len(store["challenges"]) == 1 and not q.get("chid") else None
+    )
     if rec is None:
         raise ValueError("no such challenge")
     if act == "wgr":
@@ -788,17 +866,28 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
     elif act == "renamech":
         rec["name"] = (q.get("chname") or "").strip()[:40] or rec["name"]
     elif act == "rmch":
-        if rec["state"].get("placed") or any(w["challenge"] == rec["id"] and w["state"] == "placed" for w in store["wagers"]):
+        if rec["state"].get("placed") or any(
+            w["challenge"] == rec["id"] and w["state"] == "placed" for w in store["wagers"]
+        ):
             raise ValueError("settle its placed stage or wager first")
         for c in wallet.credits(store["ledger"], today).values():
             if c["challenge"] == rec["id"] and c["status"] == "reserved":
-                store["ledger"] = wallet.append(store["ledger"], {"t": "release", "credit": c["id"]}, today)
+                store["ledger"] = wallet.append(
+                    store["ledger"], {"t": "release", "credit": c["id"]}, today
+                )
         store["challenges"].remove(rec)
     else:
         rec["state"] = apply(rec["state"], q, today) or rec["state"]
 
 
-AGENCY_NAMES = {"sb": "Sportsbet", "bf": "Betfair", "pb": "PointsBet", "tab": "TAB", "lb": "Ladbrokes", "neds": "Neds"}
+AGENCY_NAMES = {
+    "sb": "Sportsbet",
+    "bf": "Betfair",
+    "pb": "PointsBet",
+    "tab": "TAB",
+    "lb": "Ladbrokes",
+    "neds": "Neds",
+}
 
 
 def _bonus_credit(store, b: dict, today: str, op: str) -> None:
@@ -807,7 +896,13 @@ def _bonus_credit(store, b: dict, today: str, op: str) -> None:
     if not amt:
         return
     prov = AGENCY_NAMES.get(b.get("ag"), b.get("ag") or b.get("provider") or "")
-    entry = {"t": "grant", "amount": amt, "provider": prov, "note": "Bonus bet from a winning bet", "op": op}
+    entry = {
+        "t": "grant",
+        "amount": amt,
+        "provider": prov,
+        "note": "Bonus bet from a winning bet",
+        "op": op,
+    }
     store["ledger"] = wallet.append(store["ledger"], entry, today)
 
 
@@ -815,7 +910,13 @@ def _wallet_action(store, act, q, today, op) -> None:
     e: dict = {"op": op, "at": today}
     cid = q.get("wid")
     if act == "wgrant":
-        e |= {"t": "grant", "amount": q.get("wamt"), "provider": q.get("wprov"), "expiry": q.get("wexp"), "note": q.get("wnote")}
+        e |= {
+            "t": "grant",
+            "amount": q.get("wamt"),
+            "provider": q.get("wprov"),
+            "expiry": q.get("wexp"),
+            "note": q.get("wnote"),
+        }
         if q.get("wplans"):  # e.g. "5+5;2+3+5": the splits the provider showed for this credit
             e["plans"] = [_csv_floats(p) for p in q["wplans"].split(";") if p.strip()]
     elif act == "wsplit":
@@ -832,7 +933,9 @@ def _wallet_action(store, act, q, today, op) -> None:
         e |= {"t": "expire", "credit": cid}
     else:
         raise ValueError("unknown wallet action")
-    store["ledger"] = wallet.append(store["ledger"], {k: v for k, v in e.items() if v not in (None, "")}, today)
+    store["ledger"] = wallet.append(
+        store["ledger"], {k: v for k, v in e.items() if v not in (None, "")}, today
+    )
 
 
 def _record_wager(store, rec, q, today, op) -> None:
@@ -844,11 +947,23 @@ def _record_wager(store, rec, q, today, op) -> None:
     if not (legs and provider and odds and odds > 1 and stake):
         raise ValueError("provider, legs, odds (above 1) and stake needed")
     w = {
-        "id": max([x["id"] for x in store["wagers"]], default=0) + 1, "challenge": rec["id"],
-        "refs": [r for r in dict.fromkeys((q.get("wrefs") or "").replace(" ", "").split(",")) if r and r != rec["id"] and find(store, r)],
-        "provider": provider, "legs": legs, "odds": odds, "stake": stake, "funding": funding,
-        "day": today, "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-        "state": "placed", "ret": 0.0, "op": op,
+        "id": max([x["id"] for x in store["wagers"]], default=0) + 1,
+        "challenge": rec["id"],
+        "refs": [
+            r
+            for r in dict.fromkeys((q.get("wrefs") or "").replace(" ", "").split(","))
+            if r and r != rec["id"] and find(store, r)
+        ],
+        "provider": provider,
+        "legs": legs,
+        "odds": odds,
+        "stake": stake,
+        "funding": funding,
+        "day": today,
+        "at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "state": "placed",
+        "ret": 0.0,
+        "op": op,
     }
     if bw := _money(q.get("wbw")):
         w["bonus_if_win"] = bw
@@ -863,7 +978,15 @@ def _record_wager(store, rec, q, today, op) -> None:
         if c["amount"] != stake:
             raise ValueError("the stake is the credit's face value")
         store["ledger"] = wallet.append(
-            store["ledger"], {"t": "redeem", "credit": c["id"], "challenge": rec["id"], "op": f"w{op or w['id']}", "at": today}, today
+            store["ledger"],
+            {
+                "t": "redeem",
+                "credit": c["id"],
+                "challenge": rec["id"],
+                "op": f"w{op or w['id']}",
+                "at": today,
+            },
+            today,
         )
         w["credit"] = c["id"]
     store["wagers"] = (store["wagers"] + [w])[-MAX_WAGERS:]
@@ -871,7 +994,11 @@ def _record_wager(store, rec, q, today, op) -> None:
 
 def _settle_wager(store, rec, act, q) -> None:
     for w in store["wagers"]:
-        if str(w["id"]) == str(q.get("wid")) and w["challenge"] == rec["id"] and w["state"] == "placed":
+        if (
+            str(w["id"]) == str(q.get("wid"))
+            and w["challenge"] == rec["id"]
+            and w["state"] == "placed"
+        ):
             w["state"] = "won" if act == "wgrwon" else "lost"
             if act == "wgrwon" and w.get("bonus_if_win"):
                 _bonus_credit(store, w, w["day"], f"bw-w{w['id']}")

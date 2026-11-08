@@ -77,5 +77,3 @@ def us_books(key: str, hours: float = 36) -> dict:
                 }
             )
     return books
-
-
