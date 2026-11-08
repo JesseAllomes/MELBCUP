@@ -826,6 +826,26 @@ def _compose(q: Mapping[str, str]) -> Mapping[str, str]:
     return {**q, "nbl": (f"{game}: " if game else "") + ", ".join(legs)}
 
 
+_AGENCY_PROVIDER = {"sb": "Sportsbet", "pb": "PointsBet"}
+
+
+def _bonus_bets(state: dict) -> dict:
+    return {b["id"]: b for b in (state or {}).get("bets", []) if b.get("bonus") and b.get("id") is not None}
+
+
+def _use_bonus(store: dict, scope: str, before: dict, after: dict, today: str) -> None:
+    """Bets that just became bonus bets use that bookmaker's credit; the leftover stays. Never fails
+    the record. TODO: reverse (wallet.unuse_leftover) on delete/edit-to-cash: no such action exists
+    for engine bets yet."""
+    old = _bonus_bets(before)
+    for bid, b in _bonus_bets(after).items():
+        if bid in old:
+            continue
+        prov = _AGENCY_PROVIDER.get(b.get("ag"), b.get("provider") or b.get("book") or "")
+        if prov and b.get("stake"):
+            store["ledger"] = wallet.use_leftover(store["ledger"], prov, b["stake"], f"bonus-use-{scope}-{bid}", today)
+
+
 def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) -> None:
     q = _compose(q)
     if act == "bet" and q.get("nbch"):  # recorded against a challenge: the wager path
@@ -842,11 +862,14 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         _record_wager(store, rec, wq, today, op)
         return
     if act in ("bet", "betwon", "betlost"):
+        before = store["own"]
         store["own"] = apply(store["own"], q, today)
         if act == "betwon":
             for b in (store["own"] or {}).get("bets", []):
                 if str(b.get("id")) == str(q.get("nbid")) and b.get("own") and b["state"] == "won":
                     _bonus_credit(store, b, today, f"bw-own{b['id']}")
+
+        _use_bonus(store, "own", before, store["own"], today)
         return
     if act == "newch":
         name = (q.get("chname") or "").strip()[:40] or f"Challenge {store['next']}"
@@ -886,7 +909,9 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
                 )
         store["challenges"].remove(rec)
     else:
+        before = rec["state"]
         rec["state"] = apply(rec["state"], q, today) or rec["state"]
+        _use_bonus(store, rec["id"], before, rec["state"], today)
 
 
 AGENCY_NAMES = {
@@ -984,19 +1009,8 @@ def _record_wager(store, rec, q, today, op) -> None:
         c = wallet.credits(store["ledger"], today).get(q.get("wcredit"))
         if c is None or c["provider"].lower() != provider.lower():
             raise ValueError("pick a credit from that provider")
-        if c["amount"] != stake:
-            raise ValueError("the stake is the credit's face value")
-        store["ledger"] = wallet.append(
-            store["ledger"],
-            {
-                "t": "redeem",
-                "credit": c["id"],
-                "challenge": rec["id"],
-                "op": f"w{op or w['id']}",
-                "at": today,
-            },
-            today,
-        )
+        # automatic leftovers (owner, 2026-11-08): the stake comes off the credit, the rest stays
+        store["ledger"] = wallet.use_leftover(store["ledger"], provider, stake, f"bonus-use-w{w['id']}", today, rec["id"])
         w["credit"] = c["id"]
     store["wagers"] = (store["wagers"] + [w])[-MAX_WAGERS:]
 
