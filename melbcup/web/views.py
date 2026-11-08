@@ -1301,6 +1301,13 @@ class Views:
                 )
                 if tab == "challenge":
                     ctx.update(self._sport_challenge(query, ctx, sport, disc))
+                ctx["sgm"] = []
+                if tab == "sgm" and sport == "nfl":  # one-game multis: pk1 legs, one per player
+                    from melbcup import nfl_legs
+
+                    legs_ = nfl_legs.current_legs()
+                    for x_ in (2.0, 3.0, 5.0):
+                        ctx["sgm"] += nfl_legs.same_game(legs_, x_)[:2]
             if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub

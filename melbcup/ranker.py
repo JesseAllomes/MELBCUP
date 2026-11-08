@@ -12,6 +12,7 @@ import math
 from datetime import UTC, datetime
 
 from . import nba_legs as N
+from . import nfl_legs as NFL
 
 OBJ_CHANCE = "Highest calibrated chance at target price"
 OBJ_EV = "Risk-adjusted EV"
@@ -32,7 +33,7 @@ def is_player_leg(g: dict) -> bool:
     return (
         str(g.get("market_type", "player")).lower() not in _NON_PLAYER
         and bool(g.get("player"))
-        and g.get("stat") in N.SHORT
+        and (g.get("stat") in N.SHORT or g.get("stat") in NFL.SHORT)
     )
 
 

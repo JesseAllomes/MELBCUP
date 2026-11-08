@@ -117,6 +117,35 @@ def leg_of(r: dict, sport: str, now: datetime) -> dict | None:
     }
 
 
+def leg_of_pk1(g: dict, now: datetime) -> dict | None:
+    """A discover leg from an nfl_legs (pk1) leg: the chance is the pk1 market chance, the window
+    and freshness checks are leg_of's."""
+    p, price = g["chance"], g["price"]
+    if p < MIN_CHANCE or p >= 0.995 or price <= 1.01:
+        return None
+    start, seen = _when(g.get("startsAt")), _when(g.get("seen"))
+    if start is None or seen is None:
+        return None
+    if not (now + timedelta(seconds=MIN_LEAD_S) < start < now + timedelta(hours=HORIZON_H)):
+        return None
+    if (now - seen).total_seconds() > MAX_AGE_S:
+        return None
+    return {
+        "key": f"{g['event']}|{g['player']}|{g['stat']}|{g['line']}|{int(g['under'])}",
+        "sport": g.get("sport", "nfl"),
+        "event_id": g["event"],
+        "event": g["game"],
+        "start": g["startsAt"],
+        "label": g["label"],
+        "price": float(price),
+        "p": float(p),
+        "seen": g["seen"],
+        "player": True,
+        "stat": g["stat"],
+        "game": g["game"],
+    }
+
+
 def value_at_price(g: dict) -> float:
     """log(chance x price): 0 for a margin-free leg, more negative the more margin it carries.
     At the same price the higher chance always scores higher (independent review, 2026-11-07:
@@ -302,6 +331,7 @@ def compute(now: datetime | None = None) -> dict:
     t0 = time.monotonic()
     _progress(0.0)
     legs, sports, rows = [], [], 0
+    pk1_rows: list[dict] = []
     units = sorted(cv.coverage())
     for i, sport in enumerate(units):
         n0 = len(legs)
@@ -310,9 +340,18 @@ def compute(now: datetime | None = None) -> dict:
                 continue
             for r in cv._shard(key, comp):
                 rows += 1
+                if key == "nfl" and r.get("is_player_prop"):
+                    pk1_rows.append(r)  # NFL player props go through the NBA picker's pk1 rules
+                    continue
                 g = leg_of(r, key, now)
                 if g is not None:
                     legs.append(g)
+        if pk1_rows:
+            from . import nfl_legs
+
+            built = nfl_legs.auto(nfl_legs.legs_from_rows(pk1_rows))
+            legs += [x for x in (leg_of_pk1(g, now) for g in built) if x]
+            pk1_rows = []
         if len(legs) > n0:
             sports.append(sport)
         _progress(0.5 * (i + 1) / max(len(units), 1))
