@@ -57,7 +57,7 @@ def test_strip_script_has_the_alert_behaviour():
     for text in (
         "BET NOW · R", "jumps in", "navigator.vibrate([200, 100, 200])", "AudioContext",
         'Notification.permission === "granted"', '"Bet now: R" + r.n + " jumps in 3 min"',
-        "sessionStorage", "window.location.reload()", "ALERT_AT = 180", 'get("now")',
+        "sessionStorage", "window.liveSwapSoon", "ALERT_AT = 180", 'get("now")',
     ):
         assert text in js, text
     assert ".alertbar.hot" in (STATIC / "app.css").read_text()

@@ -69,7 +69,7 @@
 })();
 
 // "R2 jumps in 4:12" strip: counts down to the next race, turns amber and says BET NOW at 3:00,
-// then (once per race) vibrates, beeps, notifies and reloads so the latest picks show.
+// then (once per race) vibrates, beeps, notifies and swaps the page in place so the latest picks show.
 // ?now=<ISO time> fakes the clock for testing.
 (function () {
   "use strict";
@@ -122,7 +122,7 @@
       }
     } catch (e) { /* no notifications */ }
     var rk = "betnow-reload:" + r.t + ":" + (r.label || r.n);
-    if (!store("get", rk)) { store("set", rk, "1"); window.location.reload(); }
+    if (!store("get", rk)) { store("set", rk, "1"); if (window.liveSwapSoon) window.liveSwapSoon(); }
   }
   function tick() {
     var now = Date.now() + offset, next = null;

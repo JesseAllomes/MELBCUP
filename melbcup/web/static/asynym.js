@@ -145,6 +145,68 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   reminders();
 })();
 
+// liveSwap (owner, 2026-11-08): every page updates itself in place. Re-read this URL and swap the
+// main content; scroll, open rows/details and the chip strip stay. Never navigates, never a pill.
+(function () {
+  "use strict";
+  var busy = false;
+  function blocked(main) {
+    var a = document.activeElement;
+    if (a && main.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    if (document.querySelector("dialog[open], [role=menu]:not([hidden]), [role=dialog]:not([hidden])")) return true;
+    return Array.prototype.some.call(main.querySelectorAll("input,textarea"), function (i) {
+      return !/^(hidden|checkbox|radio|button|submit)$/.test(i.type) && i.value !== i.defaultValue;
+    });
+  }
+  window.liveSwap = function () {
+    var main = document.getElementById("main");
+    if (!main || busy || document.hidden || blocked(main)) return Promise.resolve(false);
+    busy = true;
+    return fetch(location.href, { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var fresh = doc.getElementById("main");
+        if (!fresh || blocked(main)) return false;
+        var y = window.scrollY;
+        var openRow = main.querySelector(".chs-row.open");
+        var rowId = openRow ? openRow.getAttribute("data-id") : null;
+        var ds = Array.prototype.slice.call(main.querySelectorAll("details"));
+        var openIds = ds.map(function (d) { return d.open ? d.id : null; });
+        var openIdx = ds.map(function (d) { return d.open; });
+        var nav = main.querySelector(".strip, .sp-tabs");
+        var x = nav ? nav.scrollLeft : 0;
+        main.innerHTML = fresh.innerHTML;
+        main.querySelectorAll("details").forEach(function (d, i) {
+          if (d.id ? openIds.indexOf(d.id) >= 0 : openIdx[i]) d.open = true;
+        });
+        var nav2 = main.querySelector(".strip, .sp-tabs");
+        if (nav2) nav2.scrollLeft = x;
+        if (rowId) {
+          main.querySelectorAll(".chs-row").forEach(function (r) {
+            var h = r.getAttribute("data-id") === rowId && r.querySelector(".chs-head");
+            if (h) h.click();
+          });
+        }
+        window.scrollTo(0, y);
+        if (window.initChallengeAccordion) window.initChallengeAccordion();
+        document.dispatchEvent(new CustomEvent("melb:data", { detail: doc }));
+        var sv = document.getElementById("saved-copy-pill");
+        if (sv) sv.remove();
+        return true;
+      })
+      .catch(function () { return false; })
+      .then(function (ok) { busy = false; return ok; });
+  };
+  // retry later when skipped (typing, menu open, tab hidden)
+  window.liveSwapSoon = function (tries) {
+    tries = tries || 0;
+    window.liveSwap().then(function (ok) {
+      if (!ok && tries < 40) window.setTimeout(function () { window.liveSwapSoon(tries + 1); }, 5000);
+    });
+  };
+})();
+
 // Saved copy (owner, 2026-11-04): the service worker keeps every page, so a sleeping server never
 // leaves a blank screen. When this page is that saved copy, say so and swap in the fresh one.
 (function () {
@@ -154,30 +216,24 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   if (!at) return;
   var pill = document.createElement("button");
   pill.type = "button";
-  pill.className = "saved-pill";
+  pill.className = "saved-pill"; pill.id = "saved-copy-pill";
   var when = new Date(Number(at)).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
   pill.textContent = "Saved copy " + when + " · updating…";
-  pill.addEventListener("click", function () { location.reload(); });
   document.body.appendChild(pill);
-  var touched = false;
-  ["click", "touchstart", "keydown", "wheel"].forEach(function (ev) {
-    window.addEventListener(ev, function () { touched = true; }, { once: true, passive: true });
-  });
   (function poll(n) {
     fetch(location.href, { cache: "no-store", credentials: "same-origin" })
       .then(function (r) {
         if (!r.ok) throw new Error(r.status);
-        if (!touched) { location.reload(); return; }
-        pill.textContent = "Fresh prices ready · tap";
-        pill.classList.add("ready");
+        return window.liveSwap();
       })
-      .catch(function () { if (n < 20) window.setTimeout(function () { poll(n + 1); }, 3000); });
+      .then(function (ok) { if (!ok && n < 40) window.setTimeout(function () { poll(n + 1); }, 4000); })
+      .catch(function () { if (n < 40) window.setTimeout(function () { poll(n + 1); }, 3000); });
   })(0);
 })();
 
 // Fresh NBA prices on every load (owner, 2026-11-06): the server shows its latest copy at once and
-// works out new prices behind it; when they land, reload once (or offer a tap if the page is in use).
-// The reload keeps only the tab and agency, so a switch or an action in the address never repeats.
+// works out new prices behind it; when they land, swap the page in place (no reload, no tap).
+// The URL is never changed.
 (function () {
   "use strict";
   var el = document.getElementById("nba-priced");
@@ -185,15 +241,6 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   // the Challenge tab keeps its own live numbers: no reload there (owner, 2026-11-08)
   if (new URL(location.href).searchParams.get("tab") === "challenge" || document.querySelector(".chs-list")) return;
   var mine = Date.parse(el.getAttribute("data-priced") || "") || 0;
-  var touched = false;
-  ["click", "touchstart", "keydown", "wheel"].forEach(function (ev) {
-    window.addEventListener(ev, function () { touched = true; }, { once: true, passive: true });
-  });
-  function clean() {
-    var u = new URL(location.href), keep = new URLSearchParams();
-    ["sport", "tab", "bk", "chid"].forEach(function (k) { if (u.searchParams.get(k)) keep.set(k, u.searchParams.get(k)); });
-    return u.pathname + (keep.toString() ? "?" + keep.toString() : "");
-  }
   (function poll(n) {
     if (n > 15) return;
     window.setTimeout(function () {
@@ -202,11 +249,8 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         .then(function (d) {
           var t = Date.parse(d.priced || "") || 0;
           if (t <= mine) { poll(n + 1); return; }
-          if (!touched) { location.replace(clean()); return; }
-          var pill = document.createElement("button");
-          pill.type = "button"; pill.className = "saved-pill ready"; pill.textContent = "Fresh prices ready · tap";
-          pill.addEventListener("click", function () { location.replace(clean()); });
-          document.body.appendChild(pill);
+          mine = t;
+          window.liveSwapSoon();
         })
         .catch(function () { poll(n + 1); });
     }, 3000);
@@ -214,13 +258,13 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
 })();
 
 // Bet now (owner BUILD, 2026-11-07): the multis are searched on the server behind the page. Poll the
-// status; show a slim bar while it works and a tap toast when a newer result than this page's lands.
+// status; show a slim bar while it works and swap the page in place when a newer result lands.
 (function () {
   "use strict";
   if (location.pathname !== "/sports") return;
   var root = document.getElementById("bn");
   var mine = root ? root.getAttribute("data-built") || "" : null;
-  var bar = null, toast = null, timer = null;
+  var bar = null, timer = null;
   function barOf() {
     if (bar) return bar;
     bar = document.createElement("div");
@@ -229,14 +273,6 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     var h = document.querySelector("header") || document.body.firstElementChild;
     if (h && h.parentNode) h.parentNode.insertBefore(bar, h.nextSibling); else document.body.prepend(bar);
     return bar;
-  }
-  function showToast() {
-    if (toast) return;
-    toast = document.createElement("button");
-    toast.type = "button"; toast.className = "bn-toast";
-    toast.innerHTML = '<span class="dot"></span><span>Fresh multis ready</span><span>Tap</span>';
-    toast.addEventListener("click", function () { location.reload(); });
-    document.body.appendChild(toast);
   }
   function age(s) {
     if (s == null) return "";
@@ -258,7 +294,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         } else if (bar) { bar.hidden = true; }
         if (b) b.disabled = !!d.busy;
         if (a && !d.busy && d.age_s != null) a.textContent = age(d.age_s);
-        if (!d.busy && d.built && d.built !== mine) showToast();
+        if (!d.busy && d.built && d.built !== mine) { mine = d.built; window.liveSwapSoon(); }
         timer = window.setTimeout(tick, d.busy ? 2000 : 15000);
       })
       .catch(function () { timer = window.setTimeout(tick, 15000); });
@@ -311,9 +347,8 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
 // live numbers is fetched after; collapsed rows poll live.json every 30 s while the page is visible.
 (function () {
   "use strict";
-  var list = document.querySelector(".chs-list");
-  if (!list) return;
-  function rows() { return list.querySelectorAll(".chs-row"); }
+  var started = false;
+  function rows() { return document.querySelectorAll(".chs-list .chs-row"); }
   function lazy(body) {
     if (!body.dataset.url) return;
     fetch(body.dataset.url, { cache: "no-store", credentials: "same-origin" })
@@ -329,8 +364,8 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       })
       .catch(function () {});
   }
-  list.addEventListener("click", function (e) {
-    var head = e.target.closest(".chs-head");
+  document.addEventListener("click", function (e) {
+    var head = e.target.closest && e.target.closest(".chs-list .chs-head");
     if (!head) return;
     var row = head.parentNode, body = row.querySelector(".chs-body");
     var was = head.getAttribute("aria-expanded") === "true";
@@ -365,7 +400,14 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       })
       .catch(function () {});
   }
-  poll();
-  window.setInterval(poll, 30000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
+  // idempotent: starts the 30 s poll once; safe to call again after a swap
+  window.initChallengeAccordion = function () {
+    if (!document.querySelector(".chs-list")) return;
+    poll();
+    if (started) return;
+    started = true;
+    window.setInterval(poll, 30000);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
+  };
+  window.initChallengeAccordion();
 })();
