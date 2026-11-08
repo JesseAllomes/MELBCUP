@@ -828,6 +828,19 @@ def _carry_over(k: str, index: dict, shards: dict, doc: dict, read) -> None:
     by_cid = {c["competition_id"]: c for c in index["competitions"]}
     # the old shards are fetched in parallel (owner, 2026-11-08: 81 reads one at a time took 27 s and
     # soccer ran past the Function's 55 s limit); only the gzip bytes are held, parsed one at a time
+    # a competition this run did not reach at all keeps its old shard file as it is: no read, no
+    # rewrite (owner, 2026-11-08: soccer's ~44 shards did not fit the 55 s Function limit)
+    reached = {str(e.get("competition_id") or "") for e in doc["events"] if e.get("fetched")}
+    old_comp = {str(c.get("competition_id")): c for c in old.get("competitions", [])}
+    for cid in [c for c in missing if c not in reached and old_shard.get(c) and c not in shards]:
+        c, prev = by_cid.get(cid), old_comp[cid]
+        if c is None:
+            continue
+        keep = {f: prev[f] for f in ("outcomes", "player_outcomes", "families", "periods") if f in prev}
+        c.update(keep, shard=old_shard[cid])
+        index["rows"] = index.get("rows", 0) + prev.get("outcomes", 0)
+        index["player_rows"] = index.get("player_rows", 0) + prev.get("player_outcomes", 0)
+        carried_events |= missing.pop(cid)
     want = {cid: old_shard[cid] for cid in missing if old_shard.get(cid)}
 
     def _get(name):
