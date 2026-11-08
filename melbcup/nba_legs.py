@@ -597,6 +597,7 @@ def multi(legs, stake, chance=None):
                     "under",
                 )
             }
+            | ({"sport": g["sport"]} if g.get("sport") else {})  # NFL legs settle by sport
             for g in legs
         ],
         "tip": max(
