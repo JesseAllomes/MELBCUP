@@ -279,3 +279,28 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   var row = on.parentNode;
   row.scrollLeft = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2;
 })();
+
+// Challenge card (owner lock 2026-11-08): while a game is in play, re-read the page every 60 s and
+// swap in just the card, so the live count, bars and chance move without a reload. Only the tab and
+// challenge are repeated (never an action in the address).
+(function () {
+  "use strict";
+  var card = document.getElementById("chv9");
+  if (!card || card.getAttribute("data-live") !== "1") return;
+  var u = new URL(location.href), keep = new URLSearchParams();
+  ["sport", "tab", "chid", "bk"].forEach(function (k) { if (u.searchParams.get(k)) keep.set(k, u.searchParams.get(k)); });
+  var url = u.pathname + "?" + keep.toString();
+  function tick() {
+    if (document.hidden) return;
+    fetch(url, { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        var next = new DOMParser().parseFromString(html, "text/html").getElementById("chv9");
+        var cur = document.getElementById("chv9");
+        if (next && cur) cur.innerHTML = next.innerHTML;
+        if (!next || next.getAttribute("data-live") !== "1") window.clearInterval(timer);
+      })
+      .catch(function () {});
+  }
+  var timer = window.setInterval(tick, 60000);
+})();

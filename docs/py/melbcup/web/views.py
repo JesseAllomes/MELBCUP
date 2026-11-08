@@ -703,6 +703,88 @@ class Views:
         }
 
     @staticmethod
+    def _chcard(ctx: dict) -> dict | None:
+        """What the opened challenge's card (asynym/_chcard.html) shows: ring, bar, stage
+        blocks and leg tiles, with the live estimate once in play (owner lock 2026-11-08)."""
+        import math
+
+        try:
+            from melbcup import live_chance, nba_live
+        except ImportError:  # the phone's offline copy leaves the NBA code out
+            return None
+        chs = ctx.get("chs") or {}
+        rec = chs.get("open")
+        ch = ctx.get("ch")
+        if not rec or not ch:
+            return None
+        placed = ch.get("placed")
+        tr = (ctx.get("track") or {}).get(placed["id"]) if placed else None
+        tabs = [
+            {"letter": chr(65 + i % 26), "id": it["rec"]["id"], "name": it["rec"]["name"],
+             "on": it["rec"]["id"] == rec["id"],
+             "price": (it["rec"]["state"].get("placed") or {}).get("price")}
+            for i, it in enumerate(chs.get("list") or [])
+        ]
+        start, bank, goal = ch["start"], ch["bank"], ch["goal"]
+        pct = 0.0
+        if start > 0 and goal > start and bank > 0:
+            pct = min(max(math.log(bank / start) / math.log(goal / start), 0.0), 1.0) * 100
+        n_done, n_all = len(ch["steps"]), ch.get("stages", 3)
+        live = bet = None
+        tiles = []
+        if placed:
+            live = live_chance.bet_live(tr, placed)
+            legs = (tr or {}).get("legs")
+            if not legs:
+                parsed = nba_live.parse(placed.get("label", ""))[1]
+                legs = [g | {"now": None, "ok": None} for g in parsed]
+            state = (tr or {}).get("state", "pre")
+            for i, g in enumerate(legs):
+                ok, now = g.get("ok"), g.get("now")
+                cls = {True: "g", False: "r"}.get(ok, "o" if state == "in" else "n")
+                lc = (live["legs"] + [None] * len(legs))[i]
+                fill = min((now or 0) / g["k"], 1.0) * 100
+                if cls == "g" and not g["under"]:
+                    fill = 100.0
+                tiles.append({
+                    "cls": cls, "name": g["player"],
+                    "line": g["label"].replace(g["player"], "", 1).strip(),
+                    "under": g["under"], "k": g["k"],
+                    "now": now or 0, "fill": round(fill), "chance": lc,
+                })
+            bet = live["p"]
+        ring = bet
+        if ring is None and not placed:
+            step = ctx.get("ch_step") or {}
+            ring = step.get("chance")
+        verdict = (tr or {}).get("verdict")
+        dead = bool(tr and tr.get("failed") and (tr["state"] == "post" or any(
+            g.get("ok") is False for g in tr["legs"])))
+        blocks = []
+        for i in range(n_all):
+            if i < n_done:
+                st = ch["steps"][i]
+                blocks.append({"cls": "done", "k": f"Stage {i + 1}", "v": f"${st['to']:.2f}"})
+            elif i == n_done:
+                blocks.append({"cls": "bad" if dead else "now", "k": f"Stage {i + 1}",
+                               "v": f"${bank:.2f}"})
+            else:
+                blocks.append({"cls": "next", "k": f"Stage {i + 1}", "v": "next"})
+        odds = placed.get("price") if placed else (ctx.get("ch_step") or {}).get("price")
+        return {
+            "tabs": tabs, "name": rec["name"], "pct": round(pct), "goal": goal,
+            "stages_done": n_done, "stages": n_all, "blocks": blocks, "tiles": tiles,
+            "ring": None if ring is None else round(ring * 100),
+            "ring_cls": "" if ring is None else ("g" if ring >= .6 else "p" if ring >= .3 else "a"),
+            "odds": odds, "placed": bool(placed), "dead": dead, "verdict": verdict,
+            "in_play": bool(tr and tr["state"] == "in"), "clock": (tr or {}).get("clock", ""),
+            "live": bool(live and live["live"]), "approx": bool(live and live["approx"]),
+            "bonus": bool(placed and placed.get("bonus")),
+            "tip": placed.get("tip") if placed else None,
+            "any_play": bool(tr and tr["state"] == "in"),
+        }
+
+    @staticmethod
     def _track(ctx: dict) -> dict:
         """Leg-by-leg results of the placed challenge stage and your own bets, once their game
         has tipped off ({bet id: nba_live.track()}; owner, 2026-11-05)."""
@@ -1132,6 +1214,7 @@ class Views:
                     )
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
+            ctx["chcard"] = self._chcard(ctx)
             return self.env.get_template("asynym/sports.html").render(ctx)
         if path == "/":
             ctx.update(self._meetings(ctx, {}))
