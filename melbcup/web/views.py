@@ -666,7 +666,7 @@ class Views:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
         if previewing and opened is not None and opened["scope"] != page:
             state = None  # previewing a new challenge: never pick (or save) a stage for the other sport's run
-        legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
+        legs_now = (ctx.get("nba_rep") or {}).get("all_legs") or []
         want = (state or {}).get("legs") or nba_challenge._legs(query.get("chlegs"))
         lim = {"min_legs": want, "max_legs": want} if want else {}
         p_start = nba_challenge._money(query.get("chstart")) or 10.0
@@ -1325,7 +1325,7 @@ class Views:
                     if sport != "home" and not catalogue_view.coverage_line(sport)
                     else ""
                 )
-                if tab == "challenge":
+                if tab == "challenge" and sport != "nfl":  # NFL: the NBA page's challenge (owner, 2026-11-08)
                     ctx.update(self._sport_challenge(query, ctx, sport, disc))
                 ctx["sgm"] = []
                 if tab == "sgm" and sport == "nfl":  # one-game multis: pk1 legs, one per player
