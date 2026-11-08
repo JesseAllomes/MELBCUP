@@ -7,7 +7,6 @@ Nothing here imports the Azure SDK; function_app.py does, and tests stub it.
 
 from __future__ import annotations
 
-import base64
 import datetime as dt
 import gzip
 import hashlib
@@ -16,10 +15,7 @@ import json
 import logging
 import os
 import time
-import urllib.error
-import urllib.request
 from collections import deque
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -28,7 +24,6 @@ from tools.live_collector import Collector, Log, iso, now
 
 STATE_LIMIT_BYTES = 256 * 1024
 MAX_PUBLISH_HOURS = 3
-GITHUB_TIMEOUT_S = 20
 
 
 class StateTooLarge(RuntimeError):
@@ -187,77 +182,6 @@ def merge_gzip(files: list[bytes]) -> bytes:
     return gzip.compress(plain, compresslevel=6, mtime=0)
 
 
-def github_api(method: str, path: str, token: str, payload: object | None = None) -> object:
-    raw = None if payload is None else json.dumps(payload).encode()
-    request = urllib.request.Request(
-        f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/{path.lstrip('/')}",
-        data=raw,
-        method=method,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "User-Agent": "melbcup-azure-collector",
-        },
-    )
-    with urllib.request.urlopen(request, timeout=GITHUB_TIMEOUT_S) as response:
-        body = response.read()
-    return json.loads(body) if body else {}
-
-
-def github_path_exists(path: str, token: str, branch: str = "live") -> bool:
-    """True when `path` is already on `branch` (trees API, so file size does not matter)."""
-    directory, _, name = path.rpartition("/")
-    try:
-        listing = github_api("GET", f"git/trees/{branch}:{directory}", token)
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return False
-        raise
-    return any(item.get("path") == name for item in listing.get("tree", []))
-
-
-def commit_github_file(
-    path: str, content: bytes, token: str, message: str, branch: str = "live"
-) -> str:
-    """Atomically add one file on a branch, retrying a moved branch head."""
-    for attempt in range(4):
-        ref = github_api("GET", f"git/ref/heads/{branch}", token)
-        parent = ref["object"]["sha"]
-        commit = github_api("GET", f"git/commits/{parent}", token)
-        blob = github_api(
-            "POST",
-            "git/blobs",
-            token,
-            {"content": base64.b64encode(content).decode(), "encoding": "base64"},
-        )
-        tree = github_api(
-            "POST",
-            "git/trees",
-            token,
-            {
-                "base_tree": commit["tree"]["sha"],
-                "tree": [{"path": path, "mode": "100644", "type": "blob", "sha": blob["sha"]}],
-            },
-        )
-        created = github_api(
-            "POST",
-            "git/commits",
-            token,
-            {"message": message, "tree": tree["sha"], "parents": [parent]},
-        )
-        try:
-            github_api(
-                "PATCH", f"git/refs/heads/{branch}", token, {"sha": created["sha"], "force": False}
-            )
-            return created["sha"]
-        except urllib.error.HTTPError as exc:
-            if exc.code not in (409, 422) or attempt == 3:
-                raise
-            time.sleep(2**attempt)
-    raise RuntimeError("unreachable")
-
-
 def pending_hours(blobs, current_hour: str) -> dict[str, list]:
     """Group pending/<day>/<run>-<seq>.jsonl.gz blobs by closed UTC hour ('YYYY-MM-DD/HH')."""
     groups: dict[str, list] = {}
@@ -280,48 +204,46 @@ def hour_path(hour: str, records: list) -> str:
 
 def publish_pending(
     container,
-    token_factory: Callable[[], str],
     current_hour: str,
     max_hours: int = MAX_PUBLISH_HOURS,
 ) -> list[str]:
-    """Commit up to `max_hours` closed hours (oldest first) to the live branch; return the paths.
+    """Publish up to `max_hours` closed hours (oldest first) to Blob; return the paths.
 
-    Idempotent: a path that already exists is not committed again, published blob names go in
-    a per-hour ledger, and pending blobs are deleted only once the commit (or the existing file) is
-    confirmed. Any failure leaves the blobs for the next run.
+    Blob only: the merged file goes in the same container as pending/ (no GitHub live branch).
+    Idempotent: an existing path is not uploaded again, published blob names go in a per-hour
+    ledger, and pending blobs are deleted only once the upload (or existing file) is confirmed.
+    Any failure is logged and leaves the blobs for the next run; this never raises.
     """
-    groups = pending_hours(container.list_blobs(name_starts_with="pending/"), current_hour)
-    if not groups:
-        return []
-    token = token_factory()  # read lazily: no pending work, no token needed
-    done = []
-    for hour, records in sorted(groups.items())[:max_hours]:
-        records.sort(key=lambda item: item.name)
-        ledger_blob = container.get_blob_client(f"published/{hour}.json")
-        ledger = (
-            set(json.loads(ledger_blob.download_blob().readall()))
-            if ledger_blob.exists()
-            else set()
-        )
-        fresh = [item for item in records if item.name not in ledger]  # not yet on the live branch
-        if fresh:
-            path = hour_path(hour, fresh)
-            if github_path_exists(path, token):
-                logging.info("%s already on live", path)
-            else:
-                payload = merge_gzip(
-                    [container.download_blob(item.name).readall() for item in fresh]
-                )
-                day, hour_number = hour.split("/")
-                commit_github_file(
-                    path, payload, token, f"live: Azure observations {day} {hour_number}:00Z"
-                )
-            done.append(path)
-            # Recorded before any delete, so leftovers of a failed delete are not committed twice.
-            names = sorted(ledger | {item.name for item in fresh})
-            ledger_blob.upload_blob(json.dumps(names).encode(), overwrite=True)
-        for record in records:
-            container.delete_blob(record.name)
+    done: list[str] = []
+    try:
+        groups = pending_hours(container.list_blobs(name_starts_with="pending/"), current_hour)
+        for hour, records in sorted(groups.items())[:max_hours]:
+            records.sort(key=lambda item: item.name)
+            ledger_blob = container.get_blob_client(f"published/{hour}.json")
+            ledger = (
+                set(json.loads(ledger_blob.download_blob().readall()))
+                if ledger_blob.exists()
+                else set()
+            )
+            fresh = [item for item in records if item.name not in ledger]
+            if fresh:
+                path = hour_path(hour, fresh)
+                target = container.get_blob_client(path)
+                if target.exists():
+                    logging.info("%s already in blob", path)
+                else:
+                    payload = merge_gzip(
+                        [container.download_blob(item.name).readall() for item in fresh]
+                    )
+                    target.upload_blob(payload, overwrite=False)
+                done.append(path)
+                # Recorded before any delete, so leftovers of a failed delete are not republished.
+                names = sorted(ledger | {item.name for item in fresh})
+                ledger_blob.upload_blob(json.dumps(names).encode(), overwrite=True)
+            for record in records:
+                container.delete_blob(record.name)
+    except Exception:
+        logging.exception("publish_pending failed; pending blobs kept for retry")
     return done
 
 

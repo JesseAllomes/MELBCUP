@@ -149,7 +149,7 @@ def publish(timer: func.TimerRequest) -> None:
     if not window_open(moment, PUBLISH_GRACE_S):
         return
     container = blobs().get_container_client("live-observations")
-    publish_pending(container, lambda: os.environ["GITHUB_TOKEN"], moment.strftime("%Y-%m-%d/%H"))
+    publish_pending(container, moment.strftime("%Y-%m-%d/%H"))
 
 
 RACELENS_DAY = "2026-11-05"  # Oaks Day; RACELENS_DATE overrides
