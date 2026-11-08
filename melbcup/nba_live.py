@@ -15,6 +15,8 @@ import urllib.request
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from melbcup import live_chance
+
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 UA = "Mozilla/5.0 (compatible; asynymbet)"
 TTL_S = 60
@@ -180,8 +182,17 @@ def track(label: str, now: datetime | None = None, fetch=None) -> dict | None:
             clock = f"Tip-off {tip:%a %-d %b %-I:%M %p} {tip.tzname()}"
         except ValueError:
             clock = ""
+    period = status.get("period") or None
+    try:  # "4:12" or "45.3" (seconds only, last minute)
+        m_, _, s_ = str(status.get("displayClock", "")).rpartition(":")
+        clock_s = float(m_ or 0) * 60 + float(s_) if status.get("displayClock") else None
+    except ValueError:
+        clock_s = None
     return {
         "state": state,
+        "period": period,
+        "clock_s": clock_s,
+        "frac_left": live_chance.frac_left(state, period, clock_s),
         "starts_at": starts,  # UTC ISO as ESPN gives it
         "clock": clock,
         "legs": out,

@@ -257,6 +257,15 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
             "ret": 0.0,
             "tip": (query.get("chtip") or "")[:32],
         }
+        chances = []
+        for x in str(query.get("chc") or "").split(","):  # each leg's pre-game chance (percent)
+            try:
+                chances.append({"chance": round(min(max(float(x), 0.1), 99.9) / 100, 4)})
+            except ValueError:
+                chances = []
+                break
+        if chances:
+            bet["legs"] = chances[:12]
         if state.get("bonus") or query.get("chbonus") == "1":  # staked with a bonus bet
             bet["bonus"] = 1
         rest = {k: v for k, v in state.items() if k not in ("bonus", "pick", *SHOWN_KEYS)}

@@ -154,7 +154,9 @@
   {% if chs.err %}<p class="risk" role="alert"><b>{{ chs.err }}</b></p>{% endif %}
   {% if chs.list %}<div class="chr">{% for it in chs.list %}<a href="/sports?sport={{ sport }}&tab=challenge&chid={{ it.rec.id }}" class="{{ 'on' if cid == it.rec.id }}">{{ it.rec.name }}</a>{% endfor %}</div>{% endif %}
   {% if chs.open %}{% set c = chs.open %}
+  <span id="ch-open"></span>{% include 'asynym/_chcard.html' %}
   <div class="chh"><div><span class="tag">All Sports challenge</span><b class="ht">{{ c.name }}</b></div>{% if ch %}<span class="fine">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank <b>${{ '%.2f' % ch.bank }}</b> of ${{ '%.0f' % ch.goal }}</span>{% endif %}</div>
+  <details class="chv9-more"{{ '' if (chcard and chcard.placed) else ' open' }}><summary>Challenge actions · place, results, edit</summary>
   {% if not ch %}
   <p class="note">Roll the bank into one multi a stage. One loss ends the run.</p>
   <form method="get" action="/sports" class="ch-start">
@@ -199,7 +201,7 @@
           <p class="ev">Fair price {{ '%.2f' % p.fair_price }} vs {{ '%.2f' % p.price }} offered. <b>{% if p.expected_return < 0 %}Negative expected return: about {{ '%.0f' % (-p.expected_return * 100) }}c lost per $1.{% else %}Positive only on paper; check the slip price.{% endif %}</b></p></div>
         <form method="get" action="/sports" class="acts">
           <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
-          <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
+          <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chc" value="{% for g in p.legs %}{{ '%.1f' % (g.p * 100) }}{{ ',' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
           <label class="fine">At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == 'pb' }}>{{ a.name }}</option>{% endfor %}</select></label>
           <button type="submit" class="go big">I placed this · ${{ '%.2f' % ch.bank }}</button></form>
       </article>
@@ -211,6 +213,7 @@
   {% endfor %}
   </div>
   {% endif %}
+  </details>
   {% else %}
   <div class="empty"><b>No {{ hub.name if hub else '' }} challenge running</b>Start an All Sports challenge below; it shows on every sport's Challenge tab.</div>
   {% endif %}
