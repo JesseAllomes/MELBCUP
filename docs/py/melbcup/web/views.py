@@ -565,8 +565,9 @@ class Views:
         chs = ctx.get("chs")
         if not chs:
             return {"ch": None, "ch_step": None, "ch_tl": [], "ch_sug": None}
-        mine = [it for it in chs["list"] if it["rec"]["scope"] == "all"]
-        opened = chs["open"] if chs["open"] and chs["open"]["scope"] == "all" else None
+        scopes = ("all", sport) if sport == "nfl" else ("all",)  # NFL challenges ride its own tab
+        mine = [it for it in chs["list"] if it["rec"]["scope"] in scopes]
+        opened = chs["open"] if chs["open"] and chs["open"]["scope"] in scopes else None
         opened = opened or (mine[-1]["rec"] if mine else None)
         sub = {
             **ctx,
@@ -1301,6 +1302,13 @@ class Views:
                 )
                 if tab == "challenge":
                     ctx.update(self._sport_challenge(query, ctx, sport, disc))
+                ctx["sgm"] = []
+                if tab == "sgm" and sport == "nfl":  # one-game multis: pk1 legs, one per player
+                    from melbcup import nfl_legs
+
+                    legs_ = nfl_legs.current_legs()
+                    for x_ in (2.0, 3.0, 5.0):
+                        ctx["sgm"] += nfl_legs.same_game(legs_, x_)[:2]
             if sport != "nba" or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub

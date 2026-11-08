@@ -1,0 +1,25 @@
+{
+  "header": {"competitions": [{
+    "date": "2026-11-08T18:00Z",
+    "status": {"period": 4, "displayClock": "2:00",
+               "type": {"state": "in", "shortDetail": "2:00 - 4th Quarter"}},
+    "competitors": [{"score": "27"}, {"score": "24"}]
+  }]},
+  "boxscore": {"players": [
+    {"team": {"abbreviation": "BUF"}, "statistics": [
+      {"name": "passing", "labels": ["C/ATT", "YDS", "AVG", "TD", "INT", "SACKS", "QBR", "RTG"],
+       "athletes": [{"athlete": {"id": "3918298", "displayName": "Josh Allen"},
+                     "stats": ["21/30", "240", "8.0", "2", "0", "1-6", "80.1", "110.2"]}]},
+      {"name": "rushing", "labels": ["CAR", "YDS", "AVG", "TD", "LONG"],
+       "athletes": [{"athlete": {"id": "4567048", "displayName": "James Cook"},
+                     "stats": ["18", "96", "5.3", "1", "22"]},
+                    {"athlete": {"id": "3918298", "displayName": "Josh Allen"},
+                     "stats": ["6", "31", "5.2", "0", "12"]}]},
+      {"name": "receiving", "labels": ["REC", "YDS", "AVG", "TD", "LONG", "TGTS"],
+       "athletes": [{"athlete": {"id": "4567048", "displayName": "James Cook"},
+                     "stats": ["4", "35", "8.8", "0", "15", "5"]},
+                    {"athlete": {"id": "4430878", "displayName": "Khalil Shakir"},
+                     "stats": ["7", "88", "12.6", "1", "30", "9"]}]}
+    ]}
+  ]}
+}
