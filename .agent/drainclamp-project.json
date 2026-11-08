@@ -13,12 +13,12 @@
         ]
       },
       {
-        "done": false,
-        "done_at": null,
+        "done": true,
+        "done_at": "2026-11-08T06:54:17+00:00",
         "est_min": 20,
         "goal": "catalogue unstick: cursor saved before each sport; catalogue gets its own timer + budget (soccer killed at 55s since 23:31 UTC 7 Nov)",
         "id": "c2",
-        "note": "",
+        "note": "catalogue unstuck: cursor saved first, build budget 30s, own timer catalogue_run :05/10 (owner approved, limits total 27); refreshed 06:41 UTC",
         "targets": [
           "melbcup/catalogue.py::run_rotation",
           "azure/function/function_app.py::_catalogue_tick"
@@ -89,7 +89,7 @@
     ]
   },
   "errors": [],
-  "rev": 52,
+  "rev": 53,
   "review": {
     "advice": [],
     "config": {
@@ -5078,6 +5078,13 @@
       "note": "",
       "source": "auto",
       "start": "2026-11-08T03:13:12+00:00"
+    },
+    {
+      "end": "2026-11-08T06:54:17+00:00",
+      "id": "s3",
+      "note": "",
+      "source": "auto",
+      "start": "2026-11-08T06:54:17+00:00"
     }
   ],
   "todos": [
