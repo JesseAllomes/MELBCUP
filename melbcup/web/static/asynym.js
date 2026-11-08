@@ -354,10 +354,13 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     fetch(body.dataset.url, { cache: "no-store", credentials: "same-origin" })
       .then(function (r) { return r.text(); })
       .then(function (html) {
-        var fresh = new DOMParser().parseFromString(html, "text/html").getElementById("chv9");
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var fresh = doc.getElementById("chv9"), whole = doc.getElementById(body.id);
         if (!fresh || body.hidden) return;
         var mine = body.querySelector(".chv9");
         if (mine) { mine.innerHTML = fresh.innerHTML; return; }
+        // the card plus this challenge's next-stage bet, place, results and edit (owner, 2026-11-08)
+        if (whole) { body.innerHTML = whole.innerHTML; return; }
         var saved = body.querySelector(".chs-saved");
         if (saved) saved.remove();
         body.appendChild(document.importNode(fresh, true));
