@@ -347,6 +347,18 @@ class LiveBoard:
 
     # -- reading ------------------------------------------------------------------------------
 
+    def likely(self, agencies_on=None) -> dict:
+        """Likeliest singles and multis, cached until the models or prices change."""
+        from melbcup import racing_likely
+
+        with self._lock:
+            ons = tuple(agencies_on or racing_likely.AGENCIES)
+            key = (tuple(id(m) for m in self._models.values()), self._priced_at, ons)
+            if getattr(self, "_likely_key", None) != key:
+                self._likely = racing_likely.build(list(self._models.values()), ons, self.clock())
+                self._likely_key = key
+            return self._likely
+
     def snapshot(self) -> Snapshot:
         with self._lock:
             return Snapshot(
