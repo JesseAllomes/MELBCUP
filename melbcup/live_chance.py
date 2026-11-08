@@ -141,6 +141,9 @@ def bet_live(track: dict | None, placed: dict) -> dict:
             out.append(None)
         elif state == "pre":
             out.append(p0)
+        elif track.get("sport") == "nfl":
+            c, w = nfl_leg_chance(g, p0, fl, track)
+            out.append(c)
         else:
             left, w = player_left(g, fl, track)
             out.append(leg_chance(p0, g["k"], g["under"], g.get("now"), fl, left))
@@ -153,3 +156,70 @@ def bet_live(track: dict | None, placed: dict) -> dict:
         "live": state == "in",
         "why": why,
     }
+
+
+# ---- NFL (owner, 2026-11-08): counts are Poisson as above; yards a normal approximation ----------
+
+YARD_SD = {"passingYards": 0.35, "rushingYards": 0.6, "receivingYards": 0.6, "scrimmageYards": 0.5}
+BLOWOUT_MARGIN = 21
+
+
+def _phi(z: float) -> float:
+    return 0.5 * math.erfc(-z / math.sqrt(2))
+
+
+def _yards_over(mu: float, sd_ratio: float, t: float, now: float, f: float) -> float:
+    """P(final yards > t): rest ~ Normal(mu f, (sd_ratio mu)^2 f), clamped at 0 yards."""
+    need = t - now
+    if need < 0:
+        return 1.0
+    if f <= 0:
+        return 0.0
+    sd = max(sd_ratio * mu * math.sqrt(f), 1e-9)
+    return 1 - _phi((need - mu * f) / sd)
+
+
+def implied_yards_mean(p: float, k: int, under: bool, sd_ratio: float) -> float:
+    """The full-game mean whose normal chance matches the pre-game p: P(Y > k-0.5) = p (over) or
+    P(Y < k-0.5) = p (under); sd is sd_ratio x mean."""
+    p = min(max(p, 1e-4), 1 - 1e-4)
+    t = k - 0.5
+    lo, hi = 1e-3, max(10.0 * t, 50.0)
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        over = _yards_over(mid, sd_ratio, t, 0.0, 1.0)
+        got = (1 - over) if under else over
+        if (got < p) != under:  # the over chance rises with the mean, the under chance falls
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def yards_chance(
+    pregame_p: float, k: int, under: bool, now: int | None, left: float, sd_ratio: float
+) -> float:
+    """Chance a yards leg lands given `now` yards so far and `left` (0..1.5) of the game still to
+    play for the player. An over is won once the line is passed, an under lost."""
+    now = now or 0
+    if now >= k:
+        return 0.0 if under else 1.0
+    mu = implied_yards_mean(pregame_p, k, under, sd_ratio)
+    over = _yards_over(mu, sd_ratio, k - 0.5, now, max(left, 0.0))
+    return 1 - over if under else over
+
+
+def nfl_left(fl: float, track: dict) -> tuple[float, str]:
+    """Share of the game still to play for a player: the clock's, cut when a blowout (margin 21+
+    in the 4th quarter or later) sends the starters to the bench."""
+    margin, period = track.get("margin"), track.get("period") or 0
+    if isinstance(margin, (int, float)) and period >= 4 and abs(margin) >= BLOWOUT_MARGIN:
+        return fl * 0.4, "blowout: starters likely out"
+    return fl, ""
+
+
+def nfl_leg_chance(g: dict, p0: float, fl: float, track: dict) -> tuple[float, str]:
+    left, why = nfl_left(fl, track)
+    if g.get("stat") in YARD_SD:
+        return yards_chance(p0, g["k"], g["under"], g.get("now"), left, YARD_SD[g["stat"]]), why
+    return leg_chance(p0, g["k"], g["under"], g.get("now"), fl, left), why
