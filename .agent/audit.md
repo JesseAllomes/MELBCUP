@@ -2,10 +2,10 @@
 # Audit
 
 Root: `/home/user/MELBCUP`  
-Generated: 2026-11-07T12:26:46+00:00  
-HEAD: 2810ed691b91d980b2bbb8f3f8ef9a9bf9a84c50
+Generated: 2026-11-08T03:09:41+00:00  
+HEAD: 68a7c1ed51faeae9ac4b33d5a4d4cf307c4d7a37
 
-3309 source file(s), 746265 line(s). COVERAGE: partial — indexed extensions only.
+6291 source file(s), 1435154 line(s). COVERAGE: partial — indexed extensions only.
 
 ## Stack
 
@@ -13,25 +13,25 @@ HEAD: 2810ed691b91d980b2bbb8f3f8ef9a9bf9a84c50
 
 ## Languages (inferred from extensions, not declared)
 
-- python(inferred: 3239/3295 indexed file(s))
-- javascript(inferred: 56/3295 indexed file(s))
+- python(inferred: 6166/6266 indexed file(s))
+- javascript(inferred: 100/6266 indexed file(s))
 
 ## Totals (rolled up to depth 2)
 
 | path | files | lines |
 |---|---|---|
-| .claude/worktrees | 3044 | 686241 |
-| tests | 60 | 12899 |
-| docs/py | 42 | 12287 |
-| melbcup | 27 | 8659 |
-| melbcup/web | 8 | 3625 |
+| .claude/worktrees | 6014 | 1371052 |
+| tests | 68 | 14108 |
+| docs/py | 44 | 13421 |
+| melbcup | 29 | 9919 |
+| melbcup/web | 8 | 4079 |
 | tools/sports | 31 | 3463 |
-| melbcup/bets | 10 | 2772 |
-| tools | 11 | 2731 |
+| melbcup/bets | 10 | 2787 |
+| tools | 11 | 2732 |
 | research/late_money | 17 | 2632 |
 | tools/nba | 16 | 2483 |
 | research/dataset | 4 | 1849 |
-| melbcup/sources | 5 | 1595 |
+| melbcup/sources | 5 | 1600 |
 | azure/function | 5 | 1442 |
 | .grok/product-ui | 6 | 830 |
 | research/analysis | 7 | 654 |

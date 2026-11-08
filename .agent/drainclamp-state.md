@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=194 -->
+<!-- drainclamp-build: state; schema=1; generation=195 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -107,6 +107,8 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | sh1 | Prospective shadow scoreboard (owner TEST_PROTOCOL.md): freeze A (current) and B (patched) picks before each slate, settle by ESPN ids, paired CI by date, coverage + skips; no money | tools/;melbcup/;tests/ | pending | pk1 |
 | eq1 | Market equivalence + best executable price across PB/SB (Over N.5 = N+1+, same settlement rules) | melbcup/;tests/ | pending | pk1 |
 | pf1 | Portfolio planner for parallel challenges: maximise P(at least one finishes), shared-leg overlap | melbcup/;tests/ | pending | pk1 |
+| ch2 | Challenge list as accordion rows expanding in place (v9-1 behaviour): collapsed row = name, current leg odds, live % at right, bar fill = chance + game-time-left text; instant expand with saved figures, live fetched lazily; collapsed rows poll a tiny live-% summary endpoint | melbcup/web/;melbcup/nba_challenge.py;tests/ | pending | ui7 |
+| bn1 | Bonus credits automatic leftovers (owner 2026-11-08): recording a bonus bet deducts its stake from that bookmaker's available credit, the remainder stays available | melbcup/wallet.py;melbcup/nba_challenge.py;tests/ | pending |  |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->

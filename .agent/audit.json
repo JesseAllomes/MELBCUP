@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "root": "/home/user/MELBCUP",
-  "head": "2810ed691b91d980b2bbb8f3f8ef9a9bf9a84c50",
+  "head": "68a7c1ed51faeae9ac4b33d5a4d4cf307c4d7a37",
   "dirty_fingerprint": "b9a8816e585d5eaae36410a797c929afa619999265d5b3e4b5cebab270c98a51",
   "dirty_files": 0,
   "verify_config_fingerprint": "0ffa306b560440329afcae4efcb8757f1cc203744289a6fd50f03b601cdb9b1b",
@@ -10,35 +10,35 @@
   "config_files": [
     "pyproject.toml"
   ],
-  "generated": "2026-11-07T12:26:46+00:00",
+  "generated": "2026-11-08T03:09:41+00:00",
   "scan": {
-    "files": 3309,
-    "lines": 746265,
+    "files": 6291,
+    "lines": 1435154,
     "depth2": [
       {
         "path": ".claude/worktrees",
-        "files": 3044,
-        "lines": 686241
+        "files": 6014,
+        "lines": 1371052
       },
       {
         "path": "tests",
-        "files": 60,
-        "lines": 12899
+        "files": 68,
+        "lines": 14108
       },
       {
         "path": "docs/py",
-        "files": 42,
-        "lines": 12287
+        "files": 44,
+        "lines": 13421
       },
       {
         "path": "melbcup",
-        "files": 27,
-        "lines": 8659
+        "files": 29,
+        "lines": 9919
       },
       {
         "path": "melbcup/web",
         "files": 8,
-        "lines": 3625
+        "lines": 4079
       },
       {
         "path": "tools/sports",
@@ -48,12 +48,12 @@
       {
         "path": "melbcup/bets",
         "files": 10,
-        "lines": 2772
+        "lines": 2787
       },
       {
         "path": "tools",
         "files": 11,
-        "lines": 2731
+        "lines": 2732
       },
       {
         "path": "research/late_money",
@@ -73,7 +73,7 @@
       {
         "path": "melbcup/sources",
         "files": 5,
-        "lines": 1595
+        "lines": 1600
       },
       {
         "path": "azure/function",
@@ -137,9 +137,9 @@
     "python(pyproject: 4 direct dep(s))"
   ],
   "languages": [
-    "python(inferred: 3239/3295 indexed file(s))",
-    "javascript(inferred: 56/3295 indexed file(s))"
+    "python(inferred: 6166/6266 indexed file(s))",
+    "javascript(inferred: 100/6266 indexed file(s))"
   ],
   "dead_code_candidates": [],
-  "gate3_required": true
+  "gate3_required": false
 }

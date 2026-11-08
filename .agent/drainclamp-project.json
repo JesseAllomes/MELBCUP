@@ -1,5 +1,18 @@
 {
   "chunks": {
+    "az4": [
+      {
+        "done": false,
+        "done_at": null,
+        "est_min": 20,
+        "goal": "r3: publish_pending writes Blob only, no GitHub live-branch commit",
+        "id": "c1",
+        "note": "",
+        "targets": [
+          "azure/function/collector_runtime.py"
+        ]
+      }
+    ],
     "ui3": [
       {
         "done": true,
@@ -64,7 +77,7 @@
     ]
   },
   "errors": [],
-  "rev": 49,
+  "rev": 50,
   "review": {
     "advice": [],
     "config": {
