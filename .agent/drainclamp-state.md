@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=193 -->
+<!-- drainclamp-build: state; schema=1; generation=194 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -121,7 +121,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-04T08:17:22+00:00 91c5fb57 2026-11-04 owner idea (LATER, not now): cost monitor at monitor.asynym.dev reporting all Azure usage and costs across the tenant (Cost Management query by RG/meter; usage Nov 1-4: functions 0.88 GB-h, tenant ~A$4.80 mostly rg-parlebros-fleet VM + E6 disk). Agency bubble committed f42bf317 (branch, not deployed). Still pending owner: approve nba_props_run 27->72/day to deploy alerts + bubble.
 - 2026-11-04T08:27:50+00:00 b9652955 2026-11-04 DEPLOYED cce33561 (owner approved timer 72/day): Chrome push + Telegram alerts (t.me/AsynymBetBot, token in Function setting TELEGRAM_BOT_TOKEN + scratch telegram.env; owner pasted token in chat -> suggest /revoke later), agency bubble, nba_probe retired. Live: sw.js 200, push card, nba_props_run every 10 min 20-23,0-7 UTC. Owner: follow DC output rules, terse.
 - 2026-11-04T08:32:46+00:00 c28436f0 2026-11-04 alerts moved to header Settings panel (global, every page); Agencies button renamed Settings. Deployed web.
 - 2026-11-04T09:05:17+00:00 6cfe336d 2026-11-04 st1 speed: NBA view staged by Function (view-latest.json.gz, both agencies, 9.6s build), best_stacks one pass + FRONT_CAP 3, racing picks cache, NBA warm-up at start, speculationrules prerender (.act excluded), Server-Timing header.
@@ -141,6 +140,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-08T02:15:12+00:00 b0045fd2 2026-11-08 merged, awaiting deploy: challenge screen v9-3 + live chance (live_chance.py), racing staged load (field first), racing likely engine + Likely/Multis tabs (v10-3), NBA leg labels with stat + game. Owner 4 challenges rebuilt (ch7-10, 3 stages).
 - 2026-11-08T02:50:45+00:00 423d193a 2026-11-08 PRE-COMPACT. Live: Bet now/sports tabs, challenge screen v9-3 + live chance, racing staged load + Likely/Multis tabs, NBA labels, /sports speed fix. Pushed NOT deployed (needs 'approved: deploy web'): multi-game live tracker (label 'Game A: legs; Game B: legs'), discover first-refresh on fresh container. Owner data: challenges ch7-ch14 (A-H) to $250; backups challenges/backup-*.json. TODO: record-bet form multi-game option; All Sports stage planner; sh1 shadow scoreboard; eq1 equivalence; pf1 portfolio planner; racing best-chance vs value verdict choice.
 - 2026-11-08T02:58:17+00:00 05e47901 2026-11-08 NEXT BUILD after compact (owner: lowest token use, Sonnet low or cheaper): challenge list = accordion rows expanding IN PLACE (v9-1 behaviour), no new screen; collapsed row: name, live % chance at right, current leg odds, the row bar = chance fill with % at end AND a game-time-left indicator (bar or text, e.g. 'Q3 4:12 · 18 min left'); expand instantly with saved figures, live numbers fetched after expansion (lazy), collapsed rows poll only a tiny live-% summary endpoint. Also pending owner answers: bonus credits auto-leftover vs one-tap split vs both; review r3 (az4) fix/waive/dismiss; deploy approval for multi-game tracker + discover fresh-container fix (pushed).
+- 2026-11-08T03:02:46+00:00 7c66fa41 2026-11-08 deployed (owner approved): multi-game tracker + discover fresh-container fix (multis built ~1 min after deploy). Owner decisions: bonus credits = AUTOMATIC LEFTOVERS (recording a bonus bet deducts its stake from that bookmaker's credit, rest stays); review r3 = FIX (collector publishes to Blob only, not the GitHub live branch). Do after compact, lowest tokens: (1) challenge accordion rows per earlier log, (2) bonus auto-leftovers, (3) r3 fix.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
