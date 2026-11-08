@@ -36,3 +36,13 @@ Spec: .grok/product-ui/v8/2-bottom-bar.html (layout of screens per v8/1-segmente
 - Games = next games, main line + fair %, tap -> that game's markets and player props.
 - SGM = NBA's same-game multis; other sports an honest state (no measured correlation model yet).
 - All = every market (catalogue), search behind a link.
+
+# Challenge screen lock (owner BUILD 2026-11-08): v9 direction 3 "Opened first"
+Spec: .grok/product-ui/v9/3-opened-first.html.
+- One challenge per screen with big live leg tiles; move between challenges (A, B, C, D...) by tabs/swipe chips.
+- Each challenge shows: current leg odds, current bet chance (ring), % of challenge complete (bar, log of bank growth,
+  labelled), stage blocks.
+- Leg tiles: green = hit, red = failed, orange = in play with a COUNT-UP bar (stat so far vs line; for unders the bar
+  fills toward the limit), grey = not started. Overs can go green mid-game; unders only at full time.
+- Once placed, the chance updates live ("live estimate"): per leg, P(rest of game reaches/stays within the line)
+  from the pre-game market chance scaled by time left; bet = product of live leg chances; 0 when a leg fails.
