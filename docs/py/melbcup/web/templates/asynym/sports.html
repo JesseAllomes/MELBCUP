@@ -244,7 +244,7 @@
 {% if view %}
 {{ catalogue(cat) }}
 {% if sport not in ('nba', 'all') %}{{ cover(hub) }}{% endif %}
-{% elif sport == 'nba' %}
+{% elif sport in ('nba', 'nfl') %}
 {{ super() }}
 {% elif sport == 'home' and sp_tab in ('', 'multis') %}
 {{ bet_now(bn, disc, '', bonus) }}

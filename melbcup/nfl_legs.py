@@ -147,3 +147,43 @@ def same_game(legs: list[dict], target: float, stake: float = 10.0) -> list[dict
 def cross_game(legs: list[dict], target: float, stake: float = 10.0) -> dict | None:
     """The likeliest one-leg-per-game multi paying `target`x or more."""
     return N.stack_for(legs, target, stake)
+
+
+def page_view(now: datetime | None = None) -> tuple[dict, dict]:
+    """(view, report) in the shape the NBA page reads (nba_feed view / nba_legs.report), built
+    from the NFL legs, so /sports?sport=nfl renders the same templates as the NBA tab."""
+    now = now or datetime.now(UTC)
+    legs = [g | {"expected": None, "minutes": None} for g in current_legs(now)]
+    by_event: dict = {}
+    for g in legs:
+        by_event.setdefault(g["event"], g)
+    cross, same = N.stacks(legs, 10.0)
+    ok = [g for g in N._auto(legs) if g["chance"] >= 0.75 and g["ev"] >= 0.03]
+    rep = {
+        "stacks": cross,
+        "stacks_same": [m | {"independent": True} for m in same],
+        "by_game": N.by_game(legs),
+        "day": now.date().isoformat(),
+        "min_chance": 0.75,
+        "min_ev": 0.03,
+        "stake": 10.0,
+        "games_priced": len(by_event),
+        "legs_seen": len(legs),
+        "value_legs": sorted(ok, key=lambda g: -g["chance"]),
+        "all_legs": legs,
+    }
+    games = [
+        {"name": g["game"], "when": g["startsAt"]}
+        for g in sorted(by_event.values(), key=lambda g: g["startsAt"] or "")
+    ]
+    v = {
+        "board": {"games": games, "day": rep["day"]} if games else None,
+        "source": "",
+        "stale": False,
+        "games": len(games),
+        "priced_at": now,
+        "error": None if games else "No NFL player lines in the catalogue yet.",
+        "agencies": {},
+        "report": rep,
+    }
+    return v, rep

@@ -640,7 +640,8 @@ class Views:
         previewing = bool(query.get("chpreview"))
         if opened is None and not previewing:
             return {"ch": None, "ch_step": None}
-        if opened is not None and opened["scope"] != "nba":  # All Sports: legs are typed in
+        page = "nfl" if ctx.get("sport") == "nfl" else "nba"
+        if opened is not None and opened["scope"] != page:  # another sport or All: legs typed in
             run = state if state and state.get("active") is not False else None
             return {
                 "ch": run,
@@ -655,6 +656,7 @@ class Views:
                 "ch_finish": None,
                 "ch_due": None,
                 "ch_night": None,
+                "ch_typed": True,
                 "ch_x": nba_challenge.next_x(run) if run else None,
                 "ch_left": nba_challenge.remaining(run) if run else None,
                 "push_reminders": [],
@@ -1012,7 +1014,27 @@ class Views:
         except Exception:  # the page loads it on first visit instead
             pass
 
-    def _nba_view(self, query: Mapping[str, str]) -> dict:
+    def _nba_view(self, query: Mapping[str, str], sport: str = "nba") -> dict:
+        if sport == "nfl":  # same page, NFL legs (one source, no agency switch)
+            from melbcup import nfl_legs
+
+            v, rep = nfl_legs.page_view()
+            tab = query.get("tab")
+            tab = tab if tab in ("stacks", "challenge", "games", "same", "all") else "stacks"
+            self._nba_pick = None
+            return {
+                "alt_pay": lambda item: None,
+                "nba": v,
+                "nba_us_note": None,
+                "nba_tab": tab,
+                "nba_rep": rep,
+                "nba_games": {},
+                "nba_agency": None,
+                "nba_agency_name": "PointsBet",
+                "nba_chips": [],
+                "nba_agency_games": v["games"],
+                "nba_agency_error": None,
+            }
         try:
             from melbcup.nba_feed import NbaFeed
         except ImportError:  # the phone's offline copy (GitHub Pages) leaves the live NBA code out
@@ -1267,7 +1289,7 @@ class Views:
             if view:  # Best multis' All tab is every sport's markets
                 ctx["cat"] = catalogue_view.query("all" if sport == "home" else sport, view, query)
             ctx["cov_by_sport"] = catalogue_view.coverage() if sport == "all" else {}
-            if sport == "nba" and not view:  # the NBA page's own tab names
+            if sport in ("nba", "nfl") and not view:  # the NBA page's own tab names
                 query = {**query, "tab": {"multis": "stacks", "sgm": "same"}.get(tab, tab)}
             if sport == "home" or (sport not in ("nba", "racing", "all") and not view):
                 from melbcup import discover
@@ -1309,7 +1331,7 @@ class Views:
                     legs_ = nfl_legs.current_legs()
                     for x_ in (2.0, 3.0, 5.0):
                         ctx["sgm"] += nfl_legs.same_game(legs_, x_)[:2]
-            if sport != "nba" or view:
+            if sport not in ("nba", "nfl") or view:
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub
             ctx["path"] = "/sports"
@@ -1318,7 +1340,7 @@ class Views:
             self._agency_left = {a.code: a.left for a in ctx["az"].on} if ctx.get("az") else {}
             t0 = time.perf_counter()
             self._us_on = (query.get("us") or ctx.get("nba_us_cookie")) == "1"
-            ctx.update(self._nba_view(query))
+            ctx.update(self._nba_view(query, "nfl" if ctx.get("sport") == "nfl" else "nba"))
             ctx["nba_us_on"] = self._us_on
             ctx["nba_us_ready"] = bool(os.environ.get("ODDS_API_KEY"))
             self.timing["nba"] = time.perf_counter() - t0

@@ -23,10 +23,11 @@ def c(request, monkeypatch, tmp_path):
 
 
 def test_home_and_sport_render(c):
-    for url in ("/sports", "/sports?sport=nfl", "/sports?sport=football"):
+    for url in ("/sports", "/sports?sport=football"):
         r = c.get(url)
         assert r.status_code == 200, url
         assert "Check now" in r.text
+    assert c.get("/sports?sport=nfl").status_code == 200  # the NBA page, NFL legs
 
 
 def test_status_and_refresh(c):
