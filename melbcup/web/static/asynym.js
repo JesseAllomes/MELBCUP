@@ -414,3 +414,11 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   };
   window.initChallengeAccordion();
 })();
+
+// Edit / New challenge popups (owner, 2026-11-08): the forms live in a <dialog>, opened by a button.
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-dlg]");
+  if (!b) return;
+  var d = document.getElementById(b.getAttribute("data-dlg"));
+  if (d && d.showModal) { if (d.open) d.close(); d.showModal(); }
+});

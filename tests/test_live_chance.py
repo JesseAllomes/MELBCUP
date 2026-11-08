@@ -116,7 +116,7 @@ def test_challenge_page_renders_each_state(name, monkeypatch, tmp_path):
         assert 'class="tile g"' in html and "All legs hit" in html
     if name == "lost":
         assert 'class="tile r"' in html and "Failed" in html and ">0%<" in html
-    assert "Challenge actions" in html and 'value="won"' in html  # actions stay reachable
+    assert ("Challenge actions" in html or "Edit challenge" in html) and 'value="won"' in html  # actions stay reachable
 
 
 def _one(under, now=10, fl=0.2, track_kw=None, **leg_kw):

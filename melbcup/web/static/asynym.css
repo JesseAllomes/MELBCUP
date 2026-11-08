@@ -782,3 +782,8 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .chs-pct{font-weight:700;min-width:3ch;text-align:right}
 .chs-body{padding:4px 12px 12px}
 .chs-body[hidden]{display:none}
+
+.ch-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.ch-dlg{width:min(92vw,520px);max-height:85vh;overflow:auto;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);color:inherit;padding:14px 16px}
+.ch-dlg::backdrop{background:rgba(0,0,0,.6)}
+.ch-dlg-x{float:right;margin:0}.ch-dlg-x button{background:none;border:0;color:inherit;font-size:1.2em;cursor:pointer;padding:2px 6px}

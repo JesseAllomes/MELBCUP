@@ -2,9 +2,12 @@
 {% set OP = '<input type="hidden" name="op" value="' ~ chs.op ~ '">' %}
 {% set cid = chs.open.id if chs.open else '' %}
 {% set more %}
-<details class="chv9-more"{{ '' if (chcard and chcard.placed) else ' open' }}><summary>Challenge actions · list, new, edit, place, results</summary>
-<section class="card chs">
-  <details class="chs-new"{{ " open" if ch_pv else "" }}><summary>+ New challenge</summary>
+<div class="chv9-more">
+<div class="ch-tools">
+  {% if chs.open %}<button type="button" class="ghost" data-dlg="ch-dlg-edit">Edit challenge</button>{% endif %}
+  <button type="button" class="ghost" data-dlg="ch-dlg-new">+ New challenge</button>
+</div>
+<dialog class="ch-dlg" id="ch-dlg-new"{{ ' open' if ch_pv }}><form method="dialog" class="ch-dlg-x"><button aria-label="Close">✕</button></form><div class="vlabel">New challenge</div>
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch">
     <label>Name <input name="chname" maxlength="40" value="{{ ch_pname if ch_pv else '' }}" placeholder="e.g. NBA Props Run"></label>
@@ -18,9 +21,11 @@
     <label class="ch-mode"><input type="radio" name="chmode" value="game" checked> One game per stage</label>
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"> One leg per game</label>
     <button type="submit">Start challenge</button>
-  </form></details>
+  </form>
+</dialog>
+{% if chs.open %}<dialog class="ch-dlg" id="ch-dlg-edit"><form method="dialog" class="ch-dlg-x"><button aria-label="Close">✕</button></form><div class="vlabel">Edit challenge</div>
   {% if chs.open and ch %}
-  <details class="chs-edit"><summary>Edit challenge</summary>
+  <details class="chs-edit" open><summary>Edit challenge</summary>
   <form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
     <label>Name <input name="chname" maxlength="40" value="{{ chs.open.name }}"></label>
@@ -40,7 +45,13 @@
     <button type="submit" name="ch" value="renamech" class="ghost">Rename</button>
     <button type="submit" name="ch" value="rmch" class="ghost">Remove</button></form>
   {% endif %}
-</section>
+  {% if ch and not ch.get('placed') %}
+  <form method="get" action="/sports" class="ch-act ch-legs">
+    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
+    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch.get('legs') == n }}>{{ n }}</option>{% endfor %}</select></label>
+    <button type="submit" name="ch" value="chlegs" class="ghost">Set</button></form>
+  {% endif %}
+</dialog>{% endif %}
 {% if chs.open %}
 <section class="card nba-ch ch-open">
   {% if not ch %}
@@ -77,12 +88,6 @@
   {% if ch_preview[0].typical is not none %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
   <p class="note ch-links">{{ ch.get('stages', 3) }} stages (<a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=dropstage&chs=0">- fewer</a> · <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=addstage&chs=0">+ more</a>)</p>
   </details>
-  {% endif %}
-  {% if not placed %}
-  <form method="get" action="/sports" class="ch-act ch-legs">
-    <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
-    <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch.get('legs') == n }}>{{ n }}</option>{% endfor %}</select></label>
-    <button type="submit" name="ch" value="chlegs" class="ghost">Set</button></form>
   {% endif %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   {% if not ch.get('placed') %}<p class="note ch-links"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% if ch.get('pick') %} · stuck to {{ ch.pick }}{% endif %}</p>{% endif %}
@@ -172,7 +177,7 @@
   <p class="note">Each stage uses the multi most likely to pay that stage's share of the goal, from the market's chances (bookmakers' prices, margin removed); legs in one game are linked, so treat a same-game chance as a guide. Only stake what you are happy to lose.</p>
 </section>
 {% endif %}
-</details>
+</div>
 {% endset %}
 <section class="card chs chs-acc">
   <div class="vlabel">Challenges · {{ chs.list | length }}</div>
