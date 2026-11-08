@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=196 -->
+<!-- drainclamp-build: state; schema=1; generation=198 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -107,8 +107,8 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | sh1 | Prospective shadow scoreboard (owner TEST_PROTOCOL.md): freeze A (current) and B (patched) picks before each slate, settle by ESPN ids, paired CI by date, coverage + skips; no money | tools/;melbcup/;tests/ | pending | pk1 |
 | eq1 | Market equivalence + best executable price across PB/SB (Over N.5 = N+1+, same settlement rules) | melbcup/;tests/ | pending | pk1 |
 | pf1 | Portfolio planner for parallel challenges: maximise P(at least one finishes), shared-leg overlap | melbcup/;tests/ | pending | pk1 |
-| ch2 | Challenge list as accordion rows expanding in place (v9-1 behaviour): collapsed row = name, current leg odds, live % at right, bar fill = chance + game-time-left text; instant expand with saved figures, live fetched lazily; collapsed rows poll a tiny live-% summary endpoint | melbcup/web/;melbcup/nba_challenge.py;tests/ | pending | ui7 |
-| bn1 | Bonus credits automatic leftovers (owner 2026-11-08): recording a bonus bet deducts its stake from that bookmaker's available credit, the remainder stays available | melbcup/wallet.py;melbcup/nba_challenge.py;tests/ | pending |  |
+| ch2 | Challenge list as accordion rows expanding in place (v9-1 behaviour): collapsed row = name, current leg odds, live % at right, bar fill = chance + game-time-left text; instant expand with saved figures, live fetched lazily; collapsed rows poll a tiny live-% summary endpoint | melbcup/web/;melbcup/nba_challenge.py;tests/ | done | ui7 |
+| bn1 | Bonus credits automatic leftovers (owner 2026-11-08): recording a bonus bet deducts its stake from that bookmaker's available credit, the remainder stays available | melbcup/wallet.py;melbcup/nba_challenge.py;tests/ | done |  |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -123,7 +123,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-04T08:32:46+00:00 c28436f0 2026-11-04 alerts moved to header Settings panel (global, every page); Agencies button renamed Settings. Deployed web.
 - 2026-11-04T09:05:17+00:00 6cfe336d 2026-11-04 st1 speed: NBA view staged by Function (view-latest.json.gz, both agencies, 9.6s build), best_stacks one pass + FRONT_CAP 3, racing picks cache, NBA warm-up at start, speculationrules prerender (.act excluded), Server-Timing header.
 - 2026-11-04T09:10:57+00:00 a64ce9f8 2026-11-04 HANDOFF: all live (bet.asynym.dev) via tools/deploy_azure.py (scratch env: azure.env, ghcr.env, vapid.env, telegram.env). Done today: Sportsbet props+agency switch+bubble, challenge (stages 2-8, per night 1|2, 3.5h gap, placed/won/lost money, keep start, new/reset), alerts (Chrome push + Telegram bot, in header Settings), speed (Function-staged view, picks cache, prerender), compact Settings tiles + smaller type, autobet off, kids card removed. NEXT: owner to link Telegram/Chrome alerts and test; owner may /revoke bot token; later: monitor.asynym.dev cost dashboard; SB forward-log settle; mm1/arb1/mkt1 parked.
 - 2026-11-04T10:52:57+00:00 alerts-ondemand 2026-11-04 ALERTS ON DEMAND live (owner approved): web queues each timed reminder on storage queue 'alerts' (hidden till its time, max 40/day) -> Function queue trigger alerts_due sends at once; 10-min timer only backs up missed ones. Test: Telegram direct from web, Chrome via queue (web image lacks cryptography -> webpush lazy import; first deploy crash-looped rev 65, fixed rev 66). Telegram linked by webhook https://bet.asynym.dev/api/telegram (secret header). KV secrets melbcup-vapid-private, melbcup-telegram-bot-token, melbcup-telegram-webhook-secret; web UAI has Storage Queue Data Message Sender on queue alerts. Guard: queue_trigger rule, worst case $24.98. NEXT: owner tests alerts; offer bet-change alerts (scratched/line pulled/price drop on placed stage).
@@ -143,6 +142,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-08T02:58:17+00:00 05e47901 2026-11-08 NEXT BUILD after compact (owner: lowest token use, Sonnet low or cheaper): challenge list = accordion rows expanding IN PLACE (v9-1 behaviour), no new screen; collapsed row: name, live % chance at right, current leg odds, the row bar = chance fill with % at end AND a game-time-left indicator (bar or text, e.g. 'Q3 4:12 · 18 min left'); expand instantly with saved figures, live numbers fetched after expansion (lazy), collapsed rows poll only a tiny live-% summary endpoint. Also pending owner answers: bonus credits auto-leftover vs one-tap split vs both; review r3 (az4) fix/waive/dismiss; deploy approval for multi-game tracker + discover fresh-container fix (pushed).
 - 2026-11-08T03:02:46+00:00 7c66fa41 2026-11-08 deployed (owner approved): multi-game tracker + discover fresh-container fix (multis built ~1 min after deploy). Owner decisions: bonus credits = AUTOMATIC LEFTOVERS (recording a bonus bet deducts its stake from that bookmaker's credit, rest stays); review r3 = FIX (collector publishes to Blob only, not the GitHub live branch). Do after compact, lowest tokens: (1) challenge accordion rows per earlier log, (2) bonus auto-leftovers, (3) r3 fix.
 - 2026-11-08T03:16:52+00:00 2c4305e9 2026-11-08 OWNER STANDING APPROVAL: 'All deploy functions from this moment forward are approved. Stop asking' -> deploy web/function/job without asking. Merged: r3 Blob-only collector (bcb62892), bonus auto-leftovers (cc239805). Owner: failed bets must show as failed (added to ch2 accordion agent).
+- 2026-11-08T03:24:34+00:00 30f247ad 2026-11-08 DEPLOYED (standing approval): function (r3 Blob-only collector) + web (challenge accordion rows w/ live % bar, game time left, failed=red, lazy expand, live.json poll; bonus auto-leftovers). live.json verified 200. Gap: bonus reversal on edit/delete not wired (unuse_leftover exists).
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
