@@ -1254,14 +1254,12 @@ class Views:
                     ctx["games"] = sorted(every, key=lambda g: g.get("start") or "~")[:12]
                 elif tab == "games":
                     ctx["games"] = discover.next_games(sport)
-                if sport == "home":
-                    ctx["rec_games"] = [
-                        g["name"]
-                        for s_ in catalogue_view.coverage()
-                        for g in discover.next_games(s_, 3)
-                    ][:30]
-                else:
-                    ctx["rec_games"] = [g["name"] for g in discover.next_games(sport, 12)]
+                # the record form's game list: names from the small per-sport indexes only, never
+                # the big shards (owner 2026-11-08: /sports took 4.6 s reading every sport's shards)
+                ctx["rec_games"] = discover.upcoming_names(
+                    list(catalogue_view.coverage()) if sport == "home" else [sport],
+                    per_sport=3 if sport == "home" else 12,
+                )
                 ctx["no_feed"] = (
                     catalogue_view.NO_FEED
                     if sport != "home" and not catalogue_view.coverage_line(sport)

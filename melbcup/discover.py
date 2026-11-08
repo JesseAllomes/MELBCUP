@@ -444,7 +444,44 @@ _NOT_MAIN = re.compile(
 )
 
 
+def upcoming_names(sports: list[str], per_sport: int = 3, limit: int = 30) -> list[str]:
+    """Names of the soonest upcoming games per sport, from the small catalogue indexes (cached by
+    catalogue_view): no shard is read, so it is cheap on every request."""
+    from melbcup import catalogue_view as cv
+
+    now = datetime.now(UTC).isoformat()
+    out: list[tuple[str, str]] = []
+    for sp in sports:
+        evs = [
+            e
+            for e in ((cv._index(sp) or {}).get("events") or [])
+            if (e.get("starts_at") or "") > now
+        ]
+        evs.sort(key=lambda e: e.get("starts_at") or "~")
+        out += [
+            (e.get("starts_at") or "~", e.get("event_name") or str(e.get("event_id")))
+            for e in evs[:per_sport]
+        ]
+    out.sort()
+    return [name for _, name in out][:limit]
+
+
+_NEXT_CACHE: dict = {}
+NEXT_TTL_S = 60
+
+
 def next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict]:
+    key = (sport, n)
+    hit = _NEXT_CACHE.get(key)
+    if hit and time.monotonic() - hit[0] < NEXT_TTL_S and now is None:
+        return hit[1]
+    out = _next_games(sport, n, now)
+    if now is None:
+        _NEXT_CACHE[key] = (time.monotonic(), out)
+    return out
+
+
+def _next_games(sport: str, n: int = 8, now: datetime | None = None) -> list[dict]:
     """The next n games of a sport by start: each with its main line (the total, line or
     head-to-head leg closest to 50/50) and how many player props it has. Reads only the
     competition shards those games sit in. Never raises."""
