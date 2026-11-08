@@ -183,15 +183,17 @@ def racelens_snapshot(timer: func.TimerRequest) -> None:
 def nba_props_run(timer: func.TimerRequest) -> None:
     """Every 10 minutes, around the clock (owner, 2026-11-07; was 7am-6:50pm AEDT): push the phone alerts that are due (owner,
     2026-11-04), then NBA player-prop prices from PointsBet and the day's legs (2026-11-03)."""
-    moment, started = now_utc(), time.monotonic()
-    # Alternate slots (owner, 2026-11-08): the catalogue needs a whole run's time budget (soccer did
-    # not fit after the NBA work and the rotation stuck). Alerts go out every run; NBA props on even
-    # 10-minute slots, the catalogue first on odd ones (and with any time left on even ones).
-    odd = (moment.minute // 10) % 2 == 1
-    try:
-        _nba_work(moment, props=not odd)
-    finally:  # a catalogue error never escapes
-        _catalogue_tick(moment, started)
+    _nba_work(now_utc())
+
+
+@app.timer_trigger(
+    schedule="0 5-59/10 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+)
+def catalogue_run(timer: func.TimerRequest) -> None:
+    """The all-sport catalogue on its own timer, 5 minutes after the NBA run, with its own time
+    budget (owner, 2026-11-08: soccer did not fit after the NBA work and the rotation stuck; the
+    extra runs sit inside the free grant, owner approved)."""
+    _catalogue_tick(now_utc(), time.monotonic())
 
 
 def _nba_work(moment: dt.datetime, props: bool = True) -> None:

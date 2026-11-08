@@ -88,20 +88,6 @@ def test_catalogue_error_never_breaks_the_nba_work(fa, monkeypatch):
     assert "catalogue/state.json" not in fa.service.get_container_client("nba").data
 
 
-def test_catalogue_runs_after_nba_work_even_if_it_failed(fa, monkeypatch):
-    order = []
-
-    def bad(moment, props=True):
-        order.append("nba")
-        raise ValueError("nba failed")
-
-    monkeypatch.setattr(fa, "_nba_work", bad)
-    monkeypatch.setattr(fa, "_catalogue_tick", lambda m, s: order.append("catalogue"))
-    with pytest.raises(ValueError):
-        fa.nba_props_run(object())
-    assert order == ["nba", "catalogue"]
-
-
 def test_catalogue_switch_off(fa, monkeypatch):
     calls = []
     monkeypatch.setattr(fa.catalogue, "run_rotation", fake_rotation(calls))
@@ -123,12 +109,9 @@ def test_rotation_saves_cursor_before_each_sport(monkeypatch):
     assert saved == [5]
 
 
-def test_odd_slot_skips_props(fa, monkeypatch):
-    import datetime as dt
 
+def test_catalogue_has_its_own_timer(fa, monkeypatch):
     seen = []
-    monkeypatch.setattr(fa, "now_utc", lambda: dt.datetime(2026, 11, 8, 6, 15, tzinfo=dt.UTC))
-    monkeypatch.setattr(fa, "_nba_work", lambda moment, props=True: seen.append(props))
     monkeypatch.setattr(fa, "_catalogue_tick", lambda m, s: seen.append("cat"))
-    fa.nba_props_run(None)
-    assert seen == [False, "cat"]
+    fa.catalogue_run(None)
+    assert seen == ["cat"]
