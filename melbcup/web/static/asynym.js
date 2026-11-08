@@ -422,3 +422,14 @@ document.addEventListener("click", function (e) {
   var d = document.getElementById(b.getAttribute("data-dlg"));
   if (d && d.showModal) { if (d.open) d.close(); d.showModal(); }
 });
+
+// A popup the server sent already open (after "Best stages") becomes a real modal: on top of the
+// bottom bar and scrollable to its last button (owner, 2026-11-08).
+(function () {
+  document.querySelectorAll("dialog.ch-dlg[open]").forEach(function (d) {
+    if (!d.showModal) return;
+    d.close(); d.showModal();
+    var pv = d.querySelector(".ch-why, .ch-preview");
+    if (pv) pv.scrollIntoView({ block: "nearest" });
+  });
+})();
