@@ -27,7 +27,7 @@ CODES = [
     "other",
     "all",
 ]
-UNPRICED = [c for c in CODES if c not in ("nba", "racing", "other", "all")]
+UNPRICED = [c for c in CODES if c not in ("nba", "nfl", "racing", "other", "all")]
 
 
 @pytest.fixture

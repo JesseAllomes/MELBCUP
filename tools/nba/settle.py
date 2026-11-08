@@ -193,6 +193,10 @@ def find_player(g: dict, game: dict, slate: Slate | None = None) -> tuple[dict |
 
 
 def settle_one(g: dict, slate: Slate, now: datetime, day: str) -> dict:
+    if g.get("sport") == "nfl":  # NFL legs: the same event + athlete settlement (melbcup.nfl_settle)
+        from melbcup import nfl_settle
+
+        return nfl_settle.settle_leg(g, now)
     if not (g.get("startsAt") and g.get("game")):  # legacy leg: the log's own day, by name
         return settle([g], slate.day_rows(day))[0]
     start = datetime.fromisoformat(g["startsAt"].replace("Z", "+00:00"))

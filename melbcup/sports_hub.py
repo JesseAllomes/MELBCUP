@@ -88,14 +88,14 @@ SPORTS: tuple[Sport, ...] = (
     Sport(
         "nfl",
         "NFL",
-        False,
-        "",
-        (),
+        True,
+        "PointsBet",
+        ("player props", "lines", "totals", "multis"),
         (),
         "/data/sports/nfl/",
         "games 1999-2026 with closing moneyline, spread and total",
         "Nothing beats the market on the 2025 hold-out; the published model is the no-vig market.",
-        "No live prices yet. No free player-prop history exists.",
+        "Player props are priced from the market alone (no NFL player model). No free player-prop history exists.",
     ),
     Sport(
         "nhl",

@@ -15,7 +15,7 @@ import urllib.request
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from melbcup import live_chance
+from melbcup import live_chance, nfl_live
 
 API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 UA = "Mozilla/5.0 (compatible; asynymbet)"
@@ -100,7 +100,7 @@ def label_day(label: str) -> str | None:
     return "".join(g for g in m.groups() if g)
 
 
-def _event(game: str, now: datetime, fetch=None, day: str | None = None) -> str | None:
+def _event(game: str, now: datetime, fetch=None, day: str | None = None, api: str = API) -> str | None:
     """The one ESPN game with these teams: on the bet's own date when it has one, else today or
     yesterday (US). Zero or several matches: None, never a guess."""
     want = set(norm(game.replace(" @ ", " ").replace(" at ", " ")).split())
@@ -110,7 +110,7 @@ def _event(game: str, now: datetime, fetch=None, day: str | None = None) -> str 
     days = [day] if day else [f"{d:%Y%m%d}" for d in (us, us - timedelta(days=1))]
     hits = []
     for d in days:
-        for e in _get(f"{API}/scoreboard?dates={d}", fetch).get("events", []):
+        for e in _get(f"{api}/scoreboard?dates={d}", fetch).get("events", []):
             have = set(norm(e.get("name", "").replace(" at ", " ")).split())
             if want <= have and e["id"] not in hits:
                 hits.append(e["id"])
@@ -189,22 +189,24 @@ def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | No
     today or yesterday). A leg is won as soon as an over reaches its line, failed as soon as an
     under passes it; otherwise it is decided at full time. The bet's verdict only at full time
     ("post"): won, lost1 (exactly one leg failed: a 'money back if one leg fails' bet), lost."""
-    game, legs = parse(label)
+    nfl = nfl_live.is_nfl(label)  # routed by the game's teams / the legs' stats (NFL: nfl_live)
+    api = nfl_live.API if nfl else API
+    game, legs = nfl_live.parse(label) if nfl else parse(label)
     day = label_day(label)
     game = DATE.sub("", game).strip(" ,-()") if day else game
     if not game or not legs:
         return None
     now = now or datetime.now(UTC)
     try:
-        eid = _event(game, now, fetch, day)
+        eid = _event(game, now, fetch, day, api)
         if eid is None:
             return None
-        summary = _get(f"{API}/summary?event={eid}", fetch)
+        summary = _get(f"{api}/summary?event={eid}", fetch)
     except (OSError, ValueError, KeyError):
         return None
     status = (summary.get("header", {}).get("competitions") or [{}])[0].get("status", {})
     state = status.get("type", {}).get("state", "pre")
-    box = _box(summary)
+    box = nfl_live.box(summary) if nfl else _box(summary)
     out, failed = [], 0
     for g in legs:
         v = (box.get(norm(g["player"])) or {}).get(g["stat"])
@@ -242,12 +244,14 @@ def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | No
         margin = abs(sc[0] - sc[1]) if len(sc) == 2 else None
     except (TypeError, ValueError):
         pass
+    frac = (nfl_live.frac_left if nfl else live_chance.frac_left)(state, period, clock_s)
     return {
         "state": state,
+        "sport": "nfl" if nfl else "nba",
         "margin": margin,
         "period": period,
         "clock_s": clock_s,
-        "frac_left": live_chance.frac_left(state, period, clock_s),
+        "frac_left": frac,
         "starts_at": starts,  # UTC ISO as ESPN gives it
         "clock": clock,
         "legs": out,

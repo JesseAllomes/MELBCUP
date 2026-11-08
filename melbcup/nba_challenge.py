@@ -614,7 +614,7 @@ def next_x(state: dict) -> float:
 
 WALLET_ACTS = ("wgrant", "wsplit", "walloc", "wrel", "wred", "wexp")
 STORE_BLOB = "challenges/state.json"
-SCOPES = ("nba", "all")
+SCOPES = ("nba", "all", "nfl")
 MAX_OPS = 200
 MAX_WAGERS = 200
 _CACHE: list = [0.0, None]  # [loaded at, store]: one page makes several reads
@@ -740,7 +740,7 @@ def contract(rec: dict) -> dict:
         "name": rec["name"],
         "scope": {
             "mode": "all_sports" if rec["scope"] == "all" else "single_sport",
-            "sports": [] if rec["scope"] == "all" else ["nba"],
+            "sports": [] if rec["scope"] == "all" else [rec["scope"]],
         },
         "status": status(rec),
         "start_cash_cents": round(s["start"] * 100),
