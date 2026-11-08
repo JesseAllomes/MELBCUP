@@ -641,7 +641,8 @@ class Views:
         if opened is None and not previewing:
             return {"ch": None, "ch_step": None}
         page = "nfl" if ctx.get("sport") == "nfl" else "nba"
-        if opened is not None and opened["scope"] != page:  # another sport or All: legs typed in
+        if opened is not None and opened["scope"] != page and not previewing:  # another sport or All: legs typed in
+            # (a "Best stages" preview for a new challenge on this page is never blocked by it)
             run = state if state and state.get("active") is not False else None
             return {
                 "ch": run,
@@ -663,6 +664,8 @@ class Views:
             }
         if state is not None and state.get("active") is False:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
+        if previewing and opened is not None and opened["scope"] != page:
+            state = None  # previewing a new challenge: never pick (or save) a stage for the other sport's run
         legs_now = (ctx["nba_rep"] or {}).get("all_legs") or []
         want = (state or {}).get("legs") or nba_challenge._legs(query.get("chlegs"))
         lim = {"min_legs": want, "max_legs": want} if want else {}
