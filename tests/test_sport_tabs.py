@@ -64,11 +64,11 @@ def test_non_nba_sgm_is_honest(c):
     assert "Same-game multis need a measured correlation model" in t and "NBA only for now" in t
 
 
-def test_challenge_tab_creates_an_all_sports_challenge(c):
+def test_challenge_tab_creates_an_nfl_challenge(c):
     t = c.get("/sports?sport=nfl&tab=challenge").text
     assert "+ Add a bonus credit" in t and "+ New challenge" in t
     made = c.get(
-        "/sports?sport=nfl&tab=challenge&ch=newch&chscope=all&chname=Run&chstart=10&chgoal=100&chn=3"
+        "/sports?sport=nfl&tab=challenge&ch=newch&chscope=nfl&chname=Run&chstart=10&chgoal=100&chn=3"
     )
     assert made.status_code == 200
     assert "Run" in made.text
@@ -105,14 +105,14 @@ def test_pick_for_price_at_least_target():
     assert discover.pick_for(99, None, None, d)["pick"] is None
 
 
-def test_all_sports_challenge_on_nba_tab_shows_suggestion(c, monkeypatch):
+def test_all_sports_challenge_on_the_afl_hub_tab_shows_suggestion(c, monkeypatch):
     monkeypatch.setattr(discover, "latest", lambda wait=False: _synthetic_disc())
-    c.get("/sports?sport=nba&tab=challenge&ch=newch&chscope=all&chname=Run&chstart=10&chgoal=100&chn=3")
-    page = c.get("/sports?sport=nba&tab=challenge").text
+    c.get("/sports?sport=afl&tab=challenge&ch=newch&chscope=all&chname=Run&chstart=10&chgoal=100&chn=3")
+    page = c.get("/sports?sport=afl&tab=challenge").text
     import re
 
     cid = re.search(r"chid=([\w-]+)", page).group(1)
-    t = c.get(f"/sports?sport=nba&tab=challenge&chid={cid}").text
+    t = c.get(f"/sports?sport=afl&tab=challenge&chid={cid}").text
     assert "no suggestion" not in t
     assert "I placed this" in t and "Team0 to win" in t
 
