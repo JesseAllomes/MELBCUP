@@ -305,6 +305,26 @@ def test_a_picked_game_sticks_until_find_best():
     assert "pick" not in placed  # the next stage starts from the best again
 
 
+def test_shown_pick_sticks_until_best_or_place(tmp_path, monkeypatch):
+    monkeypatch.setattr(C, "_local_path", lambda: tmp_path / "c.json")
+    monkeypatch.delenv("NBA_ACCOUNT", raising=False)
+    store = C.empty_store()
+    run = C.apply(None, {"ch": "start", "chn": "3"}, DAY)
+    store["challenges"].append({"id": "ch1", "name": "t", "scope": "nba", "state": run})
+    C.save(store)
+    first = {"stage": 0, "at": "2026-11-07T01:00:00+00:00", "step": {"game": "A @ B", "price": 2.0}}
+    C.freeze("ch1", run, "shown", first)
+    again = {"stage": 0, "at": "later", "step": {"game": "C @ D", "price": 3.0}}
+    saved = C.find(C.load(fresh_read=True), "ch1")["state"]
+    C.freeze("ch1", saved, "shown", again)  # prices moved: the first pick is kept
+    saved = C.find(C.load(fresh_read=True), "ch1")["state"]
+    assert C.shown_for(saved)["step"]["game"] == "A @ B"
+    assert C.shown_for(C.apply(saved, {"ch": "best", "chs": "0"}, DAY)) is None
+    placed = C.apply(saved, {"ch": "place", "chs": "0", "chp": "2.0", "chl": "A @ B: x"}, DAY)
+    assert "shown" not in placed and placed["placed"]["label"] == "A @ B: x"
+    assert C.shown_for(saved | {"steps": [{}]}) is None  # a new stage starts unfrozen
+
+
 # --- many challenges, wallet, promos, recorded wagers (2026-11-07) -------------------------------
 import json  # noqa: E402
 

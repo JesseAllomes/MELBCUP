@@ -103,6 +103,41 @@ def fresh(
     }
 
 
+SHOWN_KEYS = ("shown", "shown_sug")
+
+
+def _unshown(state: dict) -> dict:
+    """The state without the stage's frozen suggestion, so the next view picks afresh."""
+    return {k: v for k, v in state.items() if k not in SHOWN_KEYS}
+
+
+def shown_for(state: dict | None, key: str = "shown") -> dict | None:
+    """The suggestion frozen for the current, unplaced stage (owner, 2026-11-07: a stage's chosen
+    bet sticks until "Find best multi for this leg", a pick, or placing it)."""
+    sh = (state or {}).get(key)
+    if sh and sh.get("stage") == len((state or {}).get("steps", [])) and not state.get("placed"):
+        return sh
+    return None
+
+
+def freeze(cid: str | None, state: dict, key: str, shown: dict) -> None:
+    """Remember the suggestion first shown for this stage: idempotent (an existing frozen pick for
+    the stage is never overwritten), one small write, and silent if the store is unavailable."""
+    if shown_for(state, key):
+        return
+    state[key] = shown
+    try:
+        store = load()
+        rec = find(store, cid)
+        st = rec["state"] if rec else None
+        if st is None or st.get("placed") or shown_for(st, key) or len(st.get("steps", [])) != shown["stage"]:
+            return
+        st[key] = shown
+        save(store)
+    except Exception:  # a failed freeze only means the next view picks again
+        pass
+
+
 def _again(state: dict, **extra) -> dict:
     """A new run with the same settings, history and bet log."""
     return (
@@ -172,16 +207,16 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     if query.get("chs") != str(len(state["steps"])):
         return state  # a reload of an action already counted
     if act == "chlegs":  # legs per multi, any time before the stage is placed
-        return state | {"legs": _legs(query.get("chlegs"))} if not state.get("placed") else state
+        return _unshown(state) | {"legs": _legs(query.get("chlegs"))} if not state.get("placed") else state
     if act == "skip":  # a weak night: this stage waits for a later one (owner, 2026-11-05)
         night_ = str(query.get("chnight") or "")
         if state.get("placed") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", night_):
             return state
         return state | {"skip": max(night_, state.get("skip") or "")}
     if act == "pick":  # stick to this game for the stage (owner, 2026-11-06)
-        return state | {"pick": str(query.get("chpick") or "")[:80]} if not state.get("placed") else state
+        return _unshown(state) | {"pick": str(query.get("chpick") or "")[:80]} if not state.get("placed") else state
     if act == "best":  # back to the best multi on the current prices
-        return {k: v for k, v in state.items() if k != "pick"}
+        return {k: v for k, v in _unshown(state).items() if k != "pick"}
     if act in ("addstage", "dropstage"):  # change the plan mid-run (owner, 2026-11-05)
         n = state.get("stages", DEFAULT_STAGES) + (1 if act == "addstage" else -1)
         done = len(state["steps"]) + (1 if state.get("placed") else 0)
@@ -224,7 +259,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
         }
         if state.get("bonus") or query.get("chbonus") == "1":  # staked with a bonus bet
             bet["bonus"] = 1
-        rest = {k: v for k, v in state.items() if k not in ("bonus", "pick")}
+        rest = {k: v for k, v in state.items() if k not in ("bonus", "pick", *SHOWN_KEYS)}
         return rest | {"placed": bet, "bets": (state.get("bets", []) + [bet])[-MAX_BETS:]}
     if not state.get("placed"):
         return state  # mark the stage as placed first

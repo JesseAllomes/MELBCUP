@@ -189,6 +189,7 @@
       {% elif ch_sug %}{% set p = ch_sug.band.pick %}
       <div class="top">{{ ring(p.p_all, 64) }}<div><b class="pp">${{ '%.2f' % p.price }}</b><small class="fine"></small></div></div>
       <article class="pc one"><span class="rl">Suggested bet · picked for you</span>
+        {% if ch_sug_at %}<p class="fine">Prices as of {{ ch_sug_at | iso_time }}.{% if ch_sug_live and ch_sug_live.band and ch_sug_live.band.pick %} Now ${{ '%.2f' % ch_sug_live.band.pick.price }}. <a href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% endif %}</p>{% endif %}
         <ul>{% for g in p.legs %}<li class="lc"><b>{{ g.label }}</b><span class="lp">{{ '%.2f' % g.price }}</span><small>{{ g.start | iso_time }} · {{ g.event }} · {{ '%.0f' % (g.p * 100) }}%</small></li>{% endfor %}</ul>
         <div class="why4"><span class="rl">Why this bet</span><div class="w4g">
           <div><small>Chance</small><b>{{ '%.0f' % (p.p_all * 100) }}% gets up</b></div>

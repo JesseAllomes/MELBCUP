@@ -495,9 +495,26 @@ class Views:
         out["chs"] = sub["chs"]
         out["ch_state"] = sub["ch_state"]
         out["ch_tl"] = self._stage_timeline(out.get("ch"), out.get("ch_x"))
-        out["ch_sug"] = self._stage_pick(
+        sug = self._stage_pick(
             disc, sport, out.get("ch_x"), (out.get("ch") or {}).get("legs")
         ) if out["ch_tl"] else None
+        st = out.get("ch")
+        out["ch_sug_live"] = None
+        out["ch_sug_at"] = None
+        if st and not st.get("placed") and out["ch_tl"]:
+            from melbcup import nba_challenge
+
+            sh = nba_challenge.shown_for(st, "shown_sug")
+            if sug and not sh:
+                sh = {"stage": len(st["steps"]), "at": datetime.now(UTC).isoformat(), "sug": sug}
+                cid = (opened or {}).get("id")
+                nba_challenge.freeze(cid, st, "shown_sug", sh)
+            if sh:
+                if sug and sh["sug"] != sug:
+                    out["ch_sug_live"] = sug
+                sug = sh["sug"]
+                out["ch_sug_at"] = sh["at"]
+        out["ch_sug"] = sug
         return out
 
     @staticmethod
@@ -575,6 +592,7 @@ class Views:
         )
         best, why = nba_challenge.recommend(preview) if preview else (None, "")
         step, games, wait, push, alt_agency = None, [], None, [], None
+        live_step = None
         if state is not None:
             x = nba_challenge.next_x(state)
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
@@ -588,6 +606,16 @@ class Views:
                 alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"], **lim)
+            sh = nba_challenge.shown_for(state)
+            if step and not sh:
+                at = datetime.now(UTC).isoformat()
+                sh = {"stage": len(state["steps"]), "at": at, "step": step}
+                cid = ((ctx.get("chs") or {}).get("open") or {}).get("id")
+                nba_challenge.freeze(cid, state, "shown", sh)
+            if sh and step:
+                if sh["step"] != step:
+                    live_step = step
+                step = sh["step"]
             earliest, not_night = nba_challenge.next_window(state)
             if not step and (earliest or not_night):
                 wait = {"after": earliest, "night": not_night}
@@ -648,6 +676,8 @@ class Views:
             "push_reminders": push,
             "ch": state,
             "ch_step": step,
+            "ch_live": live_step,
+            "ch_shown_at": ((state or {}).get("shown") or {}).get("at") if step else None,
             "ch_alt_agency": alt_agency,
             "ch_games": games,
             "ch_preview": preview,
