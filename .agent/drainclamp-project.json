@@ -89,7 +89,7 @@
     ]
   },
   "errors": [],
-  "rev": 53,
+  "rev": 54,
   "review": {
     "advice": [],
     "config": {
@@ -5111,6 +5111,14 @@
       "id": "t3",
       "milestone": "",
       "text": "MERGE+REDESIGN (owner 2026-11-03): merge best of RaceLens into MELBCUP with a brand-new redesign. H2H done (research/RACELENS_H2H.md): keep MELBCUP chances; take RaceLens coverage (all meetings), sources/verification, scratchings checks, tote dividends, fair-price floor text. Owner to pick scope before build."
+    },
+    {
+      "at": "2026-11-08T20:13:42+00:00",
+      "done": false,
+      "done_at": null,
+      "id": "t4",
+      "milestone": "",
+      "text": "NFL token-free refresh in job: tools/nfl means weekly + blend_fit when outcomes accrue (owner yes, after page is right)"
     }
   ],
   "tokens": null
