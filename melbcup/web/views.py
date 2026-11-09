@@ -542,6 +542,35 @@ def challenges_live(store, now=None) -> dict:
     return out
 
 
+def _scope_chs(chs, ch_state, page, chid):
+    """This page's challenges only (NBA page: scope nba; NFL page: scope nfl). The opened one is
+    the requested chid when it is this page's, else the newest of this page's, else none."""
+    if not chs:
+        return chs, ch_state
+    mine = [it for it in chs["list"] if it["rec"]["scope"] == page]
+    opened = chs.get("open")
+    if not opened or opened["scope"] != page or (chid and opened["id"] != chid):
+        opened = next((it["rec"] for it in mine if it["rec"]["id"] == chid), None)
+        opened = opened or (mine[-1]["rec"] if mine else None)
+    out = {
+        **chs,
+        "list": mine,
+        "open": opened,
+        "wagers": [
+            w
+            for w in chs.get("wagers", [])
+            if opened and (opened["id"] == w["challenge"] or opened["id"] in w["refs"])
+        ],
+    }
+    if opened is None:
+        out["open_status"] = None
+    elif opened["id"] != (chs.get("open") or {}).get("id"):
+        from melbcup import nba_challenge
+
+        out["open_status"] = nba_challenge.status(opened)
+    return out, (opened["state"] if opened else None)
+
+
 def _own_bets(state, today) -> list[dict]:
     try:
         from melbcup import nba_challenge
@@ -666,9 +695,14 @@ class Views:
             state = None  # no run on: the start screen (history and bets stay in the cookie)
         if previewing and opened is not None and opened["scope"] != page:
             state = None  # previewing a new challenge: never pick (or save) a stage for the other sport's run
+        ch_url = "/sports?sport=nfl&tab=challenge" if page == "nfl" else "/nba?tab=challenge"
         legs_now = (ctx.get("nba_rep") or {}).get("all_legs") or []
-        want = (state or {}).get("legs") or nba_challenge._legs(query.get("chlegs"))
-        lim = {"min_legs": want, "max_legs": want} if want else {}
+        own = {} if previewing else (state or {})  # a preview is for the NEW challenge's form values
+        want = own.get("legs") or nba_challenge._legs(query.get("chlegs"))
+        # the stage plan follows the mode chosen in the form (a started run keeps its own)
+        mode = own.get("mode") or ("multi" if query.get("chmode") == "multi" else "game")
+        run_want = (state or {}).get("legs") or want
+        lim = {"min_legs": run_want, "max_legs": run_want} if run_want else {}
         p_start = nba_challenge._money(query.get("chstart")) or 10.0
         p_goal = max(nba_challenge._money(query.get("chgoal")) or 1000.0, p_start * 2)
         p_keep = query.get("chkeep", "1") == "1" if (query.get("chplan") or previewing) else True
@@ -676,7 +710,9 @@ class Views:
         if state is not None and fresh_run and not previewing:  # a just-created run
             p_start, p_goal, p_keep = state["start"], state["goal"], state.get("keep", True)
         preview = (
-            self._stage_preview(legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep, want)
+            self._stage_preview(
+                legs_now, nba_challenge, nba_legs, p_start, p_goal, p_keep, want, mode
+            )
             if fresh_run
             else []
         )
@@ -718,7 +754,7 @@ class Views:
                         "n": n,
                         "t": due.isoformat(),
                         "label": f"Stage {n} result due",
-                        "href": "/nba?tab=challenge",
+                        "href": ch_url,
                         "alert": 0,
                     }
                 )
@@ -728,7 +764,7 @@ class Views:
                         "n": n,
                         "t": step["startsAt"],
                         "label": f"Stage {n} tips off",
-                        "href": "/nba?tab=challenge",
+                        "href": ch_url,
                         "alert": 900,
                     }
                 )
@@ -741,7 +777,7 @@ class Views:
                             "at": when.isoformat(),
                             "title": f"Stage {n} result due",
                             "body": "Mark it won or lost and the next stage is ready.",
-                            "url": "/nba?tab=challenge",
+                            "url": ch_url,
                         }
                     )
                 else:
@@ -751,7 +787,7 @@ class Views:
                             "at": (when - timedelta(minutes=15)).isoformat(),
                             "title": f"Stage {n} tips off in 15 min",
                             "body": f"{game}: place it now.",
-                            "url": "/nba?tab=challenge",
+                            "url": ch_url,
                         }
                     )
             now = datetime.now(UTC)
@@ -778,6 +814,7 @@ class Views:
             if (state and step and nba_challenge._when(step.get("startsAt")))
             else None,
             "ch_why": why,
+            "ch_mode": mode,
             "ch_plan": {"start": p_start, "goal": p_goal, "keep": p_keep, "legs": want},
             "ch_wait": wait,
             "ch_finish": nba_challenge.finish_chance(
@@ -969,21 +1006,27 @@ class Views:
         return None
 
     def _stage_preview(
-        self, legs, nba_challenge, nba_legs, start=10.0, goal=1000.0, keep=True, want=None
+        self,
+        legs,
+        nba_challenge,
+        nba_legs,
+        start=10.0,
+        goal=1000.0,
+        keep=True,
+        want=None,
+        mode="game",
     ):
         """The set-up table for this start and goal (nba_challenge.plan): per stage count, the
         payout a stage, tonight's best and typical stage chance and the run's. Kept per lines and
         goal, so only a new goal does the search (about a second)."""
-        key = (id(legs), len(legs), round(goal / start, 3), keep, want)
+        key = (id(legs), len(legs), round(goal / start, 3), keep, want, mode)
         cache = self.__dict__.setdefault("_plan_cache", {})
         if key not in cache:
 
             def chances_for(xmap):
-                many = nba_legs.same_game_many(
-                    legs,
-                    list(set(xmap.values())),
-                    **({"min_legs": want, "max_legs": want} if want else {}),
-                )
+                lim = {"min_legs": want, "max_legs": want} if want else {}
+                find = nba_legs.stacks_many if mode == "multi" else nba_legs.same_game_many
+                many = find(legs, list(set(xmap.values())), **lim)
                 return {n: [g["chance"] for g in many[x]] for n, x in xmap.items()}
 
             if len(cache) > 8:
@@ -1344,6 +1387,12 @@ class Views:
             t0 = time.perf_counter()
             self._us_on = (query.get("us") or ctx.get("nba_us_cookie")) == "1"
             ctx.update(self._nba_view(query, "nfl" if ctx.get("sport") == "nfl" else "nba"))
+            ctx["chs"], ctx["ch_state"] = _scope_chs(
+                ctx.get("chs"),
+                ctx.get("ch_state"),
+                "nfl" if ctx.get("sport") == "nfl" else "nba",
+                query.get("chid"),
+            )
             ctx["nba_us_on"] = self._us_on
             ctx["nba_us_ready"] = bool(os.environ.get("ODDS_API_KEY"))
             self.timing["nba"] = time.perf_counter() - t0
