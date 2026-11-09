@@ -103,7 +103,12 @@ def label_day(label: str) -> str | None:
 def _event(game: str, now: datetime, fetch=None, day: str | None = None, api: str = API) -> str | None:
     """The one ESPN game with these teams: on the bet's own date when it has one, else today or
     yesterday (US). Zero or several matches: None, never a guess."""
-    want = set(norm(game.replace(" @ ", " ").replace(" at ", " ")).split())
+    # matched on each team's nickname (owner, 2026-11-09: "Los Angeles Clippers" in the label vs
+    # ESPN's "LA Clippers" lost the game and the live numbers stopped)
+    sides = re.split(r" @ | at | vs\.? | v ", game)
+    want = {w[-1] for w in (norm(s).split() for s in sides) if w}
+    if len(want) < 2:
+        want = set(norm(game.replace(" @ ", " ").replace(" at ", " ")).split())
     if not want:
         return None
     us = now.astimezone(NY)  # the US (New York, DST-correct) date

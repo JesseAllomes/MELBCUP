@@ -30,3 +30,15 @@ def test_two_games_merge(monkeypatch):
 def test_one_game_label_unchanged(monkeypatch):
     monkeypatch.setattr(L, "_track_one", lambda label, now=None, fetch=None: _one("pre", []))
     assert L.track("Houston Rockets @ Phoenix Suns: A 10+ Points")["state"] == "pre"
+
+
+def test_event_matches_on_team_nicknames():
+    """'Los Angeles Clippers' in a label must find ESPN's 'New Orleans Pelicans at LA Clippers'."""
+    from datetime import datetime, UTC
+    from melbcup import nba_live
+
+    board = {"events": [{"id": "1", "name": "New Orleans Pelicans at LA Clippers"},
+                        {"id": "2", "name": "New Orleans Pelicans at Golden State Warriors"}]}
+    eid = nba_live._event("New Orleans Pelicans @ Los Angeles Clippers", datetime(2026, 11, 9, 6, tzinfo=UTC),
+                          fetch=lambda url: board, day="20261108")
+    assert eid == "1"
