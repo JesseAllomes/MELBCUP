@@ -51,7 +51,7 @@ def test_nfl_challenge_tab_is_the_nba_accordion(c):
     html = c.get("/sports?sport=nfl&tab=challenge").text
     assert "chs-list" in html
     assert "PICKED FOR YOU" not in html
-    assert 'name="chscope" value="nfl"' in html
+    assert '<option value="nfl" selected>' in html
 
 
 def test_nfl_multis_use_the_nba_slip_markup(c):
@@ -69,6 +69,6 @@ def test_nfl_games_sgm_all_render_the_nba_templates(c):
 
 def test_nba_pages_unchanged_and_other_sports_keep_the_hub(c):
     assert c.get("/sports?sport=nba&tab=challenge").status_code == 200
-    assert 'name="chscope" value="nba"' in c.get("/sports?sport=nba&tab=challenge").text
+    assert 'option value="nba" selected' in c.get("/sports?sport=nba&tab=challenge").text
     afl = c.get("/sports?sport=afl&tab=challenge").text
     assert "Player 0" not in afl
