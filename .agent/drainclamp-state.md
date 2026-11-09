@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=208 -->
+<!-- drainclamp-build: state; schema=1; generation=209 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -125,7 +125,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-07T13:37:18+00:00 f09fccf1 2026-11-07 ui7 round 2 (v6 A-D, mix of 1+2+4, bet+why visual) sent, waiting owner pick; dz1 follow-up: research upper-limit counterexample fixed (two-sided fronts per bin, 300 narrow ranges = brute force, 18 s); further-research pack read: alt-line count curves (P1), quote ages, accepted prices -> sh1/eq1
 - 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
 - 2026-11-07T14:09:38+00:00 d95792cc 2026-11-07 ui7 built (Haiku step 1, then Sonnet low per owner): v7-3 home + sport pages + next games (full-game main line) + status/refresh + progress bar/toast + challenge tab cleaned; merged to branch 4d4c00c1, tests pass; awaiting owner deploy approval. pk1 (rb2-picker) still awaiting review/merge.
 - 2026-11-07T14:23:40+00:00 4aa76261 2026-11-07 ui7 deployed (owner approved): live /sports Bet now; first compute after deploy ~3 min, pages ~1 s; status endpoint live. Next: pk1 review, then sh1 shadow scoreboard.
@@ -145,6 +144,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-08T23:27:14+00:00 8785d98d 2026-11-08 nfl2 deployed + verified live (Playwright): NFL tabs no NBA names, NFL challenge list own-sport only, new-challenge fixed to NFL, preview honours start/goal/mode (game: best 2 @1.6%, multi: best 3 @1.9% for $10->$250), Stages pre-set; popups fit screen. Not done: chplan when run exists.
 - 2026-11-09T06:45:00+00:00 803732be 2026-11-09 FIX deployed: nba_live._event matches on team nicknames (label 'Los Angeles Clippers' vs ESPN 'LA Clippers' -> C stuck 'in play 38%' all afternoon). C now final: Derik Queen 3 ast (Under 2.5) failed, Hachimura hit.
 - 2026-11-09T08:05:05+00:00 bd23b266 2026-11-09 NFL: catalogue 8-day window (14 games); game-line legs (Moneyline 2-way, spread, full-game totals) priced from own pair only, verified chance*price 0.85-1.0 on 1,908 live legs + live page (46% @ $2.00). Incident: first agent version paired lines via prop code (85% on $1.20/$2.20 wins) -> pulled within minutes; a bad git revert briefly undid part of NFL/NBA separation on live (restored, verified).
+- 2026-11-09T09:31:05+00:00 4e19afbd 2026-11-09 OWNER POLICY (restated): never use head-to-head in automatic picks, any sport (wins less often than priced). Applied: discover.leg_of all sports, NFL legs = props + spreads + full-game totals. Deployed, live NFL page verified (no 'to win').
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
