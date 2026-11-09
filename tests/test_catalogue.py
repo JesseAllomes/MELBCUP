@@ -367,7 +367,8 @@ def test_competition_error_listed():
 
 
 def test_window_excludes_far_events_and_listing_dedupes():
-    w, res = run(World(starts=LATE))
+    daily = [k for k in C.SPORT_KEYS if k not in C.SPORT_HOURS]  # NFL/NCAAF look a week ahead
+    w, res = run(World(starts=LATE), keys=daily)
     assert res["stats"]["event_calls"] == 0 and res["stats"]["events_in_window"] == 0
     w2, res2 = run(keys=["nba"])
     assert (
