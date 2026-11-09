@@ -35,6 +35,20 @@ def settle_leg(g: dict, now: datetime | None = None, fetch=None) -> dict:
     comp = (summary.get("header", {}).get("competitions") or [{}])[0]
     if comp.get("status", {}).get("type", {}).get("state") != "post":
         return g | {"result": "pending", "actual": None, "why": "not final", "espn_event": eid}
+    if g.get("stat") in ("win", "spread", "total"):  # a game line: from the final score
+        sc = nfl_live.scores(comp)
+        if sc is None:
+            return g | {"result": "unresolved", "actual": None, "why": "no score", "espn_event": eid}
+        a, h = sc["away"][1], sc["home"][1]
+        away = bool(g.get("under"))  # win / spread: the leg's side is the away team
+        if g["stat"] == "total":
+            actual = a + h
+            adj = (g["line"] - actual) if g.get("under") else (actual - g["line"])
+        else:
+            actual = a - h if away else h - a
+            adj = actual + ((g["line"] if away else -g["line"]) if g["stat"] == "spread" else 0)
+        res = "void" if adj == 0 else ("won" if adj > 0 else "lost")
+        return g | {"result": res, "actual": actual, "espn_event": eid}
     row = nfl_live.box(summary).get(nfl_live.norm(g["player"]))
     if row is None:
         return g | {"result": "void", "actual": None, "why": "did not play", "espn_event": eid}

@@ -213,7 +213,13 @@ def _track_one(label: str, now: datetime | None = None, fetch=None) -> dict | No
     state = status.get("type", {}).get("state", "pre")
     box = nfl_live.box(summary) if nfl else _box(summary)
     out, failed = [], 0
+    sc = nfl_live.scores((summary.get("header", {}).get("competitions") or [{}])[0]) if nfl else None
     for g in legs:
+        if g.get("gl"):  # an NFL game line: from the score, never the box
+            v, ok, _push = nfl_live.gl_eval(g, sc, state == "post") if sc else (None, None, False)
+            failed += ok is False
+            out.append(g | {"now": v, "ok": ok})
+            continue
         v = (box.get(norm(g["player"])) or {}).get(g["stat"])
         if v is None:
             ok = False if state == "post" else None  # did not play: a void at the bookmaker

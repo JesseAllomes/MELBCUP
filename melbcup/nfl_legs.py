@@ -100,12 +100,68 @@ def leg_of_row(r: dict) -> dict | None:
     }
 
 
+GAME_FAMILIES = ("h2h", "line", "total")
+_PERIOD_WORDS = re.compile(r"1st|first|2nd|second|half|3rd|4th|quarter|\bq[1-4]\b", re.I)
+
+
+def game_leg_of_row(r: dict) -> dict | None:
+    """A full-game h2h / point spread / total leg from a catalogue row, or None. The game's two
+    sides share one slot so bet_key / _pair_id pair them natively: win and spread use player
+    "Game winner" / "Game spread" with line = the AWAY team's handicap (0 for the win) and
+    under = "the away team"; a total is "Game total" at its line with the usual under flag."""
+    fam = r.get("market_family")
+    price = r.get("price_decimal")
+    if fam not in GAME_FAMILIES or r.get("is_player_prop") or not price or price <= 1.0 or r.get("suspended"):
+        return None
+    if (r.get("period") or "full_game") != "full_game" or _PERIOD_WORDS.search(str(r.get("market_name_raw") or "")):
+        return None
+    game = r.get("event_name") or str(r.get("event_id"))
+    side, ln = str(r.get("side") or "").lower(), r.get("line_numeric")
+    if fam == "total":
+        if side not in ("over", "under") or ln is None:
+            return None
+        stat, player, line, under = "total", "Game total", float(ln), side == "under"
+        label = f"{'Under' if under else 'Over'} {r.get('line_raw') or ln} Total Points"
+    else:
+        if side not in ("home", "away"):
+            return None
+        team = (r.get("participant_name") or "").strip()
+        if not team:
+            return None
+        away = side == "away"
+        if fam == "h2h":
+            stat, player, line = "win", "Game winner", 0.0
+            label = f"{team} to win"
+        else:
+            if ln is None:
+                return None
+            stat, player = "spread", "Game spread"
+            line = float(ln) if away else -float(ln)
+            label = f"{team} {float(ln):+g}"
+        under = away
+    c = min(1 / float(price) / N.OVERROUND, 0.999)
+    return {
+        "game": game, "event": str(r.get("event_id")), "startsAt": r.get("event_start_utc"),
+        "player": player, "team": "", "stat": stat, "line": line, "under": under, "src": "ou",
+        "period": "full", "label": label, "price": float(price), "model": None, "market": None,
+        "chance": round(c, 4), "fair": round(1 / c, 2), "ev": round(c * float(price) - 1, 4),
+        "seen": r.get("quote_observed_at_utc"), "sport": "nfl", "gameline": True,
+    }
+
+
 def legs_from_rows(rows) -> list[dict]:
     """pk1 legs: the market chance of each bet across the feed (native pairs de-vigged, rungs by
     the margin table, ladders monotone), over/under lean applied. Dedupe is left to _auto/dedupe."""
-    legs = [g for g in map(leg_of_row, rows) if g]
-    M.annotate(legs)  # model chance + team where the player has a mean; blended below at M.BLEND_W
+    props = [g for g in map(leg_of_row, rows) if g]
+    M.annotate(props)  # model chance + team where the player has a mean; blended below at M.BLEND_W
+    lines = [g for g in map(game_leg_of_row, rows) if g]
+    legs = props + lines
     N.apply_market(legs, N.market_probs({"pb": legs}), M.BLEND_W)
+    for g in lines:
+        if g["stat"] != "total":  # the over/under lean is for totals only: no shade on win / spread
+            g["chance"] = g["raw"]
+            g["fair"] = round(1 / g["chance"], 2)
+            g["ev"] = round(g["chance"] * g["price"] - 1, 4)
     return legs
 
 
@@ -130,7 +186,10 @@ def current_legs(now: datetime | None = None, horizon_h: int = 72) -> list[dict]
     rows = []
     for key, comp in cv._units("nfl"):
         if comp.get("shard"):
-            rows += [r for r in cv._shard(key, comp) if r.get("is_player_prop")]
+            rows += [
+                r for r in cv._shard(key, comp)
+                if r.get("is_player_prop") or r.get("market_family") in GAME_FAMILIES
+            ]
     legs = [
         g
         for g in legs_from_rows(rows)
@@ -185,7 +244,7 @@ def page_view(now: datetime | None = None) -> tuple[dict, dict]:
         "stale": False,
         "games": len(games),
         "priced_at": now,
-        "error": None if games else "No NFL player lines in the catalogue yet.",
+        "error": None if games else "No NFL lines in the catalogue yet.",
         "agencies": {},
         "report": rep,
     }
