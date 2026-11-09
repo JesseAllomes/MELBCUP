@@ -960,8 +960,7 @@ def _player_groups(gs):
     by_player = {}
     for g in gs:
         if g["chance"] >= SAME_FLOOR and g["price"] > 1.0:
-            # NFL game lines (h2h / spread / total) are one correlated group: at most one a game
-            by_player.setdefault("\0gameline" if g.get("gameline") else g["player"], []).append(g)
+            by_player.setdefault(g["player"], []).append(g)
     return [f for f in (frontier(x) for x in by_player.values()) if f]
 
 

@@ -54,10 +54,6 @@ def parse(label: str) -> tuple[str, list[dict]]:
         game, rest = "", label or ""
     legs = []
     for part in rest.split(", "):
-        gl = gl_parse(part)
-        if gl:
-            legs.append(gl | {"player": "", "stat": gl["gl"], "k": 0, "under": gl.get("under", False)})
-            continue
         m = LEG.match(part.strip())
         if not m:
             continue
@@ -73,59 +69,6 @@ def parse(label: str) -> tuple[str, list[dict]]:
                 k, under = int(float(m["line"])) + 1, m["side"].lower() == "under"
         legs.append({"player": m["who"], "stat": stat, "k": k, "under": under, "label": part.strip()})
     return game, legs
-
-
-GL_TOTAL = re.compile(r"^(Over|Under) (\d+(?:\.\d+)?) Total Points$", re.I)
-GL_WIN = re.compile(r"^(.+?) to win$", re.I)
-GL_SPREAD = re.compile(r"^(.+?) ([+-]\d+(?:\.\d+)?)$")
-
-
-def gl_parse(part: str) -> dict | None:
-    """A game-line leg from its label ("Kansas City Chiefs to win", "Buffalo Bills -3.5",
-    "Over 44.5 Total Points"), or None. A player prop never matches these shapes."""
-    part = part.strip()
-    if m := GL_TOTAL.match(part):
-        return {"gl": "total", "under": m[1].lower() == "under", "line": float(m[2]), "label": part}
-    if m := GL_WIN.match(part):
-        return {"gl": "win", "team": m[1], "label": part}
-    if (m := GL_SPREAD.match(part)) and not LEG.match(part):
-        return {"gl": "spread", "team": m[1], "line": float(m[2]), "label": part}
-    return None
-
-
-def scores(comp: dict) -> dict | None:
-    """{"home": (name, pts), "away": (name, pts)} from an ESPN competition, or None."""
-    out = {}
-    try:
-        for c in comp.get("competitors") or []:
-            out[c["homeAway"]] = (c.get("team", {}).get("displayName", ""), int(c["score"]))
-    except (KeyError, TypeError, ValueError):
-        return None
-    return out if len(out) == 2 else None
-
-
-def gl_eval(leg: dict, sc: dict, final: bool) -> tuple[float | None, bool | None, bool]:
-    """(now, ok, push) for a game-line leg against the score. ok is None while undecided (win and
-    spread are decided at full time only; an over is won / an under lost as soon as passed).
-    Unknown team: (None, None, False). push: a void (money back), reported as ok None."""
-    a, h = sc["away"][1], sc["home"][1]
-    if leg["gl"] == "total":
-        t = a + h
-        if t > leg["line"]:
-            return t, not leg["under"], False
-        if not final:
-            return t, None, False
-        return t, (bool(leg["under"]) if t < leg["line"] else None), t == leg["line"]
-    want = norm(leg.get("team") or "").split()[-1:]
-    side = next((k for k in ("away", "home") if want and want[0] in norm(sc[k][0]).split()), None)
-    if side is None:
-        return None, None, False
-    mine, theirs = (a, h) if side == "away" else (h, a)
-    now = mine - theirs
-    if not final:
-        return now, None, False
-    adj = now + (leg["line"] if leg["gl"] == "spread" else 0)
-    return now, (adj > 0 if adj else None), adj == 0
 
 
 def is_nfl(label: str) -> bool:

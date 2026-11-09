@@ -161,7 +161,7 @@
   {% elif ch_wait %}
   <p class="say">Next stage: {% if ch_wait.night %}the next game day (after this night's {{ ch.get('per_night', 1) }} stage{{ 's' if ch.get('per_night', 1) != 1 }}). {{ nba_agency_name or 'PointsBet' }} posts its lines that morning{% else %}a game tipping off after <b>{{ ch_wait.after | when }}</b>, so this result is in and there is time to place it. None on tonight's card pays {{ '%.1f' % ch_x }}x yet{% endif %}.</p>
   {% else %}
-  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': ' ~ (nba_agency_name or 'PointsBet') ~ ' needs lines in at least ' ~ (2 if sport == 'nfl' else 3) ~ ' games' }}. Check back closer to tip-off.</p>
+  <p class="say">No {{ 'game' if one_game else 'stack' }} reaches {{ '%.1f' % ch_x }}x yet{{ '' if one_game else ': ' ~ (nba_agency_name or 'PointsBet') ~ ' needs lines in at least 3 games' }}. Check back closer to tip-off.</p>
   {% endif %}
   {% for st in ch.steps %}<p class="note">Stage {{ loop.index }}: ${{ '%.2f' % st['from'] }} → ${{ '%.2f' % st['to'] }} ✓</p>{% endfor %}
   {% if not placed and ch_night %}
