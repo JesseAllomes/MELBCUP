@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=206 -->
+<!-- drainclamp-build: state; schema=1; generation=207 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -125,7 +125,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-07T06:06:19+00:00 sports 2026-11-07: Grok's uncommitted Azure deploy (sports page + func-sports, maxInstances 100, not in cost guard) saved to branch grok-sports (grok-live/); maths flaws: +EV from best-price ROI, band hit rate applied to cheap end, missing tools/markets/scan_multis.py, brute-force multi search. Web/job/function redeployed from main (sports page down); /data page live (datasets + GitHub links for review). func-sports cap to 1 BLOCKED (needs owner 'cap func-sports'). Costs Nov MTD A$6.81: Parlebros ~A$6.3, betting app ~A$0.46. RUNNING workflow wf_ce17b5aa-2e8 (8 Sonnet agents in worktrees: nba, racing, football, afl, nrl, nfl, nhl, tennis) -> tools/sports/<sport>/, research/sports/<sport>.md, blob nba/sports/<sport>/; NBA agent also builds nightly learner, racing agent persists RaceCheck + learner. NEXT: review each branch (maths, honest hold-out), merge, deploy; owner doing independent review via /data.
 - 2026-11-07T12:28:21+00:00 8ee66bf8 2026-11-07 resumed under DC after drift: rp0/rp1/cat1/dz1 done+deployed (owner approved); pk1 in review; ui7 restarted under product-ui (production UI agent stopped); CLAUDE.md rules saved locally (push pending owner approval)
 - 2026-11-07T13:37:18+00:00 f09fccf1 2026-11-07 ui7 round 2 (v6 A-D, mix of 1+2+4, bet+why visual) sent, waiting owner pick; dz1 follow-up: research upper-limit counterexample fixed (two-sided fronts per bin, 300 narrow ranges = brute force, 18 s); further-research pack read: alt-line count curves (P1), quote ages, accepted prices -> sh1/eq1
 - 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
@@ -145,6 +144,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-08T10:39:16+00:00 9fcec3c9 2026-11-08 nfl1 DONE+DEPLOYED (web, job, function): nfl_legs (pk1 via nba_legs), nfl_live (ESPN), live_chance NFL (Poisson counts, normal yards, blowout), nfl_settle, challenge scope nfl, NFL tab = NBA sub-tabs. Verified live: NFL best multis render. Approximations: SGM legs independent, props market-only, absent player -> void. Football catalogue fix (unreached comps keep shard) deployed, unverified (owner: stop watching).
 - 2026-11-08T12:21:05+00:00 ec6d5a40 2026-11-08 DEPLOYED (web, job, function): NFL page = NBA templates (page_view, challenge accordion, forms stay on sport); NFL player model (nflverse 2018-26, NB/normal per stat, beats naive baseline on 2025 hold-out, blend w=0.25 prior, NBA real-price test chose 0) + NFL same-game CORR (QB yds~catcher yds +0.32 oos). TODO: run tools/nfl/blend_fit.py on blob catalogue/raw/nfl once settled outcomes accrue; refresh data/nfl/means.json weekly (token-free).
 - 2026-11-08T23:27:14+00:00 8785d98d 2026-11-08 nfl2 deployed + verified live (Playwright): NFL tabs no NBA names, NFL challenge list own-sport only, new-challenge fixed to NFL, preview honours start/goal/mode (game: best 2 @1.6%, multi: best 3 @1.9% for $10->$250), Stages pre-set; popups fit screen. Not done: chplan when run exists.
+- 2026-11-09T06:45:00+00:00 803732be 2026-11-09 FIX deployed: nba_live._event matches on team nicknames (label 'Los Angeles Clippers' vs ESPN 'LA Clippers' -> C stuck 'in play 38%' all afternoon). C now final: Derik Queen 3 ast (Under 2.5) failed, Hachimura hit.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
