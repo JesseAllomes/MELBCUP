@@ -22,8 +22,8 @@ def _rows(n_games=2):
                                 "participant_name": who, "line_numeric": line, "line_raw": raw,
                                 "market_name_raw": name, "is_player_prop": False})
 
-        add("h2h", "home", 1.60, f"{HM[e]} Team")
-        add("h2h", "away", 2.40, f"{AW[e]} Team")
+        add("h2h", "home", 1.60, f"{HM[e]} Team", name="Moneyline")
+        add("h2h", "away", 2.40, f"{AW[e]} Team", name="Moneyline")
         add("line", "home", 1.91, f"{HM[e]} Team", -3.5, "-3.5")
         add("line", "away", 1.91, f"{AW[e]} Team", 3.5, "+3.5")
         add("total", "over", 1.90, None, 44.5, "44.5")
@@ -105,3 +105,21 @@ def test_game_lines_one_group_per_game():
     for g in legs:  # make every line eligible
         g["chance"], g["price"] = 0.8, 1.5
     assert len(N._player_groups(legs)) == 1
+
+
+def test_game_line_chance_is_its_own_pair_devigged():
+    """Owner 2026-11-09: a $2.20 win showed 85%. Each side's chance comes only from its own
+    two-way market (same game, same market, same line); a 3-way moneyline or a lone side is out."""
+    from melbcup import nfl_legs as L
+    base = {"event_id": "e1", "event_name": "Jacksonville Jaguars @ Tennessee Titans", "period": "full_game",
+            "event_start_utc": "2026-11-16T18:00:00Z"}
+    rows = [
+        base | {"market_family": "h2h", "market_name_raw": "Moneyline", "side": "away", "participant_name": "Jacksonville Jaguars", "price_decimal": 1.20},
+        base | {"market_family": "h2h", "market_name_raw": "Moneyline", "side": "home", "participant_name": "Tennessee Titans", "price_decimal": 4.75},
+        base | {"market_family": "h2h", "market_name_raw": "Moneyline 3 Way", "side": "away", "participant_name": "Jacksonville Jaguars", "price_decimal": 2.20},
+        base | {"market_family": "total", "market_name_raw": "Alternate Totals", "side": "over", "line_numeric": 3.5, "line_raw": "3.5", "price_decimal": 5.0},
+    ]
+    legs = {g["label"]: g for g in L.game_lines(rows)}
+    assert set(legs) == {"Jacksonville Jaguars to win", "Tennessee Titans to win"}
+    assert abs(legs["Jacksonville Jaguars to win"]["chance"] - 0.798) < 0.002
+    assert all(0.85 <= g["chance"] * g["price"] <= 1.0 for g in legs.values())

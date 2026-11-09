@@ -115,11 +115,14 @@ def game_leg_of_row(r: dict) -> dict | None:
         return None
     if (r.get("period") or "full_game") != "full_game" or _PERIOD_WORDS.search(str(r.get("market_name_raw") or "")):
         return None
+    mkt = str(r.get("market_name_raw") or "")
+    if fam == "h2h" and mkt.strip().lower() != "moneyline":  # two-way only: no 3-way (tie) or drive markets
+        return None
     game = r.get("event_name") or str(r.get("event_id"))
     side, ln = str(r.get("side") or "").lower(), r.get("line_numeric")
     if fam == "total":
-        if side not in ("over", "under") or ln is None:
-            return None
+        if side not in ("over", "under") or ln is None or not 20 <= float(ln) <= 80:
+            return None  # a full-game points total only (owner, 2026-11-09: an "Over 3.5" slipped in)
         stat, player, line, under = "total", "Game total", float(ln), side == "under"
         label = f"{'Under' if under else 'Over'} {r.get('line_raw') or ln} Total Points"
     else:
@@ -133,7 +136,7 @@ def game_leg_of_row(r: dict) -> dict | None:
             stat, player, line = "win", "Game winner", 0.0
             label = f"{team} to win"
         else:
-            if ln is None:
+            if ln is None or abs(float(ln)) > 30:
                 return None
             stat, player = "spread", "Game spread"
             line = float(ln) if away else -float(ln)
@@ -145,7 +148,7 @@ def game_leg_of_row(r: dict) -> dict | None:
         "player": player, "team": "", "stat": stat, "line": line, "under": under, "src": "ou",
         "period": "full", "label": label, "price": float(price), "model": None, "market": None,
         "chance": round(c, 4), "fair": round(1 / c, 2), "ev": round(c * float(price) - 1, 4),
-        "seen": r.get("quote_observed_at_utc"), "sport": "nfl", "gameline": True,
+        "seen": r.get("quote_observed_at_utc"), "sport": "nfl", "gameline": True, "mkt": mkt,
     }
 
 
@@ -154,15 +157,31 @@ def legs_from_rows(rows) -> list[dict]:
     the margin table, ladders monotone), over/under lean applied. Dedupe is left to _auto/dedupe."""
     props = [g for g in map(leg_of_row, rows) if g]
     M.annotate(props)  # model chance + team where the player has a mean; blended below at M.BLEND_W
-    lines = [g for g in map(game_leg_of_row, rows) if g]
-    legs = props + lines
-    N.apply_market(legs, N.market_probs({"pb": legs}), M.BLEND_W)
-    for g in lines:
-        if g["stat"] != "total":  # the over/under lean is for totals only: no shade on win / spread
-            g["chance"] = g["raw"]
-            g["fair"] = round(1 / g["chance"], 2)
-            g["ev"] = round(g["chance"] * g["price"] - 1, 4)
-    return legs
+    N.apply_market(props, N.market_probs({"pb": props}), M.BLEND_W)
+    return props + game_lines(rows)
+
+
+def game_lines(rows) -> list[dict]:
+    """Full-game win / spread / total legs, each priced only from its own two-way market: the two
+    sides at the same line in the same game, margin removed in proportion (owner, 2026-11-09: the
+    prop pairing gave a $2.20 win 85%). A side without its opposite is left out, never guessed."""
+    pairs: dict = {}
+    for g in map(game_leg_of_row, rows):
+        if g:
+            key = (g["event"], g["mkt"], g["stat"], round(g["line"], 2))
+            pairs.setdefault(key, {})[g["under"]] = g  # one leg per side (the last quote wins)
+    out = []
+    for sides in pairs.values():
+        if len(sides) != 2:
+            continue
+        book = sum(1 / s["price"] for s in sides.values())
+        if not 1.0 <= book <= 1.25:  # not a real two-way market (or a stale side): skip it
+            continue
+        for s in sides.values():
+            c = (1 / s["price"]) / book
+            s.update(chance=round(c, 4), raw=round(c, 4), fair=round(1 / c, 2), ev=round(c * s["price"] - 1, 4))
+            out.append(s)
+    return out
 
 
 def auto(legs: list[dict]) -> list[dict]:
