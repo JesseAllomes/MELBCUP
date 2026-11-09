@@ -37,6 +37,8 @@ BOOKMAKER = "PointsBet"
 STALE_AFTER_S = 900
 MAX_EVENT_CALLS = 400
 HOURS = 48
+# weekly sports look a week ahead (owner, 2026-11-09: NFL showed 1 game of 14 listed)
+SPORT_HOURS = {"nfl": 192, "ncaaf": 192}
 CONCURRENCY = 4
 RAW_KEEP_DAYS = 3
 
@@ -643,7 +645,8 @@ def build(
         seen_ev.add(str(e["key"]))
         cov_of(k)["events_listed"] += 1
         t = _parse(e.get("startsAt"))
-        if e.get("isLive") or not t or t < now - timedelta(minutes=5) or t > horizon:
+        hz = now + timedelta(hours=SPORT_HOURS[k]) if hours == HOURS and k in SPORT_HOURS else horizon
+        if e.get("isLive") or not t or t < now - timedelta(minutes=5) or t > hz:
             continue
         todo.append((k, e))
     # player-prop sports first (CORE_KEYS order), the "-other" leagues last; nearest start first
