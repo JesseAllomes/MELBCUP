@@ -32,7 +32,7 @@ def legs(rows, sport="football"):
 def test_exclusions():
     assert D.leg_of(row("1", 1.5, 0.6), "nba", NOW) is not None
     assert D.leg_of(row("1", 1.5, 0.6, fam="h2h"), "nba", NOW) is None  # owner's NBA H2H policy
-    assert D.leg_of(row("1", 1.5, 0.6, fam="h2h"), "nhl", NOW) is not None
+    assert D.leg_of(row("1", 1.5, 0.6, fam="h2h"), "nhl", NOW) is None  # every sport (owner, 2026-11-09)
     assert D.leg_of(row("1", 1.5, 0.6, seen_min=4 * 60), "nhl", NOW) is None  # stale price
     assert D.leg_of(row("1", 1.5, None), "nhl", NOW) is None  # no fair chance: never invented
     assert D.leg_of(row("1", 1.5, 0.6, start_h=-1), "nhl", NOW) is None  # started

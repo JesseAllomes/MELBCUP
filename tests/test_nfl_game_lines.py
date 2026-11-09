@@ -34,17 +34,14 @@ def _rows(n_games=2):
 
 def test_legs_and_devig():
     legs = nfl_legs.legs_from_rows(_rows(1))
-    assert len(legs) == 6
+    assert len(legs) == 4  # no head-to-head (owner policy)
     by = {g["label"]: g for g in legs}
-    assert set(by) == {"Hotel Team to win", "Alpha Team to win", "Hotel Team -3.5", "Alpha Team +3.5",
-                       "Over 44.5 Total Points", "Under 44.5 Total Points"}
-    h, a = by["Hotel Team to win"], by["Alpha Team to win"]
-    assert abs(h["chance"] + a["chance"] - 1) < 1e-3
-    assert h["chance"] > 0.55
+    assert set(by) == {"Hotel Team -3.5", "Alpha Team +3.5", "Over 44.5 Total Points", "Under 44.5 Total Points"}
     assert abs(by["Hotel Team -3.5"]["chance"] + by["Alpha Team +3.5"]["chance"] - 1) < 1e-3
     assert abs(by["Over 44.5 Total Points"]["chance"] - 0.5) < 0.02
     assert all(g["event"] == "ev0" and g["startsAt"] and g["gameline"] for g in legs)
-    assert N.bet_key(h) != N.bet_key(a) and N._pair_id(h) == N._pair_id(a)
+    h, a = by["Hotel Team -3.5"], by["Alpha Team +3.5"]
+    assert N.bet_key(h) != N.bet_key(a)
 
 
 def test_cross_game_multi_from_two_games():
@@ -108,18 +105,19 @@ def test_game_lines_one_group_per_game():
 
 
 def test_game_line_chance_is_its_own_pair_devigged():
-    """Owner 2026-11-09: a $2.20 win showed 85%. Each side's chance comes only from its own
-    two-way market (same game, same market, same line); a 3-way moneyline or a lone side is out."""
+    """Owner 2026-11-09: each side priced only from its own two-way market; no head-to-head at all;
+    an 'Over 3.5' (not a full-game points total) is out."""
     from melbcup import nfl_legs as L
     base = {"event_id": "e1", "event_name": "Jacksonville Jaguars @ Tennessee Titans", "period": "full_game",
             "event_start_utc": "2026-11-16T18:00:00Z"}
     rows = [
         base | {"market_family": "h2h", "market_name_raw": "Moneyline", "side": "away", "participant_name": "Jacksonville Jaguars", "price_decimal": 1.20},
         base | {"market_family": "h2h", "market_name_raw": "Moneyline", "side": "home", "participant_name": "Tennessee Titans", "price_decimal": 4.75},
-        base | {"market_family": "h2h", "market_name_raw": "Moneyline 3 Way", "side": "away", "participant_name": "Jacksonville Jaguars", "price_decimal": 2.20},
+        base | {"market_family": "total", "market_name_raw": "Alternate Totals", "side": "over", "line_numeric": 43.5, "line_raw": "43.5", "price_decimal": 1.53},
+        base | {"market_family": "total", "market_name_raw": "Alternate Totals", "side": "under", "line_numeric": 43.5, "line_raw": "43.5", "price_decimal": 2.45},
         base | {"market_family": "total", "market_name_raw": "Alternate Totals", "side": "over", "line_numeric": 3.5, "line_raw": "3.5", "price_decimal": 5.0},
     ]
     legs = {g["label"]: g for g in L.game_lines(rows)}
-    assert set(legs) == {"Jacksonville Jaguars to win", "Tennessee Titans to win"}
-    assert abs(legs["Jacksonville Jaguars to win"]["chance"] - 0.798) < 0.002
+    assert set(legs) == {"Over 43.5 Total Points", "Under 43.5 Total Points"}
+    assert abs(legs["Over 43.5 Total Points"]["chance"] - 0.616) < 0.002
     assert all(0.85 <= g["chance"] * g["price"] <= 1.0 for g in legs.values())

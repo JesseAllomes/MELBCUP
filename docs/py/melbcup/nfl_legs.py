@@ -100,7 +100,7 @@ def leg_of_row(r: dict) -> dict | None:
     }
 
 
-GAME_FAMILIES = ("h2h", "line", "total")
+GAME_FAMILIES = ("line", "total")  # no head-to-head: owner policy, it wins less often than priced
 _PERIOD_WORDS = re.compile(r"1st|first|2nd|second|half|3rd|4th|quarter|\bq[1-4]\b", re.I)
 
 

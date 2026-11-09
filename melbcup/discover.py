@@ -8,7 +8,8 @@ Honesty rules (independent review, owner-agreed):
   is a complete two-way pair (market_prob in the catalogue). No model chance, no invented ones.
 - At most one leg per game: only NBA has a measured same-game correlation, so mixing games keeps
   the legs independent and the joint chance a plain product.
-- NBA head-to-head is left out of automatic picks (owner's policy), still visible elsewhere.
+- Head-to-head is left out of automatic picks in every sport (owner's policy: it wins less often than
+  priced), still visible elsewhere.
 - Stale (older than MAX_AGE_S), suspended, started or far-off legs are not used.
 - The price shown is the product of the legs' prices; the bookmaker's accepted multi price can
   differ. Expected return is shown as it is (normally negative): this ranks chance at a price,
@@ -84,8 +85,8 @@ def leg_of(r: dict, sport: str, now: datetime) -> dict | None:
         return None
     if p < MIN_CHANCE or p >= 0.995:
         return None
-    if sport == "nba" and (r.get("market_family") or r.get("market_type")) == "h2h":
-        return None  # owner's policy: NBA head-to-head stays out of automatic picks
+    if (r.get("market_family") or r.get("market_type")) == "h2h":
+        return None  # owner's policy (2026-11-09: every sport): head-to-head stays out of automatic picks
     start, seen = _when(r.get("event_start_utc")), _when(r.get("quote_observed_at_utc"))
     if start is None or seen is None:
         return None
