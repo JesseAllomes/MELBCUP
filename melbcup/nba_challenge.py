@@ -438,7 +438,7 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
                 "state": "placed",
                 "ret": 0.0,
                 "tip": (query.get("nbtip") or "")[:32],
-                **({"sport": s} if (s := query.get("sport")) in ("nba", "nfl") else {}),
+                **({"sport": s} if re.fullmatch(r"[a-z0-9-]{2,24}", s := (query.get("nbsport") or query.get("sport") or "")) else {}),
             }
             | ({"bonus_if_win": bw} if (bw := _money(query.get("nbbw"))) else {})
             | ({"bonus": 1} if query.get("nbbonus") == "1" else {})  # staked with a bonus bet

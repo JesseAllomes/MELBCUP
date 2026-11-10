@@ -497,6 +497,17 @@ def create_app(
         discover.refresh_now()
         return Response(status_code=204)
 
+    @app.get("/api/challenge/plan", dependencies=[Depends(require_login)])
+    def challenge_plan(
+        sport: str = "nba", start: float = 10.0, goal: float = 1000.0, mode: str = "game", legs: int | None = None
+    ):
+        """The new-challenge planner sheet: stage rows, best count and the stage-1 pick."""
+        try:
+            data = views.challenge_plan(sport, start, goal, mode, legs)
+        except Exception as exc:  # noqa: BLE001 - the sheet shows its own message
+            data = {"error": str(exc)[:200], "rows": [], "best": None, "pick": None}
+        return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
     @app.get("/nba/challenges/live.json", dependencies=[Depends(require_login)])
     def nba_challenges_live(request: Request):
         """{challenge id: {pct, clock}} for the accordion's collapsed rows (polled every ~30 s)."""

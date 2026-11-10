@@ -61,7 +61,7 @@ def test_preview_honours_mode_goal_and_preselects_best(c):
     game = c.get(base + "&chmode=game").text
     multi = c.get(base + "&chmode=multi").text
     for html in (game, multi):
-        assert "<dialog" in html and re.search(r"<dialog[^>]* open", html)
+        assert "sheet-src" in html and "data-open" in html
         assert "Best: " in html and "to finish" in html and "a stage at" in html
         best = re.search(r"<b>Best: (\d+) stages", html).group(1)
         assert re.search(rf'<option value="{best}" selected>', html.split('name="chn"')[1])

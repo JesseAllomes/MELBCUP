@@ -56,7 +56,7 @@ def test_nfl_challenge_tab_is_the_nba_accordion(c):
 
 def test_nfl_multis_use_the_nba_slip_markup(c):
     nfl = c.get("/sports?sport=nfl&tab=multis").text
-    assert 'class="pc' in nfl and "Bet this" in nfl and "I placed this" in nfl
+    assert 'class="pc' in nfl and "Bet this" in nfl and "Add to slip" in nfl
     assert "Player 0" in nfl
 
 

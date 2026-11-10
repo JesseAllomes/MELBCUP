@@ -100,8 +100,7 @@ def test_the_tab_and_the_header_money(monkeypatch, tmp_path):
         assert "Challenges · 0" in c.get("/nba?tab=challenge").text  # preview created nothing
         html = c.get("/nba?tab=challenge&ch=newch&chname=Run&chmode=multi").text
         i = html.index('id="ch-plan"')
-        assert html[:i].rindex("<details") > html[:i].rindex("</details>")  # planner is in a fold
-        assert "<details" in html[i - 40 : i] and " open" not in html[i - 40 : i]
+        assert 'class="sheet-src"' in html[i - 40 : i + 20] and "data-open" not in html[i - 40 : i + 40]  # planner is in a sheet
         assert "Stage 1 of 3 · bank $10.00 of $1000" in html and "Mark as placed · $10.00" in html
         assert (
             'name="chtip" value="2026-11-05T00:00:00Z"' in html
