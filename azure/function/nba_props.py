@@ -181,7 +181,7 @@ def mark_injuries(node, inj: dict[str, str]) -> None:
 
 LEG_KEYS = (
     "event", "game", "startsAt", "player", "team", "stat", "line", "under", "label",
-    "price", "chance", "chance_v1", "chance_v2", "bench", "model", "market", "injury",
+    "price", "chance", "chance_v1", "chance_v2", "chance_v3", "bench", "model", "market", "injury",
 )  # fmt: skip
 
 
@@ -294,7 +294,8 @@ def _by_game_rows(agency: str, part: dict) -> list[dict]:
 
 
 def build_log(
-    agency: str, rep: dict, prior: dict, now: dt.datetime, shadow: dict | None = None
+    agency: str, rep: dict, prior: dict, now: dt.datetime, shadow: dict | None = None,
+    shadow_v3: dict | None = None,
 ) -> dict:
     """The day's log for one agency: the legs and suggested multis as last seen before tip. A game
     that has started drops out of the feed, so its legs (and multis starting on it) are carried
@@ -315,7 +316,7 @@ def build_log(
     legs += [g for g in prior.get("legs", []) if g["event"] not in live]
     multis = []
     # picker A/B (owner, 2026-11-10): the live version's multis and the other version's, each tagged
-    for part in (rep, shadow):
+    for part in (rep, shadow, shadow_v3):
         if part is None:
             continue
         tag = part.get("picker", "v1")
@@ -323,7 +324,7 @@ def build_log(
             multis += [
                 {"kind": kind, "agency": agency, "picker": tag} | _slim_multi(m) for m in items
             ]
-    for part in (rep, shadow):
+    for part in (rep, shadow, shadow_v3):
         if part is None:
             continue
         multis += _by_game_rows(agency, part)
@@ -352,7 +353,7 @@ def save_logs(nba, view: dict, now: dt.datetime) -> None:
         except Exception:
             prior = {}
         nba.get_blob_client(name).upload_blob(
-            json.dumps(build_log(code, rep, prior, now, a.get("shadow"))).encode(), overwrite=True
+            json.dumps(build_log(code, rep, prior, now, a.get("shadow"), a.get("shadow_v3"))).encode(), overwrite=True
         )
 
 

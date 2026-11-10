@@ -28,6 +28,7 @@ import math
 import os
 import random
 import re
+import time
 import unicodedata
 import urllib.request
 from datetime import UTC, datetime, timedelta, timezone
@@ -374,7 +375,7 @@ def picker() -> str:
     """The live picker version, read at call time: an active use() override, else $PICKER, else v2."""
     v = _OVERRIDE[-1] if _OVERRIDE else os.environ.get(PICKER_ENV, "v2")
     v = (v or "v2").strip().lower()
-    return v if v in ("v1", "v2") else "v2"
+    return v if v in ("v1", "v2", "v3") else "v2"
 
 
 def other_picker(v: str | None = None) -> str:
@@ -392,7 +393,7 @@ def use(version: str):
 
 
 def rung_margin(price: float, version: str | None = None) -> float:
-    v2 = (version or picker()) == "v2"
+    v2 = (version or picker()) in ("v2", "v3")  # v3 is v2's machinery with a refitted lean
     for top, m in RUNG_MARGIN_V2 if v2 else RUNG_MARGIN:
         if price < top or (top == 1.3 and price <= top):
             return m
@@ -498,8 +499,10 @@ def market_probs(legs_by_agency: dict) -> Market:
     each player's ladder in each game (see monotone). The result is the live picker's market;
     `.versions` holds both versions' markets so apply_market can log each version's chances."""
     live = picker()
-    m = _market_probs(legs_by_agency, live)
-    m.versions = {live: m, other_picker(live): _market_probs(legs_by_agency, other_picker(live))}
+    vs = {v: _market_probs(legs_by_agency, v) for v in ("v1", "v2")}
+    vs["v3"] = vs["v2"]  # v3 prices the market as v2 does
+    m = vs[live]
+    m.versions = vs
     return m
 
 
@@ -523,14 +526,80 @@ BENCH_OVER = {"points": 0.09, "other": 0.05}  # taken off a bench over
 BENCH_UNDER = {"points": 0.09, "other": 0.04}  # given to a bench under
 
 
-def bench_players(legs: list[dict], raws: list[float]) -> set:
-    """{(event, player)} whose median points line is under BENCH_LINE (a line-based role proxy)."""
+def median_lines(legs: list[dict], raws: list[float]) -> dict:
+    """{(event, player): highest points rung the market makes >= 50%} (a line-based role proxy)."""
     med: dict = {}
     for g, c in zip(legs, raws, strict=True):
         if g.get("stat") == "points" and not g["under"] and c >= 0.5:
             k = (g.get("event"), g.get("player"))
             med[k] = max(med.get(k, 0), g["line"])
-    return {k for k, m in med.items() if m < BENCH_LINE}
+    return med
+
+
+def bench_players(legs: list[dict], raws: list[float]) -> set:
+    """{(event, player)} whose median points line is under BENCH_LINE (a line-based role proxy)."""
+    return {k for k, m in median_lines(legs, raws).items() if m < BENCH_LINE}
+
+
+# Picker v3 (shadow, weekly refit by tools/nba/refit_lean.py): the same role-aware lean, but each
+# (role bucket, stat, over/under) cell's probability shift is loaded from blob picker/lean-v3.json
+# {"cells": {"bench|points|over": 0.08, ...}}. A cell the file lacks keeps v2's lean. Missing or
+# unreadable file: v3 equals v2. v3 is never live unless PICKER=v3.
+LEAN_V3_BLOB = "picker/lean-v3.json"
+LEAN_V3_TTL = 6 * 3600
+_LEAN_V3: dict = {"at": None, "cells": {}}
+
+
+def role_bucket(median: float | None) -> str:
+    """Role bucket by median points line: bench < 12, starter 12-19, star 20+, '?' unknown."""
+    if median is None:
+        return "?"
+    return "star" if median >= 20 else "starter" if median >= BENCH_LINE else "bench"
+
+
+def lean_key(bucket: str, stat: str | None, under: bool) -> str:
+    return f"{bucket}|{stat}|{'under' if under else 'over'}"
+
+
+def set_lean_v3(doc: dict | None) -> None:
+    """Install v3's params (tests, or a caller that already holds the blob); None clears the cache."""
+    _LEAN_V3["cells"] = dict((doc or {}).get("cells") or {})
+    _LEAN_V3["at"] = None if doc is None else time.time()
+
+
+def _read_lean_v3() -> dict:
+    path = os.environ.get("LEAN_V3_PATH")
+    try:
+        if path:
+            return json.load(open(path))
+        acct = os.environ.get("NBA_ACCOUNT")
+        if acct:
+            from azure.identity import DefaultAzureCredential
+            from azure.storage.blob import BlobServiceClient
+
+            svc = BlobServiceClient(
+                f"https://{acct}.blob.core.windows.net", credential=DefaultAzureCredential()
+            )
+            raw = svc.get_container_client("nba").download_blob(LEAN_V3_BLOB, timeout=20).readall()
+            return json.loads(raw)
+    except Exception:
+        pass
+    return {}
+
+
+def lean_v3() -> dict:
+    """v3's cells, cached for LEAN_V3_TTL; {} (v2's lean) when the file is missing."""
+    at = _LEAN_V3["at"]
+    if at is None or time.time() - at > LEAN_V3_TTL:
+        set_lean_v3(_read_lean_v3())
+    return _LEAN_V3["cells"]
+
+
+def role_shade_v3(c: float, under: bool, stat: str | None, bucket: str, bench: bool) -> float:
+    d = lean_v3().get(lean_key(bucket, stat, under))
+    if d is None:
+        return role_shade(c, under, stat or "", bench)
+    return min(max(c + d if under else c - d, 1e-4), 1 - 1e-4)
 
 
 def role_shade(c: float, under: bool, stat: str, bench: bool) -> float:
@@ -559,15 +628,19 @@ def apply_market(legs: list[dict], market: dict, w: float | None = None) -> None
             c = (m if m is not None else b) if g["model"] is None else blend(g["model"], m, w)
             raws[v].append(c)
             mkts[v].append(m)
-    bench = bench_players(legs, raws["v2"])
+    raws["v3"], mkts["v3"] = raws["v2"], mkts["v2"]
+    meds = median_lines(legs, raws["v2"])
+    bench = {k for k, m in meds.items() if m < BENCH_LINE}
     for i, g in enumerate(legs):
         g["conflict"] = bet_key(g) in flagged
         under = bool(g["under"])
         c1 = shade(raws["v1"][i], under)
         c2 = role_shade(raws["v2"][i], under, g.get("stat"), (g.get("event"), g.get("player")) in bench)
-        g["chance_v1"], g["chance_v2"] = round(c1, 4), round(c2, 4)
+        pk = (g.get("event"), g.get("player"))
+        c3 = role_shade_v3(raws["v3"][i], under, g.get("stat"), role_bucket(meds.get(pk)), pk in bench)
+        g["chance_v1"], g["chance_v2"], g["chance_v3"] = round(c1, 4), round(c2, 4), round(c3, 4)
         g["bench"] = (g.get("event"), g.get("player")) in bench
-        c = c1 if live == "v1" else c2
+        c = {"v1": c1, "v2": c2, "v3": c3}[live]
         g["raw"] = round(raws[live][i], 4)  # before the over/under lean
         m = mkts[live][i]
         g["market"] = None if m is None else round(m, 4)
@@ -1135,6 +1208,11 @@ def view(
         out["agencies"][code]["shadow"] = {
             k: sh[k] for k in ("picker", "stacks", "stacks_same", "by_game")
         }
+        if alt != "v3" and picker() != "v3":  # v3 is always logged too: the weekly-refit shadow
+            s3 = report(board, events, prepared=prepared[code], market=market, version="v3")
+            out["agencies"][code]["shadow_v3"] = {
+                k: s3[k] for k in ("picker", "stacks", "stacks_same", "by_game")
+            }
         if xs:
             out["preview"][code] = stage_preview(rep["all_legs"], xs)
     return out

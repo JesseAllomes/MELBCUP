@@ -313,6 +313,20 @@ def learn_racing(store) -> str:
         return f"racing learn skipped ({type(e).__name__}); "
 
 
+MELB = ZoneInfo("Australia/Melbourne")
+
+
+def weekly_refit(store, now) -> str:
+    """Mondays (Melbourne): refit picker v3's lean from the settled forward log (shadow only)."""
+    if now.astimezone(MELB).weekday() != 0:
+        return ""
+    try:
+        import refit_lean
+        return refit_lean.run(store, now).splitlines()[0] + "; "
+    except Exception as e:  # never let the refit stop the daily job
+        return f"lean refit failed ({type(e).__name__}); "
+
+
 def run(store, now, fetch=get):
     today = now.astimezone(NY).date()
     seen = {}
@@ -337,7 +351,7 @@ def run(store, now, fetch=get):
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
-    msg = learn_racing(store) + books_snapshot(store, board, now) + settled + f"nba daily {day}: history +{added} ({len(hist)} games), board {len(board['games'])} games / {len(board['players'])} players"
+    msg = learn_racing(store) + weekly_refit(store, now) + books_snapshot(store, board, now) + settled + f"nba daily {day}: history +{added} ({len(hist)} games), board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg
 

@@ -1,4 +1,4 @@
-"""Picker A/B report (owner, 2026-11-10): v1 against v2, token-free.
+"""Picker A/B report (owner, 2026-11-10): v1, v2 and the v3 shadow (weekly refit), token-free.
 
 Reads forward-v2.jsonl (every logged leg and multi, settled by ESPN event; each multi row carries
 "picker": "v1"|"v2", each leg row carries chance_v1 / chance_v2) and prints, per version:
@@ -55,7 +55,7 @@ def ci(vals: list[float], boot: int, seed: int = 7) -> tuple[float, float, float
 def per_version(ms: list[dict]) -> None:
     print("\nMULTIS per version (settled, each bet once)")
     print(f"{'ver':4}{'n':>6}{'said':>8}{'got':>8}{'wins':>6}{'return/$':>10}")
-    for v in ("v1", "v2"):
+    for v in ("v1", "v2", "v3"):
         r = [x for x in ms if x["picker"] == v]
         if not r:
             print(f"{v:4}{0:>6}")
@@ -67,22 +67,22 @@ def per_version(ms: list[dict]) -> None:
         )
 
 
-def paired(ms: list[dict], boot: int) -> None:
+def paired(ms: list[dict], boot: int, hi: str = "v2", lo: str = "v1") -> None:
     """One value per (day, agency, kind, target): the version's mean over that slate/target's
     multis; the pair difference is v2 minus v1, over slates where both versions logged."""
     cell: dict = defaultdict(lambda: defaultdict(list))
     for x in ms:
         cell[(x.get("day"), x.get("agency"), x.get("mkind"), x.get("target"))][x["picker"]].append(x)
-    print("\nPAIRED v2 minus v1 by slate and target (both versions logged)")
+    print(f"\nPAIRED {hi} minus {lo} by slate and target (both versions logged)")
     for label, keep in (("same-game", lambda k: k[2] == "stacks_same"), ("cross-game", lambda k: k[2] == "stacks")):
         d_win, d_ret, d_said = [], [], []
         for k, by in cell.items():
-            if not keep(k) or "v1" not in by or "v2" not in by:
+            if not keep(k) or lo not in by or hi not in by:
                 continue
             m = lambda v, f: sum(map(f, by[v])) / len(by[v])  # noqa: E731
-            d_win.append(m("v2", lambda x: x["result"] == "won") - m("v1", lambda x: x["result"] == "won"))
-            d_ret.append(m("v2", ret) - m("v1", ret))
-            d_said.append(m("v2", lambda x: x["chance"]) - m("v1", lambda x: x["chance"]))
+            d_win.append(m(hi, lambda x: x["result"] == "won") - m(lo, lambda x: x["result"] == "won"))
+            d_ret.append(m(hi, ret) - m(lo, ret))
+            d_said.append(m(hi, lambda x: x["chance"]) - m(lo, lambda x: x["chance"]))
         if not d_win:
             print(f"  {label}: no paired slates yet")
             continue
@@ -107,7 +107,8 @@ def legs(rows: list[dict]) -> None:
         got = sum(x["result"] == "won" for x in r) / len(r)
         s1 = sum(x["chance_v1"] for x in r) / len(r)
         s2 = sum(x["chance_v2"] for x in r) / len(r)
-        print(f"  {name:13} n {len(r):>5}  got {got:.3f}  said v1 {s1:.3f} (gap {got - s1:+.3f})  said v2 {s2:.3f} (gap {got - s2:+.3f})")
+        s3 = sum(x.get("chance_v3", x["chance_v2"]) for x in r) / len(r)
+        print(f"  {name:13} n {len(r):>5}  got {got:.3f}  said v1 {s1:.3f} (gap {got - s1:+.3f})  said v2 {s2:.3f} (gap {got - s2:+.3f})  said v3 {s3:.3f} (gap {got - s3:+.3f})")
 
 
 def repicks(path: str | None, ms: list[dict]) -> None:
@@ -142,6 +143,7 @@ def main() -> None:
     print(f"{len(rows)} records, {len(ms)} settled multis")
     per_version(ms)
     paired(ms, a.boot)
+    paired(ms, a.boot, "v3", "v2")  # the promotion test: v3 replaces v2 only if it beats it here
     legs(rows)
     repicks(a.repicks, ms)
 
