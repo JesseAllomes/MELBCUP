@@ -1260,7 +1260,7 @@ class Views:
                         "price": m["price"],
                         "chance": m["chance"],
                         "legs": [
-                            {"label": d["label"], "price": d["price"], "chance": d["chance"], "game": d.get("game", "")}
+                            {"label": d["label"], "price": d["price"], "chance": d["chance"], "game": d.get("game", ""), "startsAt": d.get("startsAt", "")}
                             for d in m.get("detail", [])
                         ],
                     }

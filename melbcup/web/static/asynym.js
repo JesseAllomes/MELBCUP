@@ -747,6 +747,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     });
   }
 
+  function melb(iso) { try { return new Date(iso).toLocaleString("en-AU", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" }); } catch (e) { return ""; } }
   // ---------- new challenge planner ----------
   function planSheet() {
     readCfg();
@@ -767,7 +768,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         var cur = r.filter(function (o) { return o.n === P.n; })[0];
         q("#pl-card").innerHTML = cur ? '<div class="sh-card"><b>' + cur.n + " stages · " + cur.x.toFixed(1) + "x each · " + (cur.typical ? Math.round(cur.typical * 100) + "% a stage" : "no model for this sport yet") + (cur.run ? " · " + (cur.run * 100).toFixed(1) + "% to finish" : "") + "</b>" + (cur.n === best ? '<small class="sh-good"> best</small>' : "") + "</div>" : "";
         var pk = data && data.pick;
-        q("#pl-pick").innerHTML = pk ? '<div class="sh-card"><small>Stage 1 best pick for ' + (data.pick_n || P.n) + " stages" + (pk.game ? " · " + esc(pk.game) : "") + "</small>" + pk.legs.map(function (l) { return '<div class="sh-kv"><span>' + esc(l.label) + "</span><b>" + (+l.price).toFixed(2) + "</b></div>"; }).join("") + '<div class="sh-kv"><span>' + pct(pk.chance) + " chance</span><b>" + (+pk.price).toFixed(2) + "x</b></div></div>" : "";
+        q("#pl-pick").innerHTML = pk ? '<div class="sh-card"><small>Stage 1 best pick for ' + (data.pick_n || P.n) + " stages" + (pk.game ? " · " + esc(pk.game) : "") + "</small>" + pk.legs.map(function (l) { return '<div class="sh-kv"><span>' + esc(l.label) + (P.mode === "multi" && l.game ? '<br><small>' + esc(l.game) + (l.startsAt ? " · " + esc(melb(l.startsAt)) : "") + "</small>" : "") + "</span><b>" + (+l.price).toFixed(2) + "</b></div>"; }).join("") + '<div class="sh-kv"><span>' + pct(pk.chance) + " chance</span><b>" + (+pk.price).toFixed(2) + "x</b></div></div>" : "";
         q("#pl-chart").querySelectorAll("[data-n]").forEach(function (b) { b.onclick = function () { P.n = +b.getAttribute("data-n"); draw(); fetchPlan(true); }; });
       }
       function fetchPlan(keepN) {

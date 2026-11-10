@@ -846,3 +846,6 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .mb-live { color: var(--warn); font-weight: 800; }
 .mb-card[hidden] { display: none; }
 .mb-card summary { cursor: pointer; min-height: 32px; }
+
+/* challenge action buttons (owner, 2026-11-10: they rendered as plain grey boxes) */
+button.ghost, .chv9-more button[data-sheet-for], .chv9-more summary.btn { background: transparent; color: var(--brand); border: 1px solid var(--brand); border-radius: 10px; padding: 8px 12px; font: 600 14px var(--font); cursor: pointer; }
