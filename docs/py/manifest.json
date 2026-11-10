@@ -1,5 +1,5 @@
 {
- "build": "b69c3382c843",
+ "build": "7d0ce5283d39",
  "files": [
   "melbcup/__init__.py",
   "melbcup/archive.py",
@@ -59,8 +59,10 @@
   "melbcup/web/templates/asynym/_header.html",
   "melbcup/web/templates/asynym/_likely.html",
   "melbcup/web/templates/asynym/_meetpick.html",
+  "melbcup/web/templates/asynym/_mybets.html",
   "melbcup/web/templates/asynym/_parts.html",
   "melbcup/web/templates/asynym/_timeline.html",
+  "melbcup/web/templates/asynym/_wallet.html",
   "melbcup/web/templates/asynym/base.html",
   "melbcup/web/templates/asynym/home.html",
   "melbcup/web/templates/asynym/meeting.html",

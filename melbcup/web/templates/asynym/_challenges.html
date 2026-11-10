@@ -1,13 +1,14 @@
+{% from "asynym/_parts.html" import sheet_btn %}
 {# Challenges: list, the open one, wallet, recorded wagers (owner, 2026-11-07). Included by nba.html. #}
 {% set OP = '<input type="hidden" name="op" value="' ~ chs.op ~ '">' %}
 {% set cid = chs.open.id if chs.open else '' %}
 {% set more %}
 <div class="chv9-more">
 <div class="ch-tools">
-  {% if chs.open %}<button type="button" class="ghost" data-dlg="ch-dlg-edit">Edit challenge</button>{% endif %}
-  <button type="button" class="ghost" data-dlg="ch-dlg-new">+ New challenge</button>
+  {% if chs.open %}<button type="button" class="ghost" data-sheet-for="ch-dlg-edit">Edit challenge</button>{% endif %}
+  <button type="button" class="ghost" data-plan>+ New challenge</button>
 </div>
-<dialog class="ch-dlg" id="ch-dlg-new"{{ ' open' if ch_pv }}><form method="dialog" class="ch-dlg-x"><button aria-label="Close">✕</button></form><div class="vlabel">New challenge</div>
+<div class="sheet-src" id="ch-dlg-new" data-title="New challenge" {{ 'data-open' if ch_pv }}>
   <form method="get" action="/sports" class="ch-start">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="newch">
     {% if ch_pv and ch_best %}<p class="say ch-why ch-bestline" role="status"><b>Best: {{ ch_best.n }} stages — {{ '%.1f' % (ch_best.run * 100) }}% to finish ({{ '%.0f' % (ch_best.typical * 100) }}% a stage at {{ '%.1f' % ch_best.x }}x)</b></p>{% endif %}
@@ -23,10 +24,10 @@
     <label class="ch-mode"><input type="radio" name="chmode" value="multi"{{ ' checked' if ch_mode == 'multi' }}> One leg per game</label>
     <button type="submit">Start challenge</button>
   </form>
-</dialog>
-{% if chs.open %}<dialog class="ch-dlg" id="ch-dlg-edit"><form method="dialog" class="ch-dlg-x"><button aria-label="Close">✕</button></form><div class="vlabel">Edit challenge</div>
+</div>
+{% if chs.open %}<div class="sheet-src" id="ch-dlg-edit" data-title="Edit challenge">
   {% if chs.open and ch %}
-  <details class="chs-edit" open><summary>Edit challenge</summary>
+  <div class="chs-edit">
   <form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
     <label>Name <input name="chname" maxlength="40" value="{{ chs.open.name }}"></label>
@@ -38,7 +39,7 @@
     <input type="hidden" name="chkeep" value="0">
     <label class="ch-mode"><input type="checkbox" name="chkeep" value="1"{{ ' checked' if ch.get('keep', True) }}> Take my start back after the first win</label>
     <button type="submit" name="ch" value="chedit">Save changes</button>
-  </form></details>
+  </form></div>
   {% endif %}
   {% if chs.open %}
   <form method="get" action="/sports" class="ch-act chs-rename"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
@@ -52,7 +53,7 @@
     <label class="ch-mode">Legs per multi <select name="chlegs"><option value="">Best chance (any)</option>{% for n in (2, 3, 4) %}<option value="{{ n }}"{{ ' selected' if ch.get('legs') == n }}>{{ n }}</option>{% endfor %}</select></label>
     <button type="submit" name="ch" value="chlegs" class="ghost">Set</button></form>
   {% endif %}
-</dialog>{% endif %}
+</div>{% endif %}
 {% if chs.open %}
 <section class="card nba-ch ch-open">
   {% if not ch %}
@@ -83,12 +84,12 @@
   {% set one_game = ch.get('mode', 'game') == 'game' %}
   {% set placed = ch.get('placed') %}
   {% if not ch.steps and not placed and ch_preview %}
-  <details class="ch-plan" id="ch-plan"><summary>Change stages</summary>
+  {% call sheet_btn('ch-plan', 'Change stages', 'Change stages') %}
   <div class="vlabel">Plan: ${{ '%.2f' % ch.start }} → ${{ '%.2f' % ch.goal }}</div>
   {% if ch_best %}<p class="say ch-why"><b>Best: {{ ch_best.n }} stages.</b> {{ ch_why }}</p>{% endif %}
   {% if ch_best %}<div class="ch-preview">{% for o in ch_preview %}<div{{ ' class=best' if ch_best and o.n == ch_best.n }}><b>{{ o.n }}</b><span>{{ '%.1f' % o.x }}x</span><span>{{ '%.0f' % (o.typical * 100) if o.typical else '–' }}% a stage</span><span>{{ '%.1f' % (o.run * 100) if o.run else '–' }}% the run</span></div>{% endfor %}</div>{% endif %}
   <p class="note ch-links">{{ ch.get('stages', 3) }} stages (<a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=dropstage&chs=0">- fewer</a> · <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=addstage&chs=0">+ more</a>)</p>
-  </details>
+  {% endcall %}
   {% endif %}
   <div class="vlabel">Stage {{ ch.steps | length + 1 }} of {{ ch.get('stages', 3) }} · bank ${{ '%.2f' % ch.bank }} of ${{ '%.0f' % ch.goal }}{% if ch.get('kept') %} · ${{ '%.0f' % ch.kept }} kept ✓{% endif %}</div>
   {% if not ch.get('placed') %}<p class="note ch-links"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% if ch.get('pick') %} · stuck to {{ ch.pick }}{% endif %}</p>{% endif %}
@@ -99,43 +100,43 @@
   {% set ag = az.get(placed.ag) %}
   <p class="say"><b>Placed: ${{ '%.2f' % placed.stake }} at {{ ag.name }}</b>{% if placed.price %} · ${{ '%.2f' % placed.price }}{% endif %}{% if placed.bonus %} · bonus bet (pays winnings only){% endif %}<br><small>{{ placed.label }}</small></p>
 <p class="note">Potential return {% if placed.price %}${{ '%.2f' % (placed.stake * placed.price) }}{% else %}-{% endif %}{% if placed.tip %} · kick-off {{ placed.tip | when }}{% endif %}</p>
-<details class="ch-edit"><summary>Edit this bet</summary>
+{% call sheet_btn('chs2', 'Edit this bet', 'Edit this bet') %}
 <form method="get" action="/sports" class="ch-act">
 <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}b{{ ch.steps | length }}"><input type="hidden" name="ch" value="chbet"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
 <label>Stake $<input name="chstake" inputmode="decimal" value="{{ '%.2f' % placed.stake }}"></label>
 <label>Price $<input name="chp" inputmode="decimal" value="{{ ('%.2f' % placed.price) if placed.price else '' }}"></label>
 <label>Legs <input name="chl" maxlength="400" value="{{ placed.label }}"></label>
-<button type="submit">Save bet</button></form></details>
+<button type="submit">Save bet</button></form>{% endcall %}
   {% if not placed.bonus %}<p class="note"><a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=isbonus&chs={{ ch.steps | length }}">Staked with a bonus bet? Mark it</a> (not your money; it pays winnings only)</p>{% endif %}
   {{ tracked((track or {}).get(placed.id), not placed.bonus) }}
-  <form method="get" action="/sports" class="ch-act">
+  {% call sheet_btn('chr4', 'Result', 'Won / Lost', 'ghost') %}<form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <label>Paid into your account $<input name="chr" inputmode="decimal" value="{{ ('%.2f' % (placed.stake * (placed.price - 1) if placed.bonus else placed.stake * placed.price)) if placed.price else '' }}"></label>
     <button type="submit" name="ch" value="won" class="won">Won</button>
     <button type="submit" name="ch" value="lost" class="lost">Lost</button>
     {% if not placed.bonus %}<button type="submit" name="ch" value="lost1" class="lost">Lost by one leg (bonus bet back)</button>{% endif %}
-  </form>
+  </form>{% endcall %}
   {% if ch_due %}<p class="say">Game ends about <b>{{ ch_due | when }}</b>: mark the result then and the next stage is ready.</p>{% endif %}
   <p class="note">A win pays back into {{ ag.name }}; a loss ends the run.{% if ch.get('keep', True) and not ch.steps %} After this win ${{ '%.0f' % ch.start }} goes back to your pool and the rest rolls on.{% endif %}</p>
   {% elif ch_typed or chs.open.scope == 'all' %}
   {% if ch_sug %}{% set p = ch_sug.band.pick %}
   <div class="vrow">{{ ring(p.p_all, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % (ch.bank * p.price) }}</b><span>{{ p.legs | length }}-leg multi · one leg per game · ${{ '%.2f' % p.price }} · {{ ch_sug.src | capitalize }}</span></div></div>
   <ol class="nba-picks">{% for g in p.legs %}<li>{{ g.label }} <small>{{ (g.p * 100) | round | int }}% · ${{ '%.2f' % g.price }} · {{ g.event }} · {{ g.start | iso_time }}</small></li>{% endfor %}</ol>
-  <form method="get" action="/sports" class="ch-act">
+  {% call sheet_btn('chp6', 'Place this stage', 'I placed this', 'ghost') %}<form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <input type="hidden" name="chl" value="{% for g in p.legs %}{{ g.label }}{{ '; ' if not loop.last }}{% endfor %}"><input type="hidden" name="chc" value="{% for g in p.legs %}{{ '%.1f' % (g.p * 100) }}{{ ',' if not loop.last }}{% endfor %}"><input type="hidden" name="chp" value="{{ '%.2f' % p.price }}">
     <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == 'pb' }}>{{ a.name }}</option>{% endfor %}</select></label>
     <button type="submit">I placed this · ${{ '%.2f' % ch.bank }}</button>
-  </form>
+  </form>{% endcall %}
   {% else %}<p class="say">All Sports: nothing fresh pays about <b>{{ '%.1f' % ch_x }}x</b> right now. Check back closer to kick-off.</p>{% endif %}
-  <details class="fold"><summary>Placed something else? Enter it</summary>
+  {% call sheet_btn('chs3', 'Placed something else? Enter it', 'Placed something else? Enter it') %}
   <form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <label>Legs <input name="chl" maxlength="400" placeholder="e.g. Collingwood to win; Lakers -3.5" required></label>
     <label>At <select name="chag">{% for a in az.on %}<option value="{{ a.code }}">{{ a.name }} (${{ '%.0f' % a.left }} left)</option>{% endfor %}</select></label>
     <label>Price $<input name="chp" inputmode="decimal" required></label>
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
-  </form></details>
+  </form>{% endcall %}
   {% elif ch_step %}{% set m = ch_step %}
   {% if ch.get('bonus') %}<p class="say">Replaying this stage with your <b>${{ '%.2f' % ch.bonus }} bonus bet</b> (a one-leg loss gave it back). Use the bonus bet at the bookmaker; it pays the winnings only, so the price aims one higher.</p>{% endif %}
   <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>${{ '%.2f' % ch.bank }} → ${{ '%.2f' % m.returns }}</b>{{ alt(m) }}<span>{% if one_game %}{{ m.game }}{% if m.startsAt %} · {{ m.startsAt | iso_time }}{% endif %} · {{ m.legs }}-leg same-game multi{% else %}{{ m.legs }}-leg multi · one leg per game{% endif %} · ${{ '%.2f' % m.price }}</span></div></div>
@@ -144,7 +145,7 @@
   {% if ch_shown_at %}<p class="note">Prices as of {{ ch_shown_at | iso_time }}; this bet stays until you tap Find best multi for this leg.{% if ch_live %} <small>Now: ${{ '%.2f' % ch_live.price }}{% if ch_live.game != m.game %} ({{ ch_live.game }}){% endif %}</small> <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&op={{ chs.op }}&ch=best&chs={{ ch.steps | length }}">Find best multi for this leg</a>{% endif %}</p>{% endif %}
   {% if ch_alt_agency %}{% set b = ch_alt_agency %}{% if b.funded %}<p class="say ch-alt">Better at <b>{{ b.name }}</b>: {{ (b.chance * 100) | round | int }}% to get up there vs {{ (m.chance * 100) | round | int }}% here ({{ b.game }}, ${{ '%.2f' % b.price }}), and your money there covers it. <a class="act" href="/sports?sport={{ sport }}&tab=challenge&chid={{ cid }}&bk={{ b.code }}">Show it</a></p>{% else %}<p class="note ch-alt">{{ b.name }} has a likelier stage ({{ (b.chance * 100) | round | int }}% vs {{ (m.chance * 100) | round | int }}%), but your money isn't there{% if not b.on %} (switch {{ b.name }} on in Settings if you have an account){% endif %}. Moving money takes time, so staying here is fine.</p>{% endif %}{% endif %}
   {% if one_game %}<p class="note">Build it as a Same Game Multi at {{ nba_agency_name or 'PointsBet' }}; its price is usually below the legs multiplied, so put in the price you got.</p>{% endif %}
-  <form method="get" action="/sports" class="ch-act">
+  {% call sheet_btn('chp7', 'Place this stage', 'I placed this', 'ghost') %}<form method="get" action="/sports" class="ch-act">
     <input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="place"><input type="hidden" name="chs" value="{{ ch.steps | length }}">
     <input type="hidden" name="chl" value="{{ (m.game ~ ': ' if one_game else '') ~ (m.picks | join(', ')) }}">
     <input type="hidden" name="chtip" value="{{ m.tip }}"><input type="hidden" name="chc" value="{% for d in m.detail %}{{ '%.1f' % (d.chance * 100) }}{{ ',' if not loop.last }}{% endfor %}">
@@ -152,7 +153,7 @@
     <label>Price $<input name="chp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
     {% if not ch.get('bonus') %}<label class="ch-mode"><input type="checkbox" name="chbonus" value="1"> Staked with a bonus bet</label>{% endif %}
     <button type="submit">Mark as placed · ${{ '%.2f' % ch.bank }}</button>
-  </form>
+  </form>{% endcall %}
   {% if one_game and ch_games | length > 1 %}
   <div class="sec"><span>Other games for this stage, by tip-off · tap one to use it</span></div>
   {% for g in ch_games %}{% if g.game != m.game %}
@@ -205,21 +206,7 @@
 </section>
 {% if not chs.open %}{{ more }}{% endif %}
 {# the wallet #}
-<section class="card chs-wallet">
-  <div class="vlabel">Bonus wallet · not cash</div>
-  <p class="note">Credits the bookmaker gave you, kept per bookmaker. You type in what they gave you; the app moves nothing.</p>
-  {% for k in chs.credits %}
-  <div class="chs-credit"><b>{{ k.provider }}</b> ${{ '%.2f' % k.amount }}{% if k.expiry %} · expires {{ k.expiry }}{% endif %}{% if k.challenge %} · held for {{ k.challenge }}{% endif %}{% if k.note %}<br><small>{{ k.note }}</small>{% endif %}
-    <form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="wid" value="{{ k.id }}">
-      <button type="submit" name="ch" value="wred" class="ghost">Used</button></form></div>
-  {% else %}<p class="say">No credits recorded.</p>{% endfor %}
-  <details><summary>+ Add a bonus credit</summary>
-  <form method="get" action="/sports" class="ch-start"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="wgrant">
-    <label>Bookmaker <input name="wprov" placeholder="Sportsbet" required></label>
-    <label>Amount $<input name="wamt" inputmode="decimal" required></label>
-    <label>Expires <input name="wexp" type="date"></label>
-    <button type="submit">Add credit</button></form></details>
-</section>
+{% include "asynym/_wallet.html" %}
 {% if chs.open %}
 <details class="card chs-wager">
   <summary class="vlabel">Record a wager you placed · {{ chs.open.name }}</summary>
@@ -236,8 +223,8 @@
     <button type="submit">Record wager</button></form>
   {% for w in chs.wagers %}
   <div class="chs-credit">#{{ w.id }}{% if w.at %} · {{ w.at | when }}{% endif %} {{ w.provider }} · {{ w.legs }} · ${{ '%.2f' % w.stake }} @ ${{ '%.2f' % w.odds }} · {{ w.funding }}{% if w.credit %} ({{ w.credit }}){% endif %} · <b>{{ w.state }}</b>{% if w.state == 'won' %} ${{ '%.2f' % w.ret }}{% endif %}{% if w.challenge != cid %} · shared exposure (money is in {{ w.challenge }}){% endif %}
-    {% if w.state == 'placed' and w.challenge == cid %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="wid" value="{{ w.id }}">
-      <label>Paid $<input name="wret" inputmode="decimal"></label><button type="submit" name="ch" value="wgrwon" class="won">Won</button><button type="submit" name="ch" value="wgrlost" class="lost">Lost</button></form>{% endif %}</div>
+    {% if w.state == 'placed' and w.challenge == cid %}{% call sheet_btn('chr5', 'Result', 'Won / Lost', 'ghost') %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="wid" value="{{ w.id }}">
+      <label>Paid $<input name="wret" inputmode="decimal"></label><button type="submit" name="ch" value="wgrwon" class="won">Won</button><button type="submit" name="ch" value="wgrlost" class="lost">Lost</button></form>{% endcall %}{% endif %}</div>
   {% endfor %}
 </details>
 {% endif %}

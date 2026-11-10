@@ -23,7 +23,9 @@
   <main id="main" class="app" data-refresh="{% block refresh %}30{% endblock %}">
     {% include "asynym/_header.html" %}
     <div class="scr">
+    {% if nav == 'sports' %}{% include "asynym/_mybets.html" %}{% endif %}
     {% block content %}{% endblock %}
+    {% if nav == 'sports' %}<script type="application/json" id="slip-cfg">{{ slip_cfg(chs, az, sport, sp_tab or nba_tab or '') | tojson }}</script>{% endif %}
     {% if can_fetch and not snap.saved and nav != 'sports' %}{# racing controls: racing screens only #}
     <div class="status">
       <p class="src">{{ [('Live' if snap.auto else ''), ('prices ' ~ (snap.priced_at | local_time) if snap.priced_at else ''), ('results ' ~ (snap.results_at | local_time) if snap.results_at else ''), ('loading card…' if snap.loading or (not card and not snap.field_due) else '')] | select | join(' · ') }}</p>
@@ -48,6 +50,7 @@
     </div>
     <script type="application/json" id="picks-data">{{ picks_data | tojson }}</script>
   </main>
+  {% if nav == 'sports' %}<button type="button" class="slip-bar" id="slip-bar" hidden aria-label="Open the bet slip"></button>{% endif %}
 {% include "_bets_js.html" %}
 </body>
 </html>

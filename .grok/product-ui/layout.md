@@ -8,3 +8,6 @@
 7. Last-minute check card (bottom).
 8. Gambling Help Online line.
 Day page: wallet bars + race strip + list of races (time, this race's stake), then "Multi picks for the day" (owner, 2026-11-01): a card per multi, legs as rows, stake, SB price pill, Good/Short price, Placed on Sportsbet. No day-wide quaddie block.
+
+## Sheet layout (v13)
+Max width 460px, max height 92dvh, safe-area bottom padding, 44px+ touch targets, one primary button per sheet. Slip bar floats above the bottom tab bar (72px + safe area). My bets pill sits at the top of every sports page. Server forms live in `.sheet-src` blocks (hidden) opened by `[data-sheet-for]`.

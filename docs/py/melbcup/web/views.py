@@ -343,6 +343,95 @@ def asset_version(new_ui: bool = False) -> str:
     return digest.hexdigest()[:10]
 
 
+def _iso(v) -> str:
+    return v.isoformat() if hasattr(v, "isoformat") else str(v or "")
+
+
+def slip_leg(d, sport: str = "") -> dict:
+    """One leg in the slip's shape {id, sport, game, startsAt, label, price, chance, mk, side} from an
+    NBA/NFL leg, a discover leg or a catalogue row (every card's legs share one slip)."""
+    g = d.get if hasattr(d, "get") else (lambda k, default=None: getattr(d, k, default))
+    if g("price_decimal") is not None:  # a catalogue row
+        side = str(g("side") or "").lower()
+        label = " ".join(
+            str(x)
+            for x in (g("participant_name"), side.title() if side else "", g("line_raw"), g("market_name_raw"))
+            if x not in (None, "")
+        )
+        game = g("_ev") or g("event_name") or str(g("event_id") or "")
+        p = g("market_prob")
+        return {
+            "id": f"{g('sport') or sport}|{g('selection_id') or g('key') or game + label}",
+            "sport": g("sport") or sport,
+            "game": game,
+            "startsAt": _iso(g("event_start_utc")),
+            "label": label,
+            "price": float(g("price_decimal") or 0),
+            "chance": p,
+            "mk": f"{g('participant_name') or ''}|{g('market_name_raw') or ''}",
+            "side": side,
+        }
+    if g("event") is not None and g("p") is not None:  # a discover leg
+        return {
+            "id": f"{g('sport') or sport}|{g('key') or g('event') + str(g('label'))}",
+            "sport": g("sport") or sport,
+            "game": g("event"),
+            "startsAt": _iso(g("start")),
+            "label": g("label"),
+            "price": g("price"),
+            "chance": g("p"),
+            "mk": "",
+            "side": "",
+        }
+    game = g("game") or ""  # an NBA / NFL leg
+    return {
+        "id": f"{sport}|{game}|{g('player')}|{g('stat')}|{g('line')}|{int(bool(g('under')))}"
+        if g("player")
+        else f"{sport}|{game}|{g('label')}",
+        "sport": g("sport") or sport,
+        "game": game,
+        "startsAt": _iso(g("startsAt")),
+        "label": g("label"),
+        "price": g("price"),
+        "chance": g("chance"),
+        "mk": f"{g('player')}|{g('stat')}" if g("player") else "",
+        "side": ("u" if g("under") else "o") if g("player") else "",
+    }
+
+
+def slip_cfg(chs, az, sport, tab="") -> dict:
+    """What the bet slip sheets need (v13): bookmakers, credit left per bookmaker, the running
+    challenges that can take a next leg (stage, bank, target x), and the form's op token."""
+    out: dict = {"sport": sport or "", "tab": tab or "", "books": [], "credit": {}, "challenges": [], "op": ""}
+    try:
+        from melbcup import nba_challenge
+
+        out["books"] = [{"code": a.code, "name": a.name} for a in (az.on if az else [])]
+        for k in (chs or {}).get("credits", []):
+            key = str(k["provider"]).lower()
+            out["credit"][key] = round(out["credit"].get(key, 0.0) + float(k["amount"]), 2)
+        out["op"] = (chs or {}).get("op", "")
+        for it in (chs or {}).get("list", []):
+            c, st = it["rec"], it["rec"]["state"]
+            if st.get("active") is False or st.get("placed"):
+                continue
+            out["challenges"].append(
+                {
+                    "id": c["id"],
+                    "name": c["name"],
+                    "scope": c["scope"],
+                    "stage": len(st["steps"]),
+                    "stages": st.get("stages", 3),
+                    "bank": st["bank"],
+                    "goal": st["goal"],
+                    "x": round(nba_challenge.next_x(st), 2),
+                }
+            )
+    except Exception:  # noqa: BLE001 - the slip still works without challenges
+        pass
+    return out
+
+
 def make_env(new_ui: bool = False) -> Environment:
     env = Environment(
         loader=FileSystemLoader(str(HERE / "templates")), autoescape=select_autoescape(["html"])
@@ -377,6 +466,8 @@ def make_env(new_ui: bool = False) -> Environment:
         open_races=open_races,
     )
     env.globals["shown"] = history.shown
+    env.globals["slip_cfg"] = slip_cfg
+    env.globals["slip_leg"] = slip_leg
     env.globals["cat_flags"] = catalogue_view.flags
     env.globals["asset_v"] = asset_version(new_ui)
     env.filters.update(
@@ -1000,6 +1091,20 @@ class Views:
                     out[b["id"]] = t
         return out
 
+    @staticmethod
+    def _own_live(ctx: dict) -> dict:
+        """{own bet id: live_chance.bet_live()} for the My bets sheet; never raises."""
+        out: dict = {}
+        try:
+            from melbcup import live_chance
+
+            for b in ctx.get("nba_own") or []:
+                if b.get("state") == "placed":
+                    out[b["id"]] = live_chance.bet_live((ctx.get("track") or {}).get(b["id"]), b)
+        except Exception:  # noqa: BLE001 - the live chance is optional
+            return {}
+        return out
+
     def _bonus_credits(self) -> list[dict]:
         """Open bonus credits (read-only), for the Bet now note; [] when none or unreadable."""
         try:
@@ -1071,6 +1176,47 @@ class Views:
                 cache.clear()
             cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
         return cache[key]
+
+    def challenge_plan(self, sport: str, start: float, goal: float, mode: str, legs: int | None) -> dict:
+        """The new-challenge planner's numbers (v13): the same _stage_preview rows the server
+        form uses, the best stage count, and the best stage-1 pick (NBA / NFL legs; other sports
+        have no leg model yet, so only the payouts a stage come back)."""
+        from melbcup import nba_challenge, nba_legs
+
+        start = max(start, 1.0)
+        goal = max(goal, start * 2)
+        mode = "multi" if mode == "multi" else "game"
+        want = legs if legs in (2, 3, 4) else None
+        rows, pick, best, why = [], None, None, ""
+        legs_now: list = []
+        if sport in ("nba", "nfl"):
+            self._agencies_on = getattr(self, "_agencies_on", set())
+            legs_now = (self._nba_view({"tab": "all"}, sport).get("nba_rep") or {}).get("all_legs") or []
+        if legs_now:
+            rows = self._stage_preview(legs_now, nba_challenge, nba_legs, start, goal, True, want, mode)
+            best, why = nba_challenge.recommend(rows)
+            x = best["x"] if best else None
+            lim = {"min_legs": want, "max_legs": want} if want else {}
+            if x:
+                if mode == "game":
+                    games = nba_legs.same_game_for(legs_now, x, stake=start, **lim)
+                    m = max(games, key=lambda g: g["chance"]) if games else None
+                else:
+                    m = nba_legs.stack_for(legs_now, x, stake=start, **lim)
+                if m:
+                    pick = {
+                        "game": m.get("game", ""),
+                        "price": m["price"],
+                        "chance": m["chance"],
+                        "legs": [
+                            {"label": d["label"], "price": d["price"], "chance": d["chance"], "game": d.get("game", "")}
+                            for d in m.get("detail", [])
+                        ],
+                    }
+        else:
+            rows = nba_challenge.plan(start, goal, True, lambda xmap: {})
+        return {"sport": sport, "start": start, "goal": goal, "mode": mode, "legs": want,
+                "rows": rows, "best": best, "why": why, "pick": pick}
 
     def nba_us_pretip(self) -> bool:
         try:
@@ -1413,6 +1559,8 @@ class Views:
                     for x_ in (2.0, 3.0, 5.0):
                         ctx["sgm"] += nfl_legs.same_game(legs_, x_)[:2]
             if sport not in ("nba", "nfl") or view:
+                ctx["track"] = self._track(ctx)
+                ctx["own_live"] = self._own_live(ctx)
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub
             ctx["path"] = "/sports"
@@ -1443,6 +1591,7 @@ class Views:
                     )
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
+            ctx["own_live"] = self._own_live(ctx)
             ctx["chcard"] = self._chcard(ctx)
             return self.env.get_template("asynym/sports.html").render(ctx)
         if path == "/":

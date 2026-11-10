@@ -1,13 +1,7 @@
 {% extends "asynym/base.html" %}
-{% from "asynym/_parts.html" import ring %}
-{% macro placed(m, game='') %}<details class="nb-place"><summary>I placed this</summary><form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport or 'nba' }}">
-  <input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="ch" value="bet">
-  <input type="hidden" name="nbl" value="{{ (game ~ ': ' if game else '') ~ (m.picks | join(', ')) }}"><input type="hidden" name="nbtip" value="{{ m.tip }}">
-  <label>At <select name="nbag">{% for a in az.on %}<option value="{{ a.code }}"{{ ' selected' if a.code == nba_agency }}>{{ a.name }}</option>{% endfor %}</select></label>
-  <label>Stake $<input name="nbs" inputmode="decimal" value="10"></label>
-  <label>Price got $<input name="nbp" inputmode="decimal" value="{{ '%.2f' % m.price }}"></label>
-  <button type="submit">Save bet</button></form></details>{% endmacro %}
-{% macro record_bet(action, sport, tab, games, chlist) %}<details class="nb-place nb-rec"><summary>+ Record a bet I placed</summary><form method="get" action="{{ action }}" class="ch-act">
+{% from "asynym/_parts.html" import ring, tick, addall, sheet_btn, tracked %}
+{% macro placed(m, game='') %}{{ addall(m.detail, sport or 'nba') }}{% endmacro %}
+{% macro record_bet(action, sport, tab, games, chlist) %}{% call sheet_btn("rec-sheet", "Record a bet", "+ Record a bet I placed") %}<form method="get" action="{{ action }}" class="ch-act">
   {% if sport %}<input type="hidden" name="sport" value="{{ sport }}">{% endif %}<input type="hidden" name="tab" value="{{ tab }}"><input type="hidden" name="ch" value="bet">
   <label>Game <select name="nbgame">{% for g in games %}<option value="{{ g }}">{{ g }}</option>{% endfor %}<option value="">Other</option></select></label>
   <label>Legs <textarea name="nbwhat" rows="4" maxlength="300" placeholder="Alperen Sengun 15+ Points" required></textarea></label>
@@ -17,14 +11,12 @@
   <label>Bonus if it wins $<input name="nbbw" inputmode="decimal" placeholder="e.g. Jet Boost 2"></label>
   <label class="ch-mode"><input type="checkbox" name="nbbonus" value="1"> Staked with a bonus bet (comes off that bookmaker's credit)</label>
   <label>Add to challenge <select name="nbch"><option value="">None, my own bet</option>{% for c in chlist or [] %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
-  <button type="submit">Save bet</button></form></details>{% endmacro %}
-{% macro tracked(t, bonus_ok=false) %}{% if t %}<div class="nb-track"><small>{{ t.clock }}</small><ul>{% for l in t.legs %}<li class="{{ 'ok' if l.ok == true else ('bad' if l.ok == false else '') }}">{{ '✓' if l.ok == true else ('✗' if l.ok == false else '·') }} {{ l.label }} <b>{{ l.now if l.now is not none else '–' }}{% if not l.under %}/{{ l.k }}{% else %} (under {{ l.k }}){% endif %}</b></li>{% endfor %}</ul>
-{% if t.verdict == 'won' %}<p class="say">All legs won: put in the dollars paid into your account (not the odds) and tap <b>Won</b>.</p>{% elif t.verdict == 'lost1' %}<p class="say">One leg failed{% if bonus_ok %}: if you used money back, tap <b>Lost by one leg</b>{% endif %}.</p>{% elif t.verdict == 'lost' %}<p class="say">{{ t.failed }} legs failed: tap <b>Lost</b>.</p>{% endif %}</div>{% endif %}{% endmacro %}
+  <button type="submit">Save bet</button></form>{% endcall %}{% endmacro %}
 {% macro alt(item) %}{% set ab = alt_pay(item) if alt_pay is defined else none %}{% if ab %} <span class="alt-pay" title="The same bet pays this much more at the other agency">{{ ab.code }} +{{ '%.2f' % ab.diff }}</span>{% endif %}{% endmacro %}
 {% macro nslip(m, tag, one) %}
 <article class="pc{{ ' one' if one }}">
   <div class="ph">{{ ring(m.chance, 54, 'chance') }}<div><span class="tag{{ ' g' if one }}">{{ tag }}</span><b class="pp">${{ '%.2f' % m.price }}</b><small>per $1 · {{ m.legs }} legs</small></div></div>
-  <ul>{% for d in m.detail %}<li>{% if d.game %}<span class="pt"><span class="ev">{{ d.game }}</span>{{ d.startsAt | iso_time if d.startsAt else '' }}</span>{% endif %}<b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span></li>{% endfor %}</ul>
+  <ul>{% for d in m.detail %}<li>{% if d.game %}<span class="pt"><span class="ev">{{ d.game }}</span>{{ d.startsAt | iso_time if d.startsAt else '' }}</span>{% endif %}<b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span>{{ tick(d, sport or 'nba') }}</li>{% endfor %}</ul>
   <div class="why4">{% for d in m.detail %}<div class="lb"><span>{{ d.label }}</span><span class="bar"><i style="width:{{ (d.chance * 100) | round | int }}%"></i></span><b>{{ (d.chance * 100) | round | int }}%</b></div>{% endfor %}</div>
   <div class="pw"><span>Pays <b>${{ '%.2f' % m.price }}</b> · price says {{ (100 / m.price) | round | int }}%</span>{{ alt(m) }}</div>
   {{ placed(m) }}
@@ -47,18 +39,6 @@
 
 {% set _chl = (chs.list | map(attribute='rec') | list) if chs and chs.list else [] %}
 {{ record_bet('/nba', '', nba_tab, (v.board.games | map(attribute='name') | map('replace', ' at ', ' @ ') | list) if v.board else [], _chl) }}
-{% set own_here = (nba_own or []) | selectattr('sport_of', 'equalto', sport or 'nba') | list %}{% if own_here %}
-<section class="card nb-own">
-  <div class="vlabel">Your bets</div>
-  {% for b in own_here %}
-  <div class="nb-bet"><p><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %}{% if b.bonus_if_win %} · ${{ '%.2f' % b.bonus_if_win }} bonus if it wins{% endif %}{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% endif %}<br><small>{{ b.label }}</small></p>
-  {{ tracked((track or {}).get(b.id)) }}
-  {% if b.state == 'placed' %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport or 'nba' }}"><input type="hidden" name="tab" value="{{ nba_tab }}"><input type="hidden" name="nbid" value="{{ b.id }}">
-    <label>Paid into your account $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
-    <button type="submit" name="ch" value="betwon" class="won">Won</button><button type="submit" name="ch" value="betlost" class="lost">Lost</button></form>{% endif %}</div>
-  {% endfor %}
-</section>
-{% endif %}
 
 {% if rep %}
 {% if not hub_bar %}<nav class="rtabs" aria-label="NBA tabs">
@@ -76,7 +56,7 @@
   <div class="spb">{% for m in rep.stacks[2:] %}
     <article class="cr"><span>{{ ring(m.chance, 40, '') }}</span>
       <div class="cb"><span class="tag">{{ m.legs }} legs · ${{ '%.2f' % m.price }}</span>
-        <ul>{% for d in m.detail %}<li class="lc"><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span><small>{{ (d.chance * 100) | round | int }}%</small></li>{% endfor %}</ul>
+        <ul>{% for d in m.detail %}<li class="lc"><b>{{ d.label }}</b><span class="lp">{{ '%.2f' % d.price }}</span><small>{{ (d.chance * 100) | round | int }}%</small>{{ tick(d, sport or 'nba') }}</li>{% endfor %}</ul>
         {{ placed(m) }}</div>
       <div class="cp"><b>${{ '%.2f' % m.price }}</b>{{ alt(m) }}</div>
     </article>{% endfor %}</div>{% endif %}
@@ -90,7 +70,7 @@
   {% for m in rep.stacks_same %}
   <div class="nba-multi">
     <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b>{{ alt(m) }}<span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
-    <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small></li>{% endfor %}</ol>
+    <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small>{{ tick(d, sport or 'nba') }}</li>{% endfor %}</ol>
     {{ placed(m, m.game) }}
   </div>
   {% else %}<p class="say">No game has enough lines yet.</p>{% endfor %}
@@ -104,7 +84,7 @@
 <section class="card rows">
   <div class="sec"><span>{{ gm.game }}{% if gm.startsAt %} · {{ gm.startsAt | iso_time }}{% endif %}</span></div>
   {% for g in gm.legs %}
-  <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{% if g.expected is not none %}{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min{% else %}priced by the market (no model board for this game yet){% endif %}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span></div>
+  <div class="brow nba-leg{{ ' val' if g.chance >= 0.75 }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{% if g.expected is not none %}{{ g.team }} · expects {{ '%.1f' % g.expected }} in {{ '%.0f' % g.minutes }} min{% else %}priced by the market (no model board for this game yet){% endif %}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}</span>{{ tick(g, sport or 'nba') }}</div>
   {% endfor %}
 </section>
 {% else %}<section class="card"><p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p></section>{% endfor %}
@@ -112,7 +92,7 @@
 {% else %}
 <section class="card rows">
   {% for g in rep.all_legs | sort(attribute='chance', reverse=True) %}{% if loop.index <= 120 %}
-  <div class="brow nba-leg{{ ' val' if g.chance >= rep.min_chance and g.ev >= rep.min_ev }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span></div>
+  <div class="brow nba-leg{{ ' val' if g.chance >= rep.min_chance and g.ev >= rep.min_ev }}">{{ ring(g.chance, 46, '') }}<span class="v"><b>{{ g.label }}</b><small>{{ g.team }} · {{ g.game }}</small></span><span class="a">${{ '%.2f' % g.price }}{{ alt(g) }}<small>fair ${{ '%.2f' % g.fair }} · {{ g.ev | edge }}</small></span>{{ tick(g, sport or 'nba') }}</div>
   {% endif %}{% else %}<p class="say">{{ nba_agency_name or 'PointsBet' }} has no player lines posted yet.</p>{% endfor %}
   {% if rep.all_legs | length > 120 %}<p class="note">Showing the 120 most likely of {{ rep.all_legs | length }} lines.</p>{% endif %}
 </section>

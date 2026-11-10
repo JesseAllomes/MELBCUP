@@ -787,3 +787,61 @@ a.ng { display: flex; text-decoration: none; color: inherit; }
 .ch-dlg{width:min(92vw,520px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);color:inherit;padding:14px 16px}
 .ch-dlg::backdrop{background:rgba(0,0,0,.6)}
 .ch-dlg-x{float:right;margin:0}.ch-dlg-x button{background:none;border:0;color:inherit;font-size:1.2em;cursor:pointer;padding:2px 6px}
+
+/* ===== v13 bottom sheets + bet slip (owner BUILD 2026-11-10) ===== */
+.sheet-src { display: none; }
+.sh-layer { position: fixed; inset: 0; z-index: 60; display: flex; justify-content: center; align-items: flex-end; touch-action: none; }
+.sh-bd { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity .25s; }
+.sh-layer.in .sh-bd { opacity: .55; }
+.sh-layer.under .sh-bd { opacity: .35; }
+.sh-sheet { position: relative; width: 100%; max-width: 460px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; background: var(--sheet); border: 1px solid var(--rule); border-bottom: 0; border-radius: 20px 20px 0 0; transform: translateY(105%); will-change: transform; box-shadow: 0 -10px 40px #0009; touch-action: none; }
+.sh-layer.under .sh-sheet { filter: brightness(.7); }
+.sh-sheet.anim { transition: transform .42s cubic-bezier(.2, 1.15, .3, 1); }
+.sh-sheet.anim.out { transition: transform .26s cubic-bezier(.4, 0, 1, 1); }
+.sh-head { padding: 8px 14px 4px; cursor: grab; }
+.sh-grab { width: 44px; height: 5px; border-radius: 5px; background: #4a4160; margin: 0 auto 8px; }
+.sh-title { display: flex; align-items: center; gap: 8px; }
+.sh-title h2 { flex: 1; margin: 0; font-size: 17px; }
+.sh-x { min-width: 36px; min-height: 36px; border-radius: 10px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); font-weight: 800; }
+.sh-body { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 6px 14px calc(18px + env(safe-area-inset-bottom)); }
+.sh-body label { display: block; margin: 8px 0; font-size: 13px; color: var(--muted); }
+.sh-body input, .sh-body select, .sh-body textarea { width: 100%; min-height: 44px; margin-top: 4px; font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; }
+.sh-body label.ch-mode input[type=checkbox], .sh-body label.ch-mode input[type=radio] { width: auto; min-height: 0; margin: 0 6px 0 0; }
+.sh-body button[type=submit], .sh-btn { min-height: 48px; width: 100%; margin-top: 8px; border-radius: 12px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); font: 700 15px var(--font); }
+.sh-btn.pri, .sh-body button[type=submit]:not(.ghost):not(.won):not(.lost):not(.w):not(.l):not(.o) { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.sh-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.sh-chip { min-height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); font: 700 14px var(--font); }
+.sh-chip.on { background: var(--brand-wash); border-color: var(--brand); color: var(--brand); }
+.sh-kv { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.sh-warn { background: var(--warn-wash); border: 1px solid var(--warn); color: var(--warn); border-radius: 10px; padding: 8px 10px; margin: 8px 0; font-size: 13px; }
+.sh-bad { background: var(--bad-wash); border-color: var(--bad); color: var(--bad); }
+.sh-good { color: var(--good); }
+.sh-card { background: var(--chip); border: 1px solid var(--rule); border-radius: 12px; padding: 10px; margin: 8px 0; }
+.sh-pick { display: block; width: 100%; text-align: left; min-height: 56px; margin: 6px 0; padding: 10px; border-radius: 12px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); font: 600 14px var(--font); }
+.sh-pick.on { border-color: var(--brand); background: var(--brand-wash); }
+.sh-pick small { display: block; color: var(--muted); font-weight: 500; }
+.sh-leg { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.sh-leg > span { flex: 1; min-width: 0; }
+.sh-leg small { display: block; color: var(--muted); }
+.sh-leg b.px { font-variant-numeric: tabular-nums; }
+.sh-bars { display: flex; align-items: flex-end; gap: 6px; height: 84px; margin: 8px 0 4px; }
+.sh-bars > button { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; padding: 0; border: 0; background: none; color: var(--muted); font: 700 11px var(--font); }
+.sh-bars i { display: block; width: 100%; background: var(--rule); border-radius: 4px 4px 0 0; min-height: 2px; }
+.sh-bars .on i, .sh-bars .best i { background: var(--brand); }
+.sh-bars .on { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .sh-sheet.anim, .sh-sheet.anim.out, .sh-bd { transition-duration: .01s !important; } }
+/* tick control on every leg */
+.tk { flex: none; width: 32px; height: 32px; min-width: 32px; padding: 0; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--chip); color: transparent; font: 800 16px/1 var(--font); cursor: pointer; margin-left: 6px; }
+.tk[aria-pressed=true] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.tk-all { min-height: 40px; padding: 0 14px; margin-top: 8px; border-radius: 10px; border: 1px solid var(--brand); background: var(--brand-wash); color: var(--brand); font: 700 14px var(--font); }
+/* floating slip bar sits above the bottom tab bar */
+.slip-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom)); width: calc(100% - 24px); max-width: 436px; z-index: 40; min-height: 52px; border-radius: 16px; background: var(--brand); color: var(--brand-ink); border: 0; font: 800 15px var(--font); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 8px 24px #000a; }
+.slip-bar[hidden] { display: none; }
+.sh-toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(130px + env(safe-area-inset-bottom)); z-index: 70; background: var(--chip); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 8px 14px; font-weight: 700; }
+.wal-mini { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.wal-mini span { background: var(--warn-wash); color: var(--warn); border-radius: 10px; padding: 6px 10px; font-weight: 700; }
+
+.mybets-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; margin: 0 0 8px; border-radius: 20px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); font: 700 14px var(--font); }
+.mb-live { color: var(--warn); font-weight: 800; }
+.mb-card[hidden] { display: none; }
+.mb-card summary { cursor: pointer; min-height: 32px; }

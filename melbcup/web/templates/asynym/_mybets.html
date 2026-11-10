@@ -1,0 +1,20 @@
+{# My bets (owner 2026-11-10): every open and today's settled own bet, in a sheet; trackers kept. #}
+{% from "asynym/_parts.html" import tracked %}
+{% set all_b = nba_own or [] %}
+{% set open_n = all_b | selectattr('state', 'equalto', 'placed') | list | length %}
+{% set live_n = (all_b | selectattr('state', 'equalto', 'placed') | selectattr('id', 'in', (track or {}).keys() | list) | list | length) if track else 0 %}
+{% set this = sport or 'nba' %}
+<button type="button" class="mybets-btn" data-sheet-for="mybets" id="mybets-btn">My bets <b>{{ all_b | length }}</b>{% if live_n %} <span class="mb-live" title="in play">&#9679; live</span>{% endif %}{% if open_n %} <small>{{ open_n }} open</small>{% endif %}</button>
+<div class="sheet-src" id="mybets" data-title="My bets" data-filter="{{ 'all' if this == 'home' else 'this' }}">
+  <div class="sh-chips mb-chips"><button type="button" class="sh-chip{{ '' if this == 'home' else ' on' }}" data-mbf="this">This sport</button><button type="button" class="sh-chip{{ ' on' if this == 'home' else '' }}" data-mbf="all">All sports</button></div>
+  {% for b in all_b %}{% set tr = (track or {}).get(b.id) %}{% set lv = (own_live or {}).get(b.id) %}
+  <details class="mb-card sh-card" data-sport="{{ b.sport_of }}"{{ ' open' if b.state == 'placed' and tr }}>
+    <summary><b>${{ '%.2f' % b.stake }} at {{ {'sb': 'Sportsbet', 'pb': 'PointsBet'}.get(b.ag, b.ag) }}</b>{% if b.price %} · ${{ '%.2f' % b.price }}{% endif %} · <small>{{ b.sport_of | upper }}</small>{% if b.state != 'placed' %} · <b class="{{ 'ok' if b.state == 'won' else 'bad' }}">{{ 'Won $%.2f' % b.ret if b.state == 'won' else 'Lost' }}</b>{% elif tr and tr.state == 'in' %} · <span class="mb-live">&#9679; in play</span>{% endif %}{% if lv and lv.p is not none and b.state == 'placed' %} · {{ '%.0f' % (lv.p * 100) }}%{% if lv.live %} live{% endif %}{% endif %}</summary>
+    <p><small>{{ b.label }}</small>{% if b.bonus_if_win %}<br><small>${{ '%.2f' % b.bonus_if_win }} bonus if it wins</small>{% endif %}{% if b.bonus %}<br><small>bonus bet</small>{% endif %}</p>
+    {{ tracked(tr, not b.bonus) }}
+    {% if b.state == 'placed' %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport or 'nba' }}"><input type="hidden" name="tab" value="{{ sp_tab or nba_tab or '' }}"><input type="hidden" name="nbid" value="{{ b.id }}">
+      <label>Paid into your account $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
+      <button type="submit" name="ch" value="betwon" class="won">Won</button><button type="submit" name="ch" value="betlost" class="lost">Lost</button></form>{% endif %}
+  </details>
+  {% else %}<p class="say">No open bets, and none settled today.</p>{% endfor %}
+</div>

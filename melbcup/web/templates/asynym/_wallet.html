@@ -1,0 +1,19 @@
+{# Compact bonus wallet (v13): credits per bookmaker; add / mark used open in sheets. #}
+{% from "asynym/_parts.html" import sheet_btn %}
+{% set cid = chs.open.id if chs and chs.open else '' %}
+{% macro hid(ch) %}<input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}"><input type="hidden" name="ch" value="{{ ch }}">{% endmacro %}
+<section class="card chs-wallet">
+  <div class="vlabel">Bonus wallet · not cash</div>
+  <div class="wal-mini">{% for prov, b in (chs.balances or {}).items() %}<span>{{ prov }} ${{ '%.2f' % b.open }}</span>{% else %}<small>No credits recorded.</small>{% endfor %}</div>
+  {% call sheet_btn('wal-add', 'Add bonus credit', '+ Add a bonus credit') %}
+  <form method="get" action="/sports" class="ch-start">{{ hid('wgrant') }}
+    <label>Bookmaker <input name="wprov" placeholder="Sportsbet" required></label>
+    <label>Amount $<input name="wamt" inputmode="decimal" required></label>
+    <label>Expires <input name="wexp" type="date"></label>
+    <button type="submit">Add credit</button></form>
+  {% endcall %}
+  {% if chs.credits %}{% call sheet_btn('wal-list', 'Credits', 'Credits · mark used') %}
+  {% for k in chs.credits %}<div class="sh-card"><b>{{ k.provider }}</b> ${{ '%.2f' % k.amount }}{% if k.expiry %} · expires {{ k.expiry }}{% endif %}{% if k.challenge %} · held for {{ k.challenge }}{% endif %}{% if k.note %}<br><small>{{ k.note }}</small>{% endif %}
+    <form method="get" action="/sports" class="ch-act">{{ hid('wred') }}<input type="hidden" name="wid" value="{{ k.id }}"><button type="submit" class="ghost">Used</button></form></div>{% endfor %}
+  {% endcall %}{% endif %}
+</section>

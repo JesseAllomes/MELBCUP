@@ -10,3 +10,6 @@ Tokens (light / dark):
 - cloth #FFFFFF, cloth-ink #111111 in both themes (saddlecloths are white)
 Type: Barlow Condensed 500-700 for headings, prices, stakes, numbers; Barlow 400-600 body.
 No green. Pills allowed (owner override of banned-kits, 2026-11-01) for bookie prices, Good/Short price, Odds only.
+
+## Bottom sheet (v13, 2026-11-10)
+Surface `--sheet` on a `#000` backdrop (55%, 35% when stacked); radius 20px top; grab handle `#4a4160`; chips `--chip`, selected `--brand-wash` + `--brand`; warnings `--warn-wash` / `--bad-wash`. Component CSS: `.sh-*` in asynym.css. Slip bar: `--brand` fill, `--brand-ink` text.

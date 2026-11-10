@@ -415,21 +415,354 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   window.initChallengeAccordion();
 })();
 
-// Edit / New challenge popups (owner, 2026-11-08): the forms live in a <dialog>, opened by a button.
-document.addEventListener("click", function (e) {
-  var b = e.target.closest && e.target.closest("[data-dlg]");
-  if (!b) return;
-  var d = document.getElementById(b.getAttribute("data-dlg"));
-  if (d && d.showModal) { if (d.open) d.close(); d.showModal(); }
-});
-
-// A popup the server sent already open (after "Best stages") becomes a real modal: on top of the
-// bottom bar and scrollable to its last button (owner, 2026-11-08).
+// ===== v13 bottom sheets + bet slip (owner BUILD 2026-11-10) =====
 (function () {
-  document.querySelectorAll("dialog.ch-dlg[open]").forEach(function (d) {
-    if (!d.showModal) return;
-    d.close(); d.showModal();
-    var pv = d.querySelector(".ch-why, .ch-preview");
-    if (pv) pv.scrollIntoView({ block: "nearest" });
+  "use strict";
+  document.documentElement.classList.add("js");
+  var RM = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var stack = [];
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function lockBody() { document.body.style.overflow = stack.length ? "hidden" : ""; }
+  function topS() { return stack[stack.length - 1]; }
+
+  // The sheet: slides up, follows the finger down, closes past 30% of its height or on a flick
+  // (> 0.5 px/ms), springs back otherwise. Drag starts from the head, or the body at scroll top.
+  function openSheet(title, content, onOpen) {
+    var layer = document.createElement("div");
+    layer.className = "sh-layer";
+    layer.innerHTML = '<div class="sh-bd"></div><div class="sh-sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="sh-head"><div class="sh-grab"></div><div class="sh-title"><h2>' + esc(title) + '</h2><button type="button" class="sh-x" data-close aria-label="Close">✕</button></div></div><div class="sh-body"></div></div>';
+    var sheet = layer.querySelector(".sh-sheet"), body = layer.querySelector(".sh-body"), head = layer.querySelector(".sh-head");
+    if (typeof content === "string") body.innerHTML = content; else if (content) body.appendChild(content);
+    document.body.appendChild(layer);
+    var S = { layer: layer, sheet: sheet, body: body, y: 0, h: 0 };
+    S.render = function (html) { body.innerHTML = html; };
+    S.close = function () { closeSheet(S); };
+    stack.forEach(function (x) { x.layer.classList.add("under"); });
+    stack.push(S); lockBody();
+    layer.querySelector("[data-close]").onclick = S.close;
+    layer.querySelector(".sh-bd").onclick = function () { if (topS() === S) S.close(); };
+    var set = function (y) { S.y = y; sheet.style.transform = "translateY(" + y + "px)"; };
+    S.set = set;
+    S.h = sheet.offsetHeight; sheet.getBoundingClientRect();
+    sheet.classList.add("anim"); layer.classList.add("in"); set(0);
+    sheet.addEventListener("transitionend", function () { sheet.classList.remove("anim"); }, { once: true });
+    var d = null;
+    var pt = function (e) { return e.touches ? e.touches[0] : e; };
+    function start(e) {
+      if (topS() !== S || (e.touches && e.touches.length > 1)) return;
+      var p = pt(e);
+      d = { y0: p.clientY, x0: p.clientX, inHead: head.contains(e.target), on: false, s: [{ t: performance.now(), y: p.clientY }] };
+    }
+    function move(e) {
+      if (!d) return;
+      var p = pt(e), dy = p.clientY - d.y0;
+      if (!d.on) {
+        var can = d.inHead || body.scrollTop <= 0;
+        if (can && dy > 6 && Math.abs(dy) > Math.abs(p.clientX - d.x0)) { d.on = true; d.y0 = p.clientY; S.h = sheet.offsetHeight; sheet.classList.remove("anim", "out"); } else return;
+      }
+      if (e.cancelable) e.preventDefault();
+      var dd = p.clientY - d.y0;
+      set(dd >= 0 ? dd : dd * 0.15);
+      d.s.push({ t: performance.now(), y: p.clientY });
+      while (d.s.length > 2 && d.s[0].t < performance.now() - 120) d.s.shift();
+    }
+    function end() {
+      if (!d) return;
+      var was = d; d = null;
+      if (!was.on) return;
+      var a = was.s[0], b = was.s[was.s.length - 1], v = b.t > a.t ? (b.y - a.y) / (b.t - a.t) : 0;
+      sheet.classList.add("anim");
+      if (S.y > S.h * 0.3 || v > 0.5) closeSheet(S, true); else set(0);
+    }
+    sheet.addEventListener("touchstart", start, { passive: true });
+    sheet.addEventListener("touchmove", move, { passive: false });
+    sheet.addEventListener("touchend", end); sheet.addEventListener("touchcancel", end);
+    sheet.addEventListener("mousedown", function (e) {
+      if (e.target.closest("input,select,textarea,button")) return;
+      start(e);
+      var mm = function (ev) { move(ev); }, mu = function () { removeEventListener("mousemove", mm); removeEventListener("mouseup", mu); end(); };
+      addEventListener("mousemove", mm); addEventListener("mouseup", mu);
+    });
+    if (onOpen) onOpen(S);
+    return S;
+  }
+  function closeSheet(S, fromDrag) {
+    var i = stack.indexOf(S);
+    if (i < 0) return;
+    stack.splice(i, 1);
+    S.layer.classList.remove("in");
+    if (!fromDrag) S.sheet.classList.add("anim");
+    S.sheet.classList.add("out");
+    S.set(S.sheet.offsetHeight + 40);
+    setTimeout(function () { S.layer.remove(); lockBody(); }, RM ? 30 : 300);
+    var t = topS(); if (t) t.layer.classList.remove("under");
+    lockBody();
+  }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && topS()) topS().close(); });
+  window.AzSheet = { open: openSheet, close: function () { var t = topS(); if (t) t.close(); }, count: function () { return stack.length; } };
+
+  // Server-rendered forms live in <div class="sheet-src" id=...>; a [data-sheet-for] button opens
+  // them in a sheet (the form keeps its own server action).
+  function fromSrc(id) {
+    var src = document.getElementById(id);
+    if (!src) return null;
+    var wrap = document.createElement("div");
+    wrap.innerHTML = src.innerHTML;
+    var S = openSheet(src.getAttribute("data-title") || "Details", wrap);
+    if (src.getAttribute("data-filter")) mbFilter(S.body, src.getAttribute("data-filter"));
+    return S;
+  }
+  // My bets sheet: "this sport" / "all sports" chips over the collapsible bet cards.
+  function mbFilter(root, f) {
+    var sp = (document.getElementById("slip-cfg") ? (JSON.parse(document.getElementById("slip-cfg").textContent || "{}").sport || "") : "");
+    root.querySelectorAll(".mb-card").forEach(function (c) { c.hidden = f === "this" && sp !== "home" && c.getAttribute("data-sport") !== sp; });
+    root.querySelectorAll("[data-mbf]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-mbf") === f); });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-mbf]");
+    if (b) mbFilter(b.closest(".sh-body"), b.getAttribute("data-mbf"));
   });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-sheet-for]");
+    if (b) { e.preventDefault(); fromSrc(b.getAttribute("data-sheet-for")); }
+  });
+  function autoOpen() { var a = document.querySelector(".sheet-src[data-open]"); if (a && !topS()) { a.removeAttribute("data-open"); fromSrc(a.id); } }
+
+  // ---------- the slip ----------
+  var KEY = "asynym.slip.v1", mem = [];
+  function load() { try { var v = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(v)) return v; } catch (x) { /* none */ } return mem; }
+  function save(a) { mem = a; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (x) { /* kept in memory */ } }
+  var cfg = {};
+  function readCfg() { try { var ce = document.getElementById("slip-cfg"); if (ce) cfg = JSON.parse(ce.textContent || "{}"); } catch (x) { /* keep the last */ } }
+  readCfg();
+  function money(n) { return "$" + (+n).toFixed(2); }
+  function mel(iso) {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", hour: "numeric", minute: "2-digit", hour12: true }); } catch (x) { return ""; }
+  }
+  function normLeg(l) {
+    var o = { id: l.id || "", sport: String(l.sport || cfg.sport || "").toLowerCase(), game: l.game || "", startsAt: l.startsAt || "", label: String(l.label || ""), price: +l.price || 0, chance: l.chance == null || l.chance === "" ? null : +l.chance, mk: l.mk || "", side: l.side == null ? "" : String(l.side) };
+    if (!o.id) o.id = [o.sport, o.game, o.label].join("|");
+    if (!o.mk) {
+      var t = o.label, u = /\bunder\b/i.test(t);
+      if (u || /\bover\b/i.test(t) || /\d\+/.test(t)) { o.mk = t.replace(/\b(over|under)\b/ig, "").replace(/[\d.]+\+?/g, "").replace(/\s+/g, " ").trim().toLowerCase(); o.side = u ? "u" : "o"; }
+    }
+    return o;
+  }
+  function has(id) { return load().some(function (l) { return l.id === id; }); }
+  function add(l) { var a = load(), n = normLeg(l); if (!a.some(function (x) { return x.id === n.id; })) { a.push(n); save(a); } sync(); }
+  function remove(id) { save(load().filter(function (l) { return l.id !== id; })); sync(); }
+  function toggle(l) { var n = normLeg(l); if (has(n.id)) remove(n.id); else add(n); }
+  function clear() { save([]); sync(); }
+  function analyse(a) {
+    var price = a.reduce(function (x, l) { return x * (l.price || 1); }, 1);
+    var chance = a.reduce(function (x, l) { return x * (l.chance != null ? l.chance : (l.price ? 1 / l.price : 1)); }, 1);
+    var games = {}, sports = {}, marks = {}, clash = [];
+    a.forEach(function (l) {
+      var g = l.game || "(no game)";
+      (games[g] = games[g] || []).push(l);
+      if (l.sport) sports[l.sport] = 1;
+      if (l.mk) { var k = g + "|" + l.mk; if (marks[k] && marks[k].side !== l.side) clash.push([marks[k], l]); else if (!marks[k]) marks[k] = l; }
+    });
+    var linked = Object.keys(games).filter(function (g) { return games[g].length > 1; });
+    var sp = Object.keys(sports);
+    return { price: price, chance: chance, games: games, linked: linked, clash: clash, sport: sp.length > 1 ? "multi" : (sp[0] || cfg.sport || ""), n: a.length };
+  }
+  function label(a) {
+    var order = [], by = {};
+    a.forEach(function (l) { var g = l.game || ""; if (!by[g]) { by[g] = []; order.push(g); } by[g].push(l.label); });
+    if (order.length === 1 && !order[0]) return a.map(function (l) { return l.label; }).join(", ");
+    return order.map(function (g) { return (g ? g + ": " : "") + by[g].join(", "); }).join("; ");
+  }
+  function pct(c) { return (c * 100 >= 10 ? Math.round(c * 100) : (c * 100).toFixed(1)) + "%"; }
+
+  var bar = document.getElementById("slip-bar");
+  function sync() {
+    readCfg();
+    var a = load();
+    document.querySelectorAll(".tk[data-leg]").forEach(function (b) {
+      try { var l = normLeg(JSON.parse(b.getAttribute("data-leg"))); b.setAttribute("aria-pressed", a.some(function (x) { return x.id === l.id; }) ? "true" : "false"); } catch (x) { /* bad leg */ }
+    });
+    if (bar) {
+      if (!a.length) { bar.hidden = true; } else {
+        var z = analyse(a);
+        bar.hidden = false;
+        bar.innerHTML = "<span>Slip · " + z.n + " leg" + (z.n === 1 ? "" : "s") + " · " + money(z.price) + " · " + pct(z.chance) + (z.linked.length ? " approx" : "") + "</span><span>▲</span>";
+      }
+    }
+    var top = topS();
+    if (top && top.slipView) top.slipView();
+  }
+  function toast(t) {
+    var e = document.createElement("div"); e.className = "sh-toast"; e.textContent = t; document.body.appendChild(e);
+    setTimeout(function () { e.remove(); }, 1600);
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest(".tk[data-leg]");
+    if (t) { e.preventDefault(); try { toggle(JSON.parse(t.getAttribute("data-leg"))); } catch (x) { /* bad leg */ } return; }
+    var all = e.target.closest && e.target.closest("[data-legs]");
+    if (all) {
+      e.preventDefault();
+      try { JSON.parse(all.getAttribute("data-legs")).forEach(add); toast("Added to slip"); } catch (x) { /* bad legs */ }
+    }
+    var np = e.target.closest && e.target.closest("[data-plan]");
+    if (np) { e.preventDefault(); planSheet(); }
+    var rm = e.target.closest && e.target.closest("[data-record]");
+    if (rm) { e.preventDefault(); recordSheet(load()); }
+  });
+  if (bar) bar.addEventListener("click", function () { slipSheet(); });
+
+  function url(params) {
+    var q = [];
+    Object.keys(params).forEach(function (k) { if (params[k] !== "" && params[k] != null) q.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k])); });
+    return "/sports?" + q.join("&");
+  }
+  function pageSport() { return cfg.sport || "home"; }
+
+  function slipSheet() {
+    readCfg();
+    openSheet("Slip", "", function (S) {
+      S.slipView = function () {
+        var a = load();
+        if (!a.length) { S.render('<p class="say">The slip is empty. Tick legs on any card to add them.</p>'); return; }
+        var z = analyse(a), h = "";
+        a.forEach(function (l) {
+          h += '<div class="sh-leg"><span><b>' + esc(l.label) + '</b><small>' + esc((l.sport ? l.sport.toUpperCase() + " · " : "") + (l.game || "") + (l.startsAt ? " · " + mel(l.startsAt) : "")) + '</small></span><b class="px">' + (l.price ? l.price.toFixed(2) : "") + '</b><button type="button" class="sh-x" data-rm="' + esc(l.id) + '" aria-label="Remove leg">✕</button></div>';
+        });
+        h += '<div class="sh-kv"><span>Price</span><b>' + money(z.price) + '</b></div><div class="sh-kv"><span>Chance every leg wins</span><b>' + pct(z.chance) + (z.linked.length ? " (approx)" : "") + '</b></div>';
+        if (z.linked.length) h += '<div class="sh-warn">Linked: ' + esc(z.linked.join(", ")) + ' has more than one leg. Legs in one game move together, so the chance is approximate and the bookmaker may price the combination lower.</div>';
+        z.clash.forEach(function (c) { h += '<div class="sh-warn sh-bad">Clash: "' + esc(c[0].label) + '" and "' + esc(c[1].label) + '" are opposite sides of the same bet.</div>'; });
+        h += '<button type="button" class="sh-btn pri" data-act="record">Record as my bet</button><button type="button" class="sh-btn" data-act="chal">Use in a challenge</button><button type="button" class="sh-btn" data-act="clear">Clear slip</button>';
+        S.render(h);
+        S.body.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(b.getAttribute("data-rm")); }; });
+        S.body.querySelector('[data-act="record"]').onclick = function () { recordSheet(load()); };
+        S.body.querySelector('[data-act="chal"]').onclick = function () { challengeSheet(load()); };
+        S.body.querySelector('[data-act="clear"]').onclick = function () { clear(); S.close(); };
+      };
+      S.slipView();
+    });
+  }
+
+  function bookSelect(id, def) {
+    var o = (cfg.books || []).map(function (b) { return '<option value="' + esc(b.code) + '"' + (b.code === def ? " selected" : "") + ">" + esc(b.name) + "</option>"; }).join("");
+    return '<select id="' + id + '">' + (o || '<option value="sb">Sportsbet</option><option value="pb">PointsBet</option>') + "</select>";
+  }
+  function bookName(code) { var b = (cfg.books || []).filter(function (x) { return x.code === code; })[0]; return b ? b.name : code; }
+  function creditFor(code) { var n = bookName(code).toLowerCase(), c = cfg.credit || {}; return c[n] || 0; }
+
+  function recordSheet(a) {
+    readCfg();
+    if (!a.length) return;
+    var z = analyse(a), R = { bk: ((cfg.books || [])[0] || {}).code || "sb" };
+    openSheet("Record as my bet", "", function (S) {
+      var h = '<p class="say">' + esc(label(a)) + '</p><label>Bookmaker' + bookSelect("rc-bk", R.bk) + '</label><div class="sh-kv"><span>Stake</span><span></span></div><div class="sh-chips" id="rc-chips">' +
+        [5, 10, 20, 50].map(function (v) { return '<button type="button" class="sh-chip' + (v === 10 ? " on" : "") + '" data-s="' + v + '">$' + v + "</button>"; }).join("") + '</div>' +
+        '<label>Custom stake $<input id="rc-stake" inputmode="decimal" value="10.00"></label><label>Price got $<input id="rc-price" inputmode="decimal" value="' + z.price.toFixed(2) + '"></label>' +
+        '<label class="ch-mode"><input type="checkbox" id="rc-bonus"> Staked with a bonus bet <small id="rc-cr"></small></label><label>Bonus if it wins $<input id="rc-bw" inputmode="decimal" placeholder="e.g. Jet Boost 2"></label>' +
+        '<button type="button" class="sh-btn pri" id="rc-go">Save bet</button>';
+      S.render(h);
+      var q = function (s) { return S.body.querySelector(s); };
+      var cr = function () { var c = creditFor(q("#rc-bk").value); q("#rc-cr").textContent = "· " + bookName(q("#rc-bk").value) + " credit left " + money(c); };
+      cr(); q("#rc-bk").onchange = cr;
+      q("#rc-chips").onclick = function (e) {
+        var b = e.target.closest("[data-s]"); if (!b) return;
+        q("#rc-stake").value = (+b.getAttribute("data-s")).toFixed(2);
+        q("#rc-chips").querySelectorAll(".sh-chip").forEach(function (c) { c.classList.toggle("on", c === b); });
+      };
+      q("#rc-stake").oninput = function () { q("#rc-chips").querySelectorAll(".sh-chip").forEach(function (c) { c.classList.remove("on"); }); };
+      q("#rc-go").onclick = function () {
+        var stake = parseFloat(q("#rc-stake").value), price = parseFloat(q("#rc-price").value);
+        if (!(stake > 0) || !(price > 1)) { toast("Enter a stake and a price"); return; }
+        var tip = a.map(function (l) { return l.startsAt || ""; }).sort().pop() || "";
+        var u = url({ sport: pageSport(), nbsport: z.sport, tab: cfg.tab || "", ch: "bet", nbs: stake.toFixed(2), nbp: price.toFixed(2), nbag: q("#rc-bk").value, nbl: label(a), nbtip: tip, nbbonus: q("#rc-bonus").checked ? "1" : "", nbbw: q("#rc-bw").value, op: cfg.op || "" });
+        clear();
+        window.location.assign(u);
+      };
+    });
+  }
+
+  function challengeSheet(a) {
+    readCfg();
+    if (!a.length) return;
+    var z = analyse(a), sp = pageSport();
+    var list = (cfg.challenges || []).filter(function (c) { return sp === "home" || c.scope === "all" || c.scope === sp; });
+    openSheet("Use in a challenge", "", function (S) {
+      var pick = null, book = ((cfg.books || [])[0] || {}).code || "sb";
+      var draw = function () {
+        var h = '<div class="sh-kv"><b>Challenge next leg</b><span>' + money(z.price) + " · " + pct(z.chance) + '</span></div>';
+        h += list.length ? list.map(function (c) { return '<button type="button" class="sh-pick' + (pick === c.id ? " on" : "") + '" data-c="' + esc(c.id) + '">' + esc(c.name) + '<small>Stage ' + (c.stage + 1) + " of " + c.stages + " · bank " + money(c.bank) + " · target " + c.x.toFixed(1) + "x</small></button>"; }).join("") : '<p class="say">No running challenge for this sport.</p>';
+        var c = list.filter(function (x) { return x.id === pick; })[0];
+        if (c) {
+          var fit = z.price >= c.x ? "sh-good" : "";
+          h += '<div class="sh-card"><div class="sh-kv"><span>Price vs target</span><b class="' + fit + '">' + z.price.toFixed(2) + "x vs " + c.x.toFixed(1) + 'x</b></div><div class="sh-kv"><span>Chance</span><b>' + pct(z.chance) + (z.linked.length ? " (approx)" : "") + '</b></div><div class="sh-kv"><span>Bank to payout</span><b>' + money(c.bank) + " → " + money(c.bank * z.price) + '</b></div>' +
+            '<label>At' + bookSelect("ch-bk", book) + '</label><button type="button" class="sh-btn pri" id="ch-place">Place · ' + money(c.bank) + "</button></div>";
+        }
+        h += '<button type="button" class="sh-btn" data-plan2>New challenge</button>';
+        S.render(h);
+        S.body.querySelectorAll("[data-c]").forEach(function (b) { b.onclick = function () { pick = b.getAttribute("data-c"); draw(); }; });
+        S.body.querySelector("[data-plan2]").onclick = function () { planSheet(); };
+        var pl = S.body.querySelector("#ch-place");
+        if (pl) {
+          S.body.querySelector("#ch-bk").onchange = function (e) { book = e.target.value; };
+          pl.onclick = function () {
+            var tip = a.map(function (l) { return l.startsAt || ""; }).sort().pop() || "";
+            var u = url({ sport: sp, tab: "challenge", chid: c.id, op: cfg.op || "", ch: "place", chs: c.stage, chp: z.price.toFixed(2), chl: label(a), chag: S.body.querySelector("#ch-bk").value, chtip: tip });
+            clear();
+            window.location.assign(u);
+          };
+        }
+      };
+      draw();
+    });
+  }
+
+  // ---------- new challenge planner ----------
+  function planSheet() {
+    readCfg();
+    var sp = pageSport(), scope = sp === "nba" || sp === "nfl" ? sp : "all";
+    openSheet("New challenge", "", function (S) {
+      var P = { start: "10", goal: "1000", mode: "game", legs: "", n: null }, data = null, timer = null;
+      S.render('<label>Name<input id="pl-name" maxlength="40" placeholder="e.g. $10 to $1000"></label><div class="sh-chips"><label style="flex:1">Start $<input id="pl-start" inputmode="decimal" value="10.00"></label><label style="flex:1">Goal $<input id="pl-goal" inputmode="decimal" value="1000.00"></label></div>' +
+        '<div class="sh-chips" id="pl-mode"><button type="button" class="sh-chip on" data-m="game">One game</button><button type="button" class="sh-chip" data-m="multi">One leg per game</button></div>' +
+        '<div class="sh-kv"><span>Legs per multi</span><span></span></div><div class="sh-chips" id="pl-legs"><button type="button" class="sh-chip on" data-l="">Any</button><button type="button" class="sh-chip" data-l="2">2</button><button type="button" class="sh-chip" data-l="3">3</button><button type="button" class="sh-chip" data-l="4">4</button></div>' +
+        '<div class="sh-kv"><span>Chance to finish, by stages</span><span></span></div><div id="pl-chart" class="say">Working it out…</div><div id="pl-card"></div><div id="pl-pick"></div><button type="button" class="sh-btn pri" id="pl-go">Start challenge</button>');
+      var q = function (s) { return S.body.querySelector(s); };
+      function draw() {
+        var r = (data && data.rows) || [], best = data && data.best ? data.best.n : null;
+        if (P.n == null && best) P.n = best;
+        if (P.n == null && r.length) P.n = 3;
+        var mx = Math.max.apply(null, r.map(function (o) { return o.run || 0; }).concat([0.0001]));
+        q("#pl-chart").innerHTML = r.length ? '<div class="sh-bars">' + r.map(function (o) { return '<button type="button" data-n="' + o.n + '" class="' + (o.n === P.n ? "on " : "") + (o.n === best ? "best" : "") + '"><i style="height:' + Math.max(2, Math.round(((o.run || 0) / mx) * 64)) + 'px"></i>' + (o.run ? (o.run * 100).toFixed(1) + "%" : "–") + "<br>" + o.n + "</button>"; }).join("") + "</div>" : (data && data.error ? esc(data.error) : "Working it out…");
+        var cur = r.filter(function (o) { return o.n === P.n; })[0];
+        q("#pl-card").innerHTML = cur ? '<div class="sh-card"><b>' + cur.n + " stages · " + cur.x.toFixed(1) + "x each · " + (cur.typical ? Math.round(cur.typical * 100) + "% a stage" : "no model for this sport yet") + (cur.run ? " · " + (cur.run * 100).toFixed(1) + "% to finish" : "") + "</b>" + (cur.n === best ? '<small class="sh-good"> best</small>' : "") + "</div>" : "";
+        var pk = data && data.pick;
+        q("#pl-pick").innerHTML = pk ? '<div class="sh-card"><small>Stage 1 best pick · ' + esc(pk.game) + "</small>" + pk.legs.map(function (l) { return '<div class="sh-kv"><span>' + esc(l.label) + "</span><b>" + (+l.price).toFixed(2) + "</b></div>"; }).join("") + '<div class="sh-kv"><span>' + pct(pk.chance) + " chance</span><b>" + (+pk.price).toFixed(2) + "x</b></div></div>" : "";
+        q("#pl-chart").querySelectorAll("[data-n]").forEach(function (b) { b.onclick = function () { P.n = +b.getAttribute("data-n"); draw(); }; });
+      }
+      function fetchPlan() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          fetch("/api/challenge/plan?" + ["sport=" + encodeURIComponent(sp), "start=" + encodeURIComponent(P.start), "goal=" + encodeURIComponent(P.goal), "mode=" + P.mode, P.legs ? "legs=" + P.legs : ""].filter(Boolean).join("&"), { credentials: "same-origin" })
+            .then(function (r) { return r.json(); }).then(function (j) { data = j; P.n = null; draw(); }).catch(function () { data = { rows: [], error: "Could not work out the plan." }; draw(); });
+        }, 250);
+      }
+      q("#pl-start").oninput = function () { P.start = this.value; fetchPlan(); };
+      q("#pl-goal").oninput = function () { P.goal = this.value; fetchPlan(); };
+      q("#pl-mode").onclick = function (e) { var b = e.target.closest("[data-m]"); if (!b) return; P.mode = b.getAttribute("data-m"); this.querySelectorAll(".sh-chip").forEach(function (c) { c.classList.toggle("on", c === b); }); fetchPlan(); };
+      q("#pl-legs").onclick = function (e) { var b = e.target.closest("[data-l]"); if (!b) return; P.legs = b.getAttribute("data-l"); this.querySelectorAll(".sh-chip").forEach(function (c) { c.classList.toggle("on", c === b); }); fetchPlan(); };
+      q("#pl-go").onclick = function () {
+        var s = parseFloat(P.start), g = parseFloat(P.goal);
+        if (!(s > 0) || !(g > s)) { toast("Goal must be above the start"); return; }
+        window.location.assign(url({ sport: sp, tab: "challenge", op: cfg.op || "", ch: "newch", chscope: scope, chname: q("#pl-name").value, chstart: s.toFixed(2), chgoal: g.toFixed(2), chn: P.n || 3, chlegs: P.legs, chmode: P.mode, chkeep: "1" }));
+      };
+      fetchPlan();
+    });
+  }
+  window.AzSlip = { add: add, remove: remove, toggle: toggle, clear: clear, legs: load, analyse: analyse, open: slipSheet, plan: planSheet };
+
+  sync(); autoOpen();
+  // the page swaps its own content in place (liveSwap): re-mark the ticks after it
+  var mainEl = document.getElementById("main"), mt = null;
+  if (mainEl && window.MutationObserver) new MutationObserver(function () { clearTimeout(mt); mt = setTimeout(function () { sync(); autoOpen(); }, 60); }).observe(mainEl, { childList: true, subtree: true });
+  window.addEventListener("storage", function (e) { if (e.key === KEY) sync(); });
 })();
