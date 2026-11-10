@@ -1,0 +1,155 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Merged quick modules</title><style>
+:root{--ground:#0A090E;--sheet:#15121C;--ink:#EEEAF8;--muted:#9D94B8;--rule:#2A2438;--chip:#1F1A2B;--brand:#A88BFF;--brand-ink:#120D1F;--brand-wash:#251C3D;--good:#4ED19A;--good-wash:#14291F;--bad:#FF6F7D;--bad-wash:#33161C;--warn:#E9B65A;--warn-wash:#2E2414;--font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(120% 60% at 50% -10%,#1E1236,#0A090E 55%) fixed,#0A090E;color:var(--ink);font:14px/1.35 var(--font);font-variant-numeric:tabular-nums;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+.app{max-width:460px;margin:0 auto;padding:8px 10px 90px}
+h1{font-size:17px;margin:6px 2px 8px}
+.lbl{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:10px;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px}.sp{flex:1;min-width:0}.muted{color:var(--muted)}.sm{font-size:12px}
+.btn{min-height:44px;border-radius:12px;border:1px solid var(--rule);background:var(--chip);padding:0 14px;font-weight:700}
+.btn.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.good{background:var(--good-wash);color:var(--good);border-color:#245c43}.btn.bad{background:var(--bad-wash);color:var(--bad);border-color:#5a2630}
+.btn.sm{min-height:36px;padding:0 10px;font-size:13px}
+.chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--rule);background:var(--chip);font-weight:600;font-size:13px;white-space:nowrap}
+.chip.on{background:var(--brand-wash);border-color:var(--brand);color:var(--brand)}
+.scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin:8px 0}
+.leg{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--rule);min-height:54px;cursor:pointer}
+.leg:last-child{border:0}.box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--rule);display:grid;place-items:center;color:transparent;font-weight:900}
+.leg.on{background:var(--brand-wash);border-radius:10px}.leg.on .box{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.leg b{display:block;font-size:14px}.leg small{color:var(--muted);font-size:12px}.price{font-weight:800;font-size:15px}
+.tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:1px 6px;border-radius:5px;margin-right:5px;vertical-align:1px;color:#120D1F}
+.t-NBA{background:#E9B65A}.t-NFL{background:#4ED19A}.t-AFL{background:#A88BFF}.t-NRL{background:#6FB7FF}
+input[type=text],input[type=number],select{width:100%;min-height:44px;background:var(--chip);border:1px solid var(--rule);border-radius:10px;padding:8px 10px}
+.acc{border:1px solid var(--rule);border-radius:12px;margin-bottom:6px;background:var(--ground)}
+.acc>.h{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;cursor:pointer;font-weight:700}
+.acc>.h .v{margin-left:auto;color:var(--brand);font-weight:600;font-size:13px}.acc>.h:after{content:"▾";color:var(--muted);margin-left:6px;transition:.15s}.acc.open>.h:after{transform:rotate(180deg)}
+.acc>.b{display:none;padding:2px 12px 12px}.acc.open>.b{display:block}
+.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;margin-bottom:8px}
+.mod>.h{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;cursor:pointer;font-weight:800}.mod>.h .v{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}.mod>.h:after{content:"▾";color:var(--muted)}.mod.open>.h:after{transform:rotate(180deg)}
+.mod>.b{display:none;padding:0 8px 8px}.mod.open>.b{display:block}
+.tabs{display:flex;gap:4px;background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:4px;margin-bottom:8px}
+.tabs button{flex:1;min-height:42px;border:0;background:none;border-radius:10px;font-weight:700;color:var(--muted)}.tabs button.on{background:var(--brand-wash);color:var(--brand)}
+.scrim{position:fixed;inset:0;background:#000a;display:none;z-index:20}.scrim.show{display:block}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:18px 18px 0 0;padding:10px 12px 18px;z-index:21;transition:transform .22s}
+.sheet.show{transform:translate(-50%,0)}.grab{width:40px;height:4px;border-radius:4px;background:var(--rule);margin:0 auto 8px}
+.dlg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(100% - 28px);max-width:420px;background:var(--sheet);border:1px solid var(--brand);border-radius:16px;padding:14px;z-index:22;display:none}.dlg.show{display:block}
+.tog{width:48px;height:28px;border-radius:14px;background:var(--rule);position:relative;border:0;flex:none}.tog:after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}.tog.on{background:var(--brand)}.tog.on:after{left:23px}
+.pill{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}.pill.w{background:var(--good-wash);color:var(--good)}.pill.l{background:var(--bad-wash);color:var(--bad)}.pill.o{background:var(--warn-wash);color:var(--warn)}
+.bonus{border:1px dashed var(--warn);background:var(--warn-wash);color:var(--warn);border-radius:12px;padding:8px 10px}
+.warn{border:1px solid var(--bad);background:var(--bad-wash);color:var(--bad);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600;margin-top:6px}
+.link{border:1px solid var(--warn);background:var(--warn-wash);color:var(--warn);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600;margin-top:6px}
+.multi{border:1px solid var(--brand);background:linear-gradient(180deg,#2a1f47,var(--sheet))}
+.toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:var(--good);color:#06150e;font-weight:800;padding:8px 14px;border-radius:999px;z-index:40;display:none}
+.hide{display:none!important}.mini{display:flex;gap:6px;flex-wrap:wrap}
+.ell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style></head><body><div class="app">
+<h1>Melbourne Cup bets</h1>
+<div class="tabs" id="tabs"><button class="on" data-t="build">Build</button><button data-t="bets">Your bets</button><button data-t="wallet">Wallet</button></div>
+<div id="build"></div><div id="bets" class="hide"></div><div id="wallet" class="hide"></div>
+</div>
+<div id="toast" class="toast"></div><div id="scrim" class="scrim"></div><div id="rec" class="sheet"></div><div id="dlg" class="dlg"></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const BOOKS=['Sportsbet','PointsBet','Bet365','TAB'];
+const SPORTS=['NBA','NFL','AFL','NRL'];
+// g = game id, mk = market key (conflict if same mk, different side)
+let LEGS=[
+{id:1,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Jalen Brunson Over 24.5 Pts',p:1.90,mk:'brunson',side:'o'},
+{id:2,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Celtics -4.5 Handicap',p:1.91,mk:'h2h-nba1',side:'BOS'},
+{id:3,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Knicks to Win',p:2.05,mk:'h2h-nba1',side:'NYK'},
+{id:4,s:'NBA',g:'nba2',game:'Nuggets @ Lakers',when:'Wed 1:00pm',t:'Nikola Jokic Triple Double',p:2.60,mk:'jokic',side:'y'},
+{id:5,s:'NFL',g:'nfl1',game:'Chiefs @ Bills',when:'Thu 8:20am',t:'Mahomes Over 265.5 Pass Yds',p:1.87,mk:'mahomes',side:'o'},
+{id:6,s:'NFL',g:'nfl1',game:'Chiefs @ Bills',when:'Thu 8:20am',t:'Bills to Win',p:1.95,mk:'h2h-nfl1',side:'BUF'},
+{id:7,s:'AFL',g:'afl1',game:'Collingwood v Carlton',when:'Fri 7:50pm',t:'Collingwood -12.5 Line',p:1.92,mk:'h2h-afl1',side:'COL'},
+{id:8,s:'AFL',g:'afl1',game:'Collingwood v Carlton',when:'Fri 7:50pm',t:'Nick Daicos 30+ Disposals',p:2.10,mk:'daicos',side:'y'},
+{id:9,s:'NRL',g:'nrl1',game:'Storm v Panthers',when:'Sat 5:30pm',t:'Storm to Win',p:2.30,mk:'h2h-nrl1',side:'MEL'},
+{id:10,s:'NRL',g:'nrl1',game:'Storm v Panthers',when:'Sat 5:30pm',t:'Ryan Papenhuyzen Anytime Try',p:2.40,mk:'papa',side:'y'}];
+const st={sel:new Set([4,5,7]),flt:'All',wallet:10.72,mods:{sugg:1,multi:1,paste:1,w:1,ch:1},sport:{},bets:[
+{id:101,t:'Knicks Win + Brunson 25+ Pts',legs:2,bk:'Sportsbet',stake:10.50,price:3.42,bonus:false,ch:'Cup Run',s:'o',det:['NBA · Knicks to Win 1.80','NBA · Brunson 25+ Pts 1.90']},
+{id:102,t:'NBA + NFL + AFL 3-leg multi',legs:3,bk:'PointsBet',stake:10.72,price:9.34,bonus:true,bif:89.72,ch:'$10 to $1000',s:'o',det:['NBA · Jokic Triple Double 2.60','NFL · Mahomes 265.5 Pass Yds 1.87','AFL · Collingwood -12.5 1.92']},
+{id:103,t:'Storm to Win',legs:1,bk:'Sportsbet',stake:5,price:2.30,bonus:false,ch:'',s:'w',det:['NRL · Storm to Win 2.30']}]};
+const CH=['(none)','Cup Run · stage 2 of 5','$10 to $1000 · stage 1 of 8'];
+const $f=n=>'$'+(+n).toFixed(2);
+const sel=()=>LEGS.filter(l=>st.sel.has(l.id));
+const comb=a=>a.reduce((x,l)=>x*l.p,1);
+const chance=a=>a.reduce((x,l)=>x/l.p,1)*100;
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1600)}
+function mod(k,title,val,body){return `<div class="mod ${st.mods[k]?'open':''}" data-m="${k}"><div class="h"><span>${title}</span><span class="v">${val}</span></div><div class="b">${body}</div></div>`}
+function bindMods(root,cb){root.querySelectorAll('.mod>.h').forEach(h=>h.onclick=()=>{const k=h.parentNode.dataset.m;st.mods[k]=!st.mods[k];cb()})}
+function analyse(a){const games={},mk={},conf=[];a.forEach(l=>{(games[l.g]=games[l.g]||[]).push(l);if(mk[l.mk]&&mk[l.mk].side!==l.side)conf.push([mk[l.mk],l]);mk[l.mk]=mk[l.mk]||l});
+const linked=Object.values(games).filter(x=>x.length>1);return{linked,conf,sports:[...new Set(a.map(l=>l.s))]}}
+function parsePaste(txt){let n=0;txt.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(s=>{const m=s.match(/(.*?)[\s@x]+(\d+\.\d{1,2})\s*$/);let t=(m?m[1]:s).trim(),p=m?+m[2]:1.90;let sp=SPORTS.find(x=>new RegExp('\\b'+x+'\\b','i').test(t))||'NBA';t=t.replace(new RegExp('^'+sp+'[:\\s-]*','i'),'');
+const l={id:Date.now()+n++,s:sp,g:'typed'+n,game:'Pasted leg',when:'time TBC',t,p,mk:'typed'+Date.now()+n,side:'x',custom:1};LEGS.unshift(l);st.sel.add(l.id)});return n}
+function legRow(l){return `<div class="leg ${st.sel.has(l.id)?'on':''}" data-id="${l.id}"><span class="box">✓</span><span class="sp"><b><span class="tag t-${l.s}">${l.s}</span>${l.t}</b><small>${l.game} · ${l.when}${l.custom?' · pasted':''}</small></span><span class="price">${l.p.toFixed(2)}</span></div>`}
+function multiCard(a){if(!a.length)return `<div class="card muted sm">Tick legs below or paste one above to start a bet.</div>`;
+const x=analyse(a);const multi=a.length>1;
+return `<div class="card multi"><div class="row"><div class="sp"><div class="lbl">${multi?a.length+'-leg multi · '+x.sports.join(' + '):'Single'}</div><div style="font-size:24px;font-weight:800">${comb(a).toFixed(2)} <small class="muted" style="font-size:12px;font-weight:600">${chance(a).toFixed(1)}% combined chance</small></div></div><button class="btn pri" id="rec-go" ${x.conf.length?'style="opacity:.55"':''}>Record</button></div>
+${a.map(l=>`<div class="row sm" style="padding:4px 0;border-top:1px solid var(--rule);margin-top:4px"><span class="sp ell"><span class="tag t-${l.s}">${l.s}</span>${l.t} <span class="muted">· ${l.game} · ${l.when}</span></span><span>${l.p.toFixed(2)}</span><button class="btn sm" data-rm="${l.id}" style="min-height:28px;padding:0 8px">✕</button></div>`).join('')}
+${x.conf.map(c=>`<div class="warn">Conflict: "${c[0].t}" and "${c[1].t}" cannot both win. Remove one.</div>`).join('')}
+${x.linked.map(g=>`<div class="link">Same game: linked (${g[0].game}). Legs move together, so the real chance is higher than shown and the book may reprice or refuse it.</div>`).join('')}
+${multi&&!x.linked.length&&!x.conf.length?`<div class="sm muted" style="margin-top:6px">Different games and sports: chances multiply.</div>`:''}</div>`}
+function renderBuild(){const a=sel();const root=$('#build');
+const shown=LEGS.filter(l=>st.flt=='All'||l.s==st.flt);
+const groups=(st.flt=='All'?SPORTS:[st.flt]).map(sp=>{const ls=shown.filter(l=>l.s==sp);if(!ls.length)return'';const on=ls.filter(l=>st.sel.has(l.id)).length;
+return `<div class="acc ${st.sport[sp]===false?'':'open'}" data-sp="${sp}"><div class="h"><span><span class="tag t-${sp}">${sp}</span>${ls.length} legs</span><span class="v">${on?on+' ticked':''}</span></div><div class="b" style="padding:0 4px">${ls.map(legRow).join('')}</div></div>`}).join('');
+root.innerHTML=mod('paste','Quick paste','one line',`<div class="row"><input type="text" id="pt" placeholder="e.g. NFL Mahomes over 265.5 yds 1.87"><button class="btn pri" id="pb">Add</button></div><div class="sm muted" style="margin-top:4px">Start with the sport (NBA, NFL, AFL, NRL) and end with the price.</div>`)
++mod('multi','Your multi',a.length?a.length+' legs · '+comb(a).toFixed(2):'empty',multiCard(a))
++mod('sugg','Suggested legs',LEGS.length+' picks',`<div class="scroll" id="flt">${['All',...SPORTS].map(s=>`<button class="chip ${st.flt==s?'on':''}" data-f="${s}">${s=='All'?'All sports':s}</button>`).join('')}</div>${groups}`);
+bindMods(root,renderBuild);
+root.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{st.flt=c.dataset.f;renderBuild()});
+root.querySelectorAll('.acc>.h').forEach(h=>h.onclick=()=>{const k=h.parentNode.dataset.sp;st.sport[k]=st.sport[k]===false;renderBuild()});
+root.querySelectorAll('.leg').forEach(e=>e.onclick=()=>{const id=+e.dataset.id;st.sel.has(id)?st.sel.delete(id):st.sel.add(id);renderBuild()});
+root.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{st.sel.delete(+b.dataset.rm);renderBuild()});
+$('#pb').onclick=()=>{if(parsePaste($('#pt').value)){renderBuild()}};
+const go=$('#rec-go');go&&(go.onclick=()=>openRec(sel()))}
+/* record sheet: flat, stake chips */
+const R={bk:'Sportsbet',stake:10,price:1,bonus:false,ch:0,bif:'',legs:[]};
+function openRec(legs){R.legs=legs;R.price=+comb(legs).toFixed(2);R.bonus=false;R.stake=10;renderRec();show('#rec')}
+function renderRec(){const s=R.stake,left=R.bonus?st.wallet-s:st.wallet,win=R.bonus?(R.price-1)*s:R.price*s;const x=analyse(R.legs);
+const custom=![5,10,20,50].includes(s);
+$('#rec').innerHTML=`<div class="grab"></div><div class="row"><h1 class="sp" style="margin:0">Record this bet</h1><button class="btn sm" id="x">✕</button></div>
+<div class="card" style="margin:8px 0"><div class="lbl">${R.legs.length>1?R.legs.length+'-leg multi · '+x.sports.join(' + '):'Single'} · price ${R.price.toFixed(2)}</div>${R.legs.map(l=>`<div class="row sm" style="padding:3px 0"><span class="sp ell"><span class="tag t-${l.s}">${l.s}</span>${l.t}</span><span class="muted">${l.when}</span><span>${l.p.toFixed(2)}</span></div>`).join('')}${x.linked.length?'<div class="link">Same game: linked</div>':''}${x.conf.length?'<div class="warn">Conflicting legs in this bet</div>':''}</div>
+<div class="lbl">Bookmaker</div><div class="mini" style="margin:4px 0 10px">${BOOKS.map(b=>`<button class="chip ${R.bk==b?'on':''}" data-bk="${b}">${b}</button>`).join('')}</div>
+<div class="lbl">Stake</div><div class="mini" style="margin:4px 0 6px">${[5,10,20,50].map(v=>`<button class="chip ${s==v?'on':''}" data-q="${v}">$${v}</button>`).join('')}${R.bonus?`<button class="chip" data-q="${st.wallet}">All ${$f(st.wallet)}</button>`:''}</div>
+<div class="row"><div class="sp"><div class="lbl">Custom (cents ok)</div><input type="number" step="0.01" inputmode="decimal" id="stk" value="${s.toFixed(2)}"></div><div class="sp"><div class="lbl">Price got</div><input type="number" step="0.01" inputmode="decimal" id="prc" value="${R.price.toFixed(2)}"></div></div>
+<div class="acc open" style="margin-top:10px"><div class="b" style="display:block;padding:10px 12px"><div class="row"><span class="sp">Staked with a bonus bet</span><button class="tog ${R.bonus?'on':''}" id="tgl" aria-label="bonus"></button></div>${R.bonus?`<div class="bonus sm" style="margin-top:8px">Credit ${$f(st.wallet)} → <b>${$f(left)}</b> left after this bet</div>`:''}
+<div class="row" style="margin-top:8px"><span class="sp sm muted">Bonus if wins</span><b>${R.bonus?'—':$f(R.bif||0)}</b></div>${R.bonus?'':`<input type="number" step="0.01" id="bif" placeholder="Bonus bet if this wins (optional)" value="${R.bif}" style="margin-top:6px">`}</div></div>
+<div class="lbl" style="margin-top:8px">Add to challenge</div><select id="chs" style="margin-top:4px">${CH.map((c,i)=>`<option value="${i}" ${R.ch==i?'selected':''}>${c}</option>`).join('')}</select>
+<button class="btn pri" id="save" style="width:100%;margin-top:10px">Save bet · returns ${$f(win)}</button>`;
+const q=s=>$('#rec').querySelector(s);
+const rd=()=>{R.stake=+q('#stk').value||0;R.price=+q('#prc').value||1;if(q('#bif'))R.bif=q('#bif').value;R.ch=+q('#chs').value};
+q('#x').onclick=()=>hide('#rec');
+$$('#rec [data-bk]').forEach(b=>b.onclick=()=>{rd();R.bk=b.dataset.bk;renderRec()});
+$$('#rec [data-q]').forEach(b=>b.onclick=()=>{rd();R.stake=+b.dataset.q;renderRec()});
+['#stk','#prc','#bif','#chs'].forEach(i=>q(i)&&(q(i).onchange=()=>{rd();renderRec()}));
+q('#tgl').onclick=()=>{rd();R.bonus=!R.bonus;if(R.bonus&&R.stake>st.wallet)R.stake=st.wallet;renderRec()};
+q('#save').onclick=()=>{rd();if(R.bonus)st.wallet=Math.max(0,st.wallet-R.stake);st.bets.unshift({id:Date.now(),t:R.legs.length>1?R.legs.length+'-leg '+x.sports.join(' + ')+' multi':R.legs[0].t,legs:R.legs.length,bk:R.bk,stake:R.stake,price:R.price,bonus:R.bonus,bif:+R.bif||0,ch:R.ch?CH[R.ch].split(' · ')[0]:'',s:'o',det:R.legs.map(l=>l.s+' · '+l.t+' '+l.p.toFixed(2))});st.sel.clear();hide('#rec');renderBuild();renderBets();renderWallet();toast('Bet saved')}}
+function show(s){$(s).classList.add('show');$('#scrim').classList.add('show')}
+function hide(s){$(s).classList.remove('show');$('#scrim').classList.remove('show')}
+/* bets */
+function betCard(b){const ret=b.bonus?(b.price-1)*b.stake:b.price*b.stake;const cls=b.s=='w'?'w':b.s=='l'?'l':'o';
+return `<div class="acc ${b.open?'open':''}" data-b="${b.id}"><div class="h"><span class="sp"><span class="ell">${b.t}</span><small class="muted">${b.bk} · ${b.bonus?'bonus ':''}${$f(b.stake)} @ ${b.price.toFixed(2)}</small></span><span class="pill ${cls}">${b.s=='w'?'WON '+$f(ret):b.s=='l'?'LOST':'OPEN'}</span></div>
+<div class="b">${b.det.map(d=>`<div class="sm muted" style="padding:2px 0">• ${d}</div>`).join('')}<div class="sm" style="margin:6px 0">${b.ch?'Challenge: '+b.ch+' · ':''}To return <b>${$f(ret)}</b>${b.bif?' · bonus if wins '+$f(b.bif):''}</div>
+<div class="row">${b.s=='o'?`<button class="btn good sp" data-w="${b.id}">Won</button><button class="btn bad sp" data-l="${b.id}">Lost</button>`:`<button class="btn sp" data-u="${b.id}">Undo result</button>`}<button class="btn" data-e="${b.id}">Edit</button></div></div></div>`}
+function renderBets(){const root=$('#bets');const open=st.bets.filter(b=>b.s=='o').length;
+root.innerHTML=mod('w','Bets',st.bets.length+' · '+open+' open',st.bets.map(betCard).join(''));st.mods.w=st.mods.w;bindMods(root,renderBets);
+root.querySelectorAll('.acc>.h').forEach(h=>h.onclick=()=>{const b=st.bets.find(x=>x.id==h.parentNode.dataset.b);b.open=!b.open;renderBets()});
+const f=(a,fn)=>root.querySelectorAll(`[data-${a}]`).forEach(e=>e.onclick=()=>{const b=st.bets.find(x=>x.id==e.dataset[a]);fn(b);renderBets();renderWallet()});
+f('w',b=>{b.s='w';toast('Marked won')});f('l',b=>{b.s='l';toast('Marked lost')});f('u',b=>b.s='o');f('e',b=>editDlg(b))}
+function editDlg(b){const d=$('#dlg');d.innerHTML=`<div class="row"><h1 class="sp" style="margin:0">Edit bet</h1><button class="btn sm" id="dx">✕</button></div><div class="lbl" style="margin-top:8px">Name</div><input type="text" id="en" value="${b.t.replace(/"/g,'')}"><div class="row" style="margin-top:8px"><div class="sp"><div class="lbl">Stake</div><input type="number" step="0.01" id="es" value="${b.stake.toFixed(2)}"></div><div class="sp"><div class="lbl">Price</div><input type="number" step="0.01" id="ep" value="${b.price.toFixed(2)}"></div></div><div class="mini" style="margin:8px 0">${BOOKS.map(k=>`<button class="chip ${b.bk==k?'on':''}" data-k="${k}">${k}</button>`).join('')}</div><div class="row"><button class="btn bad" id="del">Delete</button><button class="btn pri sp" id="ok">Save</button></div>`;
+show('#dlg');let bk=b.bk;
+d.querySelectorAll('[data-k]').forEach(c=>c.onclick=()=>{bk=c.dataset.k;d.querySelectorAll('[data-k]').forEach(x=>x.classList.toggle('on',x==c))});
+const close=()=>hide('#dlg');$('#dx').onclick=close;
+$('#ok').onclick=()=>{b.t=$('#en').value;b.stake=+$('#es').value;b.price=+$('#ep').value;b.bk=bk;close();renderBets();toast('Saved')};
+$('#del').onclick=()=>{st.bets=st.bets.filter(x=>x!==b);close();renderBets()}}
+/* wallet */
+function renderWallet(){const root=$('#wallet');const open=st.bets.filter(b=>b.s=='o').reduce((n,b)=>n+b.stake,0);
+root.innerHTML=`<div class="bonus"><div class="row"><span class="sp"><span class="lbl" style="color:var(--warn)">Bonus credits</span><div style="font-size:22px;font-weight:800">${$f(st.wallet)} <small style="font-size:12px;font-weight:600">Sportsbet</small></div></span><button class="btn sm" id="addb">+ Credit</button></div><div id="addf" class="hide row" style="margin-top:8px"><input type="number" step="0.01" id="bamt" placeholder="Amount"><button class="btn pri" id="bok">Add</button></div></div>
+<div style="height:8px"></div>`+mod('ch','Challenges','2 active',['Cup Run|2|5|$48.20|40','$10 to $1000|1|8|$10.00|12'].map(c=>{const[a,s,t,bk,p]=c.split('|');return `<div class="acc"><div class="h"><span>${a}</span><span class="v">stage ${s}/${t}</span></div><div class="b"><div style="height:6px;border-radius:6px;background:var(--rule)"><div style="width:${p}%;height:6px;border-radius:6px;background:var(--brand)"></div></div><div class="sm muted" style="margin-top:6px">Bank ${bk}</div></div></div>`}).join(''))+`<div class="card sm muted">At risk in open bets: <b style="color:var(--ink)">${$f(open)}</b></div>`;
+$('#addb').onclick=()=>$('#addf').classList.toggle('hide');$('#bok').onclick=()=>{st.wallet+=+$('#bamt').value||0;renderWallet();toast('Credit added')};
+$$('#wallet .acc>.h').forEach(h=>h.onclick=()=>h.parentNode.classList.toggle('open'));bindMods(root,renderWallet)}
+$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x==b));['build','bets','wallet'].forEach(t=>$('#'+t).classList.toggle('hide',t!=b.dataset.t))});
+document.addEventListener('click',e=>{if(e.target.id==='scrim'){$$('.sheet,.dlg').forEach(x=>x.classList.remove('show'));$('#scrim').classList.remove('show')}});
+renderBuild();renderBets();renderWallet();
+</script></body></html>
