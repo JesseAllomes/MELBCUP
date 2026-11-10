@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=212 -->
+<!-- drainclamp-build: state; schema=1; generation=213 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -125,7 +125,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-07T21:28:26+00:00 94b106f8 2026-11-07 pk1 reviewed+merged to branch (tests pass, not deployed). ui8 BUILD (owner): every sport NBA-style tabs, v8-2 bottom bar + 1's layout, NBA Multis on new design with fixed picker; Sonnet low building in rb5-tabs.
 - 2026-11-07T22:30:48+00:00 6de5b342 2026-11-08 INCIDENT fixed: Function loaded 0 functions from 7 Nov 07:50 UTC (nba_challenge imported melbcup.wallet, missing from flat package) -> no NBA snapshots, catalogue, alerts for ~14h. Fix: flat fallback + wallet.py packaged + package-import test; deployed (owner approved); 6 functions loaded, NBA view + catalogue rotation running 22:30 UTC. Also deployed: ui8 per-sport bottom bar incl. Best multis, game name on hero legs, chip row stays.
 - 2026-11-08T00:19:31+00:00 fcdbf672 2026-11-08 challenges fixes deployed (cents, legs per multi, edit challenge, edit placed bet, planner at setup, All Sports ladder picks, record any bet + bonus-if-win, sticky stage pick, 400-char legs). Owner data: ch3/4/6 removed, 4 placed Sportsbet bets rebuilt as ch7-10 (goal $250, 2 stages), wallet c1 redeemed, c2 $10.72 granted; backup challenges/backup-before-rebuild-20261108T0009.json.
 - 2026-11-08T02:15:12+00:00 b0045fd2 2026-11-08 merged, awaiting deploy: challenge screen v9-3 + live chance (live_chance.py), racing staged load (field first), racing likely engine + Likely/Multis tabs (v10-3), NBA leg labels with stat + game. Owner 4 challenges rebuilt (ch7-10, 3 stages).
@@ -145,6 +144,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-10T02:54:48+00:00 c4d7332d 2026-11-10 Owner asked for Fable review (unders kill multis). Pre-check: unders calibrated (52.0 said/53.5 got, -1.5c vs overs -18.5c) but picked at ~58% vs overs ~72%; mixed multis underperform (thin). Fable 5.1 started (5.2 not available) on forward-v2.jsonl -> research/nba/fable_review_2026-11-10.md + tools/nba/review/.
 - 2026-11-10T03:09:36+00:00 7eba7b35 2026-11-10 Fable review done (research/nba/fable_review_2026-11-10.md): unders calibrated (58.5/58.4); leak = overs on low-line players (<12 pts median) said 70 got 62-65; rec: role-aware lean (replay +6.4 pts same-game), re-pick on >3% price drift, rung margin >$2.20, keep two-book mean; don't ban unders/mixed. Awaiting owner go for shadow A/B.
 - 2026-11-10T03:46:08+00:00 2b5c660a 2026-11-10 Picker v2 LIVE (PICKER=v2 on web+job, Function default v2): role-aware lean (bench <12 pts median: points 9 pts, others 5/4), drift re-pick >3% (challenge stage pick only), rung margins up above $2.20, two-book mean kept. Revert: PICKER=v1. A/B: both versions logged per slate (picker tag), tools/nba/ab_report.py; decide at ~600 game-targets. Gap: drift re-pick not on cross-sport shown_sug; lean is fixed shift not LODO fit.
+- 2026-11-10T04:46:06+00:00 77c1f062 2026-11-10 DEPLOYED: weekly lean refit v3 shadow (Mondays, blob picker/lean-v3.json, A/B v1/v2/v3); NFL page + Home games cached stale-while-revalidate (NFL 6-7s -> ~1s; Home games first load 9s then 1.5s). Parity audit research/sport_parity_2026-11-10.md: only NBA+NFL full; 14 generic sports lack sport-saved bets, your-bets, per-sport challenge scope, live/settle, models. product-ui v11 bet-entry prototypes sent (1 tray, 2 steps, 3 quick, 4 modules) - waiting owner pick + BUILD.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
