@@ -143,6 +143,47 @@ def freeze(cid: str | None, state: dict, key: str, shown: dict) -> None:
         pass
 
 
+DRIFT = 0.03  # picker v2 re-pick rule: a leg whose price has lengthened more than this has lost chance
+
+
+def drifted(step: dict | None, legs_now: list[dict], tol: float = DRIFT) -> list[dict]:
+    """The frozen pick's legs whose current price is more than `tol` longer than the price when it
+    was picked (so its chance dropped): [{"leg", "game", "from", "to"}]. Matched by game and
+    label; a leg no longer on the board is left to the ordinary live-differs note."""
+    now = {(g.get("game"), g.get("label")): g.get("price") for g in legs_now}
+    out = []
+    for d in (step or {}).get("detail") or []:
+        p1, p0 = now.get((d.get("game"), d.get("label"))), d.get("price")
+        if p0 and p1 and p1 / p0 - 1 > tol:
+            out.append({"leg": d.get("label"), "game": d.get("game"), "from": p0, "to": p1})
+    return out
+
+
+def repick_note(moves: list[dict]) -> str:
+    m = moves[0]
+    return f"re-picked: {m['leg']} drifted from ${m['from']:.2f} to ${m['to']:.2f}"
+
+
+def refreeze(cid: str | None, state: dict, key: str, shown: dict, event: dict | None = None) -> None:
+    """Replace the stage's frozen pick with a fresh one (the drift re-pick) and record the event in
+    state["repicks"] for the A/B report. One small write, silent if the store is unavailable."""
+    state[key] = shown
+    if event:
+        state.setdefault("repicks", []).append(event)
+    try:
+        store = load()
+        rec = find(store, cid)
+        st = rec["state"] if rec else None
+        if st is None or st.get("placed") or len(st.get("steps", [])) != shown["stage"]:
+            return
+        st[key] = shown
+        if event:
+            st.setdefault("repicks", []).append(event)
+        save(store)
+    except Exception:  # a failed write only means the next view re-picks again
+        pass
+
+
 def _again(state: dict, **extra) -> dict:
     """A new run with the same settings, history and bet log."""
     return (

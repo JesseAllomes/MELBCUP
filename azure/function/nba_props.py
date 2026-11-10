@@ -181,7 +181,7 @@ def mark_injuries(node, inj: dict[str, str]) -> None:
 
 LEG_KEYS = (
     "event", "game", "startsAt", "player", "team", "stat", "line", "under", "label",
-    "price", "chance", "model", "market", "injury",
+    "price", "chance", "chance_v1", "chance_v2", "bench", "model", "market", "injury",
 )  # fmt: skip
 
 
@@ -246,7 +246,7 @@ def keep_first_multi(new: dict, prior: dict | None, now: dt.datetime, logged_at:
 
 
 def _multi_key(m: dict) -> tuple:
-    return (m["kind"], m.get("target"), tuple(m["picks"]))
+    return (m["kind"], m.get("target"), tuple(m["picks"]), m.get("picker", "v1"))
 
 
 def _prod(xs) -> float:
@@ -275,7 +275,27 @@ def _slim_multi(m: dict) -> dict:
     }
 
 
-def build_log(agency: str, rep: dict, prior: dict, now: dt.datetime) -> dict:
+def _by_game_rows(agency: str, part: dict) -> list[dict]:
+    return [
+        {
+            "kind": "by_game",
+            "agency": agency,
+            "picker": part.get("picker", "v1"),
+            "target": None,
+            "legs": len(grp["legs"]),
+            "chance": round(_prod(g["chance"] for g in grp["legs"]), 4),
+            "price": round(_prod(g["price"] for g in grp["legs"]), 2),
+            "picks": [g["label"] for g in grp["legs"]],
+            "detail": [_slim_detail(g) for g in grp["legs"]],
+            "tip": grp.get("startsAt") or "",
+        }
+        for grp in part["by_game"]
+    ]
+
+
+def build_log(
+    agency: str, rep: dict, prior: dict, now: dt.datetime, shadow: dict | None = None
+) -> dict:
     """The day's log for one agency: the legs and suggested multis as last seen before tip. A game
     that has started drops out of the feed, so its legs (and multis starting on it) are carried
     forward from the prior log."""
@@ -294,22 +314,19 @@ def build_log(agency: str, rep: dict, prior: dict, now: dt.datetime) -> dict:
     live = {g["event"] for g in legs}
     legs += [g for g in prior.get("legs", []) if g["event"] not in live]
     multis = []
-    for kind, items in (("stacks", rep["stacks"]), ("stacks_same", rep["stacks_same"])):
-        multis += [{"kind": kind, "agency": agency} | _slim_multi(m) for m in items]
-    for grp in rep["by_game"]:
-        multis.append(
-            {
-                "kind": "by_game",
-                "agency": agency,
-                "target": None,
-                "legs": len(grp["legs"]),
-                "chance": round(_prod(g["chance"] for g in grp["legs"]), 4),
-                "price": round(_prod(g["price"] for g in grp["legs"]), 2),
-                "picks": [g["label"] for g in grp["legs"]],
-                "detail": [_slim_detail(g) for g in grp["legs"]],
-                "tip": grp.get("startsAt") or "",
-            }
-        )
+    # picker A/B (owner, 2026-11-10): the live version's multis and the other version's, each tagged
+    for part in (rep, shadow):
+        if part is None:
+            continue
+        tag = part.get("picker", "v1")
+        for kind, items in (("stacks", part["stacks"]), ("stacks_same", part["stacks_same"])):
+            multis += [
+                {"kind": kind, "agency": agency, "picker": tag} | _slim_multi(m) for m in items
+            ]
+    for part in (rep, shadow):
+        if part is None:
+            continue
+        multis += _by_game_rows(agency, part)
     was_m = {_multi_key(m): m for m in prior.get("multis", [])}
     multis = [
         keep_first_multi(m, was_m.get(_multi_key(m)), now, prior.get("loggedAt", ""))
@@ -335,7 +352,7 @@ def save_logs(nba, view: dict, now: dt.datetime) -> None:
         except Exception:
             prior = {}
         nba.get_blob_client(name).upload_blob(
-            json.dumps(build_log(code, rep, prior, now)).encode(), overwrite=True
+            json.dumps(build_log(code, rep, prior, now, a.get("shadow"))).encode(), overwrite=True
         )
 
 

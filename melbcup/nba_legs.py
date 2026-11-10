@@ -20,6 +20,7 @@ No qualifying legs means "nothing worth taking today", said plainly in OUT.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import glob
 import gzip
 import json
@@ -353,22 +354,56 @@ def blend(model: float, market: float | None, w: float | None = None) -> float:
 # same line (Fable audit 2026-11-07, B2: +0.076 at 1.3-2.2 and +0.063 at 2.2-3.0, n=4,332 rungs;
 # 0.067 at <=1.3 from the forward log); at 3.0+ the rung's chance was overstated (ROI -28%), so
 # 0.10 until the long-over bias is measured against outcomes.
-RUNG_MARGIN = ((1.3, 0.067), (2.2, 0.076), (3.0, 0.063))
+RUNG_MARGIN = ((1.3, 0.067), (2.2, 0.076), (3.0, 0.063))  # picker v1 (the table above)
 RUNG_MARGIN_LONG = 0.10
+# Picker v2 (Fable review 2026-11-10, section 4 item 3): above $2.20 the rung's chance was overstated
+# (long rungs hit less than said), so the margin is raised: 0.15 at 2.2-3.0, 0.22 at 3-5, 0.32 at
+# 5-10, 0.50 above. Same bands and values as v1 up to $2.20.
+RUNG_MARGIN_V2 = ((1.3, 0.067), (2.2, 0.076), (3.0, 0.15), (5.0, 0.22), (10.0, 0.32))
+RUNG_MARGIN_V2_LONG = 0.50
+
+# THE SWITCH (owner, 2026-11-10): env var PICKER = "v1" (the picker as it was before 2026-11-10) or
+# "v2" (role-aware lean, raised rung margins, drift re-pick; the default, live). To revert: set
+# PICKER=v1 on the Container App / Function and restart (azure/webapp/melbcup-web.json and
+# azure/jobs/melbcup-nba.json carry it). Both versions' picks are logged every slate either way.
+PICKER_ENV = "PICKER"
+_OVERRIDE: list = []  # a stack, set by use(): lets one process compute the other version's picks
 
 
-def rung_margin(price: float) -> float:
-    for top, m in RUNG_MARGIN:
+def picker() -> str:
+    """The live picker version, read at call time: an active use() override, else $PICKER, else v2."""
+    v = _OVERRIDE[-1] if _OVERRIDE else os.environ.get(PICKER_ENV, "v2")
+    v = (v or "v2").strip().lower()
+    return v if v in ("v1", "v2") else "v2"
+
+
+def other_picker(v: str | None = None) -> str:
+    return "v1" if (v or picker()) == "v2" else "v2"
+
+
+@contextlib.contextmanager
+def use(version: str):
+    """Compute under another picker version for a block (used to log the shadow version's picks)."""
+    _OVERRIDE.append(version)
+    try:
+        yield
+    finally:
+        _OVERRIDE.pop()
+
+
+def rung_margin(price: float, version: str | None = None) -> float:
+    v2 = (version or picker()) == "v2"
+    for top, m in RUNG_MARGIN_V2 if v2 else RUNG_MARGIN:
         if price < top or (top == 1.3 and price <= top):
             return m
-    return RUNG_MARGIN_LONG
+    return RUNG_MARGIN_V2_LONG if v2 else RUNG_MARGIN_LONG
 
 
-def single_chance(price: float) -> float:
-    return min(math.exp(-rung_margin(price)) / price, 0.999)
+def single_chance(price: float, version: str | None = None) -> float:
+    return min(math.exp(-rung_margin(price, version)) / price, 0.999)
 
 
-def feed_market(legs: list[dict]) -> dict:
+def feed_market(legs: list[dict], version: str | None = None) -> dict:
     """One agency's implied chance per bet_key. The margin comes off only inside the bookmaker's own
     native two-way market: a main Over with the main Under of the same line. An alternate "N+" rung
     is a second quote of the same outcome, never the counterpart of a main Under; it (and any lone
@@ -395,7 +430,7 @@ def feed_market(legs: list[dict]) -> dict:
                 singles.setdefault((*base, under, *rest), []).append(price)
     for key, prices in singles.items():
         if key not in out:
-            out[key] = sum(single_chance(p) for p in prices) / len(prices)
+            out[key] = sum(single_chance(p, version) for p in prices) / len(prices)
     return out
 
 
@@ -406,6 +441,7 @@ class Market(dict):
     """{bet_key: chance} plus `flagged`: the keys whose ladder conflicted by more than CONFLICT."""
 
     flagged: frozenset = frozenset()
+    versions: dict | None = None  # {"v1": Market, "v2": Market}, set by market_probs
 
 
 def _pava_down(vals: list[float]) -> list[float]:
@@ -449,20 +485,24 @@ def monotone(market: dict) -> Market:
     return out
 
 
-def market_probs(legs_by_agency: dict) -> Market:
-    """{bet_key: mean implied chance over every agency that prices the bet}, made monotone along
-    each player's ladder in each game (see monotone)."""
+def _market_probs(legs_by_agency: dict, version: str) -> Market:
     acc: dict = {}
     for legs in legs_by_agency.values():
-        for k, p in feed_market(legs).items():
-            acc.setdefault(k, []).append(p)
+        for k, p in feed_market(legs, version).items():
+            acc.setdefault(k, []).append(p)  # the two-book (all-book) mean is kept in both versions
     return monotone({k: sum(v) / len(v) for k, v in acc.items()})
 
 
-# Overs land slightly less often than the market says, unders slightly more (owner, 2026-11-06):
-# pooled over 3,275 real over/unders (research/nba/dunk_real_prices.txt + the US-books test), overs
-# came in 1.3 points under the market's chance (95% range about +/-1.7: a lean, re-tuned from the
-# forward log). Applied as a logit shift, so a 50/50 line moves most and a short leg barely at all.
+def market_probs(legs_by_agency: dict) -> Market:
+    """{bet_key: mean implied chance over every agency that prices the bet}, made monotone along
+    each player's ladder in each game (see monotone). The result is the live picker's market;
+    `.versions` holds both versions' markets so apply_market can log each version's chances."""
+    live = picker()
+    m = _market_probs(legs_by_agency, live)
+    m.versions = {live: m, other_picker(live): _market_probs(legs_by_agency, other_picker(live))}
+    return m
+
+
 OVER_SHADE = 0.013
 _SHIFT = OVER_SHADE / 0.25  # in logit units, at p = 0.5
 
@@ -474,24 +514,75 @@ def shade(c: float, under: bool) -> float:
     return 1 / (1 + math.exp(-lg))
 
 
+# Picker v2 role-aware lean (Fable review 2026-11-10, section 4 item 1; replay H). A player whose
+# median points line (the highest points rung the market makes >= 50%) is under BENCH_LINE is a
+# bench player: his overs land well under the market's chance and his unders over it. For him the
+# flat OVER_SHADE is replaced by these probability shifts; starters and stars keep the flat lean.
+BENCH_LINE = 12
+BENCH_OVER = {"points": 0.09, "other": 0.05}  # taken off a bench over
+BENCH_UNDER = {"points": 0.09, "other": 0.04}  # given to a bench under
+
+
+def bench_players(legs: list[dict], raws: list[float]) -> set:
+    """{(event, player)} whose median points line is under BENCH_LINE (a line-based role proxy)."""
+    med: dict = {}
+    for g, c in zip(legs, raws, strict=True):
+        if g.get("stat") == "points" and not g["under"] and c >= 0.5:
+            k = (g.get("event"), g.get("player"))
+            med[k] = max(med.get(k, 0), g["line"])
+    return {k for k, m in med.items() if m < BENCH_LINE}
+
+
+def role_shade(c: float, under: bool, stat: str, bench: bool) -> float:
+    """v2's chance: the flat lean, except a bench player's over/under which take the role shift."""
+    if not bench:
+        return shade(c, under)
+    d = (BENCH_UNDER if under else BENCH_OVER)["points" if stat == "points" else "other"]
+    return min(max(c + d if under else c - d, 1e-4), 1 - 1e-4)
+
+
 def apply_market(legs: list[dict], market: dict, w: float | None = None) -> None:
     """Blend each leg's model chance with the market's (in place). "model" stays the pure model
-    value, "market" is None when nobody prices the bet; chance, fair and ev use the blend."""
+    value, "market" is None when nobody prices the bet; chance, fair and ev use the blend of the
+    live picker version. chance_v1 / chance_v2 always carry both versions' chances (A/B log)."""
     flagged = getattr(market, "flagged", ())
-    for g in legs:
-        key = bet_key(g)
-        m = market.get(key)
-        g["conflict"] = key in flagged
-        if g["model"] is None:  # no board for this player: the market's, else its own price's
-            c = m if m is not None else g.get("raw", g["chance"])
-        else:
-            c = blend(g["model"], m, w)
-        g["raw"] = round(c, 4)  # before the over/under lean
-        c = shade(c, bool(g["under"]))
+    versions = getattr(market, "versions", None) or {}
+    live = picker()
+    base = [g.get("raw", g.get("chance")) for g in legs]
+    raws: dict = {}
+    mkts: dict = {}
+    for v in ("v1", "v2"):
+        mk = versions.get(v, market)
+        raws[v], mkts[v] = [], []
+        for g, b in zip(legs, base, strict=True):
+            m = mk.get(bet_key(g))
+            c = (m if m is not None else b) if g["model"] is None else blend(g["model"], m, w)
+            raws[v].append(c)
+            mkts[v].append(m)
+    bench = bench_players(legs, raws["v2"])
+    for i, g in enumerate(legs):
+        g["conflict"] = bet_key(g) in flagged
+        under = bool(g["under"])
+        c1 = shade(raws["v1"][i], under)
+        c2 = role_shade(raws["v2"][i], under, g.get("stat"), (g.get("event"), g.get("player")) in bench)
+        g["chance_v1"], g["chance_v2"] = round(c1, 4), round(c2, 4)
+        g["bench"] = (g.get("event"), g.get("player")) in bench
+        c = c1 if live == "v1" else c2
+        g["raw"] = round(raws[live][i], 4)  # before the over/under lean
+        m = mkts[live][i]
         g["market"] = None if m is None else round(m, 4)
         g["chance"] = round(c, 4)
         g["fair"] = round(1 / c, 2)
         g["ev"] = round(c * g["price"] - 1, 4)
+
+
+def as_version(legs: list[dict], version: str) -> list[dict]:
+    """The legs priced as `version` would (chance, fair, ev), for logging the other version's picks."""
+    out = []
+    for g in legs:
+        c = g.get(f"chance_{version}", g["chance"])
+        out.append(g | {"chance": c, "fair": round(1 / c, 2), "ev": round(c * g["price"] - 1, 4)})
+    return out
 
 
 def legs_from(events, board):
@@ -1038,19 +1129,32 @@ def view(
     for code, events in events_by_agency.items():
         rep = report(board, events, prepared=prepared[code], market=market)
         out["agencies"][code] = {"report": rep, "games": len(events), "error": None}
+        # the other version's picks, logged beside the live ones (never shown): the A/B record
+        alt = other_picker()
+        sh = report(board, events, prepared=prepared[code], market=market, version=alt)
+        out["agencies"][code]["shadow"] = {
+            k: sh[k] for k in ("picker", "stacks", "stacks_same", "by_game")
+        }
         if xs:
             out["preview"][code] = stage_preview(rep["all_legs"], xs)
     return out
 
 
-def report(board, events, min_chance=0.75, stake=10.0, min_ev=0.03, prepared=None, market=None):
+def report(
+    board, events, min_chance=0.75, stake=10.0, min_ev=0.03, prepared=None, market=None, version=None
+):
     """`prepared`: this agency's legs_from() result when the caller has it; `market`: bet_key to
-    implied chance across all agencies (default: this feed's own prices)."""
+    implied chance across all agencies (default: this feed's own prices). `version`: pick as that
+    picker version would instead of the live one (the A/B log's shadow picks)."""
     legs, unmatched = prepared or legs_from(events, board)
     apply_market(legs, market if market is not None else market_probs({"": legs}))
+    picked = version or picker()
+    if picked != picker():
+        legs = as_version(legs, picked)
     ok, cross, same = build(legs, min_chance, stake, min_ev)
     stack_cross, stack_same = stacks(legs, stake)
     return {
+        "picker": picked,
         "stacks": stack_cross,
         "stacks_same": stack_same,
         "by_game": by_game(legs),

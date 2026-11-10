@@ -738,6 +738,18 @@ class Views:
                 sh = {"stage": len(state["steps"]), "at": at, "step": step}
                 cid = ((ctx.get("chs") or {}).get("open") or {}).get("id")
                 nba_challenge.freeze(cid, state, "shown", sh)
+            if sh and step and nba_legs.picker() == "v2":
+                # picker v2 re-pick rule: a leg whose price lengthened >3% since the pick has lost
+                # chance, so show the fresh pick (PICKER=v1 keeps the sticky pick as it was)
+                moves = nba_challenge.drifted(sh["step"], legs_now)
+                if moves:
+                    at = datetime.now(UTC).isoformat()
+                    ev = {"at": at, "stage": len(state["steps"]), "picker": "v2", "was": sh["step"].get("picks"),
+                          "now": step.get("picks"), "moves": moves, "was_chance": sh["step"].get("chance"),
+                          "now_chance": step.get("chance")}
+                    sh = {"stage": len(state["steps"]), "at": at, "step": step, "repick": nba_challenge.repick_note(moves)}
+                    cid = ((ctx.get("chs") or {}).get("open") or {}).get("id")
+                    nba_challenge.refreeze(cid, state, "shown", sh, ev)
             if sh and step:
                 if sh["step"] != step:
                     live_step = step
@@ -804,6 +816,7 @@ class Views:
             "ch_step": step,
             "ch_live": live_step,
             "ch_shown_at": ((state or {}).get("shown") or {}).get("at") if step else None,
+            "ch_repick": ((state or {}).get("shown") or {}).get("repick") if step else None,
             "ch_alt_agency": alt_agency,
             "ch_games": games,
             "ch_preview": preview,

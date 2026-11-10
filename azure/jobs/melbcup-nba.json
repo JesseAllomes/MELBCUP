@@ -47,6 +47,10 @@
           "image": "IMAGE",
           "env": [
             {
+              "name": "PICKER",
+              "value": "v2"
+            },
+            {
               "name": "AZURE_CLIENT_ID",
               "value": "519729c8-1505-4e6b-b7cc-85c29cfc38d5"
             },

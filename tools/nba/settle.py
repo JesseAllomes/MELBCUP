@@ -231,7 +231,10 @@ def leg_key(d: dict) -> tuple:
 def multi_key(m: dict, agency: str | None = None) -> str:
     """Stable identity of a multi: sha1 of (agency, sorted leg keys), the same on every day it is logged."""
     keys = sorted(json.dumps(leg_key(d)) for d in m.get("detail", []))
-    return hashlib.sha1(json.dumps([agency or m.get("agency"), keys]).encode()).hexdigest()
+    ident = [agency or m.get("agency"), keys]
+    if m.get("picker"):  # v1 and v2 log the same multi separately (A/B); untagged rows hash as before
+        ident.append(m["picker"])
+    return hashlib.sha1(json.dumps(ident).encode()).hexdigest()
 
 
 def settle_multi_v2(m: dict, slate: Slate, now: datetime, day: str) -> dict:

@@ -369,3 +369,11 @@ def _challenge_store(tmp_path, monkeypatch):
     from melbcup import nba_challenge
 
     nba_challenge._CACHE[:] = [0.0, None]
+
+
+@pytest.fixture(autouse=True)
+def _pin_old_picker_tests_to_v1(request, monkeypatch):
+    """Tests written against the pre-2026-11-10 picker pin PICKER=v1 (they are its regression tests;
+    tests/test_picker_v2.py covers v2)."""
+    if request.module.__name__ in ("test_nba_legs", "test_nba_picker_audit", "test_nba_challenge"):
+        monkeypatch.setenv("PICKER", "v1")

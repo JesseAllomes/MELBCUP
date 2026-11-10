@@ -208,3 +208,38 @@ Cross-game, same variants: H −8.8 [−32.5, +12.5], G −13.8 [−35.0, +6.4],
 - `tools/nba/review/extras.py` — bench robustness, mixed stacks, ROI → multi chance
 - `tools/nba/review/replay.py` — picker replay with variants (about 3 minutes)
 - `tools/nba/review/run_all.sh` — runs all five
+
+## Implemented 2026-11-10
+
+**What is live (PICKER=v2, the default).** `melbcup/nba_legs.py`, used by NBA and NFL legs alike:
+1. Role-aware lean: a player whose median points line (highest points rung the market makes >= 50%)
+   is under 12 is "bench". His overs lose 9 points (points) or 5 (other stats); his unders gain 9
+   (points) or 4 (other); this replaces the flat OVER_SHADE for him. Starters and stars keep 0.013.
+2. Drift re-pick: in the challenge stage pick (`melbcup/web/views.py`, `nba_challenge.drifted`), if a
+   leg's price has lengthened more than 3% since the pick was frozen, the fresh pick replaces it and
+   the page shows "re-picked: <leg> drifted from $a to $b". The event is stored in the challenge
+   state under `repicks`. The cross-sport "shown_sug" suggestion is not drift-checked.
+3. Rung margin: `RUNG_MARGIN_V2` = 0.067 / 0.076 up to $2.20, then 0.15 (to $3), 0.22 ($3-5), 0.32
+   ($5-10), 0.50 above. It changes shown chances and EV, not the automatic picks.
+4. The two-book mean is kept in both versions.
+
+**Revert in one line.** Set `PICKER=v1` (the picker exactly as before) and restart. The web app and
+the job read it from `azure/webapp/melbcup-web.json` and `azure/jobs/melbcup-nba.json` (env `PICKER`,
+value `v2`); on the Function app: `az functionapp config appsettings set --settings PICKER=v1`. The
+switch is read at call time (`nba_legs.picker()`); unset means v2.
+
+**Both versions are tracked.** Every slate the Function logs the live version's multis and the other
+version's (`azure/function/nba_props.py`): multi rows carry `"picker": "v1"|"v2"` (untagged older rows
+are v1); leg rows carry `chance_v1`, `chance_v2` and `bench`. The tag survives settlement into
+`forward-v2.jsonl`, and the multi key includes it so the two versions are separate bets.
+
+**Read the A/B.** `python tools/nba/ab_report.py forward-v2.jsonl [--repicks challenges.json]`:
+per version said vs got, wins, return per $; v2 minus v1 paired by slate and target with a bootstrap
+95% interval; leg-level gap for bench overs and unders under each version's chance; re-pick events and
+how the replaced and fresh picks came out.
+
+**Decision rule (unchanged from section 4).** Decide at about 600 same-game game-targets (3-4 weeks):
+primary measure is the same-game $2 and $3 hit rate, v2 minus v1, paired by game. Keep v2 if the
+interval is above zero; flip to `PICKER=v1` if it sits below zero or the bench-over leg gap (needs to
+stay 3+ points below said over about 2,000 legs) closes. Early-season rotation changes are the
+obvious alternative explanation.

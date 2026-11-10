@@ -166,7 +166,7 @@ def day_legs_v2(store, day, slate, now):
 
 
 def _key(x):
-    return (x.get("day"), x.get("agency"), x.get("kind"), x.get("event"), x.get("label") or "|".join(x.get("picks") or []), x.get("mkind"))
+    return (x.get("day"), x.get("agency"), x.get("kind"), x.get("event"), x.get("label") or "|".join(x.get("picks") or []), x.get("mkind"), x.get("picker"))
 
 
 def reconcile(v1: list[dict], v2: list[dict]) -> dict:

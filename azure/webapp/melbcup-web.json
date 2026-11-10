@@ -93,6 +93,10 @@
         },
         "env": [
           {
+            "name": "PICKER",
+            "value": "v2"
+          },
+          {
             "name": "PRICE_MODE",
             "value": "auto"
           },
