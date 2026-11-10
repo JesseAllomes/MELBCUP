@@ -767,14 +767,16 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         var cur = r.filter(function (o) { return o.n === P.n; })[0];
         q("#pl-card").innerHTML = cur ? '<div class="sh-card"><b>' + cur.n + " stages · " + cur.x.toFixed(1) + "x each · " + (cur.typical ? Math.round(cur.typical * 100) + "% a stage" : "no model for this sport yet") + (cur.run ? " · " + (cur.run * 100).toFixed(1) + "% to finish" : "") + "</b>" + (cur.n === best ? '<small class="sh-good"> best</small>' : "") + "</div>" : "";
         var pk = data && data.pick;
-        q("#pl-pick").innerHTML = pk ? '<div class="sh-card"><small>Stage 1 best pick · ' + esc(pk.game) + "</small>" + pk.legs.map(function (l) { return '<div class="sh-kv"><span>' + esc(l.label) + "</span><b>" + (+l.price).toFixed(2) + "</b></div>"; }).join("") + '<div class="sh-kv"><span>' + pct(pk.chance) + " chance</span><b>" + (+pk.price).toFixed(2) + "x</b></div></div>" : "";
-        q("#pl-chart").querySelectorAll("[data-n]").forEach(function (b) { b.onclick = function () { P.n = +b.getAttribute("data-n"); draw(); }; });
+        q("#pl-pick").innerHTML = pk ? '<div class="sh-card"><small>Stage 1 best pick for ' + (data.pick_n || P.n) + " stages" + (pk.game ? " · " + esc(pk.game) : "") + "</small>" + pk.legs.map(function (l) { return '<div class="sh-kv"><span>' + esc(l.label) + "</span><b>" + (+l.price).toFixed(2) + "</b></div>"; }).join("") + '<div class="sh-kv"><span>' + pct(pk.chance) + " chance</span><b>" + (+pk.price).toFixed(2) + "x</b></div></div>" : "";
+        q("#pl-chart").querySelectorAll("[data-n]").forEach(function (b) { b.onclick = function () { P.n = +b.getAttribute("data-n"); draw(); fetchPlan(true); }; });
       }
-      function fetchPlan() {
+      function fetchPlan(keepN) {
         clearTimeout(timer);
+        if (!keepN) P.n = null;
+        var pk = q("#pl-pick"); if (pk && data) pk.style.opacity = "0.5";
         timer = setTimeout(function () {
-          fetch("/api/challenge/plan?" + ["sport=" + encodeURIComponent(sp), "start=" + encodeURIComponent(P.start), "goal=" + encodeURIComponent(P.goal), "mode=" + P.mode, P.legs ? "legs=" + P.legs : ""].filter(Boolean).join("&"), { credentials: "same-origin" })
-            .then(function (r) { return r.json(); }).then(function (j) { data = j; P.n = null; draw(); }).catch(function () { data = { rows: [], error: "Could not work out the plan." }; draw(); });
+          fetch("/api/challenge/plan?" + ["sport=" + encodeURIComponent(sp), "start=" + encodeURIComponent(P.start), "goal=" + encodeURIComponent(P.goal), "mode=" + P.mode, P.legs ? "legs=" + P.legs : "", P.n ? "n=" + P.n : ""].filter(Boolean).join("&"), { credentials: "same-origin" })
+            .then(function (r) { return r.json(); }).then(function (j) { data = j; if (!keepN) P.n = null; var e = q("#pl-pick"); if (e) e.style.opacity = ""; draw(); }).catch(function () { data = { rows: [], error: "Could not work out the plan." }; draw(); });
         }, 250);
       }
       q("#pl-start").oninput = function () { P.start = this.value; fetchPlan(); };

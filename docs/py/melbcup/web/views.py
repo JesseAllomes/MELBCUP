@@ -1226,7 +1226,7 @@ class Views:
             cache[key] = nba_challenge.plan(start, goal, keep, chances_for)
         return cache[key]
 
-    def challenge_plan(self, sport: str, start: float, goal: float, mode: str, legs: int | None) -> dict:
+    def challenge_plan(self, sport: str, start: float, goal: float, mode: str, legs: int | None, n: int | None = None) -> dict:
         """The new-challenge planner's numbers (v13): the same _stage_preview rows the server
         form uses, the best stage count, and the best stage-1 pick (NBA / NFL legs; other sports
         have no leg model yet, so only the payouts a stage come back)."""
@@ -1244,7 +1244,9 @@ class Views:
         if legs_now:
             rows = self._stage_preview(legs_now, nba_challenge, nba_legs, start, goal, True, want, mode)
             best, why = nba_challenge.recommend(rows)
-            x = best["x"] if best else None
+            # the stage-1 pick for the stage count the owner chose, else the best (owner, 2026-11-10)
+            chosen = next((r for r in rows if n and r.get("n") == n), None) or best
+            x = chosen["x"] if chosen else None
             lim = {"min_legs": want, "max_legs": want} if want else {}
             if x:
                 if mode == "game":
@@ -1265,7 +1267,8 @@ class Views:
         else:
             rows = nba_challenge.plan(start, goal, True, lambda xmap: {})
         return {"sport": sport, "start": start, "goal": goal, "mode": mode, "legs": want,
-                "rows": rows, "best": best, "why": why, "pick": pick}
+                "rows": rows, "best": best, "why": why, "pick": pick,
+                "pick_n": (chosen or {}).get("n") if legs_now else None}
 
     @staticmethod
     def slip_chance(legs: list) -> dict:
