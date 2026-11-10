@@ -118,3 +118,43 @@ def test_plan_endpoint_matches_stage_preview(c, monkeypatch):
     assert [round(o["x"], 6) for o in seen[0]] == [round(o["x"], 6) for o in j["rows"]]
     other = c.get("/api/challenge/plan?sport=afl&start=10&goal=500").json()
     assert other["rows"] and other["pick"] is None
+
+
+def test_my_bets_cards_show_live_tiles(c, monkeypatch):
+    from melbcup import nba_live
+
+    tip = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    monkeypatch.setattr(
+        nba_live, "track",
+        lambda label, now=None, fetch=None: {
+            "state": "in", "clock": "Q2 5:00", "failed": 1, "verdict": None, "sport": "nfl",
+            "legs": [
+                {"label": "Alpha Over 10", "player": "Alpha", "ok": False, "now": 3, "k": 10, "under": False},
+                {"label": "Beta Under 20", "player": "Beta", "ok": None, "now": 5, "k": 20, "under": True},
+            ],
+        },
+    )
+    c.get(f"/sports?sport=nfl&tab=multis&ch=bet&nbs=10&nbp=3&nbag=sb&nbl=Chiefs+@+Bills:+Alpha+Over+10,+Beta+Under+20&nbtip={tip}&op=z")
+    html = c.get("/sports?sport=nfl&tab=multis").text
+    assert 'class="tile r"' in html and 'class="tile x"' in html  # failed red, the rest no longer counts
+    assert "mb-card sh-card dead" in html and "Failed" in html and "Q2 5:00" in html
+    j = c.get("/api/mybet/card?id=1").json()
+    assert j["dead"] and j["tiles"][0]["cls"] == "r" and j["clock"] == "Q2 5:00"
+
+
+def test_slip_chance_endpoint_uses_the_copula(c):
+    def leg(p, st, ch=0.6):
+        return {"game": "G", "chance": ch, "price": 1 / ch,
+                "raw": {"player": p, "stat": st, "team": "T", "line": 10, "under": False, "sport": "nba"}}
+
+    legs = [leg("A", "points"), leg("A", "rebounds", 0.5)]
+    j = c.post("/api/slip/chance", json={"legs": legs}).json()
+    from melbcup import nba_legs
+
+    want = nba_legs.joint_chance([{**x["raw"], "chance": x["chance"], "game": "G"} for x in legs])
+    assert j["exact"] and abs(j["p"] - round(want, 6)) < 1e-9
+    two = c.post("/api/slip/chance", json={"legs": legs + [{"game": "H", "chance": 0.5, "price": 2.0}]}).json()
+    assert abs(two["p"] - want * 0.5) < 1e-5
+    bad = c.post("/api/slip/chance", json={"legs": [{"game": "G", "chance": 0.5, "price": 2}, {"game": "G", "chance": 0.5, "price": 2}]}).json()
+    assert bad["exact"] is False and abs(bad["p"] - 0.25) < 1e-6
+    assert c.post("/api/slip/chance", content=b"nope").json()["exact"] is False

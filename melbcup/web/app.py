@@ -6,6 +6,7 @@ Rendering and actions live in views.py, shared with the browser build.
 
 from __future__ import annotations
 
+import json
 import hmac
 import html
 import os
@@ -506,6 +507,36 @@ def create_app(
             data = views.challenge_plan(sport, start, goal, mode, legs)
         except Exception as exc:  # noqa: BLE001 - the sheet shows its own message
             data = {"error": str(exc)[:200], "rows": [], "best": None, "pick": None}
+        return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
+    _chance_cache: dict = {}
+
+    @app.post("/api/slip/chance", dependencies=[Depends(require_login)])
+    async def slip_chance(request: Request):
+        """The slip's joint chance with same-game correlation, multiplied across games."""
+        try:
+            legs = (await request.json()).get("legs") or []
+            key = json.dumps(legs, sort_keys=True)
+            if key not in _chance_cache:
+                if len(_chance_cache) > 200:
+                    _chance_cache.clear()
+                _chance_cache[key] = views.slip_chance(legs)
+            data = _chance_cache[key]
+        except Exception:  # noqa: BLE001 - the slip falls back to "approx"
+            data = {"p": None, "exact": False}
+        return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/mybet/card", dependencies=[Depends(require_login)])
+    def mybet_card(request: Request, id: int):
+        """One own bet's live tiles (the My bets sheet loads it when a card opens)."""
+        try:
+            from melbcup.web.views import own_cards
+
+            store = nba_challenge.load(request.cookies.get(nba_challenge.COOKIE))
+            bets = [b for b in (store["own"] or {}).get("bets", []) if b.get("own") and b["id"] == id]
+            data = own_cards(bets, views.track_for(bets)).get(id) or {}
+        except Exception:  # noqa: BLE001 - never crash a poll
+            data = {}
         return JSONResponse(data, headers={"Cache-Control": "no-store"})
 
     @app.get("/nba/challenges/live.json", dependencies=[Depends(require_login)])

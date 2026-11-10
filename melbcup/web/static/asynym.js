@@ -518,6 +518,23 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     root.querySelectorAll(".mb-card").forEach(function (c) { c.hidden = f === "this" && sp !== "home" && c.getAttribute("data-sport") !== sp; });
     root.querySelectorAll("[data-mbf]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-mbf") === f); });
   }
+  function tileHtml(t) {
+    var st = t.cls === "g" ? "hit" : t.cls === "r" ? "failed" : t.cls === "x" ? "no longer counts" : t.chance != null ? "win " + Math.round(t.chance * 100) + "%" : "not started";
+    return '<div class="tile ' + esc(t.cls) + '"><b>' + esc(t.name) + "</b><small>" + esc(t.line) + '</small><div class="v">' + esc(t.now) + "<small> / " + esc(t.k) + '</small></div><div class="lb"><u style="width:' + (+t.fill || 0) + '%"></u></div><small>' + st + (t.under && t.cls !== "x" ? " · bar fills toward the limit" : "") + "</small></div>";
+  }
+  // a My bets card opens: re-read its live tiles, live % and clock (cheap, cached server side)
+  document.addEventListener("toggle", function (e) {
+    var d = e.target;
+    if (!d.classList || !d.classList.contains("mb-card") || !d.open || !d.getAttribute("data-bet")) return;
+    fetch("/api/mybet/card?id=" + encodeURIComponent(d.getAttribute("data-bet")), { credentials: "same-origin" }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.tiles) return;
+      var box = d.querySelector(".mb-tiles");
+      if (box) box.innerHTML = j.tiles.map(tileHtml).join("");
+      var p = d.querySelector(".mb-p"); if (p && j.p != null) p.textContent = Math.round(j.p * 100) + "%" + (j.live ? " live" : "");
+      var c = d.querySelector(".mb-clock"); if (c) c.textContent = j.clock || "";
+      d.classList.toggle("dead", !!j.dead);
+    }).catch(function () { /* keep what the page rendered */ });
+  }, true);
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-mbf]");
     if (b) mbFilter(b.closest(".sh-body"), b.getAttribute("data-mbf"));
@@ -541,7 +558,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     try { return new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", hour: "numeric", minute: "2-digit", hour12: true }); } catch (x) { return ""; }
   }
   function normLeg(l) {
-    var o = { id: l.id || "", sport: String(l.sport || cfg.sport || "").toLowerCase(), game: l.game || "", startsAt: l.startsAt || "", label: String(l.label || ""), price: +l.price || 0, chance: l.chance == null || l.chance === "" ? null : +l.chance, mk: l.mk || "", side: l.side == null ? "" : String(l.side) };
+    var o = { id: l.id || "", sport: String(l.sport || cfg.sport || "").toLowerCase(), game: l.game || "", startsAt: l.startsAt || "", label: String(l.label || ""), price: +l.price || 0, chance: l.chance == null || l.chance === "" ? null : +l.chance, mk: l.mk || "", side: l.side == null ? "" : String(l.side), raw: l.raw || null };
     if (!o.id) o.id = [o.sport, o.game, o.label].join("|");
     if (!o.mk) {
       var t = o.label, u = /\bunder\b/i.test(t);
@@ -574,9 +591,23 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     if (order.length === 1 && !order[0]) return a.map(function (l) { return l.label; }).join(", ");
     return order.map(function (g) { return (g ? g + ": " : "") + by[g].join(", "); }).join("; ");
   }
+  var exactMemo = {};
+  function exactChance(a, done) {
+    var key = JSON.stringify(a.map(function (l) { return l.id; }));
+    if (exactMemo[key] !== undefined) return exactMemo[key];
+    exactMemo[key] = null;
+    fetch("/api/slip/chance", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ legs: a }) })
+      .then(function (r) { return r.json(); }).then(function (j) { exactMemo[key] = j && j.exact && j.p != null ? j.p : false; done(); }).catch(function () { exactMemo[key] = false; done(); });
+    return null;
+  }
   function pct(c) { return (c * 100 >= 10 ? Math.round(c * 100) : (c * 100).toFixed(1)) + "%"; }
 
   var bar = document.getElementById("slip-bar");
+  function shownChance(a, z) {
+    if (!z.linked.length) return { c: z.chance, approx: false };
+    var e = exactChance(a, sync);
+    return e ? { c: e, approx: false } : { c: z.chance, approx: e !== false || true && exactMemo[JSON.stringify(a.map(function (l) { return l.id; }))] === false };
+  }
   function sync() {
     readCfg();
     var a = load();
@@ -585,9 +616,9 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     });
     if (bar) {
       if (!a.length) { bar.hidden = true; } else {
-        var z = analyse(a);
+        var z = analyse(a), sc = shownChance(a, z);
         bar.hidden = false;
-        bar.innerHTML = "<span>Slip · " + z.n + " leg" + (z.n === 1 ? "" : "s") + " · " + money(z.price) + " · " + pct(z.chance) + (z.linked.length ? " approx" : "") + "</span><span>▲</span>";
+        bar.innerHTML = "<span>Slip · " + z.n + " leg" + (z.n === 1 ? "" : "s") + " · " + money(z.price) + " · " + pct(sc.c) + (sc.approx ? " approx" : "") + "</span><span>▲</span>";
       }
     }
     var top = topS();
@@ -625,12 +656,12 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       S.slipView = function () {
         var a = load();
         if (!a.length) { S.render('<p class="say">The slip is empty. Tick legs on any card to add them.</p>'); return; }
-        var z = analyse(a), h = "";
+        var z = analyse(a), sc = shownChance(a, z), h = "";
         a.forEach(function (l) {
           h += '<div class="sh-leg"><span><b>' + esc(l.label) + '</b><small>' + esc((l.sport ? l.sport.toUpperCase() + " · " : "") + (l.game || "") + (l.startsAt ? " · " + mel(l.startsAt) : "")) + '</small></span><b class="px">' + (l.price ? l.price.toFixed(2) : "") + '</b><button type="button" class="sh-x" data-rm="' + esc(l.id) + '" aria-label="Remove leg">✕</button></div>';
         });
-        h += '<div class="sh-kv"><span>Price</span><b>' + money(z.price) + '</b></div><div class="sh-kv"><span>Chance every leg wins</span><b>' + pct(z.chance) + (z.linked.length ? " (approx)" : "") + '</b></div>';
-        if (z.linked.length) h += '<div class="sh-warn">Linked: ' + esc(z.linked.join(", ")) + ' has more than one leg. Legs in one game move together, so the chance is approximate and the bookmaker may price the combination lower.</div>';
+        h += '<div class="sh-kv"><span>Price</span><b>' + money(z.price) + '</b></div><div class="sh-kv"><span>Chance every leg wins</span><b>' + pct(sc.c) + (sc.approx ? " (approx)" : "") + '</b></div>';
+        if (z.linked.length && sc.approx) h += '<div class="sh-warn">Linked: ' + esc(z.linked.join(", ")) + ' has more than one leg. Legs in one game move together, so the chance is approximate and the bookmaker may price the combination lower.</div>';
         z.clash.forEach(function (c) { h += '<div class="sh-warn sh-bad">Clash: "' + esc(c[0].label) + '" and "' + esc(c[1].label) + '" are opposite sides of the same bet.</div>'; });
         h += '<button type="button" class="sh-btn pri" data-act="record">Record as my bet</button><button type="button" class="sh-btn" data-act="chal">Use in a challenge</button><button type="button" class="sh-btn" data-act="clear">Clear slip</button>';
         S.render(h);

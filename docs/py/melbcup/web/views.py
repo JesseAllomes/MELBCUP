@@ -8,6 +8,7 @@ where to go next.
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 import secrets
 import time
@@ -343,6 +344,82 @@ def asset_version(new_ui: bool = False) -> str:
     return digest.hexdigest()[:10]
 
 
+def bet_tiles(tr, placed) -> tuple[list, dict]:
+    """The live leg tiles of a placed bet (challenge stage or own bet): cls g hit / r failed / o in
+    play / n not started, the count-up fill (unders fill toward the limit), and bet_live."""
+    from melbcup import live_chance, nba_live
+
+    live = live_chance.bet_live(tr, placed)
+    legs = (tr or {}).get("legs")
+    if not legs:
+        parsed = nba_live.parse(placed.get("label", ""))[1]
+        legs = [g | {"now": None, "ok": None} for g in parsed]
+    state = (tr or {}).get("state", "pre")
+    tiles = []
+    for i, g in enumerate(legs):
+        ok, now = g.get("ok"), g.get("now")
+        cls = {True: "g", False: "r"}.get(ok, "o" if state == "in" else "n")
+        lc = (live["legs"] + [None] * len(legs))[i]
+        fill = min((now or 0) / g["k"], 1.0) * 100
+        if cls == "g" and not g["under"]:
+            fill = 100.0
+        tiles.append(
+            {
+                "cls": cls,
+                "name": g["player"],
+                "line": g["label"].replace(g["player"], "", 1).strip(),
+                "under": g["under"],
+                "k": g["k"],
+                "now": now or 0,
+                "fill": round(fill),
+                "chance": lc,
+            }
+        )
+    return tiles, live
+
+
+def bet_dead(tr) -> bool:
+    return bool(
+        tr
+        and tr.get("failed")
+        and (tr["state"] == "post" or any(g.get("ok") is False for g in tr["legs"]))
+    )
+
+
+def dead_tiles(tiles: list) -> list:
+    """A failed bet: the failed leg first, the rest no longer count."""
+    tiles = sorted(tiles, key=lambda t: t["cls"] != "r")
+    for t in tiles:
+        if t["cls"] != "r":
+            t["cls"] = "x"
+    return tiles
+
+
+def own_cards(own, track) -> dict:
+    """{own bet id: card data} for the My bets sheet: tiles, live %, clock, failed; never raises."""
+    out: dict = {}
+    for b in own or []:
+        if b.get("state") != "placed":
+            continue
+        try:
+            tr = (track or {}).get(b["id"])
+            tiles, live = bet_tiles(tr, b)
+            dead = bet_dead(tr)
+            out[b["id"]] = {
+                "tiles": dead_tiles(tiles) if dead else tiles,
+                "p": live["p"],
+                "live": bool(live["live"]),
+                "approx": bool(live["approx"]),
+                "clock": (tr or {}).get("clock", ""),
+                "in_play": bool(tr and tr["state"] == "in"),
+                "dead": dead,
+                "verdict": (tr or {}).get("verdict"),
+            }
+        except Exception:  # noqa: BLE001 - a card without tiles still shows
+            continue
+    return out
+
+
 def _iso(v) -> str:
     return v.isoformat() if hasattr(v, "isoformat") else str(v or "")
 
@@ -396,6 +473,9 @@ def slip_leg(d, sport: str = "") -> dict:
         "chance": g("chance"),
         "mk": f"{g('player')}|{g('stat')}" if g("player") else "",
         "side": ("u" if g("under") else "o") if g("player") else "",
+        "raw": {k: g(k) for k in ("player", "stat", "team", "line", "under", "sport") if g(k) is not None}
+        if g("player")
+        else None,
     }
 
 
@@ -991,47 +1071,16 @@ class Views:
         live = bet = None
         tiles = []
         if placed:
-            live = live_chance.bet_live(tr, placed)
-            legs = (tr or {}).get("legs")
-            if not legs:
-                parsed = nba_live.parse(placed.get("label", ""))[1]
-                legs = [g | {"now": None, "ok": None} for g in parsed]
-            state = (tr or {}).get("state", "pre")
-            for i, g in enumerate(legs):
-                ok, now = g.get("ok"), g.get("now")
-                cls = {True: "g", False: "r"}.get(ok, "o" if state == "in" else "n")
-                lc = (live["legs"] + [None] * len(legs))[i]
-                fill = min((now or 0) / g["k"], 1.0) * 100
-                if cls == "g" and not g["under"]:
-                    fill = 100.0
-                tiles.append(
-                    {
-                        "cls": cls,
-                        "name": g["player"],
-                        "line": g["label"].replace(g["player"], "", 1).strip(),
-                        "under": g["under"],
-                        "k": g["k"],
-                        "now": now or 0,
-                        "fill": round(fill),
-                        "chance": lc,
-                    }
-                )
+            tiles, live = bet_tiles(tr, placed)
             bet = live["p"]
         ring = bet
         if ring is None and not placed:
             step = ctx.get("ch_step") or {}
             ring = step.get("chance")
         verdict = (tr or {}).get("verdict")
-        dead = bool(
-            tr
-            and tr.get("failed")
-            and (tr["state"] == "post" or any(g.get("ok") is False for g in tr["legs"]))
-        )
-        if dead:  # the failed leg first; the rest no longer count
-            tiles = sorted(tiles, key=lambda t: t["cls"] != "r")
-            for t in tiles:
-                if t["cls"] != "r":
-                    t["cls"] = "x"
+        dead = bet_dead(tr)
+        if dead:
+            tiles = dead_tiles(tiles)
         blocks = []
         for i in range(n_all):
             if i < n_done:
@@ -1217,6 +1266,32 @@ class Views:
             rows = nba_challenge.plan(start, goal, True, lambda xmap: {})
         return {"sport": sport, "start": start, "goal": goal, "mode": mode, "legs": want,
                 "rows": rows, "best": best, "why": why, "pick": pick}
+
+    @staticmethod
+    def slip_chance(legs: list) -> dict:
+        """The slip's chance every leg wins: per game the copula joint chance (NBA CORR, NFL
+        relations), multiplied across games. {"p", "exact"}; exact False when a leg has no model."""
+        from melbcup import nba_legs
+
+        by: dict = {}
+        for g in legs:
+            by.setdefault(g.get("game") or "", []).append(g)
+        p, exact = 1.0, True
+        for gs in by.values():
+            if len(gs) == 1:
+                p *= float(gs[0].get("chance") or 1 / float(gs[0]["price"]))
+                continue
+            if not all(g.get("raw") and g.get("chance") for g in gs):
+                exact = False
+                p *= math.prod(float(g.get("chance") or 1 / float(g["price"])) for g in gs)
+                continue
+            p *= nba_legs.joint_chance(
+                [{**g["raw"], "chance": float(g["chance"]), "game": g.get("game")} for g in gs]
+            )
+        return {"p": round(p, 6), "exact": exact}
+
+    def track_for(self, bets: list) -> dict:
+        return self._track({"nba_own": bets})
 
     def nba_us_pretip(self) -> bool:
         try:
@@ -1561,6 +1636,7 @@ class Views:
             if sport not in ("nba", "nfl") or view:
                 ctx["track"] = self._track(ctx)
                 ctx["own_live"] = self._own_live(ctx)
+                ctx["own_cards"] = own_cards(ctx.get("nba_own"), ctx.get("track"))
                 return self.env.get_template("asynym/sports.html").render(ctx)
             path = "/nba"  # the NBA content below, rendered inside the hub
             ctx["path"] = "/sports"
@@ -1592,6 +1668,7 @@ class Views:
                 self.timing["challenge"] = time.perf_counter() - t0
             ctx["track"] = self._track(ctx)
             ctx["own_live"] = self._own_live(ctx)
+            ctx["own_cards"] = own_cards(ctx.get("nba_own"), ctx.get("track"))
             ctx["chcard"] = self._chcard(ctx)
             return self.env.get_template("asynym/sports.html").render(ctx)
         if path == "/":
