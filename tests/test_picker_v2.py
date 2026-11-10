@@ -76,7 +76,7 @@ def _old_module(tmp_path):
 def _strip(x):
     """Drop the keys v2 added to leg dicts (chance_v1, chance_v2, bench)."""
     if isinstance(x, dict):
-        return {k: _strip(v) for k, v in x.items() if k not in ("chance_v1", "chance_v2", "bench")}
+        return {k: _strip(v) for k, v in x.items() if k not in ("chance_v1", "chance_v2", "chance_v3", "bench")}
     return [_strip(v) for v in x] if isinstance(x, list) else x
 
 

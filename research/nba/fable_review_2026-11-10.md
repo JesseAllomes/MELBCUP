@@ -243,3 +243,12 @@ primary measure is the same-game $2 and $3 hit rate, v2 minus v1, paired by game
 interval is above zero; flip to `PICKER=v1` if it sits below zero or the bench-over leg gap (needs to
 stay 3+ points below said over about 2,000 legs) closes. Early-season rotation changes are the
 obvious alternative explanation.
+
+## Weekly lean refit: v3 shadow (2026-11-10)
+
+`tools/nba/refit_lean.py` runs from the daily job on Mondays (Melbourne). It fits a shrunk shift
+per (role bucket by median points line, stat, over/under), n/(n+200), no move under 100 legs, from
+settled forward-v2 legs, and writes blob `picker/lean-v3.json`. Picker "v3" is v2's machinery with
+those shifts (missing file or cell: v2's lean). It is never live; every slate logs it as a third
+picker tag "v3" beside v1/v2, and `tools/nba/ab_report.py` reports it (paired v3 minus v2 too).
+**Promotion rule:** v3 replaces v2 only if it beats v2 out of sample on the A/B report.
