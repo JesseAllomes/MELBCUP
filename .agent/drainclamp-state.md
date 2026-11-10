@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=215 -->
+<!-- drainclamp-build: state; schema=1; generation=217 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -111,7 +111,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 | bn1 | Bonus credits automatic leftovers (owner 2026-11-08): recording a bonus bet deducts its stake from that bookmaker's available credit, the remainder stays available | melbcup/wallet.py;melbcup/nba_challenge.py;tests/ | done |  |
 | nfl1 | NFL gets the full NBA treatment (owner 2026-11-08): picker with pk1 rules on NFL props/lines (event-aware keys, native-pair de-vig, monotone ladders, dedupe, min 2 legs), best multis/stage picks, ESPN live tracker + live chance per leg, auto settle by ESPN ids (America/New_York dates), challenges scope nfl, NFL tab same sub-tabs/design as NBA | melbcup/;melbcup/web/;tests/ | done | pk1 |
 | nfl2 | NFL fully separate from NBA (owner 2026-11-08): each page lists only its own challenges/bets/record-to options; scope fixed per page; stage preview honours chosen start/goal/legs/mode and auto-selects best stages; alerts link to own page; verified live with Playwright | melbcup/web/;melbcup/nba_challenge.py;tests/ | done | nfl1 |
-| ui8 | Bet entry v13 (owner BUILD 2026-11-10): bottom sheets with swipe-down, multi-sport slip from any sport's cards, record as my bet / use in challenge (next leg / new challenge planner with chart + cards), own bets hidden unless in a challenge, sport saved on every bet (parity group 1) | melbcup/web/;melbcup/nba_challenge.py;tests/ | pending | nfl2 |
+| ui8 | Bet entry v13 (owner BUILD 2026-11-10): bottom sheets with swipe-down, multi-sport slip from any sport's cards, record as my bet / use in challenge (next leg / new challenge planner with chart + cards), own bets hidden unless in a challenge, sport saved on every bet (parity group 1) | melbcup/web/;melbcup/nba_challenge.py;tests/ | done | nfl2 |
 <!-- /DC:ROADMAP -->
 
 <!-- DC:VERIFY -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-08T00:19:31+00:00 fcdbf672 2026-11-08 challenges fixes deployed (cents, legs per multi, edit challenge, edit placed bet, planner at setup, All Sports ladder picks, record any bet + bonus-if-win, sticky stage pick, 400-char legs). Owner data: ch3/4/6 removed, 4 placed Sportsbet bets rebuilt as ch7-10 (goal $250, 2 stages), wallet c1 redeemed, c2 $10.72 granted; backup challenges/backup-before-rebuild-20261108T0009.json.
 - 2026-11-08T02:15:12+00:00 b0045fd2 2026-11-08 merged, awaiting deploy: challenge screen v9-3 + live chance (live_chance.py), racing staged load (field first), racing likely engine + Likely/Multis tabs (v10-3), NBA leg labels with stat + game. Owner 4 challenges rebuilt (ch7-10, 3 stages).
 - 2026-11-08T02:50:45+00:00 423d193a 2026-11-08 PRE-COMPACT. Live: Bet now/sports tabs, challenge screen v9-3 + live chance, racing staged load + Likely/Multis tabs, NBA labels, /sports speed fix. Pushed NOT deployed (needs 'approved: deploy web'): multi-game live tracker (label 'Game A: legs; Game B: legs'), discover first-refresh on fresh container. Owner data: challenges ch7-ch14 (A-H) to $250; backups challenges/backup-*.json. TODO: record-bet form multi-game option; All Sports stage planner; sh1 shadow scoreboard; eq1 equivalence; pf1 portfolio planner; racing best-chance vs value verdict choice.
 - 2026-11-08T02:58:17+00:00 05e47901 2026-11-08 NEXT BUILD after compact (owner: lowest token use, Sonnet low or cheaper): challenge list = accordion rows expanding IN PLACE (v9-1 behaviour), no new screen; collapsed row: name, live % chance at right, current leg odds, the row bar = chance fill with % at end AND a game-time-left indicator (bar or text, e.g. 'Q3 4:12 · 18 min left'); expand instantly with saved figures, live numbers fetched after expansion (lazy), collapsed rows poll only a tiny live-% summary endpoint. Also pending owner answers: bonus credits auto-leftover vs one-tap split vs both; review r3 (az4) fix/waive/dismiss; deploy approval for multi-game tracker + discover fresh-container fix (pushed).
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-10T03:46:08+00:00 2b5c660a 2026-11-10 Picker v2 LIVE (PICKER=v2 on web+job, Function default v2): role-aware lean (bench <12 pts median: points 9 pts, others 5/4), drift re-pick >3% (challenge stage pick only), rung margins up above $2.20, two-book mean kept. Revert: PICKER=v1. A/B: both versions logged per slate (picker tag), tools/nba/ab_report.py; decide at ~600 game-targets. Gap: drift re-pick not on cross-sport shown_sug; lean is fixed shift not LODO fit.
 - 2026-11-10T04:46:06+00:00 77c1f062 2026-11-10 DEPLOYED: weekly lean refit v3 shadow (Mondays, blob picker/lean-v3.json, A/B v1/v2/v3); NFL page + Home games cached stale-while-revalidate (NFL 6-7s -> ~1s; Home games first load 9s then 1.5s). Parity audit research/sport_parity_2026-11-10.md: only NBA+NFL full; 14 generic sports lack sport-saved bets, your-bets, per-sport challenge scope, live/settle, models. product-ui v11 bet-entry prototypes sent (1 tray, 2 steps, 3 quick, 4 modules) - waiting owner pick + BUILD.
 - 2026-11-10T07:15:16+00:00 c62634b9 2026-11-10 Owner: bets NBA + NFL now (other sports off season). Plan: parity group 1 (sport saved, your-bets, per-sport challenges/alerts) for every sport, folded into the bet-entry BUILD (v12 merged 3+4, multi-sport combine); groups 2-3 (generic ESPN live/settle, per-sport models) when a sport comes into season. Waiting v12 prototype + BUILD.
+- 2026-11-10T21:06:08+00:00 51958166 2026-11-10 ui8 v13 DEPLOYED (web, job, function) + verified live (Pixel 5): ticks on NBA/NFL (16 each)/Home (7), cross-sport slip bar, slip sheet (legs, price, chance, Record/Use in challenge/Clear), swipe-down closes, My bets pill + sheet (this sport/all), no page errors. Not verified live: Record submit, challenge Place/Start (no test bets placed), My bets tiles (no NBA own bets open).
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
