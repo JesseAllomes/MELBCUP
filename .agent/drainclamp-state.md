@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=209 -->
+<!-- drainclamp-build: state; schema=1; generation=210 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -125,7 +125,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-07T13:50:46+00:00 e2dc69d0 2026-11-07 ui7 BUILD by owner on v7 direction 3 (Top two); lock appended to .grok/product-ui/LOCK-asynymbet.md; build delegated to Haiku (owner: cheapest model, slow is fine) in worktree rb3-build; review + owner deploy approval pending
 - 2026-11-07T14:09:38+00:00 d95792cc 2026-11-07 ui7 built (Haiku step 1, then Sonnet low per owner): v7-3 home + sport pages + next games (full-game main line) + status/refresh + progress bar/toast + challenge tab cleaned; merged to branch 4d4c00c1, tests pass; awaiting owner deploy approval. pk1 (rb2-picker) still awaiting review/merge.
 - 2026-11-07T14:23:40+00:00 4aa76261 2026-11-07 ui7 deployed (owner approved): live /sports Bet now; first compute after deploy ~3 min, pages ~1 s; status endpoint live. Next: pk1 review, then sh1 shadow scoreboard.
 - 2026-11-07T21:28:26+00:00 94b106f8 2026-11-07 pk1 reviewed+merged to branch (tests pass, not deployed). ui8 BUILD (owner): every sport NBA-style tabs, v8-2 bottom bar + 1's layout, NBA Multis on new design with fixed picker; Sonnet low building in rb5-tabs.
@@ -145,6 +144,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-09T06:45:00+00:00 803732be 2026-11-09 FIX deployed: nba_live._event matches on team nicknames (label 'Los Angeles Clippers' vs ESPN 'LA Clippers' -> C stuck 'in play 38%' all afternoon). C now final: Derik Queen 3 ast (Under 2.5) failed, Hachimura hit.
 - 2026-11-09T08:05:05+00:00 bd23b266 2026-11-09 NFL: catalogue 8-day window (14 games); game-line legs (Moneyline 2-way, spread, full-game totals) priced from own pair only, verified chance*price 0.85-1.0 on 1,908 live legs + live page (46% @ $2.00). Incident: first agent version paired lines via prop code (85% on $1.20/$2.20 wins) -> pulled within minutes; a bad git revert briefly undid part of NFL/NBA separation on live (restored, verified).
 - 2026-11-09T09:31:05+00:00 4e19afbd 2026-11-09 OWNER POLICY (restated): never use head-to-head in automatic picks, any sport (wins less often than priced). Applied: discover.leg_of all sports, NFL legs = props + spreads + full-game totals. Deployed, live NFL page verified (no 'to win').
+- 2026-11-10T02:54:48+00:00 c4d7332d 2026-11-10 Owner asked for Fable review (unders kill multis). Pre-check: unders calibrated (52.0 said/53.5 got, -1.5c vs overs -18.5c) but picked at ~58% vs overs ~72%; mixed multis underperform (thin). Fable 5.1 started (5.2 not available) on forward-v2.jsonl -> research/nba/fable_review_2026-11-10.md + tools/nba/review/.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
