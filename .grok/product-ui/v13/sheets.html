@@ -1,0 +1,201 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Bottom sheets</title><style>
+:root{--ground:#0A090E;--sheet:#15121C;--ink:#EEEAF8;--muted:#9D94B8;--rule:#2A2438;--chip:#1F1A2B;--brand:#A88BFF;--brand-ink:#120D1F;--brand-wash:#251C3D;--good:#4ED19A;--good-wash:#14291F;--bad:#FF6F7D;--bad-wash:#33161C;--warn:#E9B65A;--warn-wash:#2E2414;--font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(120% 60% at 50% -10%,#1E1236,#0A090E 55%) fixed,#0A090E;color:var(--ink);font:14px/1.35 var(--font);font-variant-numeric:tabular-nums;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+.app{max-width:460px;margin:0 auto;padding:8px 10px 90px}
+h1{font-size:17px;margin:6px 2px 8px}
+.lbl{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:10px;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px}.sp{flex:1;min-width:0}.muted{color:var(--muted)}.sm{font-size:12px}
+.btn{min-height:44px;border-radius:12px;border:1px solid var(--rule);background:var(--chip);padding:0 14px;font-weight:700}
+.btn.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.good{background:var(--good-wash);color:var(--good);border-color:#245c43}.btn.bad{background:var(--bad-wash);color:var(--bad);border-color:#5a2630}
+.btn.sm{min-height:36px;padding:0 10px;font-size:13px}
+.chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--rule);background:var(--chip);font-weight:600;font-size:13px;white-space:nowrap}
+.chip.on{background:var(--brand-wash);border-color:var(--brand);color:var(--brand)}
+.scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin:8px 0}
+.leg{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--rule);min-height:54px;cursor:pointer}
+.leg:last-child{border:0}.box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--rule);display:grid;place-items:center;color:transparent;font-weight:900}
+.leg.on{background:var(--brand-wash);border-radius:10px}.leg.on .box{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.leg b{display:block;font-size:14px}.leg small{color:var(--muted);font-size:12px}.price{font-weight:800;font-size:15px}
+.tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:1px 6px;border-radius:5px;margin-right:5px;vertical-align:1px;color:#120D1F}
+.t-NBA{background:#E9B65A}.t-NFL{background:#4ED19A}.t-AFL{background:#A88BFF}.t-NRL{background:#6FB7FF}
+input[type=text],input[type=number],select{width:100%;min-height:44px;background:var(--chip);border:1px solid var(--rule);border-radius:10px;padding:8px 10px}
+.acc{border:1px solid var(--rule);border-radius:12px;margin-bottom:6px;background:var(--ground)}
+.acc>.h{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;cursor:pointer;font-weight:700}
+.acc>.h .v{margin-left:auto;color:var(--brand);font-weight:600;font-size:13px}.acc>.h:after{content:"▾";color:var(--muted);margin-left:6px;transition:.15s}.acc.open>.h:after{transform:rotate(180deg)}
+.acc>.b{display:none;padding:2px 12px 12px}.acc.open>.b{display:block}
+.mod{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;margin-bottom:8px}
+.mod>.h{display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;cursor:pointer;font-weight:800}.mod>.h .v{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}.mod>.h:after{content:"▾";color:var(--muted)}.mod.open>.h:after{transform:rotate(180deg)}
+.mod>.b{display:none;padding:0 8px 8px}.mod.open>.b{display:block}
+.tabs{display:flex;gap:4px;background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:4px;margin-bottom:8px}
+.tabs button{flex:1;min-height:42px;border:0;background:none;border-radius:10px;font-weight:700;color:var(--muted)}.tabs button.on{background:var(--brand-wash);color:var(--brand)}
+.tog{width:48px;height:28px;border-radius:14px;background:var(--rule);position:relative;border:0;flex:none}.tog:after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}.tog.on{background:var(--brand)}.tog.on:after{left:23px}
+.pill{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}.pill.w{background:var(--good-wash);color:var(--good)}.pill.l{background:var(--bad-wash);color:var(--bad)}.pill.o{background:var(--warn-wash);color:var(--warn)}
+.bonus{border:1px dashed var(--warn);background:var(--warn-wash);color:var(--warn);border-radius:12px;padding:8px 10px}
+.warn{border:1px solid var(--bad);background:var(--bad-wash);color:var(--bad);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600;margin-top:6px}
+.link{border:1px solid var(--warn);background:var(--warn-wash);color:var(--warn);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600;margin-top:6px}
+.multi{border:1px solid var(--brand);background:linear-gradient(180deg,#2a1f47,var(--sheet))}
+.toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:var(--good);color:#06150e;font-weight:800;padding:8px 14px;border-radius:999px;z-index:40;display:none}
+.hide{display:none!important}.mini{display:flex;gap:6px;flex-wrap:wrap}
+.ell{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.app{padding:8px 12px 120px}
+.top{display:flex;align-items:center;gap:8px}.top h1{flex:1}
+.leg .info{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--rule);background:var(--chip);color:var(--muted);font-weight:800}
+.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:436px;z-index:10;min-height:54px;border-radius:16px;background:var(--brand);color:var(--brand-ink);border:0;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 8px 24px #000a}
+.layer{position:fixed;inset:0;z-index:30;display:flex;justify-content:center;align-items:flex-end;touch-action:none}
+.bd{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .25s}
+.layer.in .bd{opacity:.55}.layer.under .bd{opacity:.35}
+.sheet{position:relative;width:100%;max-width:460px;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;background:var(--sheet);border:1px solid var(--rule);border-bottom:0;border-radius:20px 20px 0 0;transform:translateY(105%);will-change:transform;box-shadow:0 -10px 40px #0009;touch-action:none}
+.layer.under .sheet{filter:brightness(.7)}
+.sheet.anim{transition:transform .42s cubic-bezier(.2,1.15,.3,1)}.sheet.anim.out{transition:transform .26s cubic-bezier(.4,0,1,1)}
+.sh-head{padding:8px 14px 4px;cursor:grab}.grab{width:44px;height:5px;border-radius:5px;background:#4a4160;margin:0 auto 8px}
+.sh-title{display:flex;align-items:center;gap:8px}.sh-title h2{flex:1;margin:0;font-size:17px}
+.sh-body{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:6px 14px calc(18px + env(safe-area-inset-bottom))}
+.tabs{margin-top:4px}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--rule)}
+.mini{margin:6px 0 10px}
+.card.btnrow{display:flex;align-items:center;gap:10px;min-height:56px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.sheet.anim,.sheet.anim.out,.bd{transition-duration:.01s!important}}
+</style></head><body><div class="app"><h1>Melbourne Cup bets</h1><div class="tabs" id="tabs"><button class="on" data-t="build">Build</button><button data-t="bets">Your bets</button><button data-t="wallet">Wallet</button></div><div id="build"></div><div id="bets" class="hide"></div><div id="wallet" class="hide"></div></div><button class="bar hide" id="bar"></button><div id="toast" class="toast"></div><script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const BOOKS=['Sportsbet','PointsBet','Bet365','TAB'],SPORTS=['NBA','NFL','AFL','NRL'];
+let LEGS=[
+{id:1,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Jalen Brunson Over 24.5 Pts',p:1.90,mk:'brunson',side:'o'},
+{id:2,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Celtics -4.5 Handicap',p:1.91,mk:'h2h-nba1',side:'BOS'},
+{id:3,s:'NBA',g:'nba1',game:'Knicks @ Celtics',when:'Wed 11:30am',t:'Knicks to Win',p:2.05,mk:'h2h-nba1',side:'NYK'},
+{id:4,s:'NBA',g:'nba2',game:'Nuggets @ Lakers',when:'Wed 1:00pm',t:'Nikola Jokic Triple Double',p:2.60,mk:'jokic',side:'y'},
+{id:5,s:'NFL',g:'nfl1',game:'Chiefs @ Bills',when:'Thu 8:20am',t:'Mahomes Over 265.5 Pass Yds',p:1.87,mk:'mahomes',side:'o'},
+{id:6,s:'NFL',g:'nfl1',game:'Chiefs @ Bills',when:'Thu 8:20am',t:'Bills to Win',p:1.95,mk:'h2h-nfl1',side:'BUF'},
+{id:7,s:'AFL',g:'afl1',game:'Collingwood v Carlton',when:'Fri 7:50pm',t:'Collingwood -12.5 Line',p:1.92,mk:'h2h-afl1',side:'COL'},
+{id:8,s:'AFL',g:'afl1',game:'Collingwood v Carlton',when:'Fri 7:50pm',t:'Nick Daicos 30+ Disposals',p:2.10,mk:'daicos',side:'y'},
+{id:9,s:'NRL',g:'nrl1',game:'Storm v Panthers',when:'Sat 5:30pm',t:'Storm to Win',p:2.30,mk:'h2h-nrl1',side:'MEL'},
+{id:10,s:'NRL',g:'nrl1',game:'Storm v Panthers',when:'Sat 5:30pm',t:'Ryan Papenhuyzen Anytime Try',p:2.40,mk:'papa',side:'y'}];
+const st={sel:new Set([4,5,7]),flt:'All',wallet:10.72,bets:[
+{id:101,t:'Knicks Win + Brunson 25+ Pts',legs:2,bk:'Sportsbet',stake:10.50,price:3.42,bonus:false,ch:'Cup Run',s:'o',det:['NBA · Knicks to Win 1.80','NBA · Brunson 25+ Pts 1.90']},
+{id:102,t:'NBA + NFL + AFL 3-leg multi',legs:3,bk:'PointsBet',stake:10.72,price:9.34,bonus:true,bif:89.72,ch:'$10 to $1000',s:'o',det:['NBA · Jokic Triple Double 2.60','NFL · Mahomes 265.5 Pass Yds 1.87','AFL · Collingwood -12.5 1.92']},
+{id:103,t:'Storm to Win',legs:1,bk:'Sportsbet',stake:5,price:2.30,bonus:false,ch:'',s:'w',det:['NRL · Storm to Win 2.30']}]};
+const CH=['(none)','Cup Run · stage 2 of 5','$10 to $1000 · stage 1 of 8'];
+const $f=n=>'$'+(+n).toFixed(2),sel=()=>LEGS.filter(l=>st.sel.has(l.id)),comb=a=>a.reduce((x,l)=>x*l.p,1),chance=a=>a.reduce((x,l)=>x/l.p,1)*100;
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',1600)}
+function analyse(a){const games={},mk={},conf=[];a.forEach(l=>{(games[l.g]=games[l.g]||[]).push(l);if(mk[l.mk]&&mk[l.mk].side!==l.side)conf.push([mk[l.mk],l]);mk[l.mk]=mk[l.mk]||l});return{linked:Object.values(games).filter(x=>x.length>1),conf,sports:[...new Set(a.map(l=>l.s))]}}
+/* ================= SHEET ENGINE ================= */
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const stack=[];
+function lockBody(){document.body.style.overflow=stack.length?'hidden':''}
+function openSheet(title,html,bind){
+  const layer=document.createElement('div');layer.className='layer';
+  layer.innerHTML=`<div class="bd"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sh-head"><div class="grab"></div><div class="sh-title"><h2>${title}</h2><button class="btn sm" data-close aria-label="Close">✕</button></div></div><div class="sh-body">${html}</div></div>`;
+  document.body.appendChild(layer);
+  const sheet=layer.querySelector('.sheet'),body=layer.querySelector('.sh-body'),head=layer.querySelector('.sh-head');
+  const S={layer,sheet,body,y:0,h:0,render(t,h){body.innerHTML=h;bind&&bind(S)},close:()=>closeSheet(S)};
+  stack.forEach(x=>x.layer.classList.add('under'));stack.push(S);lockBody();
+  bind&&bind(S);
+  layer.querySelector('[data-close]').onclick=S.close;
+  layer.querySelector('.bd').onclick=()=>{if(topS()===S)S.close()};
+  const set=y=>{S.y=y;sheet.style.transform=`translateY(${y}px)`};
+  S.set=set;
+  /* open */
+  S.h=sheet.offsetHeight;sheet.getBoundingClientRect();
+  sheet.classList.add('anim');layer.classList.add('in');set(0);
+  sheet.addEventListener('transitionend',()=>sheet.classList.remove('anim'),{once:true});
+  /* drag */
+  let d=null;
+  const pt=e=>e.touches?e.touches[0]:e;
+  function start(e){if(topS()!==S)return;if(e.touches&&e.touches.length>1)return;const p=pt(e);d={y0:p.clientY,x0:p.clientX,inHead:head.contains(e.target),on:false,s:[{t:performance.now(),y:p.clientY}]}}
+  function move(e){if(!d)return;const p=pt(e),dy=p.clientY-d.y0;
+    if(!d.on){const can=d.inHead||body.scrollTop<=0;if(can&&dy>6&&Math.abs(dy)>Math.abs(p.clientX-d.x0)){d.on=true;d.y0=p.clientY;S.h=sheet.offsetHeight;sheet.classList.remove('anim','out')}else return}
+    if(e.cancelable)e.preventDefault();
+    const ddy=p.clientY-d.y0;set(ddy>=0?ddy:ddy*0.15);
+    d.s.push({t:performance.now(),y:p.clientY});while(d.s.length>2&&d.s[0].t<performance.now()-120)d.s.shift()}
+  function end(){if(!d)return;const was=d;d=null;if(!was.on)return;
+    const a=was.s[0],b=was.s[was.s.length-1],v=b.t>a.t?(b.y-a.y)/(b.t-a.t):0;
+    sheet.classList.add('anim');
+    if(S.y>S.h*0.3||v>0.5)closeSheet(S,true);else set(0)}
+  sheet.addEventListener('touchstart',start,{passive:true});
+  sheet.addEventListener('touchmove',move,{passive:false});
+  sheet.addEventListener('touchend',end);sheet.addEventListener('touchcancel',end);
+  sheet.addEventListener('mousedown',e=>{if(e.target.closest('input,select,textarea'))return;start(e);const mm=ev=>move(ev),mu=()=>{removeEventListener('mousemove',mm);removeEventListener('mouseup',mu);end()};addEventListener('mousemove',mm);addEventListener('mouseup',mu)});
+  return S}
+function topS(){return stack[stack.length-1]}
+function closeSheet(S,fromDrag){const i=stack.indexOf(S);if(i<0)return;stack.splice(i,1);
+  const {layer,sheet}=S;layer.classList.remove('in');
+  if(!fromDrag)sheet.classList.add('anim');sheet.classList.add('out');S.set(sheet.offsetHeight+40);
+  const fin=()=>{layer.remove();lockBody()};setTimeout(fin,RM?30:300);
+  const t=topS();t&&t.layer.classList.remove('under');lockBody()}
+addEventListener('keydown',e=>{if(e.key==='Escape'&&topS())topS().close()});
+/* ================= MAIN PAGE ================= */
+function legRow(l){return `<div class="leg ${st.sel.has(l.id)?'on':''}" data-id="${l.id}"><span class="box">✓</span><span class="sp"><b><span class="tag t-${l.s}">${l.s}</span>${l.t}</b><small>${l.game} · ${l.when}${l.custom?' · pasted':''}</small></span><span class="price">${l.p.toFixed(2)}</span><button class="info" data-i="${l.id}" aria-label="Leg info">i</button></div>`}
+function renderBuild(){const a=sel(),root=$('#build');
+const shown=LEGS.filter(l=>st.flt=='All'||l.s==st.flt);
+root.innerHTML=`<div class="row" style="margin:4px 0"><div class="scroll sp" id="flt" style="margin:0">${['All',...SPORTS].map(s=>`<button class="chip ${st.flt==s?'on':''}" data-f="${s}">${s=='All'?'All sports':s}</button>`).join('')}</div><button class="btn sm" id="paste">Paste</button></div><div class="card" style="padding:4px 6px">${shown.map(legRow).join('')}</div>`;
+root.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{st.flt=c.dataset.f;renderBuild()});
+root.querySelectorAll('.leg').forEach(e=>e.onclick=ev=>{if(ev.target.closest('.info'))return;const id=+e.dataset.id;st.sel.has(id)?st.sel.delete(id):st.sel.add(id);refresh()});
+root.querySelectorAll('.info').forEach(b=>b.onclick=()=>legInfo(+b.dataset.i));
+$('#paste').onclick=pasteSheet;
+const bar=$('#bar');bar.classList.toggle('hide',!a.length);
+bar.innerHTML=`<span>Slip · ${a.length} leg${a.length==1?'':'s'} · ${a.length?$f(10/1)+'':''}</span>`; // placeholder replaced below
+const stake=10;bar.innerHTML=`<span>Slip · ${a.length} leg${a.length==1?'':'s'} · ${$f(R.stake)} · ${a.length?chance(a).toFixed(0):0}%</span><span>View ›</span>`;
+bar.onclick=slipSheet}
+function refresh(){renderBuild();const t=topS();t&&t.rerender&&t.rerender()}
+/* leg info */
+function legInfo(id){const l=LEGS.find(x=>x.id==id);openSheet('Leg info',`<div class="card"><div class="lbl"><span class="tag t-${l.s}">${l.s}</span>${l.game}</div><div style="font-size:18px;font-weight:800;margin:4px 0">${l.t}</div><div class="kv"><span class="muted">Price</span><b>${l.p.toFixed(2)}</b></div><div class="kv"><span class="muted">Implied chance</span><b>${(100/l.p).toFixed(1)}%</b></div><div class="kv"><span class="muted">Starts</span><b>${l.when}</b></div><div class="kv" style="border:0"><span class="muted">Market</span><b>${l.mk}</b></div></div><button class="btn ${st.sel.has(l.id)?'bad':'pri'}" style="width:100%" id="tg">${st.sel.has(l.id)?'Remove from slip':'Add to slip'}</button>`,S=>{S.body.querySelector('#tg').onclick=()=>{st.sel.has(id)?st.sel.delete(id):st.sel.add(id);renderBuild();S.close()}})}
+/* paste */
+function parsePaste(txt){let n=0;txt.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(s=>{const m=s.match(/(.*?)[\s@x]+(\d+\.\d{1,2})\s*$/);let t=(m?m[1]:s).trim(),p=m?+m[2]:1.90;let sp=SPORTS.find(x=>new RegExp('\\b'+x+'\\b','i').test(t))||'NBA';t=t.replace(new RegExp('^'+sp+'[:\\s-]*','i'),'');const l={id:Date.now()+n++,s:sp,g:'typed'+n,game:'Pasted leg',when:'time TBC',t,p,mk:'typed'+Date.now()+n,side:'x',custom:1};LEGS.unshift(l);st.sel.add(l.id)});return n}
+function pasteSheet(){openSheet('Paste legs',`<div class="sm muted" style="margin-bottom:6px">One leg per line. Start with the sport (NBA, NFL, AFL, NRL) and end with the price.</div><textarea id="pt" rows="5" placeholder="NFL Mahomes over 265.5 yds 1.87" style="width:100%;background:var(--chip);border:1px solid var(--rule);border-radius:10px;padding:10px;color:var(--ink);font:inherit"></textarea><button class="btn pri" id="pb" style="width:100%;margin-top:10px">Add to slip</button>`,S=>{S.body.querySelector('#pb').onclick=()=>{if(parsePaste(S.body.querySelector('#pt').value)){renderBuild();S.close();toast('Legs added')}}})}
+/* slip */
+function slipHtml(){const a=sel();if(!a.length)return `<div class="card muted sm">No legs ticked.</div>`;const x=analyse(a),multi=a.length>1;
+return `<div class="card multi"><div class="lbl">${multi?a.length+'-leg multi · '+x.sports.join(' + '):'Single'}</div><div style="font-size:26px;font-weight:800">${comb(a).toFixed(2)} <small class="muted" style="font-size:12px;font-weight:600">${chance(a).toFixed(1)}% combined chance</small></div>
+${x.conf.map(c=>`<div class="warn">Clash: "${c[0].t}" and "${c[1].t}" cannot both win. Remove one.</div>`).join('')}
+${x.linked.map(g=>`<div class="link">Same game, linked (${g[0].game}). Legs move together, so the real chance is higher than shown and the book may reprice or refuse it.</div>`).join('')}
+${multi&&!x.linked.length&&!x.conf.length?`<div class="sm muted" style="margin-top:6px">Different games and sports: chances multiply.</div>`:''}</div>
+<div class="card">${a.map(l=>`<div class="row sm" style="padding:6px 0;border-bottom:1px solid var(--rule)"><span class="sp ell"><span class="tag t-${l.s}">${l.s}</span>${l.t}<br><span class="muted">${l.game} · ${l.when}</span></span><span>${l.p.toFixed(2)}</span><button class="btn sm" data-rm="${l.id}" aria-label="Remove">✕</button></div>`).join('')}</div>
+<button class="btn pri" id="rec-go" style="width:100%" ${x.conf.length?'style="opacity:.55"':''}>Record this bet</button>`}
+function slipSheet(){openSheet('Your slip',slipHtml(),S=>{const b=S.body;
+ S.rerender=()=>{if(!sel().length){S.close();return}b.innerHTML=slipHtml();hook()};
+ const hook=()=>{b.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{st.sel.delete(+x.dataset.rm);refresh()});const g=b.querySelector('#rec-go');g&&(g.onclick=()=>openRec(sel()))};hook()})}
+/* record */
+const R={bk:'Sportsbet',stake:10,price:1,bonus:false,ch:0,bif:'',legs:[]};
+function recHtml(){const s=R.stake,left=R.bonus?st.wallet-s:st.wallet,win=R.bonus?(R.price-1)*s:R.price*s,x=analyse(R.legs);
+return `<div class="card"><div class="lbl">${R.legs.length>1?R.legs.length+'-leg multi · '+x.sports.join(' + '):'Single'} · price ${R.price.toFixed(2)}</div>${R.legs.map(l=>`<div class="row sm" style="padding:3px 0"><span class="sp ell"><span class="tag t-${l.s}">${l.s}</span>${l.t}</span><span>${l.p.toFixed(2)}</span></div>`).join('')}${x.linked.length?'<div class="link">Same game: linked</div>':''}${x.conf.length?'<div class="warn">Conflicting legs in this bet</div>':''}</div>
+<div class="lbl">Bookmaker</div><div class="mini">${BOOKS.map(b=>`<button class="chip ${R.bk==b?'on':''}" data-bk="${b}">${b}</button>`).join('')}</div>
+<div class="lbl">Stake</div><div class="mini">${[5,10,20,50].map(v=>`<button class="chip ${s==v?'on':''}" data-q="${v}">$${v}</button>`).join('')}${R.bonus?`<button class="chip" data-q="${st.wallet}">All ${$f(st.wallet)}</button>`:''}</div>
+<div class="row"><div class="sp"><div class="lbl">Custom (cents ok)</div><input type="number" step="0.01" inputmode="decimal" id="stk" value="${s.toFixed(2)}"></div><div class="sp"><div class="lbl">Price got</div><input type="number" step="0.01" inputmode="decimal" id="prc" value="${R.price.toFixed(2)}"></div></div>
+<div class="card" style="margin-top:10px"><div class="row"><span class="sp">Staked with a bonus bet</span><button class="tog ${R.bonus?'on':''}" id="tgl" aria-label="bonus"></button></div>${R.bonus?`<div class="bonus sm" style="margin-top:8px">Credit ${$f(st.wallet)} → <b>${$f(left)}</b> left after this bet</div>`:`<input type="number" step="0.01" id="bif" placeholder="Bonus bet if this wins (optional)" value="${R.bif}" style="margin-top:8px">`}</div>
+<div class="lbl">Add to challenge</div><select id="chs" style="margin-top:4px">${CH.map((c,i)=>`<option value="${i}" ${R.ch==i?'selected':''}>${c}</option>`).join('')}</select>
+<button class="btn pri" id="save" style="width:100%;margin-top:12px">Save bet · returns ${$f(win)}</button>`}
+function openRec(legs){R.legs=legs;R.price=+comb(legs).toFixed(2);R.bonus=false;R.stake=10;
+ openSheet('Record bet',recHtml(),S=>{const q=s=>S.body.querySelector(s);
+  const rd=()=>{R.stake=+q('#stk').value||0;R.price=+q('#prc').value||1;if(q('#bif'))R.bif=q('#bif').value;R.ch=+q('#chs').value};
+  const re=()=>{S.body.innerHTML=recHtml();bind2()};
+  const bind2=()=>{S.body.querySelectorAll('[data-bk]').forEach(b=>b.onclick=()=>{rd();R.bk=b.dataset.bk;re()});
+   S.body.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{rd();R.stake=+b.dataset.q;re()});
+   ['#stk','#prc','#bif','#chs'].forEach(i=>q(i)&&(q(i).onchange=()=>{rd();re()}));
+   q('#tgl').onclick=()=>{rd();R.bonus=!R.bonus;if(R.bonus&&R.stake>st.wallet)R.stake=st.wallet;re()};
+   q('#save').onclick=()=>{rd();const x=analyse(R.legs);if(R.bonus)st.wallet=Math.max(0,st.wallet-R.stake);st.bets.unshift({id:Date.now(),t:R.legs.length>1?R.legs.length+'-leg '+x.sports.join(' + ')+' multi':R.legs[0].t,legs:R.legs.length,bk:R.bk,stake:R.stake,price:R.price,bonus:R.bonus,bif:+R.bif||0,ch:R.ch?CH[R.ch].split(' · ')[0]:'',s:'o',det:R.legs.map(l=>l.s+' · '+l.t+' '+l.p.toFixed(2))});st.sel.clear();while(stack.length)stack[stack.length-1].close();renderBuild();renderBets();renderWallet();toast('Bet saved')}};
+  bind2()})}
+/* bets */
+const ret=b=>b.bonus?(b.price-1)*b.stake:b.price*b.stake;
+function renderBets(){const root=$('#bets');const open=st.bets.filter(b=>b.s=='o').length;
+root.innerHTML=`<div class="lbl" style="margin:6px 2px">${st.bets.length} bets · ${open} open</div><div class="card" style="padding:4px 6px">`+st.bets.map(b=>{const c=b.s=='w'?'w':b.s=='l'?'l':'o';return `<div class="leg" data-b="${b.id}"><span class="sp"><b class="ell">${b.t}</b><small>${b.bk} · ${b.bonus?'bonus ':''}${$f(b.stake)} @ ${b.price.toFixed(2)}</small></span><span class="pill ${c}">${b.s=='w'?'WON '+$f(ret(b)):b.s=='l'?'LOST':'OPEN'}</span></div>`}).join('')+`</div>`;
+root.querySelectorAll('[data-b]').forEach(e=>e.onclick=()=>betSheet(st.bets.find(x=>x.id==e.dataset.b)))}
+function betSheet(b){openSheet('Bet details','',S=>{const draw=()=>{S.body.innerHTML=`<div class="card"><div style="font-size:17px;font-weight:800">${b.t}</div><div class="sm muted">${b.bk} · ${b.bonus?'bonus ':''}${$f(b.stake)} @ ${b.price.toFixed(2)}</div>${b.det.map(d=>`<div class="sm muted" style="padding:3px 0">• ${d}</div>`).join('')}<div class="sm" style="margin-top:6px">${b.ch?'Challenge: '+b.ch+' · ':''}To return <b>${$f(ret(b))}</b>${b.bif?' · bonus if wins '+$f(b.bif):''}</div></div>
+<div class="row">${b.s=='o'?`<button class="btn good sp" id="w">Won</button><button class="btn bad sp" id="l">Lost</button>`:`<button class="btn sp" id="u">Undo result</button>`}<button class="btn" id="e">Edit</button></div>`;
+ const q=s=>S.body.querySelector(s);q('#w')&&(q('#w').onclick=()=>resultSheet(b,'w',S));q('#l')&&(q('#l').onclick=()=>resultSheet(b,'l',S));q('#u')&&(q('#u').onclick=()=>{b.s='o';renderBets();renderWallet();draw()});q('#e').onclick=()=>editSheet(b,S)};S.redraw=draw;draw()})}
+function resultSheet(b,r,P){openSheet(r=='w'?'Mark as won?':'Mark as lost?',`<div class="card"><b>${b.t}</b><div class="sm muted">${r=='w'?'Returns '+$f(ret(b)):'Stake '+$f(b.stake)+' is lost'}</div></div><div class="row"><button class="btn sp" data-close2>Cancel</button><button class="btn ${r=='w'?'good':'bad'} sp" id="ok">Confirm ${r=='w'?'won':'lost'}</button></div>`,S=>{S.body.querySelector('[data-close2]').onclick=S.close;S.body.querySelector('#ok').onclick=()=>{b.s=r;renderBets();renderWallet();S.close();P.redraw();toast(r=='w'?'Marked won':'Marked lost')}})}
+function editSheet(b,P){openSheet('Edit bet',`<div class="lbl">Name</div><input type="text" id="en" value="${b.t.replace(/"/g,'')}"><div class="row" style="margin-top:8px"><div class="sp"><div class="lbl">Stake</div><input type="number" step="0.01" id="es" value="${b.stake.toFixed(2)}"></div><div class="sp"><div class="lbl">Price</div><input type="number" step="0.01" id="ep" value="${b.price.toFixed(2)}"></div></div><div class="mini" style="margin:10px 0">${BOOKS.map(k=>`<button class="chip ${b.bk==k?'on':''}" data-k="${k}">${k}</button>`).join('')}</div><div class="row"><button class="btn bad" id="del">Delete</button><button class="btn pri sp" id="ok">Save</button></div>`,S=>{let bk=b.bk;const q=s=>S.body.querySelector(s);
+ S.body.querySelectorAll('[data-k]').forEach(c=>c.onclick=()=>{bk=c.dataset.k;S.body.querySelectorAll('[data-k]').forEach(x=>x.classList.toggle('on',x==c))});
+ q('#ok').onclick=()=>{b.t=q('#en').value;b.stake=+q('#es').value;b.price=+q('#ep').value;b.bk=bk;renderBets();S.close();P.redraw();toast('Saved')};
+ q('#del').onclick=()=>{st.bets=st.bets.filter(x=>x!==b);renderBets();S.close();P.close()}})}
+/* wallet */
+const CHS=[['Cup Run',2,5,'$48.20',40],['$10 to $1000',1,8,'$10.00',12]];
+function renderWallet(){const root=$('#wallet'),open=st.bets.filter(b=>b.s=='o').reduce((n,b)=>n+b.stake,0);
+root.innerHTML=`<div class="bonus"><div class="row"><span class="sp"><span class="lbl" style="color:var(--warn)">Bonus credits</span><div style="font-size:24px;font-weight:800">${$f(st.wallet)} <small style="font-size:12px;font-weight:600">Sportsbet</small></div></span><button class="btn sm" id="addb">+ Credit</button></div></div>
+<div class="lbl" style="margin:12px 2px 6px">Challenges</div>${CHS.map((c,i)=>`<div class="card btnrow" data-c="${i}"><span class="sp"><b>${c[0]}</b><div class="sm muted">stage ${c[1]}/${c[2]} · bank ${c[3]}</div></span><span class="muted">›</span></div>`).join('')}
+<div class="card sm muted">At risk in open bets: <b style="color:var(--ink)">${$f(open)}</b></div>`;
+$('#addb').onclick=()=>openSheet('Add credit',`<div class="lbl">Amount</div><input type="number" step="0.01" inputmode="decimal" id="bamt" placeholder="0.00"><div class="mini" style="margin-top:10px">${[5,10,20,50].map(v=>`<button class="chip" data-a="${v}">$${v}</button>`).join('')}</div><button class="btn pri" id="bok" style="width:100%">Add credit</button>`,S=>{const q=s=>S.body.querySelector(s);S.body.querySelectorAll('[data-a]').forEach(c=>c.onclick=()=>q('#bamt').value=c.dataset.a);q('#bok').onclick=()=>{st.wallet+=+q('#bamt').value||0;renderWallet();S.close();toast('Credit added')}});
+root.querySelectorAll('[data-c]').forEach(e=>e.onclick=()=>{const c=CHS[+e.dataset.c];openSheet(c[0],`<div class="card"><div style="height:8px;border-radius:6px;background:var(--rule)"><div style="width:${c[4]}%;height:8px;border-radius:6px;background:var(--brand)"></div></div><div class="kv" style="margin-top:8px"><span class="muted">Stage</span><b>${c[1]} of ${c[2]}</b></div><div class="kv" style="border:0"><span class="muted">Bank</span><b>${c[3]}</b></div></div>`)})}
+$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x==b));['build','bets','wallet'].forEach(t=>$('#'+t).classList.toggle('hide',t!=b.dataset.t));$('#bar').style.display=b.dataset.t=='build'?'':'none'});
+renderBuild();renderBets();renderWallet();
+</script></body></html>
