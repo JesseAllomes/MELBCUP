@@ -571,6 +571,31 @@ def _scope_chs(chs, ch_state, page, chid):
     return out, (opened["state"] if opened else None)
 
 
+_HG: dict = {"at": 0.0, "val": None, "busy": False}
+
+
+def _home_games(discover, catalogue_view) -> list[dict]:
+    """Home's next games across every sport, from memory (owner, 2026-11-10: 6 s a load reading
+    every sport's shards). Over a minute old: served at once, refreshed behind."""
+    import threading
+
+    def build():
+        try:
+            every = []
+            for s_ in catalogue_view.coverage():
+                every += [g | {"sport": s_} for g in discover.next_games(s_, 3)]
+            _HG.update(at=time.monotonic(), val=sorted(every, key=lambda g: g.get("start") or "~")[:12])
+        finally:
+            _HG["busy"] = False
+
+    if _HG["val"] is None:
+        build()
+    elif time.monotonic() - _HG["at"] > 60 and not _HG["busy"]:
+        _HG["busy"] = True
+        threading.Thread(target=build, daemon=True).start()
+    return _HG["val"] or []
+
+
 def _own_bets(state, today) -> list[dict]:
     try:
         from melbcup import nba_challenge
@@ -1364,10 +1389,7 @@ class Views:
                 ctx["bonus"] = self._bonus_credits() if sport == "home" else []
                 ctx["games"] = []
                 if tab == "games" and sport == "home":  # the next games across every sport
-                    every = []
-                    for s_ in catalogue_view.coverage():
-                        every += [g | {"sport": s_} for g in discover.next_games(s_, 3)]
-                    ctx["games"] = sorted(every, key=lambda g: g.get("start") or "~")[:12]
+                    ctx["games"] = _home_games(discover, catalogue_view)
                 elif tab == "games":
                     ctx["games"] = discover.next_games(sport)
                 # the record form's game list: names from the small per-sport indexes only, never

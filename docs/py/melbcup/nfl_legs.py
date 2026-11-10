@@ -9,6 +9,7 @@ deduplicated, ladders made monotone, OVER_SHADE. Nothing here re-implements thos
 from __future__ import annotations
 
 import re
+import threading
 import time
 from datetime import UTC, datetime
 
@@ -230,7 +231,7 @@ def cross_game(legs: list[dict], target: float, stake: float = 10.0) -> dict | N
     return N.stack_for(legs, target, stake)
 
 
-def page_view(now: datetime | None = None) -> tuple[dict, dict]:
+def _page_view(now: datetime | None = None) -> tuple[dict, dict]:
     """(view, report) in the shape the NBA page reads (nba_feed view / nba_legs.report), built
     from the NFL legs, so /sports?sport=nfl renders the same templates as the NBA tab."""
     now = now or datetime.now(UTC)
@@ -268,3 +269,32 @@ def page_view(now: datetime | None = None) -> tuple[dict, dict]:
         "report": rep,
     }
     return v, rep
+
+
+_PV: dict = {"at": 0.0, "val": None, "busy": False}
+_PV_TTL_S = 120
+_PV_LOCK = threading.Lock()
+
+
+def _refresh_pv() -> None:
+    try:
+        val = _page_view()
+        with _PV_LOCK:
+            _PV.update(at=time.monotonic(), val=val)
+    finally:
+        _PV["busy"] = False
+
+
+def page_view(now: datetime | None = None) -> tuple[dict, dict]:
+    """The NFL page's (view, report), served from memory (owner, 2026-11-10: NFL took 6-7 s a load
+    against NBA's 1 s). Older than two minutes: the last one is served at once and a fresh one is
+    worked out behind it. Only the very first load after a start waits. `now` given: computed fresh."""
+    if now is not None:
+        return _page_view(now)
+    if _PV["val"] is None:
+        _refresh_pv()
+        return _PV["val"]
+    if time.monotonic() - _PV["at"] > _PV_TTL_S and not _PV["busy"]:
+        _PV["busy"] = True
+        threading.Thread(target=_refresh_pv, daemon=True).start()
+    return _PV["val"]

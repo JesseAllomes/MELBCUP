@@ -377,3 +377,14 @@ def _pin_old_picker_tests_to_v1(request, monkeypatch):
     tests/test_picker_v2.py covers v2)."""
     if request.module.__name__ in ("test_nba_legs", "test_nba_picker_audit", "test_nba_challenge"):
         monkeypatch.setenv("PICKER", "v1")
+
+
+@pytest.fixture(autouse=True)
+def _fresh_page_caches():
+    """The NFL page view and Home's games are served from memory: each test starts empty."""
+    from melbcup import nfl_legs
+    from melbcup.web import views
+
+    nfl_legs._PV.update(at=0.0, val=None, busy=False)
+    views._HG.update(at=0.0, val=None, busy=False)
+    yield
