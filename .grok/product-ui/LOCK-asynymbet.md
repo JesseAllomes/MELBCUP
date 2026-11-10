@@ -55,3 +55,18 @@ Spec: .grok/product-ui/v10/3-likely-tab.html.
 - Multis: most likely multis by odds range ($1.5-2 ... $10-20), one leg per race, one bookmaker, chance, price,
   exactly-one-fails, legs with race no, runner, Win/Place and jump time (Melbourne). Same on the day page.
 - Data: LiveBoard.likely() (melbcup/racing_likely.py).
+
+# Bet entry + challenge flow lock (owner BUILD 2026-11-10): v13 "sheets"
+Spec: .grok/product-ui/v13/sheets.html (rounds: v11 four directions -> v12 merge of 3 quick + 4 modules -> v13).
+- Pages stay minimal; every form/detail opens in a BOTTOM SHEET: slides up, grab handle, follows the finger
+  down, closes past 30% of its height or on a downward flick (>0.5 px/ms), springs back otherwise; backdrop tap
+  and Esc close; sheets stack (lower one dimmed); content scrolls inside, drag-to-close only from scroll top;
+  body scroll locked; safe-area padding; max 92dvh; reduced-motion respected.
+- Build: tick legs (any sport, sport tag + game + Melbourne time) into one slip; floating slip bar
+  "Slip · N legs · $price · chance%"; slip sheet shows combined price/chance, same-game "linked", clash warning.
+- From the slip: "Record as my bet" (record sheet: bookmaker, stake chips + cents, price got, bonus toggle with
+  credit left, bonus-if-wins) or "Use in a challenge" -> "Challenge next leg" (pick challenge; fit vs stage
+  target, chance, bank -> payout, Place) or "New challenge" (start/goal, mode, legs per multi; chance-to-finish
+  chart 2-8 stages, best pre-selected, stage cards, stage-1 best pick, Start challenge).
+- Own bets are NOT listed on sport pages unless part of a challenge (shown inside that challenge only).
+- Tabs inside the module: Build / Challenges / Wallet.
