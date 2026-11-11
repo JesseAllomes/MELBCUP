@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=220 -->
+<!-- drainclamp-build: state; schema=1; generation=221 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-08T03:02:46+00:00 7c66fa41 2026-11-08 deployed (owner approved): multi-game tracker + discover fresh-container fix (multis built ~1 min after deploy). Owner decisions: bonus credits = AUTOMATIC LEFTOVERS (recording a bonus bet deducts its stake from that bookmaker's credit, rest stays); review r3 = FIX (collector publishes to Blob only, not the GitHub live branch). Do after compact, lowest tokens: (1) challenge accordion rows per earlier log, (2) bonus auto-leftovers, (3) r3 fix.
 - 2026-11-08T03:16:52+00:00 2c4305e9 2026-11-08 OWNER STANDING APPROVAL: 'All deploy functions from this moment forward are approved. Stop asking' -> deploy web/function/job without asking. Merged: r3 Blob-only collector (bcb62892), bonus auto-leftovers (cc239805). Owner: failed bets must show as failed (added to ch2 accordion agent).
 - 2026-11-08T03:24:34+00:00 30f247ad 2026-11-08 DEPLOYED (standing approval): function (r3 Blob-only collector) + web (challenge accordion rows w/ live % bar, game time left, failed=red, lazy expand, live.json poll; bonus auto-leftovers). live.json verified 200. Gap: bonus reversal on edit/delete not wired (unuse_leftover exists).
 - 2026-11-08T05:20:10+00:00 bcac523e 2026-11-08 DEPLOYED: live chance player-aware (minutes share, fouls, blowout, DNP/ejected; DNP not detectable from ESPN box), pages update in place (liveSwap, no reload/tap), fresh-prices keeps sport/tab, open challenge row now holds next-stage bet/place/results/edit (chv9-more moved into row). Owner wins A/B/C recorded (backup challenges/backup-before-wins-abc-20261108T0432.json); D failed, owner to tap Lost.
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-11T00:27:29+00:00 0491cde3 2026-11-11 Owner: LEAVE v2 live (heavy bench-unders lean) and let the A/B (v1/v2/v3) judge; options offered: revert to v1 / half lean. Revisit with tools/nba/ab_report.py after ~2 weeks or ~600 game-targets.
 - 2026-11-11T00:41:33+00:00 3a7f29a6 2026-11-11 DEPLOYED: challenge stage pick labels its bookmaker's lines; 'Show the PointsBet pick' link always; switching bk re-picks (sh.ag). Planner pick follows chosen stage count; one-leg-per-game legs show game+time; challenge buttons styled. Verified live.
 - 2026-11-11T00:56:21+00:00 30770d15 2026-11-11 Simons Under 6.5 (PB listed O/U 6.5 at 11:40am, moved to 5.5 before tip). FIX deployed: frozen stage pick re-picks when a leg's line is gone from a listed game (any picker), note names new line.
+- 2026-11-11T02:11:32+00:00 393393a9 2026-11-11 DEPLOYED (web/job/function): SGM skips legs < $1.10 (owner: 2+ at 1.03 made no change to SGM odds); SGM card headline = legs' product + 'same-game price will be lower'. Owner asked why all unders: explained v2 lean (+9 bench unders/-9 overs) + short-leg removal; options leave/halve/v1 awaiting.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
