@@ -335,13 +335,23 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
       .then(function (html) {
         var next = new DOMParser().parseFromString(html, "text/html").getElementById("chv9");
         var cur = document.getElementById("chv9");
-        if (next && cur) cur.innerHTML = next.innerHTML;
+        if (next && cur) window.azKeepOpen(cur, function () { cur.innerHTML = next.innerHTML; });
         if (!next || next.getAttribute("data-live") !== "1") window.clearInterval(timer);
       })
       .catch(function () {});
   }
   var timer = window.setInterval(tick, 60000);
 })();
+
+// Keep what the owner opened when a part of the page is refreshed (owner, 2026-11-11: "tapping a leg
+// opens then closes straight away" - the row's live card re-rendered under the tap).
+window.azKeepOpen = function (box, swap) {
+  var key = function (d) { var s = d.querySelector("summary"); return (d.className || "") + "|" + (s ? s.textContent.trim().slice(0, 80) : ""); };
+  var open = {};
+  try { box.querySelectorAll("details[open]").forEach(function (d) { open[key(d)] = 1; }); } catch (e) { /* no box */ }
+  swap();
+  try { box.querySelectorAll("details").forEach(function (d) { if (open[key(d)]) d.open = true; }); } catch (e) { /* no box */ }
+};
 
 // Challenge accordion (owner, 2026-11-08): rows open in place from saved figures; the card with
 // live numbers is fetched after; collapsed rows poll live.json every 30 s while the page is visible.
@@ -358,9 +368,9 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         var fresh = doc.getElementById("chv9"), whole = doc.getElementById(body.id);
         if (!fresh || body.hidden) return;
         var mine = body.querySelector(".chv9");
-        if (mine) { mine.innerHTML = fresh.innerHTML; return; }
+        if (mine) { window.azKeepOpen(mine, function () { mine.innerHTML = fresh.innerHTML; }); return; }
         // the card plus this challenge's next-stage bet, place, results and edit (owner, 2026-11-08)
-        if (whole) { body.innerHTML = whole.innerHTML; return; }
+        if (whole) { window.azKeepOpen(body, function () { body.innerHTML = whole.innerHTML; }); return; }
         var saved = body.querySelector(".chs-saved");
         if (saved) saved.remove();
         body.appendChild(document.importNode(fresh, true));
