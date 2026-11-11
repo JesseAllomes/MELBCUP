@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=219 -->
+<!-- drainclamp-build: state; schema=1; generation=220 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-08T02:58:17+00:00 05e47901 2026-11-08 NEXT BUILD after compact (owner: lowest token use, Sonnet low or cheaper): challenge list = accordion rows expanding IN PLACE (v9-1 behaviour), no new screen; collapsed row: name, live % chance at right, current leg odds, the row bar = chance fill with % at end AND a game-time-left indicator (bar or text, e.g. 'Q3 4:12 · 18 min left'); expand instantly with saved figures, live numbers fetched after expansion (lazy), collapsed rows poll only a tiny live-% summary endpoint. Also pending owner answers: bonus credits auto-leftover vs one-tap split vs both; review r3 (az4) fix/waive/dismiss; deploy approval for multi-game tracker + discover fresh-container fix (pushed).
 - 2026-11-08T03:02:46+00:00 7c66fa41 2026-11-08 deployed (owner approved): multi-game tracker + discover fresh-container fix (multis built ~1 min after deploy). Owner decisions: bonus credits = AUTOMATIC LEFTOVERS (recording a bonus bet deducts its stake from that bookmaker's credit, rest stays); review r3 = FIX (collector publishes to Blob only, not the GitHub live branch). Do after compact, lowest tokens: (1) challenge accordion rows per earlier log, (2) bonus auto-leftovers, (3) r3 fix.
 - 2026-11-08T03:16:52+00:00 2c4305e9 2026-11-08 OWNER STANDING APPROVAL: 'All deploy functions from this moment forward are approved. Stop asking' -> deploy web/function/job without asking. Merged: r3 Blob-only collector (bcb62892), bonus auto-leftovers (cc239805). Owner: failed bets must show as failed (added to ch2 accordion agent).
 - 2026-11-08T03:24:34+00:00 30f247ad 2026-11-08 DEPLOYED (standing approval): function (r3 Blob-only collector) + web (challenge accordion rows w/ live % bar, game time left, failed=red, lazy expand, live.json poll; bonus auto-leftovers). live.json verified 200. Gap: bonus reversal on edit/delete not wired (unuse_leftover exists).
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-10T21:06:08+00:00 51958166 2026-11-10 ui8 v13 DEPLOYED (web, job, function) + verified live (Pixel 5): ticks on NBA/NFL (16 each)/Home (7), cross-sport slip bar, slip sheet (legs, price, chance, Record/Use in challenge/Clear), swipe-down closes, My bets pill + sheet (this sport/all), no page errors. Not verified live: Record submit, challenge Place/Start (no test bets placed), My bets tiles (no NBA own bets open).
 - 2026-11-11T00:27:29+00:00 0491cde3 2026-11-11 Owner: LEAVE v2 live (heavy bench-unders lean) and let the A/B (v1/v2/v3) judge; options offered: revert to v1 / half lean. Revisit with tools/nba/ab_report.py after ~2 weeks or ~600 game-targets.
 - 2026-11-11T00:41:33+00:00 3a7f29a6 2026-11-11 DEPLOYED: challenge stage pick labels its bookmaker's lines; 'Show the PointsBet pick' link always; switching bk re-picks (sh.ag). Planner pick follows chosen stage count; one-leg-per-game legs show game+time; challenge buttons styled. Verified live.
+- 2026-11-11T00:56:21+00:00 30770d15 2026-11-11 Simons Under 6.5 (PB listed O/U 6.5 at 11:40am, moved to 5.5 before tip). FIX deployed: frozen stage pick re-picks when a leg's line is gone from a listed game (any picker), note names new line.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
