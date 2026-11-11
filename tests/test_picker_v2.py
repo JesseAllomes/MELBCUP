@@ -195,3 +195,13 @@ def test_repick_when_line_gone():
 def test_sgm_skips_dead_short_legs():
     from melbcup import nba_legs as N
     assert N.SGM_MIN_PRICE == 1.10
+
+
+def test_earlier_picks_kept_for_the_stage():
+    from melbcup import nba_challenge as C
+    st = {"steps": [], "shown": {"stage": 0, "at": "t1", "step": {"price": 3.0, "chance": 0.3, "detail": []}}}
+    st2 = C._unshown(st)
+    assert st2["shown_prev"][0]["at"] == "t1" and "shown" not in st2
+    C.refreeze(None, st2, "shown", {"stage": 0, "at": "t2", "step": {"price": 3.1}})
+    C.refreeze(None, st2, "shown", {"stage": 0, "at": "t3", "step": {"price": 3.2}})
+    assert [p["at"] for p in st2["shown_prev"]] == ["t2", "t1"]

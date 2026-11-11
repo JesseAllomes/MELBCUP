@@ -107,8 +107,23 @@ SHOWN_KEYS = ("shown", "shown_sug")
 
 
 def _unshown(state: dict) -> dict:
-    """The state without the stage's frozen suggestion, so the next view picks afresh."""
-    return {k: v for k, v in state.items() if k not in SHOWN_KEYS}
+    """The state without the stage's frozen suggestion, so the next view picks afresh. The pick it
+    drops is kept in "shown_prev" (see keep_prev)."""
+    return keep_prev({k: v for k, v in state.items() if k not in SHOWN_KEYS}, state.get("shown"))
+
+
+PREV_MAX = 5
+
+
+def keep_prev(state: dict, old: dict | None) -> dict:
+    """Remember a stage's earlier picks (owner, 2026-11-11: a bet placed at the bookmaker but not
+    lodged here, then the app re-picked). Only this stage's, newest first, at most PREV_MAX."""
+    stage = len(state.get("steps", []))
+    prev = [p for p in state.get("shown_prev", []) if p.get("stage") == stage]
+    if old and old.get("stage") == stage and old.get("step") and all(p.get("at") != old.get("at") for p in prev):
+        prev = [old] + prev
+    state["shown_prev"] = prev[:PREV_MAX]
+    return state
 
 
 def shown_for(state: dict | None, key: str = "shown") -> dict | None:
@@ -178,6 +193,8 @@ def repick_note(moves: list[dict]) -> str:
 def refreeze(cid: str | None, state: dict, key: str, shown: dict, event: dict | None = None) -> None:
     """Replace the stage's frozen pick with a fresh one (the drift re-pick) and record the event in
     state["repicks"] for the A/B report. One small write, silent if the store is unavailable."""
+    if key == "shown":
+        keep_prev(state, state.get("shown"))
     state[key] = shown
     if event:
         state.setdefault("repicks", []).append(event)
@@ -187,6 +204,8 @@ def refreeze(cid: str | None, state: dict, key: str, shown: dict, event: dict | 
         st = rec["state"] if rec else None
         if st is None or st.get("placed") or len(st.get("steps", [])) != shown["stage"]:
             return
+        if key == "shown":
+            keep_prev(st, st.get("shown"))
         st[key] = shown
         if event:
             st.setdefault("repicks", []).append(event)
