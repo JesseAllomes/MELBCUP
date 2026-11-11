@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=223 -->
+<!-- drainclamp-build: state; schema=1; generation=224 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-08T05:20:10+00:00 bcac523e 2026-11-08 DEPLOYED: live chance player-aware (minutes share, fouls, blowout, DNP/ejected; DNP not detectable from ESPN box), pages update in place (liveSwap, no reload/tap), fresh-prices keeps sport/tab, open challenge row now holds next-stage bet/place/results/edit (chv9-more moved into row). Owner wins A/B/C recorded (backup challenges/backup-before-wins-abc-20261108T0432.json); D failed, owner to tap Lost.
 - 2026-11-08T06:54:17+00:00 7f81df00 2026-11-08 catalogue was stuck on soccer since 23:31 UTC 7 Nov (Function 55s kill before state save). Fixed+deployed: cursor saved before each sport, build budget 30s, own timer catalogue_run (owner: 'cost is 0' = approval; limits total 26->27, allowed_functions catalogue_run 144/day). Record-bet form: 'staked with a bonus bet' (nbbonus). Owner York R3 SRM $2 bonus @426 recorded (own bet 3), Jet Boost credit used.
 - 2026-11-08T10:39:16+00:00 9fcec3c9 2026-11-08 nfl1 DONE+DEPLOYED (web, job, function): nfl_legs (pk1 via nba_legs), nfl_live (ESPN), live_chance NFL (Poisson counts, normal yards, blowout), nfl_settle, challenge scope nfl, NFL tab = NBA sub-tabs. Verified live: NFL best multis render. Approximations: SGM legs independent, props market-only, absent player -> void. Football catalogue fix (unreached comps keep shard) deployed, unverified (owner: stop watching).
 - 2026-11-08T12:21:05+00:00 ec6d5a40 2026-11-08 DEPLOYED (web, job, function): NFL page = NBA templates (page_view, challenge accordion, forms stay on sport); NFL player model (nflverse 2018-26, NB/normal per stat, beats naive baseline on 2025 hold-out, blend w=0.25 prior, NBA real-price test chose 0) + NFL same-game CORR (QB yds~catcher yds +0.32 oos). TODO: run tools/nfl/blend_fit.py on blob catalogue/raw/nfl once settled outcomes accrue; refresh data/nfl/means.json weekly (token-free).
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-11T02:11:32+00:00 393393a9 2026-11-11 DEPLOYED (web/job/function): SGM skips legs < $1.10 (owner: 2+ at 1.03 made no change to SGM odds); SGM card headline = legs' product + 'same-game price will be lower'. Owner asked why all unders: explained v2 lean (+9 bench unders/-9 overs) + short-leg removal; options leave/halve/v1 awaiting.
 - 2026-11-11T02:23:27+00:00 658fb986 2026-11-11 DEPLOYED + verified live: challenge stage 'Edit these legs' -> slip (challenge preselected in Use in a challenge), '+ Add my own leg' (label, game, price; chance approx). Pending owner: v2 unders lean leave/halve/v1.
 - 2026-11-11T02:31:15+00:00 5e242c3f 2026-11-11 DEPLOYED: stage keeps earlier picks (shown_prev, 5 max, this stage) on re-pick/Find best/bookmaker switch; 'Placed an earlier pick?' -> Use this one -> slip -> challenge Place.
+- 2026-11-11T03:14:15+00:00 808ccddd 2026-11-11 Owner bet recorded: Test 2 (ch20) stage 1 placed PB $5 @4.50 Clippers@Suns (Dunn U7.5 pts, Maluach U6.5 pts, Booker O1.5 3PM), backup challenges/backup-before-test2-place-20261111T0305.json; live 22% at half. Fix deployed: row refresh keeps opened <details> (tap opened then closed). Not reproduced directly.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
