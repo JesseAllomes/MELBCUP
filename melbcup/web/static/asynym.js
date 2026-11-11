@@ -604,7 +604,8 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
 
   var bar = document.getElementById("slip-bar");
   function shownChance(a, z) {
-    if (!z.linked.length) return { c: z.chance, approx: false };
+    var own = a.some(function (l) { return l.chance == null; });  // a typed leg: its price is the only guide
+    if (!z.linked.length) return { c: z.chance, approx: own };
     var e = exactChance(a, sync);
     return e ? { c: e, approx: false } : { c: z.chance, approx: e !== false || true && exactMemo[JSON.stringify(a.map(function (l) { return l.id; }))] === false };
   }
@@ -631,6 +632,12 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(".tk[data-leg]");
     if (t) { e.preventDefault(); try { toggle(JSON.parse(t.getAttribute("data-leg"))); } catch (x) { /* bad leg */ } return; }
+    var ed = e.target.closest && e.target.closest(".tk-edit[data-legs]");
+    if (ed) {  // a challenge stage's legs into the slip, to change them (owner, 2026-11-11)
+      e.preventDefault();
+      try { save([]); JSON.parse(ed.getAttribute("data-legs")).forEach(add); try { localStorage.setItem(KEY + "-for", ed.getAttribute("data-chid") || ""); } catch (x) { /* storage off */ } slipSheet(); } catch (x) { /* bad legs */ }
+      return;
+    }
     var all = e.target.closest && e.target.closest("[data-legs]");
     if (all) {
       e.preventDefault();
@@ -663,12 +670,19 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
         h += '<div class="sh-kv"><span>Price</span><b>' + money(z.price) + '</b></div><div class="sh-kv"><span>Chance every leg wins</span><b>' + pct(sc.c) + (sc.approx ? " (approx)" : "") + '</b></div>';
         if (z.linked.length && sc.approx) h += '<div class="sh-warn">Linked: ' + esc(z.linked.join(", ")) + ' has more than one leg. Legs in one game move together, so the chance is approximate and the bookmaker may price the combination lower.</div>';
         z.clash.forEach(function (c) { h += '<div class="sh-warn sh-bad">Clash: "' + esc(c[0].label) + '" and "' + esc(c[1].label) + '" are opposite sides of the same bet.</div>'; });
+        h += '<details class="sh-own"><summary>+ Add my own leg</summary><label>Leg<input id="ow-l" placeholder="e.g. Jalen Brunson Over 24.5 Points"></label><div class="sh-chips"><label style="flex:1">Game<input id="ow-g" placeholder="Knicks @ Celtics"></label><label style="flex:1">Price $<input id="ow-p" inputmode="decimal"></label></div><button type="button" class="sh-btn" data-act="own">Add leg</button></details>';
         h += '<button type="button" class="sh-btn pri" data-act="record">Record as my bet</button><button type="button" class="sh-btn" data-act="chal">Use in a challenge</button><button type="button" class="sh-btn" data-act="clear">Clear slip</button>';
         S.render(h);
         S.body.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(b.getAttribute("data-rm")); }; });
         S.body.querySelector('[data-act="record"]').onclick = function () { recordSheet(load()); };
         S.body.querySelector('[data-act="chal"]').onclick = function () { challengeSheet(load()); };
         S.body.querySelector('[data-act="clear"]').onclick = function () { clear(); S.close(); };
+        S.body.querySelector('[data-act="own"]').onclick = function () {
+          var lb = S.body.querySelector("#ow-l").value.trim(), pr = parseFloat(S.body.querySelector("#ow-p").value);
+          if (!lb || !(pr > 1)) { toast("Enter the leg and a price above 1"); return; }
+          add({ id: "own|" + lb.toLowerCase(), label: lb, price: pr, game: S.body.querySelector("#ow-g").value.trim() });
+          S.slipView();
+        };
       };
       S.slipView();
     });
@@ -719,6 +733,7 @@ window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault()
     var list = (cfg.challenges || []).filter(function (c) { return sp === "home" || c.scope === "all" || c.scope === sp; });
     openSheet("Use in a challenge", "", function (S) {
       var pick = null, book = ((cfg.books || [])[0] || {}).code || "sb";
+      try { var f = localStorage.getItem(KEY + "-for"); if (f && list.some(function (c) { return c.id === f; })) pick = f; } catch (x) { /* storage off */ }
       var draw = function () {
         var h = '<div class="sh-kv"><b>Challenge next leg</b><span>' + money(z.price) + " · " + pct(z.chance) + '</span></div>';
         h += list.length ? list.map(function (c) { return '<button type="button" class="sh-pick' + (pick === c.id ? " on" : "") + '" data-c="' + esc(c.id) + '">' + esc(c.name) + '<small>Stage ' + (c.stage + 1) + " of " + c.stages + " · bank " + money(c.bank) + " · target " + c.x.toFixed(1) + "x</small></button>"; }).join("") : '<p class="say">No running challenge for this sport.</p>';
