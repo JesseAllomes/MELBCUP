@@ -69,7 +69,7 @@
 <section class="card">
   {% for m in rep.stacks_same %}
   <div class="nba-multi">
-    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>About ${{ '%.0f' % (10 * m.target) }}+ on $10</b>{{ alt(m) }}<span>{{ m.game }} · {{ m.legs }} legs · legs multiply to ${{ '%.2f' % m.price }}</span></div></div>
+    <div class="vrow">{{ ring(m.chance, 60, 'gets up') }}<div class="nm"><b>Legs multiply to ${{ '%.2f' % m.price }}</b>{{ alt(m) }}<span>{{ m.game }} · {{ m.legs }} legs · same-game price will be lower{% if m.legs >= 4 %} (often well below: a 6-leg that multiplied to $20 priced at $12){% endif %}; enter the price you get</span></div></div>
     <ol class="nba-picks">{% for d in m.detail %}<li>{{ d.label }} <small>{{ (d.chance * 100) | round | int }}% · ${{ '%.2f' % d.price }}</small>{{ tick(d, sport or 'nba') }}</li>{% endfor %}</ol>
     {{ placed(m, m.game) }}
   </div>
