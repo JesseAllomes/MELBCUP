@@ -1129,11 +1129,18 @@ def _player_groups(gs):
     return [f for f in (frontier(x) for x in by_player.values()) if f]
 
 
+# A leg this short adds nothing to a bookmaker's same-game price but can still lose (owner,
+# 2026-11-11: Brook Lopez 2+ rebounds at $1.03 in a PointsBet SGM made "no change to the odds at all").
+SGM_MIN_PRICE = 1.10
+
+
 def same_game_many(legs, targets, stake=10.0, min_legs=2, max_legs=SAME_MAX_LEGS) -> dict:
     """{target: [each game's likeliest same-game stack reaching it, soonest tip-off first]},
     one search per game for all the targets."""
     by_game = {}
     for g in _auto(legs):
+        if (g.get("price") or 0) < SGM_MIN_PRICE:
+            continue  # adds risk, no price: the bookmaker's same-game price doesn't move for it
         by_game.setdefault(g["event"], []).append(g)
     out = {t: [] for t in targets}
     for gs in by_game.values():

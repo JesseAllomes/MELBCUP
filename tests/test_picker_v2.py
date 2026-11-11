@@ -190,3 +190,8 @@ def test_repick_when_line_gone():
     assert m and m[0]["gone"] and m[0]["now"] == "Anfernee Simons Under 5.5 Points"
     assert "no longer offered" in C.repick_note(m)
     assert C.drifted(step, []) == []  # game not on the board: not a line move (feed gap)
+
+
+def test_sgm_skips_dead_short_legs():
+    from melbcup import nba_legs as N
+    assert N.SGM_MIN_PRICE == 1.10
