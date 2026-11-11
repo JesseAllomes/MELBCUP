@@ -147,20 +147,31 @@ DRIFT = 0.03  # picker v2 re-pick rule: a leg whose price has lengthened more th
 
 
 def drifted(step: dict | None, legs_now: list[dict], tol: float = DRIFT) -> list[dict]:
-    """The frozen pick's legs whose current price is more than `tol` longer than the price when it
-    was picked (so its chance dropped): [{"leg", "game", "from", "to"}]. Matched by game and
-    label; a leg no longer on the board is left to the ordinary live-differs note."""
+    """The frozen pick's legs that changed since it was picked: a price more than `tol` longer
+    (its chance dropped), or the leg GONE from a game still on the board (the bookmaker moved or
+    pulled the line; owner, 2026-11-11: Simons Under 6.5 points became O/U 5.5 before tip-off).
+    [{"leg", "game", "from", "to", "gone", "now"}], matched by game and label."""
     now = {(g.get("game"), g.get("label")): g.get("price") for g in legs_now}
+    games = {g.get("game") for g in legs_now}
     out = []
     for d in (step or {}).get("detail") or []:
-        p1, p0 = now.get((d.get("game"), d.get("label"))), d.get("price")
+        key = (d.get("game"), d.get("label"))
+        p1, p0 = now.get(key), d.get("price")
         if p0 and p1 and p1 / p0 - 1 > tol:
             out.append({"leg": d.get("label"), "game": d.get("game"), "from": p0, "to": p1})
+        elif p1 is None and d.get("game") in games:  # its game is listed, this line is not
+            same = [g.get("label") for g in legs_now if g.get("game") == d.get("game")
+                    and g.get("player") == d.get("player") and g.get("stat") == d.get("stat")
+                    and bool(g.get("under")) == bool(d.get("under"))]
+            out.append({"leg": d.get("label"), "game": d.get("game"), "from": p0, "to": None,
+                        "gone": True, "now": same[0] if same else None})
     return out
 
 
 def repick_note(moves: list[dict]) -> str:
     m = moves[0]
+    if m.get("gone"):
+        return f"re-picked: {m['leg']} is no longer offered" + (f" (now {m['now']})" if m.get("now") else "")
     return f"re-picked: {m['leg']} drifted from ${m['from']:.2f} to ${m['to']:.2f}"
 
 

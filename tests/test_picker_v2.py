@@ -178,3 +178,15 @@ def test_ab_report_runs_on_tagged_rows(tmp_path, capsys):
     ab_report.main()
     text = capsys.readouterr().out
     assert "v1" in text and "v2" in text and "same-game: 3 game-targets" in text
+
+
+def test_repick_when_line_gone():
+    from melbcup import nba_challenge as C
+    step = {"detail": [{"label": "Anfernee Simons Under 6.5 Points", "game": "G", "price": 1.74,
+                        "player": "Anfernee Simons", "stat": "points", "under": True}]}
+    board = [{"label": "Anfernee Simons Under 5.5 Points", "game": "G", "price": 2.15,
+              "player": "Anfernee Simons", "stat": "points", "under": True}]
+    m = C.drifted(step, board)
+    assert m and m[0]["gone"] and m[0]["now"] == "Anfernee Simons Under 5.5 Points"
+    assert "no longer offered" in C.repick_note(m)
+    assert C.drifted(step, []) == []  # game not on the board: not a line move (feed gap)

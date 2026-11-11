@@ -940,10 +940,12 @@ class Views:
                 # Sportsbet pick had Turner Under 5.5 rebounds; PointsBet only had 4.5)
                 sh = {"stage": len(state["steps"]), "at": datetime.now(UTC).isoformat(), "step": step, "ag": ag}
                 nba_challenge.refreeze(((ctx.get("chs") or {}).get("open") or {}).get("id"), state, "shown", sh)
-            if sh and step and nba_legs.picker() == "v2":
-                # picker v2 re-pick rule: a leg whose price lengthened >3% since the pick has lost
-                # chance, so show the fresh pick (PICKER=v1 keeps the sticky pick as it was)
+            if sh and step:
+                # re-pick when a leg's line is gone from the board (any picker: a bet the bookmaker
+                # no longer offers can't be placed), and on picker v2 when its price lengthened >3%
                 moves = nba_challenge.drifted(sh["step"], legs_now)
+                if nba_legs.picker() != "v2":
+                    moves = [m for m in moves if m.get("gone")]
                 if moves:
                     at = datetime.now(UTC).isoformat()
                     ev = {"at": at, "stage": len(state["steps"]), "picker": "v2", "was": sh["step"].get("picks"),
