@@ -929,11 +929,17 @@ class Views:
             else:
                 step = nba_legs.stack_for(legs, x, stake=state["bank"], **lim)
             sh = nba_challenge.shown_for(state)
+            ag = ctx.get("nba_agency")
             if step and not sh:
                 at = datetime.now(UTC).isoformat()
-                sh = {"stage": len(state["steps"]), "at": at, "step": step}
+                sh = {"stage": len(state["steps"]), "at": at, "step": step, "ag": ag}
                 cid = ((ctx.get("chs") or {}).get("open") or {}).get("id")
                 nba_challenge.freeze(cid, state, "shown", sh)
+            elif sh and step and ag and sh.get("ag", ag) != ag:
+                # the owner switched bookmaker: that bookmaker's own lines (owner, 2026-11-11: a
+                # Sportsbet pick had Turner Under 5.5 rebounds; PointsBet only had 4.5)
+                sh = {"stage": len(state["steps"]), "at": datetime.now(UTC).isoformat(), "step": step, "ag": ag}
+                nba_challenge.refreeze(((ctx.get("chs") or {}).get("open") or {}).get("id"), state, "shown", sh)
             if sh and step and nba_legs.picker() == "v2":
                 # picker v2 re-pick rule: a leg whose price lengthened >3% since the pick has lost
                 # chance, so show the fresh pick (PICKER=v1 keeps the sticky pick as it was)
