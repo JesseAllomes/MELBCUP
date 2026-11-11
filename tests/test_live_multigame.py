@@ -42,3 +42,9 @@ def test_event_matches_on_team_nicknames():
     eid = nba_live._event("New Orleans Pelicans @ Los Angeles Clippers", datetime(2026, 11, 9, 6, tzinfo=UTC),
                           fetch=lambda url: board, day="20261108")
     assert eid == "1"
+
+
+def test_76ers_is_nba_49ers_is_nfl():
+    from melbcup import nfl_live as N
+    assert not N.is_nfl("Boston Celtics @ Philadelphia 76ers: Anfernee Simons Under 6.5 Points")
+    assert N.is_nfl("San Francisco 49ers @ Dallas Cowboys: Brock Purdy Over 245.5 Passing Yards")

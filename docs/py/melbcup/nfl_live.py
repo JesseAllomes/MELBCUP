@@ -128,11 +128,17 @@ def gl_eval(leg: dict, sc: dict, final: bool) -> tuple[float | None, bool | None
     return now, (adj > 0 if adj else None), adj == 0
 
 
+NICK_WORDS = {"49ers" if n == "ers" else n for n in NICKNAMES}
+
+
 def is_nfl(label: str) -> bool:
     """An NFL bet: its game names an NFL team, or a leg is an NFL stat. NBA labels never match."""
     game, legs = parse(label)
     if game:
-        return bool(set(norm(game).split()) & NICKNAMES)
+        # words as written, digits kept (owner, 2026-11-11: "76ers" normalised to "ers" matched the
+        # 49ers, so a Celtics @ 76ers bet was looked up in the NFL feed and froze)
+        words = set(re.sub(r"[^a-z0-9 ]", " ", game.lower()).split())
+        return bool(words & NICK_WORDS)
     return bool(legs)
 
 
