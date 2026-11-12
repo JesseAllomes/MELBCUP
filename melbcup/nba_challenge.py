@@ -246,7 +246,7 @@ def apply(state: dict | None, query: Mapping[str, str], today: str = "") -> dict
     `new` ends the run (keeping the history and bet log) so a challenge can be set up afresh.
     `today` (Melbourne date, ISO) stamps a placed bet for the day's money."""
     act = query.get("ch")
-    if act in ("bet", "betwon", "betlost"):  # any multi the owner placed, outside the challenge
+    if act in ("bet", "betwon", "betlost", "betdel"):  # any multi the owner placed, outside the challenge
         return _own_bet(state, act, query, today)
     if act == "start" or (act and state is None):
         start = _money(query.get("chstart")) or 10.0
@@ -473,6 +473,8 @@ def _own_bet(state: dict | None, act: str, query: Mapping[str, str], today: str)
             | ({"bonus_if_win": bw} if (bw := _money(query.get("nbbw"))) else {})
             | ({"bonus": 1} if query.get("nbbonus") == "1" else {})  # staked with a bonus bet
         )
+    elif act == "betdel":  # remove one of the owner's own bets, open or settled (owner, 2026-11-12)
+        bets = [b for b in bets if not (b.get("own") and str(b.get("id")) == str(query.get("nbid")))]
     else:
         for b in bets:
             if (
@@ -945,8 +947,12 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
         }
         _record_wager(store, rec, wq, today, op)
         return
-    if act in ("bet", "betwon", "betlost"):
+    if act in ("bet", "betwon", "betlost", "betdel"):
         before = store["own"]
+        if act == "betdel":  # a deleted bonus bet gives its credit back
+            gone = [b for b in (before or {}).get("bets", []) if b.get("own") and str(b.get("id")) == str(q.get("nbid"))]
+            if gone and gone[0].get("bonus"):
+                store["ledger"] = wallet.unuse_leftover(store["ledger"], f"bonus-use-own-{gone[0]['id']}", today)
         store["own"] = apply(store["own"], q, today)
         if act == "betwon":
             for b in (store["own"] or {}).get("bets", []):

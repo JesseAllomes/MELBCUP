@@ -16,6 +16,7 @@
     {% if b.state == 'placed' %}<form method="get" action="/sports" class="ch-act"><input type="hidden" name="sport" value="{{ sport or 'nba' }}"><input type="hidden" name="tab" value="{{ sp_tab or nba_tab or '' }}"><input type="hidden" name="nbid" value="{{ b.id }}">
       <label>Paid into your account $<input name="nbr" inputmode="decimal" value="{{ '%.2f' % (b.stake * (b.price or 1)) }}"></label>
       <button type="submit" name="ch" value="betwon" class="won">Won</button><button type="submit" name="ch" value="betlost" class="lost">Lost</button></form>{% endif %}
+    <form method="get" action="/sports" class="ch-act mb-del" onsubmit="return confirm('Delete this bet? It comes off your records.')"><input type="hidden" name="sport" value="{{ sport or 'nba' }}"><input type="hidden" name="tab" value="{{ sp_tab or nba_tab or '' }}"><input type="hidden" name="nbid" value="{{ b.id }}"><input type="hidden" name="op" value="del{{ b.id }}-{{ b.k | default('', true) | length }}"><button type="submit" name="ch" value="betdel" class="ghost">Delete bet</button></form>
   </details>
   {% else %}<p class="say">No open bets, and none settled today.</p>{% endfor %}
 </div>
