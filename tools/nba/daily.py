@@ -351,6 +351,17 @@ def run(store, now, fetch=get):
     board["built"] = now.isoformat()
     body = json.dumps(board).encode()
     store.write(f"{day}/board.json", body); store.write("board-latest.json", body)
+    # the slate after it, so the page moves on once every game of this one has tipped off (owner,
+    # 2026-11-12: no lines from the last tip-off until the evening run)
+    base = dt.datetime.strptime(day, "%Y%m%d").date()
+    for ahead in range(1, AHEAD_DAYS + 2):
+        nday = (base + dt.timedelta(days=ahead)).strftime("%Y%m%d")
+        nboard = cached(f"{API}/scoreboard?dates={nday}")
+        if nboard.get("events"):
+            nb = make_board(games, nday, nboard, cached(f"{API}/injuries"), load_v3())
+            nb["built"] = now.isoformat()
+            store.write(f"{nday}/board.json", json.dumps(nb).encode()); store.write("board-next.json", json.dumps(nb).encode())
+            break
     msg = learn_racing(store) + weekly_refit(store, now) + books_snapshot(store, board, now) + settled + f"nba daily {day}: history +{added} ({len(hist)} games), board {len(board['games'])} games / {len(board['players'])} players"
     print(msg, flush=True)
     return msg

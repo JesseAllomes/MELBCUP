@@ -115,3 +115,28 @@ def test_catalogue_has_its_own_timer(fa, monkeypatch):
     monkeypatch.setattr(fa, "_catalogue_tick", lambda m, s: seen.append("cat"))
     fa.catalogue_run(None)
     assert seen == ["cat"]
+
+
+def test_board_moves_to_next_slate_after_last_tip():
+    import datetime as dt, json, importlib, sys
+    sys.path.insert(0, "azure/function")
+    np_ = importlib.import_module("nba_props")
+
+    class Blob:
+        def __init__(self, data): self.data = data
+        def download_blob(self): return self
+        def readall(self): return json.dumps(self.data).encode()
+
+    class C:
+        def __init__(self, m): self.m = m
+        def get_blob_client(self, n):
+            if n not in self.m: raise FileNotFoundError(n)
+            return Blob(self.m[n])
+
+    now = dt.datetime(2026, 11, 12, 4, 0, tzinfo=dt.UTC)
+    today = {"day": "20261111", "games": [{"when": "2026-11-12T03:30:00Z"}]}
+    nxt = {"day": "20261112", "games": [{"when": "2026-11-13T00:00:00Z"}]}
+    assert np_.load_board(C({"board-latest.json": today, "board-next.json": nxt}), now)["day"] == "20261112"
+    later = {"day": "20261111", "games": [{"when": "2026-11-12T05:00:00Z"}]}
+    assert np_.load_board(C({"board-latest.json": later, "board-next.json": nxt}), now)["day"] == "20261111"
+    assert np_.load_board(C({"board-latest.json": today}), now)["day"] == "20261111"

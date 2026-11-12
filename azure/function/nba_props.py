@@ -357,6 +357,31 @@ def save_logs(nba, view: dict, now: dt.datetime) -> None:
         )
 
 
+def _when(g: dict):
+    try:
+        return dt.datetime.fromisoformat(str(g.get("when")).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def load_board(nba, now: dt.datetime) -> dict | None:
+    """Today's board, or the next slate's once every game today has tipped off (owner, 2026-11-12:
+    from the last tip-off until the evening job the page had no lines at all). None: no board."""
+    try:
+        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
+    except Exception:  # no board yet
+        return None
+    tips = [w for w in map(_when, board.get("games", [])) if w]
+    if tips and max(tips) <= now:
+        try:
+            nxt = json.loads(nba.get_blob_client("board-next.json").download_blob().readall())
+            if str(nxt.get("day", "")) > str(board.get("day", "")):
+                return nxt
+        except Exception:  # no next board yet: today's stays
+            pass
+    return board
+
+
 def build_view(nba, snaps: list[dict], now: dt.datetime, sb_fetch=None, inj_fetch=None) -> str:
     """Work out everything the NBA page shows, for both agencies, and save it gzipped as
     view-latest.json.gz: the web app (a quarter of a CPU) then only reads it, so its pages stay
@@ -365,9 +390,8 @@ def build_view(nba, snaps: list[dict], now: dt.datetime, sb_fetch=None, inj_fetc
     import time
 
     started = time.monotonic()
-    try:
-        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
-    except Exception:  # no board yet
+    board = load_board(nba, now)
+    if board is None:
         return "no board"
     xs = {n: nba_challenge.stage_x(10.0, 1000.0, n, True) for n in nba_challenge.STAGES}
     inj = injuries(inj_fetch) if time.monotonic() - started < VIEW_BUDGET_S / 2 else {}
@@ -404,13 +428,13 @@ def price_legs(nba, snaps: list[dict], now: dt.datetime) -> str:
     """Turn this run's prices into legs and multis with the day's board (written each morning by the
     melbcup-nba job). Games that have started drop out of PointsBet's list, so their legs from the
     last run before tip-off are carried forward: settling needs every leg that was offered."""
-    try:
-        board = json.loads(nba.get_blob_client("board-latest.json").download_blob().readall())
-    except Exception:  # no board yet
+    board = load_board(nba, now)
+    if board is None:
         return "no board"
     day = now.astimezone(NY).strftime("%Y%m%d")
-    if board.get("day") != day:
+    if board.get("day") < day:  # a stale board; today's or the next slate's are fine
         return f"board is for {board.get('day')}, not {day}"
+    day = board.get("day")
     events = _events(snaps)
     res = nba_legs.report(board, events)
     try:
