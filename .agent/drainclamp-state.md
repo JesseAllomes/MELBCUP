@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=225 -->
+<!-- drainclamp-build: state; schema=1; generation=226 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-08T10:39:16+00:00 9fcec3c9 2026-11-08 nfl1 DONE+DEPLOYED (web, job, function): nfl_legs (pk1 via nba_legs), nfl_live (ESPN), live_chance NFL (Poisson counts, normal yards, blowout), nfl_settle, challenge scope nfl, NFL tab = NBA sub-tabs. Verified live: NFL best multis render. Approximations: SGM legs independent, props market-only, absent player -> void. Football catalogue fix (unreached comps keep shard) deployed, unverified (owner: stop watching).
 - 2026-11-08T12:21:05+00:00 ec6d5a40 2026-11-08 DEPLOYED (web, job, function): NFL page = NBA templates (page_view, challenge accordion, forms stay on sport); NFL player model (nflverse 2018-26, NB/normal per stat, beats naive baseline on 2025 hold-out, blend w=0.25 prior, NBA real-price test chose 0) + NFL same-game CORR (QB yds~catcher yds +0.32 oos). TODO: run tools/nfl/blend_fit.py on blob catalogue/raw/nfl once settled outcomes accrue; refresh data/nfl/means.json weekly (token-free).
 - 2026-11-08T23:27:14+00:00 8785d98d 2026-11-08 nfl2 deployed + verified live (Playwright): NFL tabs no NBA names, NFL challenge list own-sport only, new-challenge fixed to NFL, preview honours start/goal/mode (game: best 2 @1.6%, multi: best 3 @1.9% for $10->$250), Stages pre-set; popups fit screen. Not done: chplan when run exists.
 - 2026-11-09T06:45:00+00:00 803732be 2026-11-09 FIX deployed: nba_live._event matches on team nicknames (label 'Los Angeles Clippers' vs ESPN 'LA Clippers' -> C stuck 'in play 38%' all afternoon). C now final: Derik Queen 3 ast (Under 2.5) failed, Hachimura hit.
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-11T02:31:15+00:00 5e242c3f 2026-11-11 DEPLOYED: stage keeps earlier picks (shown_prev, 5 max, this stage) on re-pick/Find best/bookmaker switch; 'Placed an earlier pick?' -> Use this one -> slip -> challenge Place.
 - 2026-11-11T03:14:15+00:00 808ccddd 2026-11-11 Owner bet recorded: Test 2 (ch20) stage 1 placed PB $5 @4.50 Clippers@Suns (Dunn U7.5 pts, Maluach U6.5 pts, Booker O1.5 3PM), backup challenges/backup-before-test2-place-20261111T0305.json; live 22% at half. Fix deployed: row refresh keeps opened <details> (tap opened then closed). Not reproduced directly.
 - 2026-11-11T03:51:16+00:00 77bc0358 2026-11-11 FIX deployed: nfl_live.is_nfl kept digits ('76ers' had normalised to 'ers' = 49ers -> NBA 76ers bets routed to NFL feed, tracker frozen). Test (ch19) now final: Simons 17 (U6.5 failed), Robinson 2 (hit) -> lost1. Test 2 (ch20) 96% Q3.
+- 2026-11-12T02:59:46+00:00 3cad814b 2026-11-12 LIVE PICKER -> v1 (web, job, Function app setting PICKER=v1). Evidence since v2 live (ab_report, 4,482 legs): bench unders got 54.4%, v1 said 53.2, v2 said 57.9 (overrated 3.4); bench overs got 32.2, v1 36.4, v2 29.3; v2 multis said 26.5 got 22.8 (n=79) vs v1 23.0/24.4 (n=626). v2+v3 keep logging as shadows. Owner: 'unders keep dying'. Revert: PICKER=v2 in json + Function setting.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
