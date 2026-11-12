@@ -94,7 +94,7 @@
         "env": [
           {
             "name": "PICKER",
-            "value": "v2"
+            "value": "v1"
           },
           {
             "name": "PRICE_MODE",

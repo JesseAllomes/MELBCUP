@@ -48,7 +48,7 @@
           "env": [
             {
               "name": "PICKER",
-              "value": "v2"
+              "value": "v1"
             },
             {
               "name": "AZURE_CLIENT_ID",
