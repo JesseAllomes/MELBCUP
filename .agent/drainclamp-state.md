@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=228 -->
+<!-- drainclamp-build: state; schema=1; generation=229 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-09T06:45:00+00:00 803732be 2026-11-09 FIX deployed: nba_live._event matches on team nicknames (label 'Los Angeles Clippers' vs ESPN 'LA Clippers' -> C stuck 'in play 38%' all afternoon). C now final: Derik Queen 3 ast (Under 2.5) failed, Hachimura hit.
 - 2026-11-09T08:05:05+00:00 bd23b266 2026-11-09 NFL: catalogue 8-day window (14 games); game-line legs (Moneyline 2-way, spread, full-game totals) priced from own pair only, verified chance*price 0.85-1.0 on 1,908 live legs + live page (46% @ $2.00). Incident: first agent version paired lines via prop code (85% on $1.20/$2.20 wins) -> pulled within minutes; a bad git revert briefly undid part of NFL/NBA separation on live (restored, verified).
 - 2026-11-09T09:31:05+00:00 4e19afbd 2026-11-09 OWNER POLICY (restated): never use head-to-head in automatic picks, any sport (wins less often than priced). Applied: discover.leg_of all sports, NFL legs = props + spreads + full-game totals. Deployed, live NFL page verified (no 'to win').
 - 2026-11-10T02:54:48+00:00 c4d7332d 2026-11-10 Owner asked for Fable review (unders kill multis). Pre-check: unders calibrated (52.0 said/53.5 got, -1.5c vs overs -18.5c) but picked at ~58% vs overs ~72%; mixed multis underperform (thin). Fable 5.1 started (5.2 not available) on forward-v2.jsonl -> research/nba/fable_review_2026-11-10.md + tools/nba/review/.
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-12T02:59:46+00:00 3cad814b 2026-11-12 LIVE PICKER -> v1 (web, job, Function app setting PICKER=v1). Evidence since v2 live (ab_report, 4,482 legs): bench unders got 54.4%, v1 said 53.2, v2 said 57.9 (overrated 3.4); bench overs got 32.2, v1 36.4, v2 29.3; v2 multis said 26.5 got 22.8 (n=79) vs v1 23.0/24.4 (n=626). v2+v3 keep logging as shadows. Owner: 'unders keep dying'. Revert: PICKER=v2 in json + Function setting.
 - 2026-11-12T04:00:47+00:00 5c420acc 2026-11-12 Refit v3 run now (37,926 legs; bench pts over -5.0, bench pts under +3.2, bench reb under +2.7, star ast under +7.1; LODO mse market 0.1736 vs lean 0.1735 = no real gain) -> uploaded picker/lean-v3.json (shadow). Next-slate board: job writes board-next.json, Function load_board moves on after last tip; job run manually 03:50Z; view now day 20261112 (PB 4 games, SB 4) but 0 legs: PB/SB have not posted tomorrow's NBA props yet (catalogue nba: 4 events, 0 player rows).
 - 2026-11-12T04:05:50+00:00 d80f4f76 2026-11-12 DEPLOYED: My bets 'Delete bet' (act betdel, open or settled; bonus credit returned via unuse_leftover).
+- 2026-11-13T00:49:20+00:00 a0a2d04a 2026-11-13 DEPLOYED: Remove works with placed stage (was refusing 'settle its placed stage first', error easy to miss), confirm dialog; stage timeline removed from top of NBA/NFL challenge tab; challenge pick searches memoised per prices timestamp (server 0.6-1.3s -> 0.01-0.3s; occasional 0.7s store read); page timing HTML comment.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
