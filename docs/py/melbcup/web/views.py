@@ -1538,7 +1538,11 @@ class Views:
         self.timing = {"context": time.perf_counter() - t0}
         ctx["cookies"] = cookies or {}
         if self.settings.asynym and path != "/history":
-            return self._asynym_page(path, query, ctx)
+            html = self._asynym_page(path, query, ctx)
+            # where the time went, as an HTML comment (owner, 2026-11-13: "slow and clunky")
+            tt = getattr(self, "_tt", {}) or {}
+            self._tt = {}
+            return html + "<!-- t total %.2f %s -->" % (time.perf_counter() - t0, " ".join(f"{k} {v:.2f}" for k, v in sorted(tt.items(), key=lambda kv: -kv[1])[:10]))
         if path == "/":
             return self.env.get_template("day.html").render(ctx)
         if path == "/history":
@@ -1789,3 +1793,26 @@ class Views:
         else:
             raise NotFound(name)
         return back
+
+
+
+def _timed(name):
+    """Add a method's run time to the page's timing comment (see Views.page)."""
+    import functools
+
+    def wrap(fn):
+        @functools.wraps(fn)
+        def inner(self, *a, **k):
+            t = time.perf_counter()
+            try:
+                return fn(self, *a, **k)
+            finally:
+                tt = self.__dict__.setdefault("_tt", {})
+                tt[name] = tt.get(name, 0.0) + time.perf_counter() - t
+        return inner
+    return wrap
+
+
+for _n in ("_context", "_nba_view", "_challenge", "_best_elsewhere", "_stage_preview", "_sport_challenge", "_bonus_credits"):
+    if hasattr(Views, _n):
+        setattr(Views, _n, _timed(_n.strip("_"))(getattr(Views, _n)))

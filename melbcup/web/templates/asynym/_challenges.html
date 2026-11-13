@@ -45,7 +45,7 @@
   <form method="get" action="/sports" class="ch-act chs-rename"><input type="hidden" name="sport" value="{{ sport }}"><input type="hidden" name="tab" value="challenge"><input type="hidden" name="chid" value="{{ cid }}"><input type="hidden" name="op" value="{{ chs.op }}">
     <label>Rename <input name="chname" maxlength="40" value="{{ chs.open.name }}"></label>
     <button type="submit" name="ch" value="renamech" class="ghost">Rename</button>
-    <button type="submit" name="ch" value="rmch" class="ghost">Remove</button></form>
+    <button type="submit" name="ch" value="rmch" class="ghost" onclick="return confirm('Remove this challenge and its record? This cannot be undone.')">Remove challenge</button></form>
   {% endif %}
   {% if ch and not ch.get('placed') %}
   <form method="get" action="/sports" class="ch-act ch-legs">

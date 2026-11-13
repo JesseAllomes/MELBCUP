@@ -77,7 +77,7 @@
   <p class="note">Same-game multi: {{ nba_agency_name or 'PointsBet' }} prices it itself, usually below the legs multiplied. The chance treats the legs as separate; in one game they are linked, so take it as a guide.</p>
 </section>
 {% elif nba_tab == 'challenge' %}
-{% include 'asynym/_timeline.html' %}
+{# the stage timeline is no longer above the challenge list (owner, 2026-11-13): each open challenge shows its own stages #}
 {% include 'asynym/_challenges.html' %}
 {% elif nba_tab == 'games' %}
 {% for gm in rep.by_game or [] %}

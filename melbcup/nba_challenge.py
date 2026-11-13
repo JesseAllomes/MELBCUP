@@ -988,10 +988,8 @@ def _dispatch(store: dict, act: str, q: Mapping[str, str], today: str, op: str) 
     elif act == "renamech":
         rec["name"] = (q.get("chname") or "").strip()[:40] or rec["name"]
     elif act == "rmch":
-        if rec["state"].get("placed") or any(
-            w["challenge"] == rec["id"] and w["state"] == "placed" for w in store["wagers"]
-        ):
-            raise ValueError("settle its placed stage or wager first")
+        # owner, 2026-11-13: Remove works even with a placed stage (the page asks first); it used
+        # to refuse with "settle its placed stage or wager first", easy to miss at the top
         for c in wallet.credits(store["ledger"], today).values():
             if c["challenge"] == rec["id"] and c["status"] == "reserved":
                 store["ledger"] = wallet.append(
