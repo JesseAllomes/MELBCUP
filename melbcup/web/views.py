@@ -922,7 +922,7 @@ class Views:
             legs = [g for g in legs_now if nba_challenge.allowed(state, g.get("startsAt"))]
             # the searches only change when the prices do (every 10 min): remembered until then
             # (owner, 2026-11-13: the Challenge tab spent ~0.6 s per load re-searching)
-            ck = (id(legs_now), len(legs_now), len(legs), round(x, 4), round(state["bank"], 2), state.get("mode", "game"),
+            ck = (str((ctx.get("nba") or {}).get("priced_at")), len(legs_now), len(legs), round(x, 4), round(state["bank"], 2), state.get("mode", "game"),
                   json.dumps(lim, sort_keys=True), ctx.get("nba_agency"), state.get("pick"))
             memo = self.__dict__.setdefault("_ch_memo", {})
             if ck in memo:
