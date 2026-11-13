@@ -8,6 +8,7 @@ where to go next.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import os
 import secrets
@@ -919,15 +920,26 @@ class Views:
             x = nba_challenge.next_x(state)
             # only games this stage may use: spaced from tonight's earlier stage, or a later night
             legs = [g for g in legs_now if nba_challenge.allowed(state, g.get("startsAt"))]
-            if state.get("mode", "game") == "game":
-                games = nba_legs.same_game_for(legs, x, stake=state["bank"], **lim)
-                step = max(games, key=lambda m: m["chance"]) if games else None
-                chosen = state.get("pick")  # a game the owner stuck to for this stage
-                if chosen:
-                    step = next((m for m in games if m.get("game") == chosen), step)
-                alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
+            # the searches only change when the prices do (every 10 min): remembered until then
+            # (owner, 2026-11-13: the Challenge tab spent ~0.6 s per load re-searching)
+            ck = (id(legs_now), len(legs_now), len(legs), round(x, 4), round(state["bank"], 2), state.get("mode", "game"),
+                  json.dumps(lim, sort_keys=True), ctx.get("nba_agency"), state.get("pick"))
+            memo = self.__dict__.setdefault("_ch_memo", {})
+            if ck in memo:
+                step, games, alt_agency = memo[ck]
             else:
-                step = nba_legs.stack_for(legs, x, stake=state["bank"], **lim)
+                if state.get("mode", "game") == "game":
+                    games = nba_legs.same_game_for(legs, x, stake=state["bank"], **lim)
+                    step = max(games, key=lambda m: m["chance"]) if games else None
+                    chosen = state.get("pick")  # a game the owner stuck to for this stage
+                    if chosen:
+                        step = next((m for m in games if m.get("game") == chosen), step)
+                    alt_agency = self._best_elsewhere(state, x, step, nba_challenge, nba_legs)
+                else:
+                    step = nba_legs.stack_for(legs, x, stake=state["bank"], **lim)
+                if len(memo) > 64:
+                    memo.clear()
+                memo[ck] = (step, games, alt_agency)
             sh = nba_challenge.shown_for(state)
             ag = ctx.get("nba_agency")
             if step and not sh:
