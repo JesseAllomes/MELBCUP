@@ -558,7 +558,9 @@ window.azKeepOpen = function (box, swap) {
   // ---------- the slip ----------
   var KEY = "asynym.slip.v1", mem = [];
   function load() { try { var v = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(v)) return v; } catch (x) { /* none */ } return mem; }
-  function save(a) { mem = a; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (x) { /* kept in memory */ } }
+  // An emptied slip (cleared, placed, last leg removed) forgets the challenge it was loaded for, so a
+  // later slip can never land in that old challenge (owner, 2026-11-24: a bet for challenge 21 went to "test").
+  function save(a) { mem = a; try { localStorage.setItem(KEY, JSON.stringify(a)); if (!a.length) localStorage.removeItem(KEY + "-for"); } catch (x) { /* kept in memory */ } }
   var cfg = {};
   function readCfg() { try { var ce = document.getElementById("slip-cfg"); if (ce) cfg = JSON.parse(ce.textContent || "{}"); } catch (x) { /* keep the last */ } }
   readCfg();
@@ -743,7 +745,9 @@ window.azKeepOpen = function (box, swap) {
     var list = (cfg.challenges || []).filter(function (c) { return sp === "home" || c.scope === "all" || c.scope === sp; });
     openSheet("Use in a challenge", "", function (S) {
       var pick = null, book = ((cfg.books || [])[0] || {}).code || "sb";
+      var here = new URLSearchParams(location.search).get("chid");  // the challenge page you are on wins
       try { var f = localStorage.getItem(KEY + "-for"); if (f && list.some(function (c) { return c.id === f; })) pick = f; } catch (x) { /* storage off */ }
+      if (here && list.some(function (c) { return c.id === here; })) pick = here;
       var draw = function () {
         var h = '<div class="sh-kv"><b>Challenge next leg</b><span>' + money(z.price) + " · " + pct(z.chance) + '</span></div>';
         h += list.length ? list.map(function (c) { return '<button type="button" class="sh-pick' + (pick === c.id ? " on" : "") + '" data-c="' + esc(c.id) + '">' + esc(c.name) + '<small>Stage ' + (c.stage + 1) + " of " + c.stages + " · bank " + money(c.bank) + " · target " + c.x.toFixed(1) + "x</small></button>"; }).join("") : '<p class="say">No running challenge for this sport.</p>';
