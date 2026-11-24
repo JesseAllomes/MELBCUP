@@ -1,4 +1,4 @@
-<!-- drainclamp-build: state; schema=1; generation=229 -->
+<!-- drainclamp-build: state; schema=1; generation=230 -->
 # DrainClamp state
 
 <!-- DC:ARCH -->
@@ -126,7 +126,6 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 <!-- /DC:VERIFY -->
 
 <!-- DC:LOG -->
-- 2026-11-09T08:05:05+00:00 bd23b266 2026-11-09 NFL: catalogue 8-day window (14 games); game-line legs (Moneyline 2-way, spread, full-game totals) priced from own pair only, verified chance*price 0.85-1.0 on 1,908 live legs + live page (46% @ $2.00). Incident: first agent version paired lines via prop code (85% on $1.20/$2.20 wins) -> pulled within minutes; a bad git revert briefly undid part of NFL/NBA separation on live (restored, verified).
 - 2026-11-09T09:31:05+00:00 4e19afbd 2026-11-09 OWNER POLICY (restated): never use head-to-head in automatic picks, any sport (wins less often than priced). Applied: discover.leg_of all sports, NFL legs = props + spreads + full-game totals. Deployed, live NFL page verified (no 'to win').
 - 2026-11-10T02:54:48+00:00 c4d7332d 2026-11-10 Owner asked for Fable review (unders kill multis). Pre-check: unders calibrated (52.0 said/53.5 got, -1.5c vs overs -18.5c) but picked at ~58% vs overs ~72%; mixed multis underperform (thin). Fable 5.1 started (5.2 not available) on forward-v2.jsonl -> research/nba/fable_review_2026-11-10.md + tools/nba/review/.
 - 2026-11-10T03:09:36+00:00 7eba7b35 2026-11-10 Fable review done (research/nba/fable_review_2026-11-10.md): unders calibrated (58.5/58.4); leak = overs on low-line players (<12 pts median) said 70 got 62-65; rec: role-aware lean (replay +6.4 pts same-game), re-pick on >3% price drift, rung margin >$2.20, keep two-book mean; don't ban unders/mixed. Awaiting owner go for shadow A/B.
@@ -146,6 +145,7 @@ FormFav key now on free plan and over quota until 2026-10-30 08:05Z after backte
 - 2026-11-12T04:00:47+00:00 5c420acc 2026-11-12 Refit v3 run now (37,926 legs; bench pts over -5.0, bench pts under +3.2, bench reb under +2.7, star ast under +7.1; LODO mse market 0.1736 vs lean 0.1735 = no real gain) -> uploaded picker/lean-v3.json (shadow). Next-slate board: job writes board-next.json, Function load_board moves on after last tip; job run manually 03:50Z; view now day 20261112 (PB 4 games, SB 4) but 0 legs: PB/SB have not posted tomorrow's NBA props yet (catalogue nba: 4 events, 0 player rows).
 - 2026-11-12T04:05:50+00:00 d80f4f76 2026-11-12 DEPLOYED: My bets 'Delete bet' (act betdel, open or settled; bonus credit returned via unuse_leftover).
 - 2026-11-13T00:49:20+00:00 a0a2d04a 2026-11-13 DEPLOYED: Remove works with placed stage (was refusing 'settle its placed stage first', error easy to miss), confirm dialog; stage timeline removed from top of NBA/NFL challenge tab; challenge pick searches memoised per prices timestamp (server 0.6-1.3s -> 0.01-0.3s; occasional 0.7s store read); page timing HTML comment.
+- 2026-11-24T01:26:26+00:00 73b50801 2026-11-24 Owner: bet placed for challenge 21 was marked placed in 'test'. Cause: slip remembered 'Edit these legs' challenge (localStorage -for) forever; 'Use in a challenge' preselected it. Fix cade6c21 (emptied slip forgets it; page chid wins), browser-checked, challenge tests green, pushed branch. Web deploy blocked: cost_guard C10 vs stale origin/main (budget 26->27, catalogue_run: both previously approved); LIMITS_APPROVED=1 deploy denied by classifier, needs owner OK. Data: test still holds the placed stage; ch21 not placed. No unplace action exists.
 <!-- /DC:LOG -->
 
 ## 2026-11-07 sports models shipped
